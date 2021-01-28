@@ -1,0 +1,76 @@
+Installation
+============
+This application has been built upon the Banshee PHP framework. Use the
+following steps to install a Banshee based website.
+
+
+Configure your webserver
+------------------------
+Use the directory 'public' as the webroot directory and allow PHP execution.
+Banshee needs URL rewriting. If you use the Hiawatha webserver, you can use
+the following configuration:
+
+	UrlToolkit {
+		ToolkitID = banshee
+		RequestURI isfile Return
+		Match ^/(css|files|fonts|images|js)(/|$) Return
+		Match ^/(favicon.ico|robots.txt)$ Return
+		Match [^?]*(\?.*)? Rewrite /index.php$1
+	}
+
+	Directory {
+		DirectoryID = files
+		Path = /files
+		StartFile = index.html
+		ShowIndex = yes
+		ExecuteCGI = no
+	}
+
+	Directory {
+		DirectoryID = static
+		Path = /css, /fonts, /images, /js
+		ExpirePeriod = 2 weeks
+	}
+
+	VirtualHost {
+		...
+		UseToolkit = banshee
+		UseDirectory = static, files
+	}
+
+
+For Apache, there is a .htaccess file in the 'public' directory which contains
+the required URL rewriting rules. If you use another webserver, you have to
+convert the rewriting rules to your webserver's configuration.
+
+
+Configure PHP
+-------------
+Banshee requires at least PHP v7.2 and needs PHP's JSON, MySQL and XML module.
+If you use the Banshee image library, you need PHP's GD module. Make sure the
+date.timezone setting in php.ini has been set correctly.
+
+
+Configure your database
+-----------------------
+Open your browser, type in the URL of your website and add /setup to it. Follow
+the instructions on your screen to setup your database. After this step,
+disable the setup module in settings/public_modules.conf.
+
+
+Configure Cronjob
+-----------------
+Configure cronjob to run the script database/backup_database once per day.
+
+
+Configure Banshee
+-----------------
+Go to the Settings administration page in Banshee's CMS and replace the present
+e-mail addresses with your own. Before going live, disable the setup module in
+the file settings/public_modules.conf.
+
+
+Websocket Server
+----------------
+This application requires a websocket server. Unpack extra/ws_server.tar.gz and
+follow the instructions in the INSTALL file.

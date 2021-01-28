@@ -1,0 +1,59 @@
+@font-face {
+	font-family:Raleway;
+	src:url(/fonts/Raleway-200.woff);
+	font-weight:200;
+}
+
+@font-face {
+	font-family:Raleway;
+	src:url(/fonts/Raleway-400.woff);
+	font-weight:400;
+}
+
+* {
+	margin:0;
+	padding:0;
+}
+
+html, body {
+	height:100%;
+	font-family:Raleway;
+	font-weight:400;
+}
+
+div.wrapper {
+	min-height:100%;
+	position:relative;
+}
+
+h1 {
+	font-size:32px;
+	margin-top:0;
+	color:#5385c1;
+}
+
+h2 {
+	font-size:22px;
+	margin-top:5px;
+	margin-bottom:5px;
+}
+
+h3 {
+	font-size:18px;
+}
+
+a {
+	color:#30a0e0;
+}
+
+/* Content
+ */
+.container {
+	max-width:none;
+}
+
+@media (min-width:1200px) {
+	.container {
+		width:100%;
+	}
+}

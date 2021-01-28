@@ -1,0 +1,81 @@
+#!/usr/bin/php
+<?php
+	/* Copyright (C) by Hugo Leisink <hugo@leisink.net>
+	 * This file is part of the Banshee PHP framework
+	 * https://www.banshee-php.org/
+	 *
+	 * Licensed under The MIT License
+	 *
+	 * Example: add_font Open Sans:400i
+	 */
+
+	error_reporting(E_ALL & ~E_NOTICE);
+	chdir(__DIR__."/../public");
+	require "../libraries/core/banshee.php";
+
+	if (count($argv) <= 1) {
+		printf("Usage: %s <font name>\n", $argv[0]);
+		exit;
+	}
+
+	array_shift($argv);
+	$font = implode(" ", $argv);
+	$font = str_replace(" ", "+", $font);
+
+	$font_api = new \Banshee\Protocol\HTTPS("fonts.googleapis.com");
+	if (($result = $font_api->GET("/css?family=".$font)) === false) {
+		exit("Fonts API error.\n");
+	}
+
+	if ($result["status"] != 200) {
+		exit("Font not found.\n");
+	}
+
+	$css = $result["body"];
+	$url = null;
+
+	$lines = explode("\n", $css);
+	foreach ($lines as $line) {
+		if (substr(ltrim($line), 0, 4) == "src:") {
+			if (($begin = strpos($line, "url(")) === false) {
+				continue;
+			}
+			$begin += 4;
+			if (($end = strpos($line, ")", $begin)) === false) {
+				continue;
+			}
+
+			$url = substr($line, $begin, $end - $begin);
+		}
+	}
+
+	if ($url === null) {
+		exit("No src found in CSS.\n");
+	}
+
+	list($protocol,, $hostname, $path) = explode("/", $url, 4);
+	$path = "/". $path;
+
+	if ($protocol == "http:") {
+		$http = new \Banshee\Protocol\HTTP($hostname);
+	} else if ($protocol == "https:") {
+		$http = new \Banshee\Protocol\HTTPS($hostname);
+	} else {
+		printf("Unknow protocol (%s) in font url.\n", $protocol);
+		exit;
+	}
+
+	$result = $http->GET($path);
+
+	$file = str_replace("+", "", $font);
+	$file = "fonts/".str_replace(":", "-", $file).".woff";
+	if (($fp = fopen($file, "w")) == false) {
+		printf("Can't write font file.\n");
+		exit;
+	}
+
+	fputs($fp, $result["body"]);
+	fclose($fp);
+
+	printf("Font written to public/%s.\n", $file);
+?>

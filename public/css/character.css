@@ -1,0 +1,22 @@
+table.table th:nth-child(n+2) {
+	width:100px;
+}
+
+div.input-group {
+	max-width:500px;
+}
+
+span.input-group-btn label {
+	padding:6px 25px;
+}
+
+img.portrait {
+	display:block;
+}
+
+@media (min-width:767px ) {
+	img.portrait {
+		float:right;
+		max-width:200px;
+	}
+}

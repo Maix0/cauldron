@@ -1,0 +1,37 @@
+#!/bin/bash
+
+cd `dirname $0`/../public/js/webui
+
+if [ "$1" = "" ]; then
+	echo "Usage: $0 <version>"
+	exit
+fi
+
+version=$1
+
+echo "Downloading jQuery UI v${version}."
+wget -qO jquery-ui.zip http://jqueryui.com/resources/download/jquery-ui-${version}.zip
+
+if [ ! -s jquery-ui.zip ]; then
+	rm -f jquery-ui.zip
+	echo "Download error."
+	exit
+fi
+
+echo "Installing jQuery UI."
+unzip jquery-ui.zip > /dev/null
+mv jquery-ui-${version}/jquery-ui.min.js jquery-ui.js
+
+rm -f ../../css/jquery/*
+for file in `ls jquery-ui-${version}/*.min.css`; do
+	new=`echo ${file} | sed 's/\.min\./\./'`
+	new=`basename ${new}`
+	cat ${file} | sed 's/url("images/url("\/images\/jquery/g' > ../../css/jquery/${new}
+done
+
+rm -f ../../images/jquery/*
+mv -f jquery-ui-${version}/images/* ../../images/jquery
+
+echo "Cleaning up."
+rm -rf jquery-ui-${version}
+rm -f jquery-ui.zip

@@ -1,0 +1,79 @@
+#!/usr/bin/php
+<?php
+	chdir(__DIR__);
+	require "../libraries/banshee/core/banshee.php";
+
+	/* Returns database table structure
+	 */
+	function get_structure($db, $table) {
+		if (($columns = $db->execute("show columns from %S", $table)) == false) {
+			return false;
+		}
+
+		$structure = array();
+		foreach ($columns as $column) {
+			if (strstr($column["Type"], "tinyint") !== false) {
+				array_push($structure, $column["Field"]);
+			}
+		}
+
+		return $structure;
+	}
+
+	/* Return pages
+	 */
+	function get_columns($pages) {
+		$columns = array();
+
+		foreach ($pages as $page) {
+			$page = str_replace("*/", "", $page);
+			array_push($columns, $page);
+		}
+
+		return array_unique($columns);
+	}
+
+	/* Connect to the database
+	 */
+	$db = new \Banshee\Database\MySQLi_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
+	if ($db->connected == false) {
+		exit("Internal error: database not available.\n");
+	}
+
+	/* Get column information
+	 */
+	if (($columns_db = get_structure($db, "roles")) === false) {
+		exit("Error while reading table structure.\n");
+	}
+	$columns_new = get_columns(config_file("private_modules"));
+
+	/* Add columns
+	 */
+	foreach ($columns_new as $col) {
+		if (in_array($col, $columns_db) == false) {
+			print "Adding column '".$col."': ";
+			if ($db->query("alter table roles add %S tinyint default 0", $col) == false) {
+				print mysql_error();
+			} else if ($db->query("update roles set %S=1 where id=1", $col) == false) {
+				print mysql_error();
+			} else {
+				print "ok";
+			}
+			print "\n";
+		}
+	}
+
+	/* Remove columns
+	 */
+	foreach ($columns_db as $col) {
+		if (in_array($col, $columns_new) == false) {
+			print "Deleting column '".$col."': ";
+			if ($db->query("alter table roles drop %S", $col) == false) {
+				print mysql_error();
+			} else {
+				print "ok";
+			}
+			print "\n";
+		}
+	}
+?>

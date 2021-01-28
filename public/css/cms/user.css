@@ -1,0 +1,38 @@
+span.generate {
+	margin-left:10px;
+}
+
+input[type=checkbox] {
+	margin-right:5px;
+}
+
+div.input-group {
+	max-width:500px;
+}
+
+span.info {
+	cursor:pointer;
+	color:#ff8000;
+	font-weight:bold;
+}
+
+div#as_dialog {
+	display:none;
+}
+
+@media (max-width:639px) {
+	table.table th:nth-child(4),
+	table.table td:nth-child(4) {
+		display:none;
+	}
+}
+
+
+@media (max-width:767px) {
+	table.table th:nth-child(2),
+	table.table td:nth-child(2),
+	table.table th:nth-child(n+5),
+	table.table td:nth-child(n+5) {
+		display:none;
+	}
+}

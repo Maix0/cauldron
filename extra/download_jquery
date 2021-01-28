@@ -1,0 +1,22 @@
+#!/bin/bash
+
+cd `dirname $0`/../public/js/webui
+
+if [ "$1" = "" ]; then
+	echo "Usage: $0 <version>"
+	exit
+fi
+
+version=$1
+
+echo "Downloading jQuery v${version}."
+wget -qO jquery-min.js http://code.jquery.com/jquery-${version}.min.js
+
+if [ ! -s jquery-min.js ]; then
+	rm -f jquery-min.js
+	echo "Download error."
+	exit
+fi
+
+echo "Installing jQuery."
+mv -f jquery-min.js jquery.js

@@ -1,0 +1,72 @@
+div.menu {
+	position:absolute;
+	top:5px;
+	right:15px;
+	margin:0;
+}
+
+div.menu div.btn-group {
+	margin:0;
+	display:inline-block;
+}
+
+div.playarea {
+	position:absolute;
+	top:40px;
+	right:215px;
+	bottom:0;
+	left:15px;
+	border:1px dashed red;
+	overflow:auto;
+}
+
+div.sidebar {
+	position:absolute;
+	height:150px;
+	right:0px;
+	bottom:0px;
+	width:200px;
+}
+
+div.library {
+	position:absolute;
+	top:40px;
+	right:0px;
+	bottom:165px;
+	width:200px;
+	overflow-y:scroll;
+	padding-right:15px;
+}
+
+div.library img.icon {
+	float:left;
+	max-width:50px;
+	max-height:50px;
+}
+
+div.library div.well div {
+    margin-left:60px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+div.token,
+div.character {
+	position:absolute;
+}
+
+div.token img,
+div.character img {
+	cursor:grab;
+}
+
+div.character span {
+	display:block;
+	font-size:8px;
+	text-align:center;
+	color:#000000;
+	background-color:#ffffff;
+	border:1px solid #808080;
+	padding:1px 3px;
+}

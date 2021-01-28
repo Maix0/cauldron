@@ -1,0 +1,7 @@
+<html>
+<body>
+<p>A new account has been created at the [HOSTNAME] website for:</p>
+<p>[FULLNAME] &lt;[EMAIL]&gt;: [USERNAME]</p>
+<p>IP address: [IP_ADDR]</p>
+<body>
+</html>

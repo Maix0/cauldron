@@ -1,0 +1,10 @@
+form.search input[type=button] {
+	padding:6px 10px;
+}
+
+@media (min-width:300px) {
+	form.search {
+		float:right;
+		margin-top:-45px;
+	}
+}

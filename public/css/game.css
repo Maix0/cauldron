@@ -1,0 +1,98 @@
+div.menu {
+	position:absolute;
+	top:5px;
+	right:15px;
+	margin:0;
+}
+
+div.menu div.btn-group {
+	margin:0;
+	display:inline-block;
+}
+
+div.menu select.map-selector {
+	margin-right:15px;
+	display:inline-block;
+	width:200px;
+	height:20px;
+	padding:0;
+	position:relative;
+	top:1px;
+	font-family:sans-serif;
+	font-size:12px;
+}
+
+table.table th:last-child {
+	width:200px;
+}
+
+div.playarea {
+	position:absolute;
+	top:40px;
+	right:215px;
+	bottom:0;
+	left:15px;
+	border:1px dashed red;
+	overflow:auto;
+}
+
+div.playarea video {
+	position:absolute;
+	left:0;
+	top:0;
+}
+
+div.sidebar {
+	position:absolute;
+	top:40px;
+	right:0px;
+	bottom:55px;
+	width:200px;
+	overflow-y:scroll
+}
+
+div.input {
+	position:absolute;
+	right:10px;
+	bottom:5px;
+	width:195px;
+	height:40px;
+}
+
+div.token,
+div.character {
+	position:absolute;
+}
+
+div.token img,
+div.character img {
+	cursor:grab;
+}
+
+div.hitpoints {
+	position:relative;
+	top:-5px;
+	margin-bottom:-4px;
+	height:4px;
+	border:1px solid #808080;
+	background-color:#ff0000;
+}
+
+div.hitpoints div.damage {
+	position:absolute;
+	right:0;
+	height:100%;
+	background-color:#000000;
+	float:right;
+}
+
+div.token span,
+div.character span {
+	display:block;
+	font-size:8px;
+	text-align:center;
+	color:#000000;
+	background-color:#ffffff;
+	border:1px solid #808080;
+	padding:1px 3px;
+}

@@ -1,0 +1,34 @@
+@media (min-width:767px) {
+	form.search {
+		float:right;
+		margin-top:-45px;
+		margin-right:100px;
+	}
+}
+
+div.search input.reset {
+	padding:6px 10px;
+}
+
+div.datatable {
+	clear:both;
+	overflow:auto;
+	margin-bottom:15px;
+}
+
+table.datatable tr.click:hover {
+	color:#ff8000;
+	cursor:pointer;
+}
+
+div.content ul.pagination {
+	margin-top:15px;
+}
+
+div.left {
+	float:left;
+}
+
+div.right {
+	float:right;
+}

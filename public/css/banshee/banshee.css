@@ -1,0 +1,132 @@
+div.left {
+	float:left;
+}
+
+div.right {
+	float:right;
+}
+
+div.clear {
+	clear:both;
+}
+
+label + input[type=checkbox] {
+	display:block;
+	margin-top:0;
+	margin-bottom:5px;
+}
+
+input[type=checkbox] {
+	margin-left:5px;
+}
+
+img.title_icon {
+	float:right;
+	margin-top:-15px;
+	margin-bottom:-15px;
+}
+
+/* Bootstrap tweaks
+ */
+@media (max-width:767px) {
+	input.form-control, textarea.form-control, select.form-control {
+		font-size:16px;
+	}
+}
+
+@media (min-width:768px) {
+	input.form-control, textarea.form-control, select.form-control {
+		max-width:500px;
+	}
+
+	.btn {
+		padding:6px 24px;
+	}
+}
+
+textarea.form-control {
+	height:75px;
+}
+
+div.input-group, input.form-control, textarea.form-control, select.form-control {
+	margin-bottom:5px;
+}
+
+table.table-hover tbody tr:hover {
+	cursor:pointer;
+}
+
+div.btn-group {
+	margin:15px 10px 10px 0;
+}
+
+.btn-xs {
+	padding:0 16px;
+}
+
+/* table-xs
+ */
+@media (max-width:767px) {
+	table.table-xs > thead > tr > th,
+	table.table-xs > tbody > tr > td,
+	table.table-xs > tfoot > tr > td {
+		display:block;
+	}
+
+	table.table-xs > thead > tr > th:last-child {
+		border:none;
+	}
+
+	table.table-xs > thead > tr > th:first-child,
+	table.table-xs > tbody > tr > td:first-child,
+	table.table-xs > tfoot > tr > td:first-child {
+		border-top:2px solid #808080;
+	}
+
+	table.table-xs thead.table-xs {
+		display:none;
+	}
+
+	table.table-xs span.table-xs {
+		font-weight:bold;
+		margin-right:3px;
+	}
+	table.table-xs span.table-xs:after {
+		content:":";
+	}
+}
+
+@media (min-width:768px) {
+	table.table-xs span.table-xs {
+		display:none;
+	}
+}
+
+/* div.btn-responsive
+ */
+@media (max-width:767px) {
+	div.btn-responsive {
+		width:100%;
+		max-width:100%;
+	}
+
+	div.btn-responsive .btn {
+		float:none;
+		width:100%;
+		padding:10px 0;
+		border-radius:0;
+	}
+
+	div.btn-responsive > .btn:first-child,
+	div.btn-responsive > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
+		border-top-left-radius:4px;
+		border-top-right-radius:4px;
+		margin-left:-1px;
+	}
+
+	div.btn-responsive > .btn:last-child,
+	div.btn-responsive > .btn:last-child:not(:first-child) {
+		border-bottom-left-radius:4px;
+		border-bottom-right-radius:4px;
+	}
+}

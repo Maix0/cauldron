@@ -1,0 +1,17 @@
+span.blank {
+	margin-left:10px;
+}
+
+div.input-group {
+	max-width:500px;
+}
+
+span.info {
+	cursor:pointer;
+	color:#ff8000;
+	font-weight:bold;
+}
+
+div#as_dialog {
+	display:none;
+}

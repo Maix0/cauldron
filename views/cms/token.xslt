@@ -1,0 +1,79 @@
+<?xml version="1.0" ?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:import href="../banshee/main.xslt" />
+
+<!--
+//
+//  Overview template
+//
+//-->
+<xsl:template match="overview">
+<div class="row">
+<xsl:for-each select="tokens/token">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div class="well well-sm token" onClick="javascript:document.location='/{/output/page}/{@id}'">
+<img src="/files/tokens/{@id}.{extension}" class="icon" />
+<div><xsl:value-of select="name" /></div>
+<div>Width: <xsl:value-of select="width" /></div>
+<div>Height: <xsl:value-of select="height" /></div>
+</div>
+</div>
+</xsl:for-each>
+</div>
+
+<div class="btn-group left">
+<a href="/{/output/page}/new" class="btn btn-default">New token</a>
+<a href="/cms" class="btn btn-default">Back</a>
+</div>
+</xsl:template>
+
+<!--
+//
+//  Edit template
+//
+//-->
+<xsl:template match="edit">
+<xsl:call-template name="show_messages" />
+<form action="/{/output/page}" method="post" enctype="multipart/form-data">
+<xsl:if test="token/@id">
+<input type="hidden" name="id" value="{token/@id}" />
+<img src="/files/tokens/{token/@id}.{token/extension}" class="token" />
+</xsl:if>
+
+<label for="name">Name:</label>
+<input type="text" id="name" name="name" value="{token/name}" class="form-control" />
+<label for="width">Width:</label>
+<input type="text" id="width" name="width" value="{token/width}" class="form-control" />
+<label for="height">Height:</label>
+<input type="text" id="height" name="height" value="{token/height}" class="form-control" />
+<label for="image">Image:</label>
+<div class="input-group">
+<span class="input-group-btn"><label class="btn btn-default">
+<input type="file" name="image" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name)" />Browse</label></span>
+<input type="text" id="upload-file-info" readonly="readonly" class="form-control" />
+</div>
+
+<div class="btn-group">
+<input type="submit" name="submit_button" value="Save token" class="btn btn-default" />
+<a href="/{/output/page}" class="btn btn-default">Cancel</a>
+<xsl:if test="token/@id">
+<input type="submit" name="submit_button" value="Delete token" class="btn btn-default" onClick="javascript:return confirm('DELETE: Are you sure?')" />
+</xsl:if>
+</div>
+</form>
+</xsl:template>
+
+<!--
+//
+//  Content template
+//
+//-->
+<xsl:template match="content">
+<img src="/images/icons/token.png" class="title_icon" />
+<h1>Tokens</h1>
+<xsl:apply-templates select="overview" />
+<xsl:apply-templates select="edit" />
+<xsl:apply-templates select="result" />
+</xsl:template>
+
+</xsl:stylesheet>

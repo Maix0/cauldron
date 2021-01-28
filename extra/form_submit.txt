@@ -1,0 +1,6 @@
+<html>
+<body>
+<p>The following information has been submitted via the [TITLE] form at the <a href="[URL]">[WEBSITE] website</a>:</p>
+[RESULT]
+</body>
+</html>

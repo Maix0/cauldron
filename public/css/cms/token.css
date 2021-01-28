@@ -1,0 +1,36 @@
+div.token {
+	cursor:pointer;
+	height:75px;
+}
+
+div.token img.icon {
+	float:left;
+	max-width:50px;
+	max-height:50px;
+}
+
+div.token div {
+	margin-left:60px;
+	overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+div.input-group {
+	max-width:500px;
+}
+
+span.input-group-btn label {
+	padding:6px 25px;
+}
+
+img.token {
+	display:block;
+}
+
+@media (min-width:767px ) {
+	img.token {
+		float:right;
+		max-width:200px;
+	}
+}

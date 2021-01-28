@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cd `dirname $0`
+
+hostname=`cat ../settings/website.conf | grep DB_HOSTNAME | awk -F"=" '{gsub(/^ /, "", $2); print $2}'`
+database=`cat ../settings/website.conf | grep DB_DATABASE | awk -F"=" '{gsub(/^ /, "", $2); print $2}'`
+username=`cat ../settings/website.conf | grep DB_USERNAME | awk -F"=" '{gsub(/^ /, "", $2); print $2}'`
+password=`cat ../settings/website.conf | grep DB_PASSWORD | awk -F"=" '{gsub(/^ /, "", $2); print $2}'`
+
+dow=`date +%a | tr "[:upper:]" "[:lower:]"`
+
+./private_modules
+
+mysqldump --order-by-primary -u "${username}" --password="${password}" -h "${hostname}" "${database}" | sed 's/ AUTO_INCREMENT=[0-9]*//' | grep -v "INSERT INTO \`sessions\`" | grep -v "INSERT INTO \`cache\`" | gzip > "${database}"-${dow}.sql.gz

@@ -1,0 +1,8 @@
+/* Result
+ */
+pre.result {
+	border:1px solid #000000;
+	padding:5px;
+	overflow:auto;
+	max-height:200px;
+}

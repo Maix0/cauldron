@@ -1,0 +1,12 @@
+#!/usr/bin/php
+<?php
+	chdir(__DIR__);
+	require "../libraries/banshee/core/banshee.php";
+
+	$db = new \Banshee\Database\MySQLi_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
+	if ($db->connected == false) {
+		exit("Internal error: database not available.\n");
+	}
+
+	$db->query("truncate table %S", "cache");
+?>
