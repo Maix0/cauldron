@@ -205,7 +205,7 @@
 			$old_settings = $this->settings;
 			$this->db = new dummy_object();
 			$this->settings = new dummy_object();
-			$this->settings->database_version = 4.0;
+			$this->settings->database_version = 1;
 
 			$this->update_database();
 			$version = $this->settings->database_version;
