@@ -68,6 +68,10 @@
 		$_view->close_tag();
 		$_view->add_tag("website_url", $_SERVER["SERVER_NAME"]);
 
+		$_view->open_tag("tabletop");
+		$_view->add_tag("version", TABLETOP_VERSION);
+		$_view->close_tag();
+
 		/* Page information
 		 */
 		$_view->add_tag("page", $_page->page, array(

@@ -26,10 +26,15 @@
 				$game["traveled_from"] = $game["active_map_id"];
 				$game["active_map_id"] = $this->page->parameters[1];
 			}
-			
+
 			if ($user_is_dungeon_master) {
 				if (($maps = $this->model->get_maps($game_id)) === false) {
 					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
+				if (($effects = $this->model->get_effects()) === false) {
+					$this->view->add_tag("result", "Error reading effects.");
 					return;
 				}
 			}
@@ -42,7 +47,7 @@
 					return;
 				}
 
-				if ($active_map["game_id"] != $game_id) {	
+				if ($active_map["game_id"] != $game_id) {
 					$this->view->add_tag("result", "Invalid map.");
 					return;
 				}
@@ -53,6 +58,11 @@
 				}
 
 				if (($characters = $this->model->get_characters($game["active_map_id"])) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
+				if (($zones = $this->model->get_zones($game["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -101,19 +111,40 @@
 				$this->view->close_tag();
 			}
 
+			if ($effects != null) {
+				$this->view->open_tag("effects");
+				foreach ($effects as $effect) {
+					list($name) = explode(".", $effect, 2);
+					$name = str_replace("_", " ", $name);
+					$this->view->add_tag("effect", $effect, array("name" => $name));
+				}
+				$this->view->close_tag();
+			}
+
 			if ($active_map != null) {
 				$active_map["show_grid"] = show_boolean($active_map["show_grid"]);
 				$this->view->record($active_map, "map");
 
+				$this->view->open_tag("zones");
+				foreach ($zones as $zone) {
+					$zone["pos_x"] *= $grid_cell_size;
+					$zone["pos_y"] *= $grid_cell_size;
+					$zone["width"] *= $grid_cell_size;
+					$zone["height"] *= $grid_cell_size;
+					if ($user_is_dungeon_master && ($zone["opacity"] > 0.8)) {
+						$zone["opacity"] = 0.8;
+					}
+					$this->view->record($zone, "zone");
+				}
+				$this->view->close_tag();
+
 				$this->view->open_tag("tokens");
 				foreach ($tokens as $token) {
-					if (($token["width"] % 2) != ($token["height"] % 2)) {
-						$token["rotation_point"] = $grid_cell_size."px ".$grid_cell_size."px";
-					}
-					$token["width"] *= $grid_cell_size;
-					$token["height"] *= $grid_cell_size;
+					$token["type"] = rtrim($token["type"], " 01234567890");
 					$token["pos_x"] *= $grid_cell_size;
 					$token["pos_y"] *= $grid_cell_size;
+					$token["width"] *= $grid_cell_size;
+					$token["height"] *= $grid_cell_size;
 					$token["hidden"] = show_boolean($token["hidden"]);
 					if ($user_is_dungeon_master && ($token["hitpoints"] > 0)) {
 						$token["perc"] = round(100 * $token["damage"] / $token["hitpoints"]);
@@ -125,7 +156,7 @@
 				$attr = array("name" => "Dungeon Master");
 				if ($user_is_dungeon_master == false) {
 					foreach ($characters as $character) {
-						if ($character["user_id"] == $this->user->id) {	
+						if ($character["user_id"] == $this->user->id) {
 							$attr["mine"] = "character".$character["instance_id"];
 							$attr["name"] = $character["name"];
 						}
@@ -134,8 +165,6 @@
 
 				$this->view->open_tag("characters", $attr);
 				foreach ($characters as $character) {
-					$character["width"] = $grid_cell_size;
-					$character["height"] = $grid_cell_size;
 					$character["pos_x"] *= $grid_cell_size;
 					$character["pos_y"] *= $grid_cell_size;
 					$character["hidden"] = show_boolean($character["hidden"]);
@@ -148,68 +177,7 @@
 			$this->view->close_tag();
 		}
 
-		private function handle_ajax_request() {
-			switch ($_POST["action"]) {
-				case "change_map":
-					$this->model->change_map($_POST["game_id"], $_POST["map_id"]);
-					break;
-				case "damage":
-					if (substr($_POST["instance_id"], 0, 9) == "character") {
-						$instance_id = substr($_POST["instance_id"], 9);
-						$this->model->damage_character($instance_id, $_POST["damage"]);
-					} else if (substr($_POST["instance_id"], 0, 5) == "token") {
-						$instance_id = substr($_POST["instance_id"], 5);
-						$this->model->damage_token($instance_id, $_POST["damage"]);
-					} else {
-						debug_log($_POST);
-					}
-					break;
-				case "hide":
-					if (substr($_POST["instance_id"], 0, 9) == "character") {
-						$instance_id = substr($_POST["instance_id"], 9);
-						$this->model->set_character_hidden($instance_id, true);
-					} else if (substr($_POST["instance_id"], 0, 5) == "token") {
-						$instance_id = substr($_POST["instance_id"], 5);
-						$this->model->set_token_hidden($instance_id, true);
-					} else {
-						debug_log($_POST);
-					}
-					break;
-				case "move":
-					if (substr($_POST["instance_id"], 0, 9) == "character") {
-						$instance_id = substr($_POST["instance_id"], 9);
-						$this->model->move_character($instance_id, $_POST["pos_x"], $_POST["pos_y"]);
-					} else if (substr($_POST["instance_id"], 0, 5) == "token") {
-						$instance_id = substr($_POST["instance_id"], 5);
-						$this->model->move_token($instance_id, $_POST["pos_x"], $_POST["pos_y"]);
-					} else {
-						debug_log($_POST);
-					}
-					break;
-				case "show":
-					if (substr($_POST["instance_id"], 0, 9) == "character") {
-						$instance_id = substr($_POST["instance_id"], 9);
-						$this->model->set_character_hidden($instance_id, false);
-					} else if (substr($_POST["instance_id"], 0, 5) == "token") {
-						$instance_id = substr($_POST["instance_id"], 5);
-						$this->model->set_token_hidden($instance_id, false);
-					} else {
-						debug_log($_POST);
-					}
-					break;
-				default:
-					debug_log($_POST);
-			}
-		}
-
 		public function execute() {
-			if ($this->page->ajax_request) {
-				if ($_SERVER["REQUEST_METHOD"] == "POST") {
-					$this->handle_ajax_request();
-				}
-				return;
-			}
-
 			$this->view->title = "Game";
 
 			if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {

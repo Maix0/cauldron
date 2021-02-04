@@ -453,6 +453,11 @@
 		define(trim($key), trim($value));
 	}
 
+	foreach (config_file("tabletop") as $line) {
+		list($key, $value) = explode("=", chop($line), 2);
+		define(trim($key), trim($value));
+	}
+
 	/* Autoloaders
 	 */
 	if (file_exists($composer = __DIR__."/../../composer/autoload.php")) {

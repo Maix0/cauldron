@@ -247,6 +247,12 @@
 		/* Update database
 		 */
 		public function update_database() {
+			if ($this->settings->database_version == 1) {	
+				$this->db_query('CREATE TABLE `zones` (`id` int(10) unsigned NOT NULL AUTO_INCREMENT, `game_map_id` int(10) unsigned NOT NULL, `pos_x` smallint(5) unsigned NOT NULL, `pos_y` smallint(5) unsigned NOT NULL, `width` tinyint(3) unsigned NOT NULL, `height` tinyint(3) unsigned NOT NULL, `color` varchar(7) NOT NULL, `opacity` decimal(1,1) NOT NULL, PRIMARY KEY (`id`), KEY `game_map_id` (`game_map_id`), CONSTRAINT `zones_ibfk_1` FOREIGN KEY (`game_map_id`) REFERENCES `game_maps` (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+				$this->settings->database_version = 2;
+			}
+
 			return true;
 		}
 

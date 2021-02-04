@@ -1,9 +1,25 @@
 const DEFAULT_Z_INDEX = 10000;
 
-var game_id = null;
 var map_id = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
+
+function filter_library() {
+	var filter = $('input#filter').val().toLowerCase();
+
+	$('div.library div.well').show();
+
+	if (filter == '') {
+		return;
+	}
+
+	$('div.library div.well').each(function() {
+		var name = $(this).find('div.name').text().toLowerCase();
+		if (name.includes(filter) == false) {
+			$(this).hide();
+		}
+	});
+}
 
 function write_sidebar(message) {
 	var sidebar = $('div.sidebar');
@@ -11,85 +27,19 @@ function write_sidebar(message) {
 	sidebar.append('<p>' + message + '</p>');
 }
 
-/* Object interaction
+function coord_to_grid(coord, edge = true) {
+	var delta = coord % grid_cell_size;
+	coord -= delta;
+
+	if (edge && (delta > (grid_cell_size >> 1))) {
+		coord += grid_cell_size;
+	}
+
+	return coord;
+}
+
+/* Object functions
  */
-function move_object(obj) {
-	var pos = obj.position();
-	var map = $('div.playarea div');
-
-	var max_x = map.width() - obj.width();
-	var max_y = map.height() - obj.height();
-
-	pos.left += $('div.playarea').scrollLeft();
-	pos.top += $('div.playarea').scrollTop();
-
-	if (pos.left < 0) {
-		pos.left = 0;
-	} else if (pos.left > max_x) {
-		pos.left = max_x;
-	}
-
-	var delta = pos.left % grid_cell_size;
-	pos.left -= delta;
-	if (delta > (grid_cell_size >> 1)) {
-		pos.left += grid_cell_size;
-	}
-
-	if (pos.top < 0) {
-		pos.top = 0;
-	} else if (pos.top > max_y) {
-		pos.top = max_y;
-	}
-
-	var delta = pos.top % grid_cell_size;
-	pos.top -= delta;
-	if (delta > (grid_cell_size >> 1)) {
-		pos.top += grid_cell_size;
-	}
-
-	obj.css('left', pos.left + 'px');
-	obj.css('top', pos.top + 'px');
-
-	$.post('/cms/map/arrange', {
-		action: 'move',
-		instance_id: obj.prop('id'),
-		pos_x: (pos.left / grid_cell_size),
-		pos_y: (pos.top / grid_cell_size)
-	});
-}
-
-function object_info(obj) {
-	info =
-		'Hitpoints: ' + obj.attr('hitpoints') + '<br />' +
-		'Damage: ' + obj.attr('damage') + '<br />' +
-		'Instance: ' + obj.attr('id') + '<br />';
-
-	var name = obj.attr('name');
-	if (name == undefined) {
-		name = obj.find('span').text();
-	}
-	if ((name != undefined) && (name != '')) {
-		info = 'Name: ' + name + '<br />' + info;
-	}
-
-	write_sidebar(info);
-}
-
-function name_object(obj) {
-	var name = $(obj).attr('name');
-	if ((name = window.prompt('Name:', name)) == undefined) {
-		return;
-	}
-
-	$(obj).attr('name', name);
-
-	$.post('/cms/map/arrange', {
-		action: 'name',
-		instance_id: obj.prop('id'),
-		name: name
-	});
-}
-
 function object_armor_class(obj) {
 	var armor_class = obj.attr('armor_class');
 
@@ -104,11 +54,68 @@ function object_armor_class(obj) {
 
 	obj.attr('armor_class', armor_class);
 
-	$.post('/cms/map/arrange', {
-		action: 'armor_class',
+	$.post('/object/armor_class', {
 		instance_id: obj.prop('id'),
 		armor_class: armor_class
 	});
+}
+
+function object_create(icon, x, y) {
+	var token_id = $(icon).attr('token_id');
+	var width = parseInt($(icon).attr('obj_width')) * grid_cell_size;
+	var height = parseInt($(icon).attr('obj_height')) * grid_cell_size;
+	var url = $(icon).attr('src');
+
+	x += $('div.playarea').scrollLeft() - 30;
+	x = coord_to_grid(x, false);
+
+	y += $('div.playarea').scrollTop() - 40;
+	y = coord_to_grid(y, false);
+
+	$.post('/object/create_token', {
+		map_id: map_id,
+		token_id: token_id,
+		pos_x: x / grid_cell_size,
+		pos_y: y / grid_cell_size
+	}).done(function(data) {
+		instance_id = $(data).find('instance_id').text();
+
+		var obj = '<div id="token' + instance_id + '" class="token" style="left:' + x + 'px; top:' + y + 'px;" is_hidden="no" hitpoints="1" damage="0">' +
+		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px; transform:rotate(0deg);" />' +
+		          '</div>';
+
+		$('div.playarea > div').append(obj);
+
+		$('div.playarea div#token' + instance_id).draggable({
+			stop: function(event, ui) {
+				object_move($(this));
+			}
+		});
+	}).fail(function() {
+		write_sidebar('Error creating object.');
+	});
+}
+
+function object_delete(obj) {
+	$.post('/object/delete', {
+		instance_id: obj.prop('id'),
+	}).done(function() {
+		obj.remove();
+	});
+}
+
+function object_hide(obj) {
+	var data = {
+		action: 'hide',
+		instance_id: obj.prop('id'),
+	};
+
+	$.post('/object/hide', {
+		action: 'hide',
+		instance_id: obj.prop('id'),
+	});
+
+	obj.fadeTo('fast', 0.5);
 }
 
 function object_hitpoints(obj) {
@@ -125,103 +132,181 @@ function object_hitpoints(obj) {
 
 	obj.attr('hitpoints', hitpoints);
 
-	$.post('/cms/map/arrange', {
-		action: 'hitpoints',
+	$.post('/object/hitpoints', {
 		instance_id: obj.prop('id'),
 		hitpoints: hitpoints
 	});
 }
 
-function rotate_object(obj, direction) {
-	obj.find('img').css('transform', 'rotate(' + direction + 'deg)');
+function object_info(obj) {
+	var info ='';
 
-	$.post('/cms/map/arrange', {
-		action: 'rotate',
+	if (obj.attr('id').substr(0, 5) == 'token') {
+		info += 'Type: ' + obj.attr('type') + '<br />';
+	}
+
+	info +=
+		'Hitpoints: ' + obj.attr('hitpoints') + '<br />' +
+		'Damage: ' + obj.attr('damage') + '<br />' +
+		'Instance: ' + obj.attr('id') + '<br />';
+
+	var name = obj.attr('name');
+	if (name == undefined) {
+		name = obj.find('span').text();
+	}
+	if ((name != undefined) && (name != '')) {
+		info = 'Name: ' + name + '<br />' + info;
+	}
+
+	write_sidebar(info);
+}
+
+function object_move(obj) {
+	var pos = obj.position();
+	var map = $('div.playarea div');
+
+	var max_x = map.width() - obj.width();
+	var max_y = map.height() - obj.height();
+
+	pos.left += $('div.playarea').scrollLeft();
+	pos.top += $('div.playarea').scrollTop();
+
+	if (pos.left < 0) {
+		pos.left = 0;
+	} else if (pos.left > max_x) {
+		pos.left = max_x;
+	}
+	pos.left = coord_to_grid(pos.left);
+
+	if (pos.top < 0) {
+		pos.top = 0;
+	} else if (pos.top > max_y) {
+		pos.top = max_y;
+	}
+	pos.top = coord_to_grid(pos.top);
+
+	obj.css('left', pos.left + 'px');
+	obj.css('top', pos.top + 'px');
+
+	$.post('/object/move', {
 		instance_id: obj.prop('id'),
-		direction: direction
+		pos_x: (pos.left / grid_cell_size),
+		pos_y: (pos.top / grid_cell_size)
 	});
 }
 
-function hide_object(obj) {
-	var data = {
-		action: 'hide',
-		instance_id: obj.prop('id'),
-	};
+function object_name(obj) {
+	var name = $(obj).attr('name');
+	if ((name = window.prompt('Name:', name)) == undefined) {
+		return;
+	}
 
-	$.post('/cms/map/arrange', {
-		action: 'hide',
+	$(obj).attr('name', name);
+
+	$.post('/object/name', {
 		instance_id: obj.prop('id'),
+		name: name
 	});
-
-	obj.fadeTo('fast', 0.5);
 }
 
-function show_object(obj) {
+function object_rotate(obj, rotation, send_to_backend = true) {
+	var img = obj.find('img');
+	var width = img.width() / grid_cell_size;
+	var height = img.height() / grid_cell_size;
+
+	if ((width % 2) != (height % 2)) {
+		if (width > height) {
+			var tox = ((width - 1) * grid_cell_size) >> 1;
+			var toy = (height * grid_cell_size) >> 1;
+		} else {
+			var tox = (width * grid_cell_size) >> 1;
+			var toy = ((height - 1) * grid_cell_size) >> 1;
+		}
+
+		img.css('transform-origin', tox + 'px ' + toy + 'px');
+	}
+
+	img.css('transform', 'rotate(' + rotation + 'deg)');
+
+	if (send_to_backend) {
+		$.post('/object/rotate', {
+			instance_id: obj.prop('id'),
+			rotation: rotation
+		});
+	}
+}
+
+function object_show(obj) {
 	var data = {
 		action: 'show',
 		instance_id: obj.prop('id'),
 	};
 
-	$.post('/cms/map/arrange', {
-		action: 'show',
+	$.post('/object/show', {
 		instance_id: obj.prop('id'),
 	});
 
 	obj.fadeTo('fast', 1);
 }
 
-function create_object(icon, x, y) {
-	var token_id = $(icon).attr('token_id');
-	var width = parseInt($(icon).attr('obj_width')) * grid_cell_size;
-	var height = parseInt($(icon).attr('obj_height')) * grid_cell_size;
-	var url = $(icon).attr('src');
-
-	x += $('div.playarea').scrollLeft();
-	var delta = x % grid_cell_size;
-	x -= delta;
-
-	y += $('div.playarea').scrollTop();
-	var delta = y % grid_cell_size;
- 	y -= delta;
-
-	$.post('/cms/map/arrange', {
-		action: 'create',
+function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
+	$.post('/object/create_zone', {
 		map_id: map_id,
-		token_id: token_id,
-		pos_x: x / grid_cell_size,
-		pos_y: y / grid_cell_size
+		pos_x: pos_x / grid_cell_size,
+		pos_y: pos_y / grid_cell_size,
+		width: width,
+		height: height,
+		color: color,
+		opacity: opacity
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
 
-		var obj = '<div id="token' + instance_id + '" class="token" style="left:' + x + 'px; top:' + y + 'px;" is_hidden="no" hitpoints="1" damage="0">' +
-		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px; transform:rotate(0deg);" />' +
-		          '</div>';
+		width *= grid_cell_size;
+		height *= grid_cell_size;
 
-		$('div.playarea > div').append(obj);
+		if (opacity > 0.8) {
+			opacity = 0.8;
+		}
 
-		$('div.playarea div#token' + instance_id).draggable({
-			stop: function(event, ui) {
-				move_object($(this));
-			}
+		var zone = '<div id="zone' + instance_id + '" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:3;" />';
+
+		$('div.playarea > div').prepend(zone);
+
+		$('div#zone' + instance_id).draggable({
+            create: function(event, ui) {
+                $(this).css('cursor', 'grab');
+            },
+            stop: function(event, ui) {
+                object_move($(this));
+            }
+        });
+
+		$.contextMenu({
+			selector: 'div#zone' + instance_id,
+			callback: context_menu_handler,
+			items: {
+				'delete': {name:'Delete', icon:'fa-trash'},
+			},
+			zIndex: DEFAULT_Z_INDEX + 3
 		});
-	}).fail(function() {
-		write_sidebar('Error creating object.');
+	}).fail(function(data) {
+		alert('Zone create error');
 	});
 }
 
-function delete_object(obj) {
-	$.post('/cms/map/arrange', {
-		action: 'delete',
-		instance_id: obj.prop('id'),
-	}).done(function() {
-		obj.remove();
-	});
-}
-
-/* Context menu handler
+/* Input functions
  */
 function context_menu_handler(key, options) {
-	var obj = $(this).parent();
+	var obj = $(this);
+	if (obj.prop('tagName') == 'IMG') {
+		var obj = $(this).parent();
+	}
+
+	var parts = key.split('_');
+	if (parts[0] == 'rotate') {
+		key = parts[0];
+		var direction = parts[1];
+	}
 
 	switch (key) {
 		case 'armor_class':
@@ -229,7 +314,7 @@ function context_menu_handler(key, options) {
 			break;
 		case 'delete':
 			if (confirm('Delete object?')) {
-				delete_object(obj);
+				object_delete(obj);
 			}
 			break;
 		case 'info':
@@ -237,10 +322,10 @@ function context_menu_handler(key, options) {
 			break;
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
-				show_object(obj);
+				object_show(obj);
 				obj.attr('is_hidden', 'no');
 			} else {
-				hide_object(obj);
+				object_hide(obj);
 				obj.attr('is_hidden', 'yes');
 			}
 			break;
@@ -249,34 +334,63 @@ function context_menu_handler(key, options) {
 			break;
 		case 'lower':
 			obj.css('z-index', z_index);
-            z_index--;
+			z_index--;
 			break;
 		case 'name':
-			name_object(obj);
+			object_name(obj);
 			break;
-		case 'rot-n':
-			rotate_object(obj, 0);
+		case 'rotate':
+			var compass = { 'n':   0, 'ne':  45, 'e':  90, 'se': 135,
+			                's': 180, 'sw': 225, 'w': 270, 'nw': 315 };
+			if ((direction = compass[direction]) != undefined) {
+				object_rotate(obj, direction);
+			}
 			break;
-		case 'rot-ne':
-			rotate_object(obj, 45);
-			break;
-		case 'rot-e':
-			rotate_object(obj, 90);
-			break;
-		case 'rot-se':
-			rotate_object(obj, 135);
-			break;
-		case 'rot-s':
-			rotate_object(obj, 180);
-			break;
-		case 'rot-sw':
-			rotate_object(obj, 225);
-			break;
-		case 'rot-w':
-			rotate_object(obj, 270);
-			break;
-		case 'rot-nw':
-			rotate_object(obj, 315);
+		case 'zone_create':
+			var menu = $('div#context-menu-layer + ul.context-menu-root');
+			var pos_menu = menu.position();
+
+			if (pos_menu == undefined) {
+				menu = $('ul.context-menu-root + div#context-menu-layer').prev();
+				pos_menu = menu.position();
+
+				if (pos_menu == undefined) {
+					break;
+				}
+			}
+
+			var pos_x = Math.floor(pos_menu.left) + $('div.playarea').scrollLeft() - 16;
+			pos_x = coord_to_grid(pos_x, false);
+			var pos_y = Math.floor(pos_menu.top) + $('div.playarea').scrollTop() - 41;
+			pos_y = coord_to_grid(pos_y, false);
+
+			var info;
+			if ((info = window.prompt('Zone width[,height[,#rgb[,opacity]]]:')) == undefined) {
+				break;
+			}
+
+			var parts = info.split(',');
+			var width = parseInt(parts[0]);
+			var height = (parts.length > 1) ? parseInt(parts[1]) : width;
+			var color = (parts.length > 2) ? parts[2] : '#f00';
+			var opacity = (parts.length > 3) ? parts[3] : '0.2';
+
+			if (opacity < 0.2) {
+				opacity = 0.2;
+			}
+
+			pos_x -= Math.floor((width - 1) / 2) * grid_cell_size;
+			pos_y -= Math.floor((height - 1) / 2) * grid_cell_size;
+
+			if (isNaN(width)) {
+				write_sidebar('Invalid width.');
+				break;
+			} else if (isNaN(height)) {
+				write_sidebar('Invalid height.');
+				break;
+			}
+
+			zone_create(obj, pos_x, pos_y, width, height, color, opacity);
 			break;
 		default:
 			write_sidebar('Unknown menu option: ' + key);
@@ -286,33 +400,55 @@ function context_menu_handler(key, options) {
 /* Main
  */
 $(document).ready(function() {
-	game_id = parseInt($('div.playarea').attr('game_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
 
-	/* Character and token objects
+	/* Show grid
 	 */
+	if ($('div.playarea').attr('show_grid') == 'yes') {
+		var count_x = Math.floor($('div.playarea > div').width() / grid_cell_size);
+		var count_y = Math.floor($('div.playarea > div').height() / grid_cell_size);
+		var count = count_x * count_y;
+
+		var cell = '<img src="/images/grid_cell.png" style="float:left; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; position:relative;" />';
+		for (var i = 0 ;i < count; i++) {
+			$('div.playarea > div').append(cell);
+		}
+	}
+
+	/* Objects
+	 */
+	$('div.zone').draggable({
+		create: function(event, ui) {
+			$(this).css('cursor', 'grab');
+		},
+		stop: function(event, ui) {
+			object_move($(this));
+		}
+	});
+
 	$('div.token[is_hidden=no]').each(function() {
 		$(this).show();
 	});
 
-	$('div.token').css('z-index', DEFAULT_Z_INDEX + 1);
-	$('div.character').css('z-index', DEFAULT_Z_INDEX + 2);
-	$('div.token[rotation_point!=""] img').each(function() {
-		$(this).css('transform-origin', $(this).parent().attr('rotation_point'));
+	$('div.token').each(function() {
+		$(this).css('z-index', DEFAULT_Z_INDEX + 1);
+		object_rotate($(this), $(this).attr('rotation'), false);
 	});
+
+	$('div.character').css('z-index', DEFAULT_Z_INDEX + 2);
 
 	$('div.token').draggable({
 		handle: 'img',
 		stop: function(event, ui) {
-			move_object($(this));
+			object_move($(this));
 		}
 	});
 
 	$('div.character').draggable({
 		handle: 'img',
 		stop: function(event, ui) {
-			move_object($(this));
+			object_move($(this));
 		}
 	});
 
@@ -331,14 +467,14 @@ $(document).ready(function() {
 			'info': {name:'Info', icon:'fa-info-circle'},
 			'name': {name:'Name', icon:'fa-edit'},
 			'rotate': {name:'Rotate', icon:'fa-compass', items:{
-				'rot-n':  {name:'North', icon:'fa-arrow-circle-up'},
-				'rot-ne': {name:'North East'},
-				'rot-e':  {name:'East', icon:'fa-arrow-circle-right'},
-				'rot-se': {name:'South East'},
-				'rot-s':  {name:'South', icon:'fa-arrow-circle-down'},
-				'rot-sw': {name:'South West'},
-				'rot-w':  {name:'West', icon:'fa-arrow-circle-left'},
-				'rot-nw': {name:'North West'},
+				'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
+				'rotate_ne': {name:'North East'},
+				'rotate_e':  {name:'East', icon:'fa-arrow-circle-right'},
+				'rotate_se': {name:'South East'},
+				'rotate_s':  {name:'South', icon:'fa-arrow-circle-down'},
+				'rotate_sw': {name:'South West'},
+				'rotate_w':  {name:'West', icon:'fa-arrow-circle-left'},
+				'rotate_nw': {name:'North West'},
 			}},
 			'presence': {name:'Presence', icon:'fa-low-vision'},
 			'sep1': '-',
@@ -361,13 +497,31 @@ $(document).ready(function() {
 		zIndex: DEFAULT_Z_INDEX + 3
 	});
 
+	$.contextMenu({
+		selector: 'div.zone',
+		callback: context_menu_handler,
+		items: {
+			'delete': {name:'Delete', icon:'fa-trash'},
+		},
+		zIndex: DEFAULT_Z_INDEX + 3
+	});
+
+	$.contextMenu({
+		selector: 'div.playarea > div',
+		callback: context_menu_handler,
+		items: {
+			'zone_create': {name:'Zone', icon:'fa-square-o'}
+		},
+		zIndex: DEFAULT_Z_INDEX + 4
+	});
+
 	/* Library
 	 */
 	$('div.library img.icon').draggable({
 		helper: 'clone',
 		appendTo: 'div.playarea',
 		stop: function(event, ui) {
-			create_object($(this), event.pageX, event.pageY);
+			object_create($(this), event.pageX, event.pageY);
 		}
 	});
 

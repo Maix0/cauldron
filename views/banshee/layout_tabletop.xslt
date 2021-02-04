@@ -15,13 +15,15 @@
 <meta name="generator" content="Banshee PHP framework v{/output/banshee/version} (https://www.banshee-php.org/)" />
 <meta property="og:title" content="{title/@page}" />
 <meta property="og:description" content="{description}" />
-<meta property="og:image" content="https://www.banshee-php.org/images/banshee.png" />
-<meta property="og:url" content="https://www.banshee-php.org/" />
+<meta property="og:image" content="/images/d20.png" />
+<meta property="og:url" content="https://tabletop.leisink.net/" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="{title/@page}" />
 <meta name="twitter:description" content="{description}" />
-<meta name="twitter:image" content="https://www.banshee-php.org/images/banshee.png" />
-<link rel="apple-touch-icon" href="/images/banshee.png" />
+<meta name="twitter:image" content="/images/d20.png" />
+<link rel="apple-touch-icon" href="/images/d20.png" />
+<link rel="icon" href="/images/d20.png" />
+<link rel="shortcut icon" href="/images/d20.png" />
 <title><xsl:if test="title/@page!='' and title/@page!=title"><xsl:value-of select="title/@page" /> - </xsl:if><xsl:value-of select="title" /></title>
 <xsl:for-each select="alternates/alternate">
 <link rel="alternate" title="{.}" type="{@type}" href="{@url}" />
@@ -29,14 +31,14 @@
 <xsl:for-each select="styles/style">
 <link rel="stylesheet" type="text/css" href="{.}" />
 </xsl:for-each>
-<xsl:if test="inline_css!=''">
+<xsl:if test="inline_css">
 <style type="text/css">
 <xsl:value-of select="inline_css" />
 </style>
 </xsl:if>
 <xsl:for-each select="javascripts/javascript">
-<script type="text/javascript" src="{.}"></script>
-</xsl:for-each>
+<script type="text/javascript" src="{.}"></script><xsl:text>
+</xsl:text></xsl:for-each>
 </head>
 
 <body>
@@ -83,11 +85,11 @@
 
 	<div class="footer">
 		<div class="container">
+			<span>TableTop v<xsl:value-of select="/output/tabletop/version" /></span>
 			<xsl:if test="/output/user">
 			<span>Logged in as <a href="/profile"><xsl:value-of select="/output/user" /></a></span>
 			<span><a href="/session">Session manager</a></span>
 			</xsl:if>
-			<span>Built upon the <a href="https://www.banshee-php.org/">Banshee PHP framework</a> v<xsl:value-of select="/output/banshee/version" /></span>
 			<span><a href="/cms">CMS</a></span>
 		</div>
 	</div>

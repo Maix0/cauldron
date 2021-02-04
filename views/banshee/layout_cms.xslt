@@ -32,7 +32,7 @@
 <xsl:for-each select="styles/style">
 <link rel="stylesheet" type="text/css" href="{.}" />
 </xsl:for-each>
-<xsl:if test="inline_css!=''">
+<xsl:if test="inline_css">
 <style type="text/css">
 <xsl:value-of select="inline_css" />
 </style>

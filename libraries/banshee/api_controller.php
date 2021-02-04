@@ -19,7 +19,7 @@
 			if ($code >= 400) {
 				$this->view->add_tag("error", $code);
 			}
-			$this->view->http_status = $code;
+			$this->page->set_http_code(500);
 		}
 
 		/* Default execute function
@@ -29,7 +29,8 @@
 		 * ERROR:  -
 		 */
 		public function execute() {
-			if (is_false(DEBUG_MODE) && ($this->page->ajax_request == false)) {
+			if ($this->page->ajax_request == false) {
+				$this->view->disable();
 				return;
 			}
 
@@ -52,7 +53,9 @@
 					$_POST = file_get_contents("php://input");
 				}
 
-				call_user_func(array($this, $function));
+				if (call_user_func(array($this, $function)) === false) {
+					$this->set_error(500);
+				}
 				return;
 			}
 

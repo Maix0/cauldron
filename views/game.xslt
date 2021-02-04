@@ -29,8 +29,8 @@
 //
 //-->
 <xsl:template match="game">
-<div class="menu">
 <!-- Menu -->
+<div class="menu">
 <xsl:if test="maps">
 <select class="form-control map-selector" onChange="javascript:change_map()">
 <xsl:if test="traveled_from"><xsl:attribute name="style">display:none</xsl:attribute></xsl:if>
@@ -46,6 +46,17 @@
 <input id="game_id" type="hidden" name="game_id" value="{@id}" />
 <p>No map has been selected yet.</p>
 </xsl:if>
+<!-- Effects -->
+<div class="effects" onClick="javascript:$(this).hide()">
+<div class="panel panel-default" onClick="javascript:event.stopPropagation();">
+<div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
+<div class="panel-body">
+<xsl:for-each select="effects/effect">
+<img src="/files/effects/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" onClick="javascript:effect_create($(this))" /><xsl:text>
+</xsl:text></xsl:for-each>
+</div>
+</div>
+</div>
 <!-- Play area -->
 <xsl:if test="map">
 <div class="playarea" game_id="{@id}" map_id="{map/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" name="{characters/@name}">
@@ -53,14 +64,21 @@
 <div>
 <xsl:if test="map/type='image'"><xsl:attribute name="style">background-image:url(<xsl:value-of select="map/url" />); background-size:<xsl:value-of select="map/width" />px <xsl:value-of select="map/height" />px; width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute></xsl:if>
 <xsl:if test="map/type='video'"><xsl:attribute name="style">width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute>
-<video width="{map/width}" height="{map/height}" autoplay="true" loop="true"><source src="{map/url}"></source></video></xsl:if>
+<video width="{map/width}" height="{map/height}" autoplay="true" loop="true"><source src="{map/url}"></source></video><xsl:text>
+</xsl:text></xsl:if>
+<!-- Zones -->
+<xsl:for-each select="zones/zone">
+<div id="zone{@id}" class="zone" style="position:absolute; left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};" />
+</xsl:for-each>
 <!-- Tokens -->
 <xsl:for-each select="tokens/token">
-<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; display:none;" is_hidden="{hidden}" rotation_point="{rotation_point}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
+<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <xsl:if test="perc">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 </xsl:if>
-<img src="/files/tokens/{@id}.{extension}" style="width:{width}px; height:{height}px; transform:rotate({rotation}deg);" />
+<img src="/files/tokens/{@id}.{extension}" style="width:{width}px; height:{height}px;">
+<xsl:if test="../../@dm='yes'"><xsl:attribute name="title">token<xsl:value-of select="@id" /></xsl:attribute></xsl:if>
+</img>
 <xsl:if test="name!=''">
 <span><xsl:value-of select="name" /></span>
 </xsl:if>
@@ -70,7 +88,7 @@
 <xsl:for-each select="characters/character">
 <div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-<img src="/files/portraits/{@id}.{extension}" style="width:{width}px; height:{height}px;" />
+<img src="/files/portraits/{@id}.{extension}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
 <span><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>

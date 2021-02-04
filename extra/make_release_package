@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Copy for release
+cd `dirname $0`/..
+
+if [ ! -f ChangeLog ]; then
+	echo Cannot extract information from ChangeLog, as it does not exist.
+	exit
+fi
+
+target=`head -n1 ChangeLog | cut -f1 -d' '`
+version=`head -n1 ChangeLog | cut -f2 -d'(' | cut -f1 -d')'`
+
+cd ..
+if [ -d ${target}-${version} ]; then
+	echo The directory ${target}-${version} already exists. Remove it first.
+	exit
+fi
+cp -r ${target} ${target}-${version}
+cd ${target}-${version}
+
+# Empty logfiles
+for file in access actions database debug error poll search spam; do
+	if [ -f logfiles/${file}.log ]; then
+		chmod 646 logfiles/${file}.log
+		echo -n "" > logfiles/${file}.log
+	fi
+done
+
+# Change settings
+function change_setting {
+	cat settings/website.conf | sed "s/${1}.*/${1} = ${2}/" > /tmp/website.conf
+	mv /tmp/website.conf settings/website.conf
+}
+
+change_setting DB_HOSTNAME localhost
+change_setting DB_DATABASE banshee
+change_setting DB_USERNAME banshee
+change_setting DB_PASSWORD banshee
+change_setting DEBUG_MODE yes
+
+# Remove files
+rm -f database/*.gz
+rm -f public/files/maps/*
+rm -f public/files/portraits/*
+rm -f public/files/tokens/*
+rm -f font
+rm -f public/font.php
+rm -f ws_server
+
+# Make package
+#cd ..
+#tar -czf ${target}-${version}.tar.gz ${target}-${version}
+#rm -rf ${target}-${version}

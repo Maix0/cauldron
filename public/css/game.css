@@ -26,6 +26,46 @@ table.table th:last-child {
 	width:200px;
 }
 
+/* Effects
+ */
+div.effects {
+	position:absolute;
+	top:0;
+	bottom:0;
+	left:0;
+	right:0;
+	z-index:2;
+	background:rgba(64, 64, 64, 0.7);
+	display:none;
+}
+
+div.effects div.panel {
+	width:450px;
+	margin:0 auto;
+	margin-top:200px;
+}
+
+div.effects div.panel-heading span.size {
+	margin-left:70px;
+}
+
+div.effects div.panel-heading span.size input {
+	border:none;
+	width:40px;
+}
+
+div.effects div.panel-body {
+	max-height:315px;
+	overflow-y:auto;
+}
+
+div.effects img.effect {
+	margin:15px;
+	cursor:pointer;
+}
+
+/* Screen elements
+ */
 div.playarea {
 	position:absolute;
 	top:40px;
@@ -34,6 +74,7 @@ div.playarea {
 	left:15px;
 	border:1px dashed red;
 	overflow:auto;
+	z-index:1;
 }
 
 div.playarea video {
@@ -59,14 +100,11 @@ div.input {
 	height:40px;
 }
 
+/* Items
+ */
 div.token,
 div.character {
 	position:absolute;
-}
-
-div.token img,
-div.character img {
-	cursor:grab;
 }
 
 div.hitpoints {

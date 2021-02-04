@@ -6,6 +6,8 @@
 				return;
 			}
 
+			$this->view->add_javascript("cms/token.js");
+
 			$this->view->open_tag("overview");
 
 			$this->view->open_tag("tokens");

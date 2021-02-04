@@ -25,8 +25,8 @@
 <tbody>
 <xsl:for-each select="maps/map">
 <tr class="click">
-<td onClick="javascript:document.location='/{/output/page}/{@id}'"><xsl:value-of select="title" /></td>
-<td><button class="btn btn-primary btn-xs" onClick="javscript:document.location='/{/output/page}/arrange/{@id}'">Arrange</button></td>
+<td onClick="javascript:document.location='/{/output/page}/arrange/{@id}'"><xsl:value-of select="title" /></td>
+<td><button class="btn btn-primary btn-xs" onClick="javscript:document.location='/{/output/page}/{@id}'">Edit</button></td>
 </tr>
 </xsl:for-each>
 </tbody>

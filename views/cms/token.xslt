@@ -8,22 +8,29 @@
 //
 //-->
 <xsl:template match="overview">
+<div class="row filter">
+<div class="col-md-3 col-sm-4 col-xs-6">
+<div class="btn-group">
+<a href="/{/output/page}/new" class="btn btn-default">New token</a>
+<a href="/cms" class="btn btn-default">Back</a>
+</div>
+</div>
+<div class="col-md-9 col-sm-8 col-xs-6">
+<input id="filter" type="text" placeholder="Filter tokens" class="form-control" onKeyUp="javascript:filter_tokens()" />
+</div>
+</div>
+
 <div class="row">
 <xsl:for-each select="tokens/token">
-<div class="col-xs-12 col-sm-4 col-md-3">
-<div class="well well-sm token" onClick="javascript:document.location='/{/output/page}/{@id}'">
+<div class="col-xs-12 col-sm-4 col-md-3 token">
+<div class="well well-sm" onClick="javascript:document.location='/{/output/page}/{@id}'">
 <img src="/files/tokens/{@id}.{extension}" class="icon" />
-<div><xsl:value-of select="name" /></div>
+<div class="name"><xsl:value-of select="name" /></div>
 <div>Width: <xsl:value-of select="width" /></div>
 <div>Height: <xsl:value-of select="height" /></div>
 </div>
 </div>
 </xsl:for-each>
-</div>
-
-<div class="btn-group left">
-<a href="/{/output/page}/new" class="btn btn-default">New token</a>
-<a href="/cms" class="btn btn-default">Back</a>
 </div>
 </xsl:template>
 
@@ -46,7 +53,7 @@
 <input type="text" id="width" name="width" value="{token/width}" class="form-control" />
 <label for="height">Height:</label>
 <input type="text" id="height" name="height" value="{token/height}" class="form-control" />
-<label for="image">Image:</label>
+<label for="image">Image (make sure the token is facing upwards):</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
 <input type="file" name="image" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name)" />Browse</label></span>

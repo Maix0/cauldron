@@ -11,7 +11,6 @@
 <xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:import href="functions.xslt" />
 <xsl:import href="layout_cms.xslt" />
-<xsl:import href="layout_site.xslt" />
 <xsl:import href="layout_tabletop.xslt" />
 <xsl:import href="layout_game.xslt" />
 

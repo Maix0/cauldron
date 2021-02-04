@@ -120,7 +120,6 @@
 				case "description": $this->description = $value; break;
 				case "keywords": $this->keywords = $value; break;
 				case "title": $this->title = $value; break;
-				case "inline_css": $this->inline_css = $value; break;
 				case "content_type": $this->content_type = $value; break;
 				case "add_layout_data": $this->add_layout_data = $value; break;
 				default: trigger_error("Unknown output variable: ".$key);
@@ -223,6 +222,17 @@
 			}
 
 			return true;
+		}
+
+		/* Add inline CSS
+		 *
+		 * INPUT:  string css
+		 * OUTPUT: -
+		 * ERROR:  -
+		 */
+		public function add_inline_css($css) {
+			$css = trim($css, "; \n");
+			$this->inline_css .= "\n".$css.";\n";
 		}
 
 		/* Add javascript link
@@ -452,7 +462,9 @@
 					$this->add_tag("style", $css);
 				}
 				$this->close_tag();
-				$this->add_tag("inline_css", $this->inline_css);
+				if ($this->inline_css != null) {
+					$this->add_tag("inline_css", $this->inline_css);
+				}
 
 				/* Javascripts
 				 */

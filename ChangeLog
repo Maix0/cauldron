@@ -1,3 +1,13 @@
+tabletop (0.2) stable; urgency=low
+
+  * AJAX call handling moved to object module.
+  * Added map effects.
+  * Zones can be added via the map builder.
+  * Make characters stick to other object.
+  * Many small improvments.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu,  4 Feb 2020 19:45:23 +0100
+
 tabletop (0.1) stable; urgency=low
 
   * Initial release.

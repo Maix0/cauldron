@@ -1,6 +1,17 @@
-div.token {
+div.filter {
+	margin-bottom:15px;
+}
+
+div.filter div.btn-group {
+	margin:0;
+}
+
+div.filter .form-control {
+	max-width:none;
+}
+
+div.token > div {
 	cursor:pointer;
-	height:75px;
 }
 
 div.token img.icon {
@@ -9,7 +20,7 @@ div.token img.icon {
 	max-height:50px;
 }
 
-div.token div {
+div.token div div {
 	margin-left:60px;
 	overflow:hidden;
     text-overflow:ellipsis;

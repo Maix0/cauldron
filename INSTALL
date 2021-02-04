@@ -74,3 +74,9 @@ Websocket Server
 ----------------
 This application requires a websocket server. Unpack extra/ws_server.tar.gz and
 follow the instructions in the INSTALL file.
+
+
+Content from other websites
+---------------------------
+If you plan to use maps (images or videos) from other websites, make sure you
+update the HEADER_CSP setting in settings/website.conf.

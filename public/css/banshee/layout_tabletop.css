@@ -91,18 +91,20 @@ img.title_icon {
  */
 div.header {
 	height:150px;
-	background-image:url(/images/layout/tabletop_header_bg.jpg);
+	background-image:url(/images/layout/tabletop_header_valley.jpg);
+	background-position:center;
 	background-size:cover;
 	border-top:5px solid #5385c1;
 }
 
 div.header div.title {
 	color:#ffffff;
-	font-size:30px;
+	font-size:40px;
 	font-face:Raleway;
 	font-weight:bold;
-	text-align:center;
 	margin-top:30px;
+	text-align:center;
+	text-shadow:1px 1px 2px #000000;
 }
 
 div.header img.logo {

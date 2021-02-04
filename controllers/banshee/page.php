@@ -23,7 +23,7 @@
 			}
 			$this->view->title = $page["title"];
 			if ($page["style"] != null) {
-				$this->view->inline_css = $page["style"];
+				$this->view->add_inline_css($page["style"]);
 			}
 			$this->view->language = $page["language"];
 
