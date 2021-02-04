@@ -119,7 +119,7 @@
 				return false;
 			}
 
-			unlink("files/images/".$token_id.".".$current["extension"]);
+			unlink("files/tokens/".$token_id.".".$current["extension"]);
 
 			return $this->db->delete("tokens", $token_id);
 		}
