@@ -355,8 +355,8 @@ function object_move_to_sticked(obj) {
 
 function object_rotate(obj, rotation, send = true) {
 	var img = obj.find('img');
-	var width = parseInt(img.prop('width')) / grid_cell_size;
-	var height = parseInt(img.prop('height')) / grid_cell_size;
+	var width = obj.width() / grid_cell_size;
+	var height = obj.height() / grid_cell_size;
 
 	if ((width % 2) != (height % 2)) {
 		if (width > height) {
