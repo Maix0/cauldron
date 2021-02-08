@@ -23,7 +23,7 @@
 				return;
 			}
 
-			if (count($characters) == 0) {
+			if ((isset($game["id"]) == false) && (count($characters) == 0)) {
 				$this->view->add_tag("result", "No characters available to start a new game.");
 				return;
 			}

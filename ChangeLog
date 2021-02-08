@@ -1,3 +1,11 @@
+tabletop (0.3) stable; urgency=low
+
+  * Added collectables.
+  * Overrule who's next in battle order.
+  * Clone tokens.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon,  8 Feb 2020 08:55:02 +0100
+
 tabletop (0.2) stable; urgency=low
 
   * AJAX call handling moved to object module.

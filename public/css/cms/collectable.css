@@ -1,0 +1,28 @@
+@media (min-width:768px) {
+	form.game-selector {
+		width:300px;
+		float:right;
+		position:relative;
+		top:-40px;
+		margin-bottom:-40px;
+	}
+}
+
+table.table th:nth-child(n+2) {
+	width:70px;
+}
+
+div.input-group {
+	max-width:500px;
+}
+
+img.collectable {
+	display:block;
+}
+
+@media (min-width:767px ) {
+	img.collectable {
+		float:right;
+		max-width:200px;
+	}
+}

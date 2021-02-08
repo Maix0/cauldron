@@ -74,14 +74,13 @@
 			if ($this->db->insert("tokens", $token, $keys) === false) {
 				return false;
 			}
-			$char_id = $this->db->last_insert_id;
+			$token_id = $this->db->last_insert_id;
 
-			if ($this->save_image($image, $char_id)) {
-				$keys = array("extension");
-				$token["extension"] = $image["extension"];
-				$this->db->update("tokens", $char_id, $token, $keys);
+			if ($this->save_image($image, $token_id)) {
+				$data = array("extension" => $image["extension"]);
+				$this->db->update("tokens", $token_id, $data);
 			} else {
-				$this->db->delete("tokens", $char_id);
+				$this->db->delete("tokens", $token_id);
 				return false;
 			}
 

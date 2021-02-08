@@ -8,13 +8,18 @@
 		}
 
 		public function get_game($game_id) {
-			$query = "select * from games where id=%d and dm_id=%d";
+			static $cache = array();
 
-			if (($games = $this->db->execute($query, $game_id, $this->user->id)) == false) {
-				return false;
+			if (isset($cache[$game_id]) == false) {
+				$query = "select * from games where id=%d and dm_id=%d";
+
+				if (($games = $this->db->execute($query, $game_id, $this->user->id)) == false) {
+					return false;
+				}
+				$cache[$game_id] = $games[0];
 			}
 
-			return $games[0];
+			return $cache[$game_id];
 		}
 
 		public function get_characters() {
@@ -56,12 +61,14 @@
 				$result = false;
 			}
 
-			if (is_array($game["characters"]) == false) {
-				$this->view->add_message("Select at least one character.");
-				$result = false;
-			} else if (count($game["characters"]) == 0) {
-				$this->view->add_message("Select at least one character.");
-				$result = false;
+			if (isset($game["id"]) == false) {
+				if (is_array($game["characters"]) == false) {
+					$this->view->add_message("Select at least one character.");
+					$result = false;
+				} else if (count($game["characters"]) == 0) {
+					$this->view->add_message("Select at least one character.");
+					$result = false;
+				}
 			}
 
 			return $result;

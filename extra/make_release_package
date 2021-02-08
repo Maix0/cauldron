@@ -27,10 +27,14 @@ for file in access actions database debug error poll search spam; do
 	fi
 done
 
+# Enable setup module
+cat settings/public_modules.conf | sed 's/#setup/setup/' > modules.conf
+mv modules.conf settings/public_modules.conf
+
 # Change settings
 function change_setting {
-	cat settings/website.conf | sed "s/${1}.*/${1} = ${2}/" > /tmp/website.conf
-	mv /tmp/website.conf settings/website.conf
+	cat settings/website.conf | sed "s/${1}.*/${1} = ${2}/" > website.conf
+	mv website.conf settings/website.conf
 }
 
 change_setting DB_HOSTNAME localhost

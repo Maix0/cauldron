@@ -44,6 +44,7 @@
 <label for="title">Title:</label>
 <input type="text" id="title" name="title" value="{game/title}" class="form-control" />
 
+<xsl:if test="count(characters/user)>0">
 <label for="title">Characters:</label>
 <div class="row">
 <xsl:for-each select="characters/user">
@@ -59,7 +60,7 @@
 </div>
 </xsl:for-each>
 </div>
-
+</xsl:if>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save game" class="btn btn-default" />

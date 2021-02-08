@@ -7,7 +7,7 @@
 			}
 
 			if (count($games) == 0) {
-				$this->view->add_tag("result", "Database error.", array("url" => "cms/game"));
+				$this->view->add_tag("result", "Create a game first.", array("url" => "cms/game"));
 				return;
 			}
 
@@ -60,7 +60,9 @@
 				if ($_POST["submit_button"] == "Change game") {
 					/* Change game
 					 */
-					$_SESSION["edit_game_id"] = $_POST["game"];
+					if ($this->model->is_my_game($_POST["game"])) {
+						$_SESSION["edit_game_id"] = $_POST["game"];
+					}
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save map") {
 					/* Save map
@@ -100,11 +102,6 @@
 						$this->user->log_action("map %d deleted", $_POST["id"]);
 						$this->show_overview();
 					}
-				} else if ($_POST["submit_button"] == "search") {
-					/* Search
-					 */
-					$_SESSION["map_search"] = $_POST["search"];
-					$this->show_overview();
 				} else {
 					$this->show_overview();
 				}

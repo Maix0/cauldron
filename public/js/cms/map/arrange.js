@@ -1,5 +1,6 @@
 const DEFAULT_Z_INDEX = 10000;
 
+var game_id = null;
 var map_id = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
@@ -61,30 +62,65 @@ function object_armor_class(obj) {
 }
 
 function object_create(icon, x, y) {
-	var token_id = $(icon).attr('token_id');
-	var width = parseInt($(icon).attr('obj_width')) * grid_cell_size;
-	var height = parseInt($(icon).attr('obj_height')) * grid_cell_size;
-	var url = $(icon).attr('src');
+	if ($(icon).hasClass('icon')) {
+		var token_id = $(icon).attr('token_id');
+		var width = parseInt($(icon).attr('obj_width')) * grid_cell_size;
+		var height = parseInt($(icon).attr('obj_height')) * grid_cell_size;
+		var url = $(icon).attr('src');
+		var armor_class = 10;
+		var hitpoints = 0;
+		var type = $(icon).parent().find('div.name').text();
+		var rotation = 0;
+		x -= 30;
+		y -= 40;
+	} else {
+		var token_id = $(icon).parent().attr('token_id');
+		var width = $(icon).width();
+		var height = $(icon).height();
+		var url = $(icon).attr('src');
+		var armor_class = $(icon).parent().attr('armor_class');
+		var hitpoints = $(icon).parent().attr('hitpoints');
+		var type = $(icon).parent().attr('type');
+		var rotation = $(icon).parent().attr('rotation');
+	}
 
-	x += $('div.playarea').scrollLeft() - 30;
+	x += $('div.playarea').scrollLeft();
 	x = coord_to_grid(x, false);
 
-	y += $('div.playarea').scrollTop() - 40;
+	y += $('div.playarea').scrollTop();
 	y = coord_to_grid(y, false);
 
 	$.post('/object/create_token', {
 		map_id: map_id,
 		token_id: token_id,
 		pos_x: x / grid_cell_size,
-		pos_y: y / grid_cell_size
+		pos_y: y / grid_cell_size,
 	}).done(function(data) {
-		instance_id = $(data).find('instance_id').text();
+		var instance_id = $(data).find('instance_id').text();
 
-		var obj = '<div id="token' + instance_id + '" class="token" style="left:' + x + 'px; top:' + y + 'px;" is_hidden="no" hitpoints="1" damage="0">' +
-		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px; transform:rotate(0deg);" />' +
+		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + (DEFAULT_Z_INDEX + 1) + '" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
+		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px;" />' +
 		          '</div>';
 
 		$('div.playarea > div').append(obj);
+
+		if (parseInt(hitpoints) > 0) {
+			$.post('/object/hitpoints', {
+				instance_id: 'token' + instance_id,
+				hitpoints: hitpoints
+			});
+		}
+
+		if (parseInt(armor_class) != 10) {
+			$.post('/object/armor_class', {
+				instance_id: 'token' + instance_id,
+				armor_class: armor_class
+			});
+		}
+
+		if (parseInt(rotation) > 0) {
+			object_rotate($('div#token' + instance_id), rotation);
+		}
 
 		$('div.playarea div#token' + instance_id).draggable({
 			stop: function(event, ui) {
@@ -294,6 +330,51 @@ function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
 	});
 }
 
+/* Collectable functions
+ */
+function collectables_select(obj) {
+	var instance_id = obj.prop('id').substr(5);
+	$.post('/object/collectables/unused', {
+		game_id: game_id,
+		instance_id: instance_id
+	}).done(function(data) {
+		var body = $('div.collectables div.panel-body');
+		body.empty();
+		body.append('<select id="collectable" class="form-control" ><option value="0">-</option></select>');
+
+		$(data).find('collectable').each(function() {
+			var c_id = $(this).attr('id');
+			var c_token_id = $(this).find('game_map_token_id').text();
+			var c_name = $(this).find('name').text();
+			var collectable = $('<option value="' + c_id + '">' + c_name + '</option>');
+
+			if (c_token_id == instance_id) {
+				collectable.attr('selected', 'selected');
+			}
+
+			body.find('select').append(collectable);
+		});
+
+		body.append('<div class="btn-group"><input type="button" value="Save" class="btn btn-default save" /><input type="button" value="Cancel" class="btn btn-default cancel" /></div>');
+
+		$('div.collectables input.save').click(function() {
+			var collectable_id = body.find('select').val();
+			$.post('/object/collectable/place', {
+				collectable_id: collectable_id,
+				instance_id: instance_id
+			}).done(function() {
+				$('div.collectables').hide();
+			});
+		});
+
+		$('div.collectables input.cancel').click(function() {
+			$('div.collectables').hide();
+		});
+
+		$('div.collectables').show();
+	});
+}
+
 /* Input functions
  */
 function context_menu_handler(key, options) {
@@ -311,6 +392,13 @@ function context_menu_handler(key, options) {
 	switch (key) {
 		case 'armor_class':
 			object_armor_class(obj);
+			break;
+		case 'clone':
+			var pos = obj.position();
+			object_create($(this), pos.left + grid_cell_size, pos.top);
+			break;
+		case 'collectable':
+			collectables_select(obj);
 			break;
 		case 'delete':
 			if (confirm('Delete object?')) {
@@ -400,6 +488,7 @@ function context_menu_handler(key, options) {
 /* Main
  */
 $(document).ready(function() {
+	game_id = parseInt($('div.playarea').attr('game_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
 
@@ -477,11 +566,13 @@ $(document).ready(function() {
 				'rotate_nw': {name:'North West'},
 			}},
 			'presence': {name:'Presence', icon:'fa-low-vision'},
+			'collectable': {name:'Collectable', icon:'fa-key'},
 			'sep1': '-',
 			'armor_class': {name:'Armor class', icon:'fa-shield'},
 			'hitpoints': {name:'Hitpoints', icon:'fa-heartbeat'},
 			'sep2': '-',
 			'lower': {name:'Lower', icon:'fa-arrow-down'},
+			'clone': {name:'Clone', icon:'fa-copy'},
 			'delete': {name:'Delete', icon:'fa-trash'}
 		},
 		zIndex: DEFAULT_Z_INDEX + 3
@@ -514,6 +605,8 @@ $(document).ready(function() {
 		},
 		zIndex: DEFAULT_Z_INDEX + 4
 	});
+
+	$('div.collectables').css('z-index', DEFAULT_Z_INDEX + 5);
 
 	/* Library
 	 */

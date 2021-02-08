@@ -22,7 +22,8 @@
 					"Pages"         => array("cms/page", "page.png"),
 					"Tokens"        => array("cms/token", "token.png"),
 					"Games"         => array("cms/game", "game.png"),
-					"Maps"          => array("cms/map", "map.png")),
+					"Maps"          => array("cms/map", "map.png"),
+					"Collectables"  => array("cms/collectable", "collectables.png")),
 				"System" => array(
 					"Action log"    => array("cms/action", "action.png"),
 					"Settings"      => array("cms/settings", "settings.png"),

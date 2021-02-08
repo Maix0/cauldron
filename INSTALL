@@ -44,6 +44,12 @@ the required URL rewriting rules. If you use another webserver, you have to
 convert the rewriting rules to your webserver's configuration.
 
 
+File access rights
+------------------
+Make sure the directory public/files and the subdirectories it contains, are
+writable for the webserver.
+
+
 Configure PHP
 -------------
 Banshee requires at least PHP v7.2 and needs PHP's JSON, MySQL and XML module.
@@ -80,3 +86,11 @@ Content from other websites
 ---------------------------
 If you plan to use maps (images or videos) from other websites, make sure you
 update the HEADER_CSP setting in settings/website.conf.
+
+
+Upgrading
+=========
+Before upgrading this website, run database/backup_database make a backup of
+your database to disk. Then make a backup of this directory.
+Replace the source code with the new version. Open the website and add
+/setup to the URL. Follow the instructions on the screen.

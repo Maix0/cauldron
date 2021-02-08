@@ -39,6 +39,7 @@
 </xsl:if>
 <div class="btn-group">
 <xsl:if test="map/type='video'"><button onClick="javascript:$('video').get(0).play()" class="btn btn-default btn-xs">Play</button></xsl:if>
+<button class="btn btn-default btn-xs" onClick="javascript:collectables_show()">Inventory</button>
 <a href="/game" class="btn btn-default btn-xs">Back</a>
 </div>
 </div>
@@ -46,6 +47,13 @@
 <input id="game_id" type="hidden" name="game_id" value="{@id}" />
 <p>No map has been selected yet.</p>
 </xsl:if>
+<!-- Collectables -->
+<div class="collectables" onClick="javascript:$(this).hide()">
+<div class="panel panel-default" onClick="javascript:event.stopPropagation();">
+<div class="panel-heading">Collectables<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
+<div class="panel-body"></div>
+</div>
+</div>
 <!-- Effects -->
 <div class="effects" onClick="javascript:$(this).hide()">
 <div class="panel panel-default" onClick="javascript:event.stopPropagation();">
@@ -64,7 +72,7 @@
 <div>
 <xsl:if test="map/type='image'"><xsl:attribute name="style">background-image:url(<xsl:value-of select="map/url" />); background-size:<xsl:value-of select="map/width" />px <xsl:value-of select="map/height" />px; width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute></xsl:if>
 <xsl:if test="map/type='video'"><xsl:attribute name="style">width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute>
-<video width="{map/width}" height="{map/height}" autoplay="true" loop="true"><source src="{map/url}"></source></video><xsl:text>
+<video width="{map/width}" height="{map/height}" autoplay="true" loop="true" source="{map/url}" /><xsl:text>
 </xsl:text></xsl:if>
 <!-- Zones -->
 <xsl:for-each select="zones/zone">
@@ -73,6 +81,12 @@
 <!-- Tokens -->
 <xsl:for-each select="tokens/token">
 <div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
+<xsl:if test="c_id!=''">
+<xsl:attribute name="c_id"><xsl:value-of select="c_id" /></xsl:attribute>
+<xsl:attribute name="c_name"><xsl:value-of select="c_name" /></xsl:attribute>
+<xsl:attribute name="c_src"><xsl:value-of select="c_src" /></xsl:attribute>
+<xsl:attribute name="c_hide"><xsl:value-of select="c_hide" /></xsl:attribute>
+</xsl:if>
 <xsl:if test="perc">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 </xsl:if>

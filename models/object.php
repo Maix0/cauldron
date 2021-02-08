@@ -51,7 +51,11 @@
 		}
 
 		public function token_delete($instance_id) {
-			return $this->db->delete("game_map_token", $instance_id) !== false;
+			$queries = array(
+				array("update collectables set game_map_token_id=null where game_map_token_id=%d", $instance_id),
+				array("delete from game_map_token where id=%d", $instance_id));
+
+			return $this->db->transaction($queries) != false;
 		}
 
 		public function token_hide($instance_id, $hidden) {
@@ -137,6 +141,42 @@
 		public function zone_move($instance_id, $pos_x, $pos_y) {
 			$data = array("pos_x" => (int)$pos_x, "pos_y" => (int)$pos_y);
 			return $this->db->update("zones", $instance_id, $data) !== false;
+		}
+
+		/* Collectable functions
+		 */
+		public function collectables_get_unused($game_id, $instance_id) {
+			$query = "select id, game_map_token_id, name, image from collectables ".
+			         "where game_id=%d and (game_map_token_id is null or game_map_token_id=%d) order by name";
+
+			return $this->db->execute($query, $game_id, $instance_id);
+		}
+
+		public function collectable_place($collectable_id, $instance_id) {
+			$query = "update collectables set game_map_token_id=null where game_map_token_id=%d";
+			if ($this->db->query($query, $instance_id) === false) {
+				return false;
+			}
+
+			if ($collectable_id == 0) {
+				return true;
+			}
+
+			$data = array("game_map_token_id" => $instance_id);
+			return $this->db->update("collectables", $collectable_id, $data);
+		}
+
+		public function collectable_found($collectable_id) {
+			$data = array("found" => YES);
+
+			return $this->db->update("collectables", $collectable_id, $data) !== false;
+		}
+
+		public function collectables_get_found($game_id) {
+			$query = "select id, name, image from collectables ".
+					 "where game_id=%d and found=%d order by name";
+
+			return $this->db->execute($query, $game_id, YES);
 		}
 	}
 ?>

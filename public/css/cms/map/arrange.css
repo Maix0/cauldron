@@ -1,3 +1,29 @@
+div.token,
+div.character {
+	position:absolute;
+}
+
+div.token img,
+div.character img {
+	cursor:grab;
+}
+
+div.character span {
+	display:block;
+	font-size:8px;
+	text-align:center;
+	color:#000000;
+	background-color:#ffffff;
+	border:1px solid #808080;
+	padding:1px 3px;
+}
+
+select#collectable {
+    font-family:sans-serif;
+}
+
+/* Menu
+ */
 div.menu {
 	position:absolute;
 	top:5px;
@@ -10,6 +36,32 @@ div.menu div.btn-group {
 	display:inline-block;
 }
 
+/* Collectables
+ */
+div.collectables {
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    z-index:2;
+    background:rgba(64, 64, 64, 0.7);
+    display:none;
+}
+
+div.collectables div.panel {
+    width:450px;
+    margin:0 auto;
+    margin-top:200px;
+}
+
+div.collectables div.panel-body {
+    max-height:315px;
+    overflow-y:auto;
+}
+
+/* Playarea
+ */
 div.playarea {
 	position:absolute;
 	top:40px;
@@ -26,15 +78,8 @@ div.playarea video {
 	top:0;
 }
 
-div.filter {
-	position:absolute;
-	top:40px;
-	right:0px;
-	height:50px;
-	width:200px;
-	padding-right:15px;
-}
-
+/* Library
+ */
 div.library {
 	position:absolute;
 	top:90px;
@@ -58,30 +103,21 @@ div.library div.well div {
     white-space:nowrap;
 }
 
+/* Right bar
+ */
+div.filter {
+	position:absolute;
+	top:40px;
+	right:0px;
+	height:50px;
+	width:200px;
+	padding-right:15px;
+}
+
 div.sidebar {
 	position:absolute;
 	height:150px;
 	right:0px;
 	bottom:0px;
 	width:200px;
-}
-
-div.token,
-div.character {
-	position:absolute;
-}
-
-div.token img,
-div.character img {
-	cursor:grab;
-}
-
-div.character span {
-	display:block;
-	font-size:8px;
-	text-align:center;
-	color:#000000;
-	background-color:#ffffff;
-	border:1px solid #808080;
-	padding:1px 3px;
 }

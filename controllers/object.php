@@ -8,7 +8,6 @@
 		}
 
 		public function post_change_map() {
-debug_log($_POST);
 			$this->model->change_map($_POST["game_id"], $_POST["map_id"]);
 		}
 
@@ -101,6 +100,36 @@ debug_log($_POST);
 			} else if (substr($_POST["instance_id"], 0, 5) == "token") {
 				$instance_id = substr($_POST["instance_id"], 5);
 				$this->model->token_hide($instance_id, false);
+			}
+		}
+
+		/* Collectables
+		 */
+		public function post_collectables_unused() {
+			if (($collectables = $this->model->collectables_get_unused($_POST["game_id"], $_POST["instance_id"])) === false) {
+				return false;
+			}
+
+			foreach ($collectables as $collectable) {
+				$this->view->record($collectable, "collectable");
+			}
+		}
+
+		public function post_collectable_place() {
+			$this->model->collectable_place($_POST["collectable_id"], $_POST["instance_id"]);
+		}
+
+		public function post_collectable_found() {
+			$this->model->collectable_found($_POST["collectable_id"]);
+		}
+
+		public function post_collectables_found() {
+			if (($collectables = $this->model->collectables_get_found($_POST["game_id"])) === false) {
+				return false;
+			}
+
+			foreach ($collectables as $collectable) {
+				$this->view->record($collectable, "collectable");
 			}
 		}
 	}

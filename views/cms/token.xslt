@@ -77,7 +77,7 @@
 //-->
 <xsl:template match="content">
 <img src="/images/icons/token.png" class="title_icon" />
-<h1>Tokens</h1>
+<h1>Token administration</h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="result" />

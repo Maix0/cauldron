@@ -26,6 +26,30 @@ table.table th:last-child {
 	width:200px;
 }
 
+/* Collectables
+ */
+div.collectables {
+	position:absolute;
+	top:0;
+	bottom:0;
+	left:0;
+	right:0;
+	z-index:2;
+	background:rgba(64, 64, 64, 0.7);
+	display:none;
+}
+
+div.collectables div.panel {
+	width:450px;
+	margin:0 auto;
+	margin-top:200px;
+}
+
+div.collectables div.panel-body {
+	max-height:315px;
+	overflow-y:auto;
+}
+
 /* Effects
  */
 div.effects {

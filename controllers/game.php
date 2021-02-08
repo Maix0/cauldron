@@ -149,6 +149,9 @@
 					if ($user_is_dungeon_master && ($token["hitpoints"] > 0)) {
 						$token["perc"] = round(100 * $token["damage"] / $token["hitpoints"]);
 					}
+					if (isset($token["c_hide"])) {
+						$token["c_hide"] = show_boolean($token["c_hide"]);
+					}
 					$this->view->record($token, "token");
 				}
 				$this->view->close_tag();

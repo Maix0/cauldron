@@ -123,19 +123,19 @@ function show_help() {
 	var help =
 		'<b>/clear</b>: clear this sidebar.<br />' +
 		(dungeon_master ? '' :
-		'<b>/damage [points]</b>: damage your character.<br />') +
+		'<b>/damage &lt;points&gt;</b>: damage your character.<br />') +
 		(dungeon_master ?
-		'<b>/dmroll [dice]</b>: Privately roll dice.<br />' : '') +
+		'<b>/dmroll &lt;dice&gt;</b>: Privately roll dice.<br />' : '') +
 		(dungeon_master ? '' :
-		'<b>/heal [points]</b>: Heal your character.<br />') +
+		'<b>/heal &lt;points&gt;</b>: Heal your character.<br />') +
 		(dungeon_master ?
 		'<b>/init</b>: Roll for initiative.<br />' +
 		'<b>/reload</b>: Reload current page.<br />' : '') +
-		'<b>/roll [dice]</b>: Roll dice.<br />' +
+		'<b>/roll &lt;dice&gt;</b>: Roll dice.<br />' +
 		(dungeon_master ?
-		'<b>/next</b>: Next character\'s turn in battle.<br />' +
+		'<b>/next [&lt;name&gt;]</b>: Next character\'s turn in battle.<br />' +
 		'<b>/ping</b>: See who\'s online in the game.<br />' : '') +
-		'<b>[message]</b>: Send text message.<br />' +
+		'<b>&lt;message&gt;</b>: Send text message.<br />' +
 		'Right-click ' + (dungeon_master ? 'any' : 'your character') + ' icon or the map for more options.';
 
 	write_sidebar(help);
@@ -248,6 +248,8 @@ function object_handover(obj) {
 }
 
 function object_hide(obj) {
+	obj.attr('is_hidden', 'yes');
+
 	var data = {
 		game_id: game_id,
 		action: 'hide',
@@ -387,6 +389,8 @@ function object_rotate(obj, rotation, send = true) {
 }
 
 function object_show(obj) {
+	obj.attr('is_hidden', 'no');
+
 	var data = {
 		game_id: game_id,
 		action: 'show',
@@ -400,6 +404,60 @@ function object_show(obj) {
 
 	obj.fadeTo('fast', 1);
 }
+
+function object_view(obj, max_size = 300) {
+	var collectable_id = obj.attr('c_id');
+
+	if (my_character != null) {
+		var char_pos = my_character.position();
+		var obj_pos = obj.position();
+		var diff_x = Math.abs(char_pos.left - obj_pos.left) / grid_cell_size;
+		var diff_y = Math.abs(char_pos.top - obj_pos.top) / grid_cell_size;
+
+		if ((diff_x > 2) || (diff_y > 2)) {
+			collectable_id = undefined;
+		}
+	}
+
+	if (collectable_id == undefined) {
+		var src = obj.find('img').prop('src');
+	} else {
+		var src = '/files/collectables/' + obj.attr('c_src');
+	}
+	var transform = obj.find('img').css('transform');
+
+	var div_style = 'position:absolute; top:0; left:0; right:0; bottom:0; background-color:rgba(255, 255, 255, 0.8); z-index:' + (DEFAULT_Z_INDEX + 5);
+	var img_style = 'position:fixed; top:50%; left:50%; display:block; max-width:' + max_size + 'px; height:' + max_size + 'px; transform:translate(-50%, -50%)';
+	if ((transform != 'none') && (collectable_id == undefined)) {
+		img_style += ' ' + transform + ';';
+	} else {
+		img_style += ';';
+	}
+	if (collectable_id != undefined) {
+		img_style += 'border:1px solid #000000;';
+	}
+	var onclick = 'javascript:$(this).remove();';
+
+	var view = $('<div id="view" style="' + div_style + '" onClick="' + onclick +'"><img src="' + src + '" style="' + img_style + '" /></div>');
+	$('body').append(view);
+
+	if ((collectable_id != undefined) && (dungeon_master == false)) {
+		obj.attr('c_id', null);
+		$('div#view').prepend('<h1 style="font-size:50px; text-align:center; margin-top:50px;">Item found!</h1>');
+
+		$.post('/object/collectable/found', {
+			collectable_id: collectable_id
+		});
+
+		send_message('Item found!');
+
+		if (obj.attr('c_hide') == 'yes') {
+			object_hide(obj);
+			obj.hide();
+		}
+	}
+}
+
 
 /* Effects
  */
@@ -559,6 +617,33 @@ function marker_create(pos_x, pos_y) {
 	setTimeout(function() { $('img.marker').first().remove(); }, 3000);
 }
 
+/* Collectable functions
+ */
+function collectables_show() {
+	$.post('/object/collectables/found', {
+		game_id: game_id,
+	}).done(function(data) {
+		var body = $('div.collectables div.panel-body');
+		body.empty();
+
+		if ($(data).find('collectable').length == 0) {
+			var spider = '<img src="/images/spider_web.png" style="float:right; height:100px; margin-bottom:100px;" />';
+			body.append(spider);
+		} else {
+			body.append('<div class="row"></div>');
+			var row = body.find('div');
+
+			$(data).find('collectable').each(function() {
+				var image = $(this).find('image').text();
+				var collectable = '<div class="col-sm-4" onClick="javascript:object_view($(this), 600);"><img src="/files/collectables/' + image + '" style="max-width:100px; max-height:100px; cursor:pointer;" /></div>';
+				row.append(collectable);
+			});
+		}
+
+		$('div.collectables').show();
+	});
+}
+
 /* Input functions
  */
 function handle_input(input) {
@@ -642,6 +727,17 @@ function handle_input(input) {
 				if (enemy != '') {
 					var parts = enemy.split(',');
 
+					var present = false;
+					battle_order.forEach(function(value, key) {
+						if (value.name == parts[0]) {
+							present = true;
+						}
+					});
+					if (present) {
+						write_sidebar("Already in battle order.");
+						continue;
+					}
+
 					var initiative = 0;
 					if (parts.length > 1) {
 						initiative = parseInt(parts[1]);
@@ -694,8 +790,36 @@ function handle_input(input) {
 				break;
 			}
 
+			var turn = null;
+			if (param != '') {
+				battle_order.forEach(function(value, key) {
+					if (value.name.substr(0, param.length) == param) {
+						turn = key;
+					}
+				});
+
+				if (turn == null) {
+					write_sidebar(param + ' not in battle order.');
+					$('div.input input').val(input);
+					break;
+				}
+
+				if (turn == 0) {
+					write_sidebar('Already its turn.');
+					break;
+				}
+
+				turn -= 1;
+			}
+
 			var item = battle_order.shift();
 			battle_order.push(item);
+
+			if (turn != null) {
+				var item = battle_order[turn];
+				battle_order.splice(turn, 1);
+				battle_order.unshift(item);
+			}
 
 			show_battle_order();
 			break;
@@ -925,10 +1049,8 @@ function context_menu_handler(key, options) {
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
 				object_show(obj);
-				obj.attr('is_hidden', 'no');
 			} else {
 				object_hide(obj);
-				obj.attr('is_hidden', 'yes');
 			}
 			break;
 		case 'stick':
@@ -996,25 +1118,12 @@ function context_menu_handler(key, options) {
 			}
 
 			object_hide(obj);
-			obj.attr('is_hidden', 'yes');
 			break;
 		case 'unstick':
 			stick_to = null;
 			break;
 		case 'view':
-			var src = obj.find('img').prop('src');
-			var transform = obj.find('img').css('transform');
-
-			var div_style = 'position:absolute; top:0; left:0; right:0; bottom:0; background-color:rgba(255, 255, 255, 0.8); z-index:' + (DEFAULT_Z_INDEX + 5);
-			var img_style = 'position:fixed; top:50%; left:50%; display:block; max-width:300px; height:300px; transform:translate(-50%, -50%)';
-			var onclick = 'javascript:$(this).remove();';
-
-			if (transform != 'none') {
-				img_style += ' ' + transform;
-			}
-
-			var view = $('<div id="view" style="' + div_style + '" onClick="' + onclick +'"><img src="' + src + '" style="' + img_style + '" /></div>');
-			$('body').append(view);
+			object_view(obj);
 			break;
 		case 'zone_create':
 			var menu = $('div#context-menu-layer + ul.context-menu-root');
@@ -1229,7 +1338,12 @@ $(document).ready(function() {
 				});
 				break;
 			case 'hide':
-				$('div#' + data.instance_id).hide();
+				if (dungeon_master == false) {
+					$('div#' + data.instance_id).hide();
+				} else {
+					$('div#' + data.instance_id).fadeTo('fast', 0.5);
+					$('div#' + data.instance_id).attr('is_hidden', 'yes');
+				}
 				break;
 			case 'lower':
 				$('div#' + data.instance_id).css('z-index', z_index);
@@ -1329,9 +1443,18 @@ $(document).ready(function() {
 	 */
 	$('div.zone').css('z-index', 3);
 
-	$('div.token[is_hidden=no]').each(function() {
-		$(this).show();
-	});
+	if ($('video').length > 0) {
+		$('video').on('loadeddata', function() {
+			$('div.token[is_hidden=no]').each(function() {
+				$(this).show();
+			});
+		});
+		$('video').append('<source src="' + $('video').attr('source') + '"></source>');
+	} else {
+		$('div.token[is_hidden=no]').each(function() {
+			$(this).show();
+		});
+	}
 
 	$('div.character[is_hidden=yes]').each(function() {
 		if (dungeon_master) {

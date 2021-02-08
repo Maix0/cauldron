@@ -6,6 +6,12 @@
 			return $this->db->execute($query, $this->user->id);
 		}
 
+		public function is_my_game($game_id) {
+			$query = "select * from games where id=%d and dm_id=%d";
+
+			return $this->db->execute($query, $game_id, $this->user->id) != false;
+		}
+
 		public function get_maps($game_id) {
 			$query = "select * from game_maps where game_id=%d order by title";
 
@@ -67,6 +73,7 @@
 
 			$map["id"] = null;
 			$map["game_id"] = $_SESSION["edit_game_id"];
+			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
 
 			if ($this->db->query("begin") === false) {
@@ -88,8 +95,14 @@
 		}
 
 		public function update_map($map) {
+			if ($this->get_map($map["id"]) == false) {
+				$this->view->add_message("Map not found.");
+				return false;
+			}
+
 			$keys = array("title", "url", "type", "width", "height", "grid_size", "show_grid");
 
+			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
 
 			return $this->db->update("game_maps", $map["id"], $map, $keys);
