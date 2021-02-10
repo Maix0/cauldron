@@ -27,8 +27,9 @@ div.token div div {
     white-space:nowrap;
 }
 
+input.form-control,
 div.input-group {
-	max-width:500px;
+	max-width:450px;
 }
 
 span.input-group-btn label {

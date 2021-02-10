@@ -1,5 +1,5 @@
 <?php
-	class XXX_controller extends Banshee\controller {
+	class XXX_controller extends \Banshee\controller {
 		private function show_overview() {
 			if ($_SESSION["XXX_search"] == "") {
 				if (($XXX_count = $this->model->count_XXXs()) === false) {

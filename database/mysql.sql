@@ -172,6 +172,8 @@ DROP TABLE IF EXISTS `games`;
 CREATE TABLE `games` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `title` varchar(50) NOT NULL,
+  `image` tinytext NOT NULL,
+  `story` text NOT NULL,
   `dm_id` int(10) unsigned NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `active_map_id` int(10) unsigned DEFAULT NULL,
@@ -353,6 +355,7 @@ CREATE TABLE `roles` (
   `cms/map` tinyint(4) DEFAULT '0',
   `cms/map/arrange` tinyint(4) DEFAULT '0',
   `object` tinyint(4) DEFAULT '0',
+  `cms/collectable` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -365,7 +368,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
-INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1),(3,'Dungeon Master',1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1),(4,'Demo Player',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1);
+INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0),(3,'Dungeon Master',1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0);
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -417,7 +420,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','3'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
+INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','4'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 

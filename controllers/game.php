@@ -8,8 +8,17 @@
 				return;
 			}
 
+			$this->view->add_javascript("games.js");
+
 			$this->view->open_tag("games");
 			foreach ($games as $game) {
+				$game["story"] = strip_tags($game["story"], "<b><i><u>");
+				$replace = array("\r" => "", "\n\n" => "</p><p>", "\n" => "<br \>");
+				foreach ($replace as $key => $value) {
+					$game["story"] = str_replace($key, $value, $game["story"]);
+				}
+				$game["story"] = "<p>".$game["story"]."</p>";
+
 				$this->view->record($game, "game");
 			}
 			$this->view->close_tag();
@@ -181,7 +190,7 @@
 		}
 
 		public function execute() {
-			$this->view->title = "Game";
+			$this->view->title = "Games";
 
 			if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {
 				$this->show_games();

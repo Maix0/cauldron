@@ -12,12 +12,15 @@ table.table th:nth-child(n+2) {
 	width:70px;
 }
 
+input.form-control,
 div.input-group {
-	max-width:500px;
+	max-width:450px;
 }
 
 img.collectable {
 	display:block;
+	width:100%;
+	max-width:450px;
 }
 
 @media (min-width:767px ) {

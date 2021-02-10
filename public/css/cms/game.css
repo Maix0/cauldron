@@ -1,3 +1,7 @@
+table.table th:last-child {
+	width:80px;
+}
+
 input[type=checkbox] {
 	margin-right:5px;
 }

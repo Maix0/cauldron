@@ -118,9 +118,13 @@
 				return false;
 			}
 
+			if ($this->db->delete("tokens", $token_id) == false) {
+				return false;
+			}
+
 			unlink("files/tokens/".$token_id.".".$current["extension"]);
 
-			return $this->db->delete("tokens", $token_id);
+			return true;
 		}
 	}
 ?>

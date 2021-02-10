@@ -8,19 +8,26 @@
 //
 //-->
 <xsl:template match="games">
-<table class="table table-striped table-hover">
-<thead>
-<tr><th>Title</th><th>Dungeon Master</th></tr>
-</thead>
-<tbody>
+<div class="row">
 <xsl:for-each select="game">
-<tr onClick="document.location='/{/output/page}/{@id}'">
-<td><xsl:value-of select="title" /></td>
-<td><xsl:value-of select="dm" /></td>
-</tr>
+<div class="col-sm-6">
+<div class="well" style="background-image:url({image})">
+<h2><xsl:value-of select="title" /></h2>
+<span>Dungeon Master: <xsl:value-of select="dm" /></span>
+<div class="btn-group"><button class="btn btn-primary btn-sm" onClick="javascript:show_story({@id})">Story</button><a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Start</a></div>
+</div>
+</div>
 </xsl:for-each>
-</tbody>
-</table>
+</div>
+
+<div class="faded_background stories" onClick="javascript:close_story()">
+<xsl:for-each select="game">
+<div id="story{@id}" class="panel panel-default story" style="max-width:600px" onClick="javascript:event.stopPropagation()">
+<div class="panel-heading"><xsl:value-of select="title" /><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:close_story()"></span></div>
+<div class="panel-body"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
+</div>
+</xsl:for-each>
+</div>
 </xsl:template>
 
 <!--
@@ -40,6 +47,7 @@
 <div class="btn-group">
 <xsl:if test="map/type='video'"><button onClick="javascript:$('video').get(0).play()" class="btn btn-default btn-xs">Play</button></xsl:if>
 <button class="btn btn-default btn-xs" onClick="javascript:collectables_show()">Inventory</button>
+<button class="btn btn-default btn-xs" onClick="javascript:scroll_to_my_character()">Scroll to character</button>
 <a href="/game" class="btn btn-default btn-xs">Back</a>
 </div>
 </div>
@@ -48,14 +56,14 @@
 <p>No map has been selected yet.</p>
 </xsl:if>
 <!-- Collectables -->
-<div class="collectables" onClick="javascript:$(this).hide()">
-<div class="panel panel-default" onClick="javascript:event.stopPropagation();">
+<div class="collectables faded_background" onClick="javascript:$(this).hide()">
+<div class="panel panel-default" onClick="javascript:event.stopPropagation()">
 <div class="panel-heading">Collectables<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
 <div class="panel-body"></div>
 </div>
 </div>
 <!-- Effects -->
-<div class="effects" onClick="javascript:$(this).hide()">
+<div class="effects faded_background" onClick="javascript:$(this).hide()">
 <div class="panel panel-default" onClick="javascript:event.stopPropagation();">
 <div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
 <div class="panel-body">

@@ -121,6 +121,7 @@
 
 		public function delete_map($map_id) {
 			$queries = array(
+				array("delete from zones where game_map_id=%d", $map_id),
 				array("delete from game_map_token where game_map_id=%d", $map_id),
 				array("delete from game_map_character where game_map_id=%d", $map_id),
 				array("update games set active_map_id=null where active_map_id=%d", $map_id),

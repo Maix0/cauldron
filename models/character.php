@@ -29,6 +29,13 @@
 		public function save_oke($character, $portrait) {
 			$result = true;
 
+			if (isset($character["id"])) {
+				if ($this->get_character($character["id"]) == false) {
+					$this->view->add_message("Character not found.");
+					$result = false;
+				}
+			}
+
 			if (trim($character["name"]) == "") {
 				$this->view->add_message("Fill in the name.");
 				$result = false;
@@ -104,7 +111,7 @@
 			$result = true;
 
 			if (($current = $this->get_character($character["id"])) == false) {
-				$this->view->add_message("Chacaracter not found.");
+				$this->view->add_message("Character not found.");
 				$result = false;
 			}
 

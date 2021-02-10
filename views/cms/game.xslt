@@ -43,6 +43,10 @@
 
 <label for="title">Title:</label>
 <input type="text" id="title" name="title" value="{game/title}" class="form-control" />
+<label for="image">URL to background image:</label>
+<input type="text" id="image" name="image" value="{game/image}" class="form-control" />
+<label for="story">Introduction story:</label>
+<textarea id="story" name="story" class="form-control"><xsl:value-of select="game/story" /></textarea>
 
 <xsl:if test="count(characters/user)>0">
 <label for="title">Characters:</label>

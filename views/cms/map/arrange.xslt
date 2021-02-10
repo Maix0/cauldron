@@ -16,7 +16,7 @@
 </div>
 </div>
 <!-- Collectables -->
-<div class="collectables" onClick="javascript:$(this).hide()">
+<div class="collectables faded_background" onClick="javascript:$(this).hide()">
 <div class="panel panel-default" onClick="javascript:event.stopPropagation();">
 <div class="panel-heading">Collectables<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
 <div class="panel-body"></div>

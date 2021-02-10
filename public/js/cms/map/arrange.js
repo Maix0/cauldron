@@ -452,33 +452,55 @@ function context_menu_handler(key, options) {
 			var pos_y = Math.floor(pos_menu.top) + $('div.playarea').scrollTop() - 41;
 			pos_y = coord_to_grid(pos_y, false);
 
-			var info;
-			if ((info = window.prompt('Zone width[,height[,#rgb[,opacity]]]:')) == undefined) {
-				break;
-			}
+			var zone_define = '<div class="zone_create faded_background" onClick="javascript:$(this).remove()"><div class="panel panel-default" onClick="javascript:event.stopPropagation()"><div class="panel-heading">Create zone<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().remove()"></span></div><div class="panel-body" style="max-height:335px">';
+			zone_define += '<label for="width">Width:</label>';
+			zone_define += '<input type="text" id="width" value="3" class="form-control" onKeyUp="javascript:$(\'#height\').val($(this).val())" />';
+			zone_define += '<label for="height">Height:</label>';
+			zone_define += '<input type="text" id="height" value="3" class="form-control" />';
+			zone_define += '<label for="color">Color:</label>';
+			zone_define += '<input type="text" id="color" value="#ff0000" class="form-control" />';
+			zone_define += '<label for="opacity">Opacity:</label>';
+			zone_define += '<input type="text" id="opacity" value="0.2" class="form-control" />';
+			zone_define += '<div class="btn-group"><button class="btn btn-default">Create zone</button></div>';
+			zone_define += '</div></div></div>';
 
-			var parts = info.split(',');
-			var width = parseInt(parts[0]);
-			var height = (parts.length > 1) ? parseInt(parts[1]) : width;
-			var color = (parts.length > 2) ? parts[2] : '#f00';
-			var opacity = (parts.length > 3) ? parts[3] : '0.2';
+			$('body').prepend(zone_define);
+			$('div.zone_create div.panel').draggable({
+				handle: 'div.panel-heading',
+				cursor: 'grab'
+			});
+			$('div.zone_create').css('z-index', DEFAULT_Z_INDEX + 5);
 
-			if (opacity < 0.2) {
-				opacity = 0.2;
-			}
+			$('div.zone_create button').on('click', function() {
+				var width = parseInt($('input#width').val());
+				var height = parseInt($('input#height').val());
+				var color = $('input#color').val();
+				var opacity = parseFloat($('input#opacity').val());
 
-			pos_x -= Math.floor((width - 1) / 2) * grid_cell_size;
-			pos_y -= Math.floor((height - 1) / 2) * grid_cell_size;
+				if (isNaN(width)) {
+					write_sidebar('Invalid width.');
+					return;
+				} else if (isNaN(height)) {
+					write_sidebar('Invalid height.');
+					return;
+				} else if (isNaN(opacity)) {
+					write_sidebar('Invalid opacity.');
+					return;
+				}
 
-			if (isNaN(width)) {
-				write_sidebar('Invalid width.');
-				break;
-			} else if (isNaN(height)) {
-				write_sidebar('Invalid height.');
-				break;
-			}
+				if (opacity < 0.2) {
+					opacity = 0.2;
+				} else if (opacity > 1) {
+					opacity = 1;
+				}
 
-			zone_create(obj, pos_x, pos_y, width, height, color, opacity);
+				pos_x -= Math.floor((width - 1) / 2) * grid_cell_size;
+				pos_y -= Math.floor((height - 1) / 2) * grid_cell_size;
+
+				zone_create(obj, pos_x, pos_y, width, height, color, opacity);
+
+				$(this).parent().parent().parent().parent().remove();
+			});
 			break;
 		default:
 			write_sidebar('Unknown menu option: ' + key);
@@ -607,6 +629,10 @@ $(document).ready(function() {
 	});
 
 	$('div.collectables').css('z-index', DEFAULT_Z_INDEX + 5);
+	$('div.collectables div.panel').draggable({
+		handle: 'div.panel-heading',
+		cursor: 'grab'
+	});
 
 	/* Library
 	 */

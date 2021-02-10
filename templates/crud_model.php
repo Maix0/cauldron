@@ -1,5 +1,5 @@
 <?php
-	class XXX_model extends Banshee\model {
+	class XXX_model extends \Banshee\model {
 		private $columns = array();
 
 		public function count_XXXs() {

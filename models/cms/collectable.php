@@ -32,6 +32,13 @@
 		public function save_oke($collectable, $image) {
 			$result = true;
 
+			if (isset($collectable["id"])) {
+				if ($this->get_collectable($collectable["id"]) == false) {
+					$this->view->add_message("Collectable not found.");
+					$result = false;
+				}
+			}
+
 			if (trim($collectable["name"]) == "") {
 				$this->view->add_message("Specify a name.");
 				$result = false;
@@ -77,11 +84,6 @@
 		}
 
 		public function update_collectable($collectable, $image) {
-			if ($this->get_collectable($collectable["id"]) == false) {
-				$this->view->add_message("Map not found.");
-				return false;
-			}
-
 			$keys = array("name", "found", "hide");
 
 			if ($image["error"] == 0) {
@@ -109,7 +111,7 @@
 			$result = true;
 
 			if ($this->get_collectable($collectable["id"]) == false) {
-				$this->view->add_message("Map not found.");
+				$this->view->add_message("Collectable not found.");
 				$result = false;
 			}
 

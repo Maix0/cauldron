@@ -87,7 +87,7 @@
 		}
 
 		public function create_game($game) {
-			$keys = array("id", "title", "dm_id");
+			$keys = array("id", "title", "image", "story", "dm_id");
 
 			$game["id"] = null;
 			$game["dm_id"] = $this->user->id;
@@ -112,7 +112,7 @@
 		}
 
 		public function update_game($game) {
-			$keys = array("title");
+			$keys = array("title", "image", "story");
 
 			return $this->db->update("games", $game["id"], $game, $keys);
 		}
@@ -129,15 +129,30 @@
 		}
 
 		public function delete_game($game_id) {
+			$query = "select image from collectables where game_id=%d";
+			if (($collectables = $this->db->execute($query, $game_id)) === false) {
+				return false;
+			}
+
 			$queries = array(
+				array("delete from collectables where game_id=%d", $game_id),
+				array("delete from zones where game_map_id in (select id from game_maps where game_id=%d)", $game_id),
 				array("delete from game_map_token where game_map_id in (select id from game_maps where game_id=%d)", $game_id),
 				array("delete from game_map_character where game_map_id in (select id from game_maps where game_id=%d)", $game_id),
-				array("update games set active_map_id=null where active_map_id=%d", $map_id),
-				array("delete from game_maps where game_id=%d", $game_id),
 				array("delete from game_character where game_id=%d", $game_id),
+				array("update games set active_map_id=null where id=%d", $game_id),
+				array("delete from game_maps where game_id=%d", $game_id),
 				array("delete from games where id=%d", $game_id));
 
-			return $this->db->transaction($queries);
+			if ($this->db->transaction($queries) == false) {
+				return false;
+			}
+
+			foreach ($collectables as $collectable) {
+				unlink("files/collectables/".$collectable["image"]);
+			}
+
+			return true;
 		}
 	}
 ?>

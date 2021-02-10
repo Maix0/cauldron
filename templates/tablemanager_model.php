@@ -1,5 +1,5 @@
 <?php
-	class XXX_model extends Banshee\tablemanager_model {
+	class XXX_model extends \Banshee\tablemanager_model {
 		protected $table = "table";
 		protected $order = "id";
 		protected $elements = array(

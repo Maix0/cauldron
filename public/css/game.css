@@ -1,3 +1,38 @@
+div.stories {
+	display:none;
+}
+
+div.well {
+	background-size:cover;
+	background-color:#606070;
+	background-position:center;
+	height:300px;
+	position:relative;
+}
+
+div.well h2 {
+	font-size:40px;
+	color:#f0f0f0;
+	text-shadow:2px 2px 3px #404040;
+}
+
+div.well span {
+	color:#c0c0c0;
+	text-shadow:1px 1px 2px #404040;
+}
+
+div.well div.btn-group {
+	position:absolute;
+	bottom:15px;
+	right:15px;
+}
+
+div.story {
+	display:none;
+}
+
+/* Run a game
+ */
 div.menu {
 	position:absolute;
 	top:5px;
@@ -26,47 +61,40 @@ table.table th:last-child {
 	width:200px;
 }
 
-/* Collectables
+/* Faded background dialog
  */
-div.collectables {
-	position:absolute;
+div.faded_background {
+	position:fixed;
 	top:0;
 	bottom:0;
 	left:0;
 	right:0;
 	z-index:2;
 	background:rgba(64, 64, 64, 0.7);
-	display:none;
 }
 
-div.collectables div.panel {
-	width:450px;
+div.faded_background div.panel {
+	width:100%;
+	max-width:450px;
 	margin:0 auto;
 	margin-top:200px;
 }
 
-div.collectables div.panel-body {
+div.faded_background div.panel-body {
 	max-height:315px;
 	overflow-y:auto;
+}
+
+/* Collectables
+ */
+div.collectables {
+	display:none;
 }
 
 /* Effects
  */
 div.effects {
-	position:absolute;
-	top:0;
-	bottom:0;
-	left:0;
-	right:0;
-	z-index:2;
-	background:rgba(64, 64, 64, 0.7);
 	display:none;
-}
-
-div.effects div.panel {
-	width:450px;
-	margin:0 auto;
-	margin-top:200px;
 }
 
 div.effects div.panel-heading span.size {
@@ -78,9 +106,8 @@ div.effects div.panel-heading span.size input {
 	width:40px;
 }
 
-div.effects div.panel-body {
-	max-height:315px;
-	overflow-y:auto;
+div.effects div.panel-heading span.size input:first-child {
+	margin-right:10px;
 }
 
 div.effects img.effect {
@@ -149,7 +176,8 @@ div.hitpoints div.damage {
 }
 
 div.token span,
-div.character span {
+div.character span,
+div.marker span {
 	display:block;
 	font-size:8px;
 	text-align:center;

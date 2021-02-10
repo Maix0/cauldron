@@ -270,6 +270,12 @@
 				$this->settings->database_version = 3;
 			}
 
+			if ($this->settings->database_version == 3) {
+				$this->db_query("ALTER TABLE games ADD image TINYTEXT NOT NULL AFTER title, ADD story TEXT NOT NULL AFTER image");
+
+				$this->settings->database_version = 4;
+			}
+
 			return true;
 		}
 
