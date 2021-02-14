@@ -13,13 +13,13 @@
 		}
 
 		public function get_maps($game_id) {
-			$query = "select * from game_maps where game_id=%d order by title";
+			$query = "select * from maps where game_id=%d order by title";
 
 			return $this->db->execute($query, $game_id);
 		}
 
 		public function get_map($map_id) {
-			$query = "select m.* from game_maps m, games g ".
+			$query = "select m.* from maps m, games g ".
 			         "where m.game_id=g.id and m.id=%d and g.dm_id=%d";
 
 			if (($maps = $this->db->execute($query, $map_id, $this->user->id)) == false) {
@@ -59,7 +59,7 @@
 
 			foreach ($characters as $character) {
 				$data["character_id"] = $character["character_id"];
-				if ($this->db->insert("game_map_character", $data) == false) {
+				if ($this->db->insert("map_character", $data) == false) {
 					return false;
 				}
 				$data["pos_x"]++;
@@ -69,7 +69,7 @@
 		}
 
 		public function create_map($map) {
-			$keys = array("id", "game_id", "title", "url", "type", "width", "height", "grid_size", "show_grid");
+			$keys = array("id", "game_id", "title", "url", "type", "width", "height", "grid_size", "show_grid", "dm_notes");
 
 			$map["id"] = null;
 			$map["game_id"] = $_SESSION["edit_game_id"];
@@ -80,7 +80,7 @@
 				return false;
 			}
 
-			if ($this->db->insert("game_maps", $map, $keys) == false) {
+			if ($this->db->insert("maps", $map, $keys) == false) {
 				$this->db->query("rollback");
 				return false;
 			}
@@ -100,12 +100,12 @@
 				return false;
 			}
 
-			$keys = array("title", "url", "type", "width", "height", "grid_size", "show_grid");
+			$keys = array("title", "url", "type", "width", "height", "grid_size", "show_grid", "dm_notes");
 
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
 
-			return $this->db->update("game_maps", $map["id"], $map, $keys);
+			return $this->db->update("maps", $map["id"], $map, $keys);
 		}
 
 		public function delete_oke($map) {
@@ -122,10 +122,10 @@
 		public function delete_map($map_id) {
 			$queries = array(
 				array("delete from zones where game_map_id=%d", $map_id),
-				array("delete from game_map_token where game_map_id=%d", $map_id),
-				array("delete from game_map_character where game_map_id=%d", $map_id),
+				array("delete from map_token where game_map_id=%d", $map_id),
+				array("delete from map_character where game_map_id=%d", $map_id),
 				array("update games set active_map_id=null where active_map_id=%d", $map_id),
-				array("delete from game_maps where id=%d", $map_id));
+				array("delete from maps where id=%d", $map_id));
 
 			return $this->db->transaction($queries);
 		}

@@ -1,5 +1,17 @@
-table.table th:nth-child(n+2) {
-	width:100px;
+div.well {
+	cursor:pointer;
+	height:135px;
+}
+
+div.well img {
+	max-width:100px;
+	max-height:100px;
+	margin-right:15px;
+	float:left;
+}
+
+div.well div.name {
+	font-weight:bold;
 }
 
 div.input-group {
@@ -10,12 +22,12 @@ span.input-group-btn label {
 	padding:6px 25px;
 }
 
-img.portrait {
+form img.portrait {
 	display:block;
 }
 
 @media (min-width:767px ) {
-	img.portrait {
+	form img.portrait {
 		float:right;
 		max-width:200px;
 	}

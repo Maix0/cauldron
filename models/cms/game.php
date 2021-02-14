@@ -87,11 +87,12 @@
 		}
 
 		public function create_game($game) {
-			$keys = array("id", "title", "image", "story", "dm_id");
+			$keys = array("id", "title", "image", "story", "dm_id", "player_access");
 
 			$game["id"] = null;
 			$game["dm_id"] = $this->user->id;
 			$game["active_map_id"] = null;
+			$game["player_access"] = is_true($game["player_access"]) ? YES : NO;
 
 			if ($this->db->query("begin") === false) {
 				return false;
@@ -112,7 +113,9 @@
 		}
 
 		public function update_game($game) {
-			$keys = array("title", "image", "story");
+			$keys = array("title", "image", "story", "player_access");
+
+			$game["player_access"] = is_true($game["player_access"]) ? YES : NO;
 
 			return $this->db->update("games", $game["id"], $game, $keys);
 		}
@@ -136,12 +139,12 @@
 
 			$queries = array(
 				array("delete from collectables where game_id=%d", $game_id),
-				array("delete from zones where game_map_id in (select id from game_maps where game_id=%d)", $game_id),
-				array("delete from game_map_token where game_map_id in (select id from game_maps where game_id=%d)", $game_id),
-				array("delete from game_map_character where game_map_id in (select id from game_maps where game_id=%d)", $game_id),
+				array("delete from zones where game_map_id in (select id from maps where game_id=%d)", $game_id),
+				array("delete from map_token where game_map_id in (select id from maps where game_id=%d)", $game_id),
+				array("delete from map_character where game_map_id in (select id from maps where game_id=%d)", $game_id),
 				array("delete from game_character where game_id=%d", $game_id),
 				array("update games set active_map_id=null where id=%d", $game_id),
-				array("delete from game_maps where game_id=%d", $game_id),
+				array("delete from maps where game_id=%d", $game_id),
 				array("delete from games where id=%d", $game_id));
 
 			if ($this->db->transaction($queries) == false) {

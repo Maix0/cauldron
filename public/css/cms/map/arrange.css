@@ -22,9 +22,9 @@ select#collectable {
     font-family:sans-serif;
 }
 
-/* Faded background dialog
+/* Faded overlay dialog
  */
-div.faded_background {
+div.overlay {
 	position:absolute;
 	top:0;
 	bottom:0;
@@ -34,13 +34,13 @@ div.faded_background {
 	background:rgba(64, 64, 64, 0.7);
 }
 
-div.faded_background div.panel {
+div.overlay div.panel {
 	width:450px;
 	margin:0 auto;
 	margin-top:200px;
 }
 
-div.faded_background div.panel-body {
+div.overlay div.panel-body {
 	max-height:315px;
 	overflow-y:auto;
 }
@@ -73,7 +73,7 @@ div.playarea {
 	right:215px;
 	bottom:0;
 	left:15px;
-	border:1px dashed red;
+	border:1px solid #000000;
 	overflow:auto;
 }
 

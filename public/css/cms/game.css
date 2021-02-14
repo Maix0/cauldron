@@ -1,4 +1,4 @@
-table.table th:last-child {
+table.table th:nth-child(n+2) {
 	width:80px;
 }
 

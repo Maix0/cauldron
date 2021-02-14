@@ -67,6 +67,8 @@
 <label for="grid_size">Grid size:</label>
 <input type="text" id="grid_size" name="grid_size" value="{map/grid_size}" class="form-control" />
 <div>Show grid: <input type="checkbox" name="show_grid"><xsl:if test="map/show_grid='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
+<label for="dm_notes">Notes:</label>
+<textarea id="dm_notes" name="dm_notes" class="form-control"><xsl:value-of select="map/dm_notes" /></textarea>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save map" class="btn btn-default" />

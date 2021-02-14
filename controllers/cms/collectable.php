@@ -35,7 +35,7 @@
 			foreach ($collectables as $collectable) {
 				$collectable["found"] = show_boolean($collectable["found"]);
 				$collectable["hide"] = show_boolean($collectable["hide"]);
-				$collectable["placed"] = show_boolean($collectable["game_map_token_id"] != null);
+				$collectable["placed"] = show_boolean($collectable["map_token_id"] != null);
 				$this->view->record($collectable, "collectable");
 			}
 			$this->view->close_tag();

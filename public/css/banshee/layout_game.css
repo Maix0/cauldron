@@ -30,6 +30,8 @@ h1 {
 	font-size:32px;
 	margin-top:0;
 	color:#5385c1;
+	position:absolute;
+	left:15px;
 }
 
 h2 {

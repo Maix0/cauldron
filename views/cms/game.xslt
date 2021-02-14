@@ -11,13 +11,14 @@
 <xsl:template match="overview">
 <table class="table table-condensed table-striped table-hover">
 <thead>
-<tr><th>Title</th><th>Players</th></tr>
+<tr><th>Title</th><th>Players</th><th>Accessible</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="games/game">
 <tr class="click" onClick="javascript:document.location='/{/output/page}/{@id}'">
 <td><xsl:value-of select="title" /></td>
 <td><xsl:value-of select="players" /></td>
+<td><xsl:value-of select="player_access" /></td>
 </tr>
 </xsl:for-each>
 </tbody>
@@ -47,6 +48,7 @@
 <input type="text" id="image" name="image" value="{game/image}" class="form-control" />
 <label for="story">Introduction story:</label>
 <textarea id="story" name="story" class="form-control"><xsl:value-of select="game/story" /></textarea>
+<div>Accessible for players: <input type="checkbox" name="player_access"><xsl:if test="game/player_access='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
 
 <xsl:if test="count(characters/user)>0">
 <label for="title">Characters:</label>

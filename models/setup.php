@@ -276,6 +276,26 @@
 				$this->settings->database_version = 4;
 			}
 
+			if ($this->settings->database_version == 4) {
+				$this->db_query("RENAME TABLE game_maps TO maps");
+				$this->db_query("RENAME TABLE game_map_character TO map_character");
+				$this->db_query("RENAME TABLE game_map_token TO map_token");
+				$this->db_query("ALTER TABLE collectables CHANGE game_map_token_id ".
+				                "map_token_id INT(10) UNSIGNED NULL DEFAULT NULL");
+				$this->db_query("ALTER TABLE maps ADD dm_notes TEXT NOT NULL AFTER show_grid");
+				$this->db_query("CREATE TABLE journal (id int(11) NOT NULL AUTO_INCREMENT, ".
+				                "game_id int(10) unsigned NOT NULL, user_id int(10) unsigned NOT NULL, ".
+				                "timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, entry text NOT NULL, ".
+				                "PRIMARY KEY (id), KEY game_id (game_id), KEY user_id (user_id), ".
+				                "CONSTRAINT journal_ibfk_1 FOREIGN KEY (game_id) REFERENCES games (id), ".
+				                "CONSTRAINT journal_ibfk_2 FOREIGN KEY (user_id) REFERENCES users (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8");
+				$this->db_query("ALTER TABLE games ADD player_access BOOLEAN NOT NULL AFTER active_map_id");
+				$this->db_query("ALTER TABLE users DROP avatar, DROP signature");
+
+				$this->settings->database_version = 5;
+			}
+
 			return true;
 		}
 

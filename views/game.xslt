@@ -14,13 +14,16 @@
 <div class="well" style="background-image:url({image})">
 <h2><xsl:value-of select="title" /></h2>
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
-<div class="btn-group"><button class="btn btn-primary btn-sm" onClick="javascript:show_story({@id})">Story</button><a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Start</a></div>
+<div class="btn-group">
+<xsl:if test="story!=''"><button class="btn btn-primary btn-sm" onClick="javascript:show_story({@id})">Introduction</button></xsl:if>
+<xsl:if test="player_access='yes' or dm_id=/output/user/@id"><a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Start game</a></xsl:if>
+</div>
 </div>
 </div>
 </xsl:for-each>
 </div>
 
-<div class="faded_background stories" onClick="javascript:close_story()">
+<div class="overlay stories" onClick="javascript:close_story()">
 <xsl:for-each select="game">
 <div id="story{@id}" class="panel panel-default story" style="max-width:600px" onClick="javascript:event.stopPropagation()">
 <div class="panel-heading"><xsl:value-of select="title" /><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:close_story()"></span></div>
@@ -45,9 +48,13 @@
 </select>
 </xsl:if>
 <div class="btn-group">
-<xsl:if test="map/type='video'"><button onClick="javascript:$('video').get(0).play()" class="btn btn-default btn-xs">Play</button></xsl:if>
+<button class="btn btn-default btn-xs" onClick="javascript:journal_show()">Journal</button>
+<xsl:if test="map/dm_notes!=''">
+<button class="btn btn-default btn-xs" onClick="javascript:$('div.notes').show()">DM notes</button>
+</xsl:if>
 <button class="btn btn-default btn-xs" onClick="javascript:collectables_show()">Inventory</button>
 <button class="btn btn-default btn-xs" onClick="javascript:scroll_to_my_character()">Scroll to character</button>
+<xsl:if test="map/type='video'"><button onClick="javascript:$('video').get(0).play(); $(this).remove();" class="btn btn-default btn-xs">Play video</button></xsl:if>
 <a href="/game" class="btn btn-default btn-xs">Back</a>
 </div>
 </div>
@@ -55,15 +62,42 @@
 <input id="game_id" type="hidden" name="game_id" value="{@id}" />
 <p>No map has been selected yet.</p>
 </xsl:if>
+<!-- Journal -->
+<div class="journal overlay" onClick="javascript:$(this).hide()">
+<div class="panel panel-info" style="max-width:800px" onClick="javascript:event.stopPropagation()">
+<div class="panel-heading">Journal<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
+<div class="panel-body" style="max-height:400px; height:400px;">
+<div class="entries">
+<xsl:for-each select="journal/entry">
+<xsl:if test="session"><div class="session"><xsl:value-of select="session" /></div></xsl:if>
+<xsl:if test="content"><div class="entry"><span class="writer"><xsl:value-of select="writer" /></span><span class="content"><xsl:value-of select="content" /></span></div></xsl:if>
+</xsl:for-each>
+</div>
+<div class="row">
+<div class="col-xs-10"><textarea class="form-control"></textarea></div>
+<div class="col-xs-2"><button onClick="javascript:journal_write()" class="btn btn-default">Add</button></div>
+</div>
+</div>
+</div>
+</div>
+<!-- DM notes -->
+<xsl:if test="map/dm_notes!=''">
+<div class="notes overlay" onClick="javascript:$(this).hide()">
+<div class="panel panel-danger" style="max-width:600px" onClick="javascript:event.stopPropagation()">
+<div class="panel-heading">DM notes<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
+<div class="panel-body"><xsl:value-of disable-output-escaping="yes" select="map/dm_notes" /></div>
+</div>
+</div>
+</xsl:if>
 <!-- Collectables -->
-<div class="collectables faded_background" onClick="javascript:$(this).hide()">
-<div class="panel panel-default" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">Collectables<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
+<div class="collectables overlay" onClick="javascript:$(this).hide()">
+<div class="panel panel-success" onClick="javascript:event.stopPropagation()">
+<div class="panel-heading">Inventory<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
 <div class="panel-body"></div>
 </div>
 </div>
 <!-- Effects -->
-<div class="effects faded_background" onClick="javascript:$(this).hide()">
+<div class="effects overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-default" onClick="javascript:event.stopPropagation();">
 <div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
 <div class="panel-body">
@@ -89,7 +123,7 @@
 <!-- Tokens -->
 <xsl:for-each select="tokens/token">
 <div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
-<xsl:if test="c_id!=''">
+<xsl:if test="c_id!='' and c_found='no'">
 <xsl:attribute name="c_id"><xsl:value-of select="c_id" /></xsl:attribute>
 <xsl:attribute name="c_name"><xsl:value-of select="c_name" /></xsl:attribute>
 <xsl:attribute name="c_src"><xsl:value-of select="c_src" /></xsl:attribute>
@@ -98,9 +132,7 @@
 <xsl:if test="perc">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 </xsl:if>
-<img src="/files/tokens/{@id}.{extension}" style="width:{width}px; height:{height}px;">
-<xsl:if test="../../@dm='yes'"><xsl:attribute name="title">token<xsl:value-of select="@id" /></xsl:attribute></xsl:if>
-</img>
+<img src="/files/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" />
 <xsl:if test="name!=''">
 <span><xsl:value-of select="name" /></span>
 </xsl:if>

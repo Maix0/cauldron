@@ -63,6 +63,7 @@ function object_armor_class(obj) {
 
 function object_create(icon, x, y) {
 	if ($(icon).hasClass('icon')) {
+		// New token
 		var token_id = $(icon).attr('token_id');
 		var width = parseInt($(icon).attr('obj_width')) * grid_cell_size;
 		var height = parseInt($(icon).attr('obj_height')) * grid_cell_size;
@@ -71,9 +72,11 @@ function object_create(icon, x, y) {
 		var hitpoints = 0;
 		var type = $(icon).parent().find('div.name').text();
 		var rotation = 0;
+		var hidden = 'no';
 		x -= 30;
 		y -= 40;
 	} else {
+		// Cloned token
 		var token_id = $(icon).parent().attr('token_id');
 		var width = $(icon).width();
 		var height = $(icon).height();
@@ -82,6 +85,7 @@ function object_create(icon, x, y) {
 		var hitpoints = $(icon).parent().attr('hitpoints');
 		var type = $(icon).parent().attr('type');
 		var rotation = $(icon).parent().attr('rotation');
+		var hidden = $(icon).parent().attr('is_hidden');
 	}
 
 	x += $('div.playarea').scrollLeft();
@@ -122,6 +126,10 @@ function object_create(icon, x, y) {
 			object_rotate($('div#token' + instance_id), rotation);
 		}
 
+		if (hidden == 'yes') {
+			object_hide($('div#token' + instance_id));
+		}
+
 		$('div.playarea div#token' + instance_id).draggable({
 			stop: function(event, ui) {
 				object_move($(this));
@@ -141,6 +149,9 @@ function object_delete(obj) {
 }
 
 function object_hide(obj) {
+	obj.fadeTo('fast', 0.5);
+	obj.attr('is_hidden', 'yes');
+
 	var data = {
 		action: 'hide',
 		instance_id: obj.prop('id'),
@@ -150,8 +161,6 @@ function object_hide(obj) {
 		action: 'hide',
 		instance_id: obj.prop('id'),
 	});
-
-	obj.fadeTo('fast', 0.5);
 }
 
 function object_hitpoints(obj) {
@@ -263,6 +272,7 @@ function object_rotate(obj, rotation, send_to_backend = true) {
 	}
 
 	img.css('transform', 'rotate(' + rotation + 'deg)');
+	obj.attr('rotation', rotation);
 
 	if (send_to_backend) {
 		$.post('/object/rotate', {
@@ -273,6 +283,9 @@ function object_rotate(obj, rotation, send_to_backend = true) {
 }
 
 function object_show(obj) {
+	obj.fadeTo('fast', 1);
+	obj.attr('is_hidden', 'no');
+
 	var data = {
 		action: 'show',
 		instance_id: obj.prop('id'),
@@ -281,8 +294,6 @@ function object_show(obj) {
 	$.post('/object/show', {
 		instance_id: obj.prop('id'),
 	});
-
-	obj.fadeTo('fast', 1);
 }
 
 function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
@@ -344,7 +355,7 @@ function collectables_select(obj) {
 
 		$(data).find('collectable').each(function() {
 			var c_id = $(this).attr('id');
-			var c_token_id = $(this).find('game_map_token_id').text();
+			var c_token_id = $(this).find('map_token_id').text();
 			var c_name = $(this).find('name').text();
 			var collectable = $('<option value="' + c_id + '">' + c_name + '</option>');
 
@@ -411,10 +422,8 @@ function context_menu_handler(key, options) {
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
 				object_show(obj);
-				obj.attr('is_hidden', 'no');
 			} else {
 				object_hide(obj);
-				obj.attr('is_hidden', 'yes');
 			}
 			break;
 		case 'hitpoints':
@@ -452,7 +461,7 @@ function context_menu_handler(key, options) {
 			var pos_y = Math.floor(pos_menu.top) + $('div.playarea').scrollTop() - 41;
 			pos_y = coord_to_grid(pos_y, false);
 
-			var zone_define = '<div class="zone_create faded_background" onClick="javascript:$(this).remove()"><div class="panel panel-default" onClick="javascript:event.stopPropagation()"><div class="panel-heading">Create zone<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().remove()"></span></div><div class="panel-body" style="max-height:335px">';
+			var zone_define = '<div class="zone_create overlay" onClick="javascript:$(this).remove()"><div class="panel panel-default" onClick="javascript:event.stopPropagation()"><div class="panel-heading">Create zone<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().remove()"></span></div><div class="panel-body" style="max-height:335px">';
 			zone_define += '<label for="width">Width:</label>';
 			zone_define += '<input type="text" id="width" value="3" class="form-control" onKeyUp="javascript:$(\'#height\').val($(this).val())" />';
 			zone_define += '<label for="height">Height:</label>';

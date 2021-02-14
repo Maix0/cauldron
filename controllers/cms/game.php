@@ -10,6 +10,7 @@
 
 			$this->view->open_tag("games");
 			foreach ($games as $game) {
+				$game["player_access"] = show_boolean($game["player_access"]);
 				$this->view->record($game, "game");
 			}
 			$this->view->close_tag();
@@ -34,6 +35,7 @@
 
 			$this->view->open_tag("edit");
 
+			$game["player_access"] = show_boolean($game["player_access"]);
 			$this->view->record($game, "game");
 
 			$this->view->open_tag("characters");

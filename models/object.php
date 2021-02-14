@@ -1,9 +1,21 @@
 <?php
 	class object_model extends Banshee\api_model {
+		private function valid_game_id($game_id) {
+			$query = "select count(*) as count from games g, game_character p, characters c ".
+			         "where g.id=p.game_id and p.character_id=c.id ".
+			         "and g.id=%d and (g.dm_id=%d or c.user_id=%d)";
+
+			if (($result = $this->db->execute($query, $game_id, $this->user->id, $this->user->id)) === false) {
+				return false;
+			}
+
+			return $result[0]["count"] > 0;
+		}
+
 		/* Map functions
 		 */
 		private function valid_map_id($map_id) {
-			$query = "select count(*) as count from game_maps m, games g ".
+			$query = "select count(*) as count from maps m, games g ".
 			         "where m.game_id=g.id and m.id=%d and g.dm_id=%d";
 
 			if (($result = $this->db->execute($query, $map_id, $this->user->id)) === false) {
@@ -27,7 +39,7 @@
 		 */
 		private function valid_token_instance_id($instance_id) {
 			$query = "select count(*) as count ".
-			         "from game_map_token t, game_maps m, games g, game_character p, characters c ".
+			         "from map_token t, maps m, games g, game_character p, characters c ".
 			         "where t.game_map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id ".
 			         "and t.id=%d and (g.dm_id=%d or c.user_id=%d)";
 
@@ -43,7 +55,7 @@
 				return false;
 			}
 
-			$query = "update game_map_token set armor_class=%d where id=%d";
+			$query = "update map_token set armor_class=%d where id=%d";
 			return $this->db->query($query, $armor_class, $instance_id) !== false;
 		}
 
@@ -65,7 +77,7 @@
 				"hitpoints"   => 0,
 				"damage"      => 0);
 
-			if ($this->db->insert("game_map_token", $data) === false) {
+			if ($this->db->insert("map_token", $data) === false) {
 				return false;
 			}
 
@@ -77,7 +89,7 @@
 				return false;
 			}
 
-			if (($current = $this->db->entry("game_map_token", $instance_id)) == false) {
+			if (($current = $this->db->entry("map_token", $instance_id)) == false) {
 				return false;
 			}
 
@@ -87,7 +99,7 @@
 				$damage = 0;
 			}
 
-			$query = "update game_map_token set damage=%d where id=%d";
+			$query = "update map_token set damage=%d where id=%d";
 
 			return $this->db->query($query, $damage, $instance_id) !== false;
 		}
@@ -98,8 +110,8 @@
 			}
 
 			$queries = array(
-				array("update collectables set game_map_token_id=null where game_map_token_id=%d", $instance_id),
-				array("delete from game_map_token where id=%d", $instance_id));
+				array("update collectables set map_token_id=null where map_token_id=%d", $instance_id),
+				array("delete from map_token where id=%d", $instance_id));
 
 			return $this->db->transaction($queries) != false;
 		}
@@ -110,7 +122,7 @@
 			}
 
 			$data = array("hidden" => is_true($hidden) ? YES : NO);
-			return $this->db->update("game_map_token", $instance_id, $data) !== false;
+			return $this->db->update("map_token", $instance_id, $data) !== false;
 		}
 
 		public function token_hitpoints($instance_id, $hitpoints) {
@@ -118,7 +130,7 @@
 				return false;
 			}
 
-			$query = "update game_map_token set hitpoints=%d where id=%d";
+			$query = "update map_token set hitpoints=%d where id=%d";
 			return $this->db->query($query, $hitpoints, $instance_id) !== false;
 		}
 
@@ -128,7 +140,7 @@
 			}
 
 			$data = array("pos_x" => (int)$pos_x, "pos_y" => (int)$pos_y);
-			return $this->db->update("game_map_token", $instance_id, $data) !== false;
+			return $this->db->update("map_token", $instance_id, $data) !== false;
 		}
 
 		public function token_name($instance_id, $name) {
@@ -137,7 +149,7 @@
 			}
 
 			$data = array("name" => (trim($name) == "") ? null : $name);
-			return $this->db->update("game_map_token", $instance_id, $data) !== false;
+			return $this->db->update("map_token", $instance_id, $data) !== false;
 		}
 
 		public function token_rotate($instance_id, $direction) {
@@ -146,14 +158,14 @@
 			}
 
 			$data = array("rotation" => (int)$direction);
-			return $this->db->update("game_map_token", $instance_id, $data) !== false;
+			return $this->db->update("map_token", $instance_id, $data) !== false;
 		}
 
 		/* Character functions
 		 */
 		private function valid_character_instance_id($instance_id) {
 			$query = "select count(*) as count ".
-			         "from game_map_character h, game_maps m, games g, game_character p, characters c ".
+			         "from map_character h, maps m, games g, game_character p, characters c ".
 			         "where h.game_map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id and h.character_id=c.id ".
 			         "and h.id=%d and (g.dm_id=%d or c.user_id=%d)";
 
@@ -169,7 +181,7 @@
 				return false;
 			}
 
-			$query = "select c.* from characters c, game_map_character i ".
+			$query = "select c.* from characters c, map_character i ".
 			         "where c.id=i.character_id and i.id=%d";
 			if (($characters = $this->db->execute($query, $instance_id)) == false) {
 				return false;
@@ -193,7 +205,7 @@
 			}
 
 			$data = array("hidden" => is_true($hidden) ? YES : NO);
-			return $this->db->update("game_map_character", $instance_id, $data) !== false;
+			return $this->db->update("map_character", $instance_id, $data) !== false;
 		}
 
 		public function character_move($instance_id, $pos_x, $pos_y) {
@@ -202,13 +214,13 @@
 			}
 
 			$data = array("pos_x" => (int)$pos_x, "pos_y" => (int)$pos_y);
-			return $this->db->update("game_map_character", $instance_id, $data) !== false;
+			return $this->db->update("map_character", $instance_id, $data) !== false;
 		}
 
 		/* Zone functions
 		 */
 		private function valid_zone_id($zone_id) {
-			$query = "select count(*) as count from zones z, game_maps m, games g ".
+			$query = "select count(*) as count from zones z, maps m, games g ".
 			         "where z.game_map_id=m.id and m.game_id=g.id and z.id=%d and g.dm_id=%d";
 
 			if (($result = $this->db->execute($query, $zone_id, $this->user->id)) === false) {
@@ -271,18 +283,6 @@
 			return $result[0]["count"] > 0;
 		}
 
-		private function valid_game_id($game_id) {
-			$query = "select count(*) as count from games g, game_character p, characters c ".
-			         "where g.id=p.game_id and p.character_id=c.id ".
-			         "and g.id=%d and (g.dm_id=%d or c.user_id=%d)";
-
-			if (($result = $this->db->execute($query, $game_id, $this->user->id, $this->user->id)) === false) {
-				return false;
-			}
-
-			return $result[0]["count"] > 0;
-		}
-
 		public function collectables_get_unused($game_id, $token_instance_id) {
 			if ($this->valid_game_id($game_id) == false) {
 				return false;
@@ -292,8 +292,8 @@
 				return false;
 			}
 
-			$query = "select id, game_map_token_id, name, image from collectables ".
-			         "where game_id=%d and (game_map_token_id is null or game_map_token_id=%d) order by name";
+			$query = "select id, map_token_id, name, image from collectables ".
+			         "where game_id=%d and (map_token_id is null or map_token_id=%d) order by name";
 
 			return $this->db->execute($query, $game_id, $token_instance_id);
 		}
@@ -303,7 +303,7 @@
 				return false;
 			}
 
-			$query = "update collectables set game_map_token_id=null where game_map_token_id=%d";
+			$query = "update collectables set map_token_id=null where map_token_id=%d";
 			if ($this->db->query($query, $token_instance_id) === false) {
 				return false;
 			}
@@ -316,7 +316,7 @@
 				return false;
 			}
 
-			$data = array("game_map_token_id" => $token_instance_id);
+			$data = array("map_token_id" => $token_instance_id);
 			return $this->db->update("collectables", $collectable_id, $data);
 		}
 
@@ -339,6 +339,21 @@
 					 "where game_id=%d and found=%d order by name";
 
 			return $this->db->execute($query, $game_id, YES);
+		}
+
+		/* Journal functions
+		 */
+		public function journal_add($game_id, $content) {
+			if ($this->valid_game_id($game_id) == false) {
+				return false;
+			}
+
+			$data = array(
+				"game_id" => $game_id,
+				"user_id" => $this->user->id,
+				"content" => $content);
+
+			return $this->db->insert("journal", $data) != false;
 		}
 	}
 ?>

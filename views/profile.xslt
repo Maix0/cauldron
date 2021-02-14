@@ -13,39 +13,12 @@
 
 <!--
 //
-//  View template
-//
-//-->
-<xsl:template match="view">
-<div class="row">
-<div class="col-lg-3 col-md-4 col-sm-5">
-<img src="{user/avatar}" class="avatar" />
-</div>
-<div class="col-lg-9 col-md-8 col-sm-7">
-<table class="table profile">
-<tbody>
-<tr><td>Name:</td><td><xsl:value-of select="user/fullname" /></td></tr>
-<tr><td>E-mail address:</td><td><a href="mailto:{user/email}"><xsl:value-of select="user/email" /></a></td></tr>
-</tbody>
-</table>
-</div>
-</div>
-
-<div class="btn-group">
-<a href="/{previous}" class="btn btn-default">Back</a>
-</div>
-</xsl:template>
-
-<!--
-//
 //  Edit template
 //
 //-->
 <xsl:template match="edit">
 <xsl:call-template name="show_messages" />
 <form action="/{/output/page}" method="post">
-<div class="row">
-<div class="col-sm-6">
 <label for="fullname">Name:</label>
 <input type="text" id="fullname" name="fullname" value="{fullname}" class="form-control" />
 <label for="email">E-mail address:</label>
@@ -65,14 +38,6 @@
 	<span class="input-group-btn"><input type="button" value="Generate" class="btn btn-default" onClick="javascript:set_authenticator_code()" /></span>
 </div>
 </xsl:if>
-</div>
-<div class="col-sm-6">
-<label for="avatar">Avatar URL:</label>
-<input type="text" id="avatar" name="avatar" value="{avatar}" class="form-control" />
-<label for="signature">Forum signature:</label>
-<textarea id="signature" name="signature" class="form-control" placeholder="BB-codes allowed"><xsl:value-of select="signature" /></textarea>
-</div>
-</div>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Update profile" class="btn btn-default" />
@@ -118,7 +83,6 @@
 //-->
 <xsl:template match="content">
 <h1><xsl:value-of select="/output/layout/title/@page" /></h1>
-<xsl:apply-templates select="view" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="result" />
 </xsl:template>

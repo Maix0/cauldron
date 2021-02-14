@@ -2,6 +2,21 @@
 	class game_controller extends Banshee\controller {
 		protected $prevent_repost = false;
 
+		private function format_text($text) {
+			if ($text == "") {
+				return $text;
+			}
+
+			$text = strip_tags($text, "<b><i><u>");
+
+			$replace = array("\r" => "", "\n\n" => "</p><p>", "\n" => "<br \>");
+			foreach ($replace as $key => $value) {
+				$text = str_replace($key, $value, $text);
+			}
+
+			return "<p>".$text."</p>";
+		}
+
 		private function show_games() {
 			if (($games = $this->model->get_games()) === false) {
 				$this->view->add_tag("result", "Database error.");
@@ -12,12 +27,8 @@
 
 			$this->view->open_tag("games");
 			foreach ($games as $game) {
-				$game["story"] = strip_tags($game["story"], "<b><i><u>");
-				$replace = array("\r" => "", "\n\n" => "</p><p>", "\n" => "<br \>");
-				foreach ($replace as $key => $value) {
-					$game["story"] = str_replace($key, $value, $game["story"]);
-				}
-				$game["story"] = "<p>".$game["story"]."</p>";
+				$game["story"] = $this->format_text($game["story"]);
+				$game["player_access"] = show_boolean($game["player_access"]);
 
 				$this->view->record($game, "game");
 			}
@@ -30,6 +41,11 @@
 				return;
 			}
 			$user_is_dungeon_master = ($game["dm_id"] == $this->user->id);
+
+			if (is_false($game["player_access"]) && ($user_is_dungeon_master == false)) {
+				$this->view->add_tag("result", "This game is not accessible at the moment.");
+				return;
+			}
 
 			if (valid_input($this->page->parameters[1], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
 				$game["traveled_from"] = $game["active_map_id"];
@@ -76,6 +92,11 @@
 					return;
 				}
 
+				if (($journal = $this->model->get_journal($game_id)) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
 				$factor = 1 / $active_map["grid_size"] * $grid_cell_size;
 				$active_map["width"] = round($active_map["width"] * $factor);
 				$active_map["height"] = round($active_map["height"] * $factor);
@@ -87,6 +108,7 @@
 			if ($active_map != null) {
 				$this->view->add_javascript("webui/jquery-ui.js");
 				$this->view->add_javascript("banshee/jquery.contextMenu.js");
+				$this->view->add_javascript("banshee/jquery.cookie.js");
 				$this->view->add_javascript("game.js");
 
             	$this->view->add_css("banshee/context-menu.css");
@@ -131,6 +153,11 @@
 			}
 
 			if ($active_map != null) {
+				if ($user_is_dungeon_master) {
+					$active_map["dm_notes"] = $this->format_text($active_map["dm_notes"]);
+				} else {
+					unset($active_map["dm_notes"]);
+				}
 				$active_map["show_grid"] = show_boolean($active_map["show_grid"]);
 				$this->view->record($active_map, "map");
 
@@ -158,8 +185,9 @@
 					if ($user_is_dungeon_master && ($token["hitpoints"] > 0)) {
 						$token["perc"] = round(100 * $token["damage"] / $token["hitpoints"]);
 					}
-					if (isset($token["c_hide"])) {
+					if (isset($token["c_id"])) {
 						$token["c_hide"] = show_boolean($token["c_hide"]);
+						$token["c_found"] = show_boolean($token["c_found"]);
 					}
 					$this->view->record($token, "token");
 				}
@@ -182,6 +210,22 @@
 					$character["hidden"] = show_boolean($character["hidden"]);
 					$character["perc"] = round(100 * $character["damage"] / $character["hitpoints"]);
 					$this->view->record($character, "character");
+				}
+				$this->view->close_tag();
+
+				$timestamp = 0;
+				$session = 1;
+				$this->view->open_tag("journal");
+				foreach ($journal as $entry) {
+					if ($entry["timestamp"] - $timestamp > 6 * HOUR) {
+						$entry["session"] = "Session ".$session;
+						$session++;
+					}
+					$this->view->record($entry, "entry");
+					$timestamp = $entry["timestamp"];
+				}
+				if (time() - $timestamp > 6 * HOUR) {
+					$this->view->record(array("session" => "Session ".$session), "entry");
 				}
 				$this->view->close_tag();
 			}

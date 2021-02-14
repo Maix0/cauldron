@@ -3,6 +3,7 @@ div#internal_errors {
 	left:25px;
 	top:20px;
 	right:25px;
+	z-index:5;
 }
 
 div#internal_errors div.panel-body {

@@ -18,7 +18,7 @@ div.well h2 {
 
 div.well span {
 	color:#c0c0c0;
-	text-shadow:1px 1px 2px #404040;
+	text-shadow:1px 1px 2px #000000;
 }
 
 div.well div.btn-group {
@@ -61,9 +61,9 @@ table.table th:last-child {
 	width:200px;
 }
 
-/* Faded background dialog
+/* Faded overlay dialog
  */
-div.faded_background {
+div.overlay {
 	position:fixed;
 	top:0;
 	bottom:0;
@@ -73,16 +73,54 @@ div.faded_background {
 	background:rgba(64, 64, 64, 0.7);
 }
 
-div.faded_background div.panel {
+div.overlay div.panel {
 	width:100%;
-	max-width:450px;
+	max-width:475px;
 	margin:0 auto;
 	margin-top:200px;
 }
 
-div.faded_background div.panel-body {
+div.overlay div.panel-body {
 	max-height:315px;
 	overflow-y:auto;
+}
+
+/* Journal
+ */
+div.journal {
+	display:none;
+}
+
+div.journal div.session {
+	text-align:center;
+	font-weight:bold;
+	border-bottom:1px solid #0000c0;
+	margin-bottom:10px;
+}
+
+div.journal textarea {
+	max-width:630px;
+	max-height:200px;
+}
+
+div.journal div.entry {
+	margin-left:30px;
+	margin-bottom:10px;
+}
+
+div.journal span.writer {
+	font-weight:bold;
+	margin-left:-30px;
+}
+div.journal span.writer:after {
+	content:":";
+	margin-right:5px;
+}
+
+/* DM notes
+ */
+div.notes {
+	display:none;
 }
 
 /* Collectables
@@ -123,7 +161,7 @@ div.playarea {
 	right:215px;
 	bottom:0;
 	left:15px;
-	border:1px dashed red;
+	border:1px solid #000000;
 	overflow:auto;
 	z-index:1;
 }
@@ -135,12 +173,14 @@ div.playarea video {
 }
 
 div.sidebar {
+	font-size:12px;
 	position:absolute;
 	top:40px;
 	right:0px;
 	bottom:55px;
 	width:200px;
-	overflow-y:scroll
+	overflow-y:scroll;
+	overflow-x:hidden;
 }
 
 div.input {

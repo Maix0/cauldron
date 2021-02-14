@@ -8,24 +8,19 @@
 //
 //-->
 <xsl:template match="overview">
-<table class="table table-condensed table-striped table-hover">
-<thead>
-<tr>
-<th>Name</th>
-<th>Hitpoints</th>
-<th>Armor class</th>
-</tr>
-</thead>
-<tbody>
+<div class="row">
 <xsl:for-each select="characters/character">
-<tr class="click" onClick="javascript:document.location='/{/output/page}/{@id}'">
-<td><xsl:value-of select="name" /></td>
-<td><xsl:value-of select="hitpoints" /></td>
-<td><xsl:value-of select="armor_class" /></td>
-</tr>
+<div class="col-md-4 col-sm-6 col-xs-12">
+<div class="well" onClick="javascript:document.location='/{/output/page}/{@id}'">
+<img src="/files/portraits/{@id}.{extension}" class="portrait" />
+<div class="name"><xsl:value-of select="name" /></div>
+<div>Hit points: <xsl:value-of select="hitpoints" /></div>
+<div>Armor class: <xsl:value-of select="armor_class" /></div>
+<div>Initiative bonus: <xsl:value-of select="initiative" /></div>
+</div>
+</div>
 </xsl:for-each>
-</tbody>
-</table>
+</div>
 
 <div class="btn-group left">
 <a href="/{/output/page}/new" class="btn btn-default">New character</a>
@@ -47,11 +42,11 @@
 
 <label for="name">Name:</label>
 <input type="text" id="name" name="name" value="{character/name}" class="form-control" />
-<label for="hitpoints">Hitpoints:</label>
+<label for="hitpoints">Hit points:</label>
 <input type="text" id="hitpoints" name="hitpoints" value="{character/hitpoints}" class="form-control" />
 <label for="armor_class">Armor class:</label>
 <input type="text" id="armor_class" name="armor_class" value="{character/armor_class}" class="form-control" />
-<label for="initiative">Initiative:</label>
+<label for="initiative">Initiative bonus:</label>
 <input type="text" id="initiative" name="initiative" value="{character/initiative}" class="form-control" />
 <label for="portrait">Portrait:</label>
 <div class="input-group">

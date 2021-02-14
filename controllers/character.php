@@ -24,7 +24,7 @@
 		}
 
 		public function execute() {
-			$this->view->title = "Character";
+			$this->view->title = "Characters";
 
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				if ($_POST["submit_button"] == "Save character") {

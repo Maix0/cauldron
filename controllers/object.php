@@ -132,5 +132,11 @@
 				$this->view->record($collectable, "collectable");
 			}
 		}
+
+		/* Journal
+		 */
+		public function post_journal() {
+			$this->model->journal_add($_POST["game_id"], $_POST["content"]);
+		}
 	}
 ?>

@@ -1,3 +1,13 @@
+tabletop (0.5) stable; urgency=low
+
+  * Added game journal.
+  * Added Dungeon Master notes to maps.
+  * Support for links via chat.
+  * Calculate distance between two points.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 14 Feb 2020 11:28:31 +0100
+
 tabletop (0.4) stable; urgency=low
 
   * Added story and image to games overview.

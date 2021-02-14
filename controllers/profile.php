@@ -7,32 +7,12 @@
 	 */
 
 	class profile_controller extends Banshee\controller {
-		private function view_user($user_id) {
-			if (($user = $this->model->get_user($user_id)) == false) {
-				$this->view->add_tag("result", "User not found.", array("url" => ""));
-				return;
-			}
-
-			if ($user["avatar"] == "") {
-				$user["avatar"] = EMPTY_AVATAR;
-			}
-
-			$this->view->title = $user["fullname"];
-
-			$this->view->open_tag("view");
-			$this->view->record($user, "user");
-			$this->view->add_tag("previous", $this->page->previous);
-			$this->view->close_tag();
-		}
-
 		private function show_profile_form($profile = null) {
 			if ($profile === null) {
 				$profile = array(
 					"fullname"             => $this->user->fullname,
 					"email"                => $this->user->email,
-					"authenticator_secret" => str_repeat("*", strlen($this->user->authenticator_secret)),
-					"avatar"               => $this->user->avatar,
-					"signature"            => $this->user->signature);
+					"authenticator_secret" => str_repeat("*", strlen($this->user->authenticator_secret)));
 			}
 
 			if (($organisation = $this->model->get_organisation()) === false) {
@@ -80,14 +60,6 @@
 			$this->view->description = "Profile";
 			$this->view->keywords = "profile";
 			$this->view->title = "Profile";
-
-
-			if ($this->user->status == USER_STATUS_ACTIVE) {
-				if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
-					$this->view_user($this->page->parameters[0]);
-					return;
-				}
-			}
 
 			if ($this->user->status == USER_STATUS_CHANGEPWD) {
 				$this->view->add_message("Please, change your password.");

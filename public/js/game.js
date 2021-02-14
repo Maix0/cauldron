@@ -53,8 +53,8 @@ function scroll_to_my_character() {
 	pos.left += $('div.playarea').scrollLeft();
     pos.top += $('div.playarea').scrollTop();
 
-	pos_x += pos.left;
-	pos_y += pos.top;
+	pos_x += pos.left + (grid_cell_size >> 1);
+	pos_y += pos.top + (grid_cell_size >> 1);
 
 	$('div.playarea').animate({
 		scrollLeft: pos_x,
@@ -68,23 +68,44 @@ function write_sidebar(message) {
 	sidebar.prop('scrollTop', sidebar.prop('scrollHeight'));
 }
 
-function send_message(message, write_to_sidebar = true) {
-	if (websocket == null) {
-		return;
+function show_image(img) {
+	var image = '<div class="overlay" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); max-width:80%; max-height:80%;" /></div>';
+
+	$('body').append(image);
+}
+
+function say_message(name, message) {
+	if ((message.substr(0, 7) == 'http://') || (message.substr(0, 8) == 'https://')) {
+		var parts = message.split('.');
+		var extension = parts.pop();
+		var images = ['gif', 'jpg', 'jpeg', 'png'];
+
+		if (images.includes(extension)) {
+			message = '<img src="' + message + '" style="width:160px; cursor:pointer;" onClick="javascript:show_image(this)" />';
+		} else {
+			message = '<a href="' + message + '" target="_blank">' + message + '</a>';
+		}
+	} else {
+		message = message.replace(/</g, '&lt;');
+		message = message.replace(/\n/g, '<br />');
 	}
 
-	message = message.replace(/</g, '&lt;');
-	message = message.replace(/\n/g, '<br />');
-	message = '<b>' + my_name + ':</b><span style="display:block; margin-left:15px;">' + message + '</span>';
+	message = '<b>' + name + ':</b><span style="display:block; margin-left:15px;">' + message + '</span>';
+
+	write_sidebar(message);
+}
+
+function send_message(message, write_to_sidebar = true) {
 	var data = {
 		game_id: game_id,
 		action: 'say',
-		mesg  : message
+		name: my_name,
+		mesg: message
 	};
 	websocket.send(JSON.stringify(data));
 
 	if (write_to_sidebar) {
-		write_sidebar(message);
+		say_message(my_name, message);
 	}
 }
 
@@ -146,32 +167,41 @@ function roll_dice(dice, send_to_others = true) {
 
 function show_help() {
 	var help =
-		'<b>/clear</b>: clear this sidebar.<br />' +
+		'<b>/clear</b>: Clear this sidebar.<br />' +
 		(dungeon_master ? '' :
-		'<b>/damage &lt;points&gt;</b>: damage your character.<br />') +
+		'<b>/damage &lt;points&gt;</b>: Damage your character.<br />') +
 		(dungeon_master ?
 		'<b>/dmroll &lt;dice&gt;</b>: Privately roll dice.<br />' : '') +
 		(dungeon_master ? '' :
 		'<b>/heal &lt;points&gt;</b>: Heal your character.<br />') +
 		(dungeon_master ?
-		'<b>/init</b>: Roll for initiative.<br />' +
-		'<b>/reload</b>: Reload current page.<br />' : '') +
+		'<b>/init</b>: Roll for initiative.<br />' : '') +
+		'<b>/log &lt;message&gt;</b>: Add message to journal.<br />' +
+		(dungeon_master ?
+		'<b>/next [&lt;name&gt;]</b>: Next turn in battle.<br />' +
+		'<b>/reload</b>: Reload current page.<br />' +
+		'<b>/remove &lt;name&gt;</b>: Remove one from battle.<br />' : '') +
 		'<b>/roll &lt;dice&gt;</b>: Roll dice.<br />' +
 		(dungeon_master ?
-		'<b>/next [&lt;name&gt;]</b>: Next character\'s turn in battle.<br />' +
 		'<b>/ping</b>: See who\'s online in the game.<br />' : '') +
 		'<b>&lt;message&gt;</b>: Send text message.<br />' +
-		'Right-click ' + (dungeon_master ? 'any' : 'your character') + ' icon or the map for more options.';
+		'<br />Right-click an icon or the map for more options.';
 
 	write_sidebar(help);
 }
 
-function show_battle_order() {
-	var message = 'Battle order:\n';
-	var bullet = '->';
+function show_battle_order(first_round = false) {
+	var message = '';
+
+	if (first_round) {
+		message += 'Prepare for battle!\n\n';
+	}
+
+	message += 'Battle order:\n';
+	var bullet = '&Rightarrow;';
 	battle_order.forEach(function(value, key) {
 		message += bullet + ' ' + value.name + '\n';
-		bullet = '-';
+		bullet = '&boxh;';
 	});
 
 	send_message(message);
@@ -192,7 +222,9 @@ function coord_to_grid(coord, edge = true) {
  */
 function object_alive(obj) {
 	obj.css('background-color', '');
-	obj.css('opacity', '1');
+	if (obj.attr('is_hidden') == 'no') {
+		obj.css('opacity', '1');
+	}
 	obj.find('div.hitpoints').css('display', 'block');
 }
 
@@ -236,6 +268,7 @@ function object_damage(obj, points) {
 		game_id: game_id,
 		action: 'damage',
 		instance_id: obj.prop('id'),
+		damage: damage,
 		perc: dmg.css('width')
 	};
 	websocket.send(JSON.stringify(data));
@@ -273,6 +306,11 @@ function object_handover(obj) {
 }
 
 function object_hide(obj) {
+	if (dungeon_master) {
+		obj.fadeTo('fast', 0.5);
+	} else {
+		obj.hide();
+	}
 	obj.attr('is_hidden', 'yes');
 
 	var data = {
@@ -285,8 +323,6 @@ function object_hide(obj) {
 	$.post('/object/hide', {
 		instance_id: obj.prop('id')
 	});
-
-	obj.fadeTo('fast', 0.5);
 }
 
 function object_info(obj) {
@@ -304,15 +340,15 @@ function object_info(obj) {
 		info += 'Armor class: ' + obj.attr('armor_class') + '<br />';
 	}
 
-	info += 'Max hitpoints: ' + obj.attr('hitpoints') + '<br />';
+	info += 'Max hit points: ' + obj.attr('hitpoints') + '<br />';
 
 	var remaining = parseInt(obj.attr('hitpoints')) - parseInt(obj.attr('damage'));
 	info +=
 		'Damage: ' + obj.attr('damage') + '<br />' +
-		'Hitpoints: ' + remaining.toString() + '<br />';
+		'Hit points: ' + remaining.toString() + '<br />';
 
 	if (obj.is(my_character)) {
-		info += 'Temp, hitpoints: ' + temporary_hitpoints.toString() + '<br />';
+		info += 'Temp, hit points: ' + temporary_hitpoints.toString() + '<br />';
 	}
 
 	if (dungeon_master) {
@@ -396,6 +432,7 @@ function object_rotate(obj, rotation, send = true) {
 	}
 
 	img.css('transform', 'rotate(' + rotation + 'deg)');
+	obj.attr('rotation', rotation);
 
 	if (send) {
 		var data = {
@@ -414,6 +451,7 @@ function object_rotate(obj, rotation, send = true) {
 }
 
 function object_show(obj) {
+	obj.fadeTo('fast', 1);
 	obj.attr('is_hidden', 'no');
 
 	var data = {
@@ -426,8 +464,6 @@ function object_show(obj) {
 	$.post('/object/show', {
 		instance_id: obj.prop('id')
 	});
-
-	obj.fadeTo('fast', 1);
 }
 
 function object_view(obj, max_size = 300) {
@@ -449,37 +485,39 @@ function object_view(obj, max_size = 300) {
 	} else {
 		var src = '/files/collectables/' + obj.attr('c_src');
 	}
-	var transform = obj.find('img').css('transform');
 
+	var onclick = 'javascript:$(this).remove();';
 	var div_style = 'position:absolute; top:0; left:0; right:0; bottom:0; background-color:rgba(255, 255, 255, 0.8); z-index:' + (DEFAULT_Z_INDEX + 5);
-	var img_style = 'position:fixed; top:50%; left:50%; display:block; max-width:' + max_size + 'px; height:' + max_size + 'px; transform:translate(-50%, -50%)';
+	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%)';
+	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px;';
+
+	var transform = obj.find('img').css('transform');
 	if ((transform != 'none') && (collectable_id == undefined)) {
-		img_style += ' ' + transform + ';';
-	} else {
-		img_style += ';';
+		img_style += ' transform:' + transform + ';';
 	}
-	if (collectable_id != undefined) {
+
+	if (((obj.hasClass('token') == false) && (obj.hasClass('character') == false)) || (collectable_id != undefined)) {
 		img_style += 'border:1px solid #000000;';
 	}
-	var onclick = 'javascript:$(this).remove();';
 
-	var view = $('<div id="view" style="' + div_style + '" onClick="' + onclick +'"><img src="' + src + '" style="' + img_style + '" /></div>');
+	var view = $('<div id="view" style="' + div_style + '" onClick="' + onclick +'"><span style="' + span_style + '"><img src="' + src + '" style="' + img_style + '" /></span></div>');
 	$('body').append(view);
 
 	if ((collectable_id != undefined) && (dungeon_master == false)) {
-		obj.attr('c_id', null);
-		$('div#view').prepend('<h1 style="font-size:50px; text-align:center; margin-top:50px;">Item found!</h1>');
+		$('div#view span').append('<div class="btn-group" style="width:100%"><button class="btn btn-default" style="width:100%">Take item</button></div>');
+		$('div#view span button').on('click', function() {
+			obj.attr('c_id', null);
 
-		$.post('/object/collectable/found', {
-			collectable_id: collectable_id
+			$.post('/object/collectable/found', {
+				collectable_id: collectable_id
+			});
+
+			send_message(my_name + ' found an item! Check the inventory.', false);
+
+			if (obj.attr('c_hide') == 'yes') {
+				object_hide(obj);
+			}
 		});
-
-		send_message('Item found!');
-
-		if (obj.attr('c_hide') == 'yes') {
-			object_hide(obj);
-			obj.hide();
-		}
 	}
 }
 
@@ -643,7 +681,9 @@ function marker_create(pos_x, pos_y, name = null) {
 	}
 
 	$('div.playarea > div').append(marker);
-	setTimeout(function() { $('div.marker').first().remove(); }, 3000);
+	setTimeout(function() {
+		$('div.marker').first().remove();
+	}, 3000);
 }
 
 /* Collectable functions
@@ -664,13 +704,58 @@ function collectables_show() {
 
 			$(data).find('collectable').each(function() {
 				var image = $(this).find('image').text();
-				var collectable = '<div class="col-sm-4" onClick="javascript:object_view($(this), 600);"><img src="/files/collectables/' + image + '" style="max-width:100px; max-height:100px; cursor:pointer;" /></div>';
+				var collectable = '<div class="col-sm-4" style="width:115px; height:115px;" onClick="javascript:object_view($(this), 600);"><img src="/files/collectables/' + image + '" style="max-width:100px; max-height:100px; cursor:pointer;" /></div>';
 				row.append(collectable);
 			});
 		}
 
 		$('div.collectables').show();
 	});
+}
+
+/* Journal functions
+ */
+function journal_show() {
+	$('div.journal').show()
+
+	var panel = $('div.journal div.panel-body');
+	panel.prop('scrollTop', panel.prop('scrollHeight'));
+}
+
+function journal_add_entry(name, content) {
+	var entry = '<div class="entry"><span class="writer">' + name + '</span><span class="content">' + content + '</span></div>';
+	$('div.journal div.entries').append(entry);
+
+	var panel = $('div.journal div.panel-body');
+	panel.prop('scrollTop', panel.prop('scrollHeight'));
+}
+
+function journal_save_entry(name, content) {
+	var data = {
+		game_id: game_id,
+		action: 'journal',
+		name: name,
+		content: content
+	};
+	websocket.send(JSON.stringify(data));
+
+	$.post('/object/journal', {
+		game_id: game_id,
+		content: content
+	});
+}
+
+function journal_write() {
+	var textarea = $('div.journal textarea');
+	var content = textarea.val().trim();
+	textarea.val('');
+
+	if (content == '') {
+		return;
+	}
+
+	journal_add_entry(my_name, content);
+	journal_save_entry(my_name, content);
 }
 
 /* Input functions
@@ -696,7 +781,7 @@ function handle_input(input) {
 
 	switch (command) {
 		case 'clear':
-			$('div.sidebar *').remove();
+			$('div.sidebar').empty();
 			break;
 		case 'damage':
 		case 'dmg':
@@ -748,7 +833,7 @@ function handle_input(input) {
 			battle_order = [];
 
 			do {
-				var enemy = prompt('Enemy: name[,initiative bonus]\nUse empty input to start battle.');
+				var enemy = prompt('Enemy: <name>[, <initiative bonus=0>]\nUse empty input to start battle.');
 				if (enemy == undefined) {
 					return;
 				}
@@ -807,7 +892,16 @@ function handle_input(input) {
 
 			battle_order.sort((a, b) => b.key.localeCompare(a.key));
 
-			show_battle_order();
+			show_battle_order(true);
+
+			$.cookie('battle_order', JSON.stringify(battle_order));
+			break;
+		case 'log':
+			if (param != '') {
+				journal_add_entry(my_name, param);
+				journal_save_entry(my_name, param);
+				write_sidebar('Journal entry added.');
+			}
 			break;
 		case 'next':
 			if (dungeon_master == false) {
@@ -851,11 +945,15 @@ function handle_input(input) {
 			}
 
 			show_battle_order();
+
+			$.cookie('battle_order', JSON.stringify(battle_order));
 			break;
 		case 'ping':
 			if (dungeon_master == false) {
 				return;
 			}
+
+			write_sidebar('Present in game:');
 
 			var data = {
 				game_id: game_id,
@@ -875,6 +973,38 @@ function handle_input(input) {
 			websocket.send(JSON.stringify(data));
 
 			location.reload();
+			break;
+		case 'remove':
+			if (dungeon_master == false) {
+				break;
+			}
+
+			if (battle_order.length == 0) {
+				write_sidebar('Roll for initiative first.');
+				break;
+			}
+
+			var turn = null;
+			if (param == '') {
+				write_sidebar('Specify a name');
+				return;
+			}
+
+			var remove = null;
+			battle_order.forEach(function(value, key) {
+				if (value.name.substr(0, param.length) == param) {
+					remove = key;
+				}
+			});
+
+			if (remove == null) {
+				write_sidebar(param + ' not in battle order.');
+				$('div.input input').val(input);
+				break;
+			}
+
+			write_sidebar(battle_order[remove].name + ' removed from battle.');
+			battle_order.splice(remove, 1);
 			break;
 		case 'roll':
 			if (roll_dice(param) == false) {
@@ -969,6 +1099,26 @@ function context_menu_handler(key, options) {
 			}
 
 			object_damage(obj, points);
+			break;
+		case 'distance':
+			if (my_character != null) {
+				var from = my_character;
+			} else if (focus_obj != null) {
+				var from = focus_obj;
+			} else {
+				write_sidebar('Focus on a character first.');
+				return;
+			}
+
+			var from_pos = from.position();
+
+			var menu = $('div#context-menu-layer + ul.context-menu-root');
+			var to_pos = menu.position();
+
+			var diff_x = Math.round(Math.abs(from_pos.left - Math.round(to_pos.left) + 41) / grid_cell_size);
+			var diff_y = Math.round(Math.abs(from_pos.top - Math.round(to_pos.top) + 66) / grid_cell_size);
+
+			write_sidebar('Distance: ' + ((diff_x > diff_y) ? diff_x : diff_y));
 			break;
 		case 'effect_create':
 			var menu = $('div#context-menu-layer + ul.context-menu-root');
@@ -1119,7 +1269,7 @@ function context_menu_handler(key, options) {
 			break;
 		case 'temphp':
 			var points;
-			if ((points = window.prompt('Temporary hitpoints:', temporary_hitpoints)) == undefined) {
+			if ((points = window.prompt('Temporary hit points:', temporary_hitpoints)) == undefined) {
 				break;
 			}
 
@@ -1149,9 +1299,6 @@ function context_menu_handler(key, options) {
 
 			object_hide(obj);
 			break;
-		case 'unstick':
-			stick_to = null;
-			break;
 		case 'view':
 			object_view(obj);
 			break;
@@ -1173,7 +1320,7 @@ function context_menu_handler(key, options) {
 			var pos_y = Math.floor(pos_menu.top) + $('div.playarea').scrollTop() - 41;
 			pos_y = coord_to_grid(pos_y, false);
 
-			var zone_define = '<div class="zone_create faded_background" onClick="javascript:$(this).remove()"><div class="panel panel-default" onClick="javascript:event.stopPropagation()"><div class="panel-heading">Create zone<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().remove()"></span></div><div class="panel-body" style="max-height:335px">';
+			var zone_define = '<div class="zone_create overlay" onClick="javascript:$(this).remove()"><div class="panel panel-default" onClick="javascript:event.stopPropagation()"><div class="panel-heading">Create zone<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().remove()"></span></div><div class="panel-body" style="max-height:335px">';
 			zone_define += '<label for="width">Width:</label>';
 			zone_define += '<input type="text" id="width" value="3" class="form-control" onKeyUp="javascript:$(\'#height\').val($(this).val())" />';
 			zone_define += '<label for="height">Height:</label>';
@@ -1299,6 +1446,7 @@ $(document).ready(function() {
 		switch (data.action) {
 			case 'damage':
 				var obj = $('div#' + data.instance_id);
+				obj.attr('damage', data.damage);
 				obj.find('div.damage').css('width', data.perc);
 				if (data.perc == '100%') {
 					object_dead(obj);
@@ -1396,6 +1544,10 @@ $(document).ready(function() {
 					$('div#' + data.instance_id).attr('is_hidden', 'yes');
 				}
 				break;
+			case 'journal':
+				journal_add_entry(data.name, data.content);
+				write_sidebar(data.name + ' added a journal entry.');
+				break;
 			case 'lower':
 				$('div#' + data.instance_id).css('z-index', z_index);
 				z_index--;
@@ -1415,7 +1567,17 @@ $(document).ready(function() {
 				});
 				break;
 			case 'ping':
-				send_message("Pong", false);
+				var data = {
+					game_id: game_id,
+					action: 'pong',
+					name: my_name
+				};
+				websocket.send(JSON.stringify(data));
+				break;
+			case 'pong':
+				if (dungeon_master) {
+					write_sidebar('&nbsp;&nbsp;&nbsp;&nbsp;- ' + data.name);
+				}
 				break;
 			case 'reload':
 				document.location = '/game/' + game_id;
@@ -1425,7 +1587,7 @@ $(document).ready(function() {
 				object_rotate(obj, data.rotation, false);
 				break;
 			case 'say':
-				write_sidebar(data.mesg);
+				say_message(data.name, data.mesg);
 				break;
 			case 'show':
 				$('div#' + data.instance_id).show();
@@ -1598,6 +1760,8 @@ $(document).ready(function() {
 				'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
 				'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
 				'sep2': '-',
+				'marker': {name:'Marker', icon:'fa-map-marker'},
+				'distance': {name:'Distance', icon:'fa-map-signs'},
 				'attack': {name:'Attack', icon:'fa-shield'},
 				'damage': {name:'Damage', icon:'fa-warning'},
 				'heal': {name:'Heal', icon:'fa-medkit'}
@@ -1623,6 +1787,7 @@ $(document).ready(function() {
 				'presence': {name:'Presence', icon:'fa-low-vision'},
 				'focus': {name:'Focus', icon:'fa-binoculars'},
 				'sep1': '-',
+				'distance': {name:'Distance', icon:'fa-map-signs'},
 				'attack': {name:'Attack', icon:'fa-shield'},
 				'damage': {name:'Damage', icon:'fa-warning'},
 				'heal': {name:'Heal', icon:'fa-medkit'},
@@ -1636,8 +1801,9 @@ $(document).ready(function() {
 			selector: 'div.playarea > div',
 			callback: context_menu_handler,
 			items: {
-				'effect_create': {name:'Effect', icon:'fa-fire'},
 				'marker': {name:'Marker', icon:'fa-map-marker'},
+				'distance': {name:'Distance', icon:'fa-map-signs'},
+				'effect_create': {name:'Effect', icon:'fa-fire'},
 				'zone_create': {name:'Zone', icon:'fa-square-o'}
 			},
 			zIndex: DEFAULT_Z_INDEX + 4
@@ -1668,11 +1834,10 @@ $(document).ready(function() {
 				items: {
 					'info': {name:'Info', icon:'fa-info-circle'},
 					'view': {name:'View', icon:'fa-search'},
-					//'unstick': {name:'Unstick', icon:'fa-unlock-alt'},
 					'sep1': '-',
 					'damage': {name:'Damage', icon:'fa-warning'},
 					'heal': {name:'Heal', icon:'fa-medkit'},
-					'temphp': {name:'Temporary hitpoints', icon:'fa-heart-o'}
+					'temphp': {name:'Temporary hit points', icon:'fa-heart-o'}
 				},
 				zIndex: DEFAULT_Z_INDEX + 4
 			});
@@ -1683,6 +1848,8 @@ $(document).ready(function() {
 				items: {
 					'view': {name:'View', icon:'fa-search'},
 					'stick': {name:'Stick to', icon:'fa-lock'},
+					'marker': {name:'Marker', icon:'fa-map-marker'},
+					'distance': {name:'Distance', icon:'fa-map-signs'},
 					'attack': {name:'Attack', icon:'fa-shield'}
 				},
 				zIndex: DEFAULT_Z_INDEX + 4
@@ -1694,7 +1861,9 @@ $(document).ready(function() {
 			callback: context_menu_handler,
 			items: {
 				'info': {name:'Info', icon:'fa-info-circle'},
-				'view': {name:'View', icon:'fa-search'}
+				'view': {name:'View', icon:'fa-search'},
+				'marker': {name:'Marker', icon:'fa-map-marker'},
+				'distance': {name:'Distance', icon:'fa-map-signs'},
 			},
 			zIndex: DEFAULT_Z_INDEX + 4
 		});
@@ -1703,7 +1872,8 @@ $(document).ready(function() {
 			selector: 'div.playarea > div',
 			callback: context_menu_handler,
 			items: {
-				'marker': {name:'Marker', icon:'fa-map-marker'}
+				'marker': {name:'Marker', icon:'fa-map-marker'},
+				'distance': {name:'Distance', icon:'fa-map-signs'}
 			},
 			zIndex: DEFAULT_Z_INDEX + 4
 		});
@@ -1711,7 +1881,7 @@ $(document).ready(function() {
 
 	/* Input field
 	 */
-	$("div.input input").on('keyup', function (e) {
+	$('div.input input').on('keyup', function (e) {
 		if ((e.key === 'Enter') || (e.keyCode === 13)) {
 			var input = $(this).val();
 			$(this).val('');
@@ -1752,13 +1922,28 @@ $(document).ready(function() {
 		cursor: 'grab'
 	});
 
-	$('body').click(function() {
+	$('div.notes div.panel').draggable({
+		handle: 'div.panel-heading',
+		cursor: 'grab'
+	});
+
+	$('div.journal div.panel').draggable({
+		handle: 'div.panel-heading',
+		cursor: 'grab'
+	});
+
+	$('div.playarea').click(function() {
 		focus_on_input();
 	});
 
 	$('select.map-selector').click(function(e) {
 		e.stopPropagation();
 	});
+
+	var bo = $.cookie('battle_order');
+	if (bo != undefined) {
+		battle_order = JSON.parse(bo);
+	}
 
 	focus_on_input();
 

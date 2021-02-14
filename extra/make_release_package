@@ -16,6 +16,7 @@ if [ -d ${target}-${version} ]; then
 	echo The directory ${target}-${version} already exists. Remove it first.
 	exit
 fi
+
 cp -r ${target} ${target}-${version}
 cd ${target}-${version}
 

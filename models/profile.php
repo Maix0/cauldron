@@ -10,7 +10,7 @@
 		private $hashed = null;
 
         public function get_user($user_id) {
-			$query = "select fullname, email, avatar ".
+			$query = "select fullname, email".
 			         "from users where id=%d limit 1";
 
 			if (($users = $this->db->execute($query, $user_id)) == false) {
@@ -110,7 +110,7 @@
 		}
 
 		public function update_profile($profile) {
-			$keys = array("fullname", "email", "avatar", "signature");
+			$keys = array("fullname", "email");
 
 			if ($profile["password"] != "") {
 				array_push($keys, "password");

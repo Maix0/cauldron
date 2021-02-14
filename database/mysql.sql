@@ -62,14 +62,14 @@ DROP TABLE IF EXISTS `collectables`;
 CREATE TABLE `collectables` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `game_id` int(10) unsigned NOT NULL,
-  `game_map_token_id` int(10) unsigned DEFAULT NULL,
+  `map_token_id` int(10) unsigned DEFAULT NULL,
   `name` varchar(50) NOT NULL,
   `image` tinytext NOT NULL,
   `found` tinyint(1) NOT NULL,
   `hide` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `game_map_token_id` (`game_map_token_id`),
-  CONSTRAINT `collectables_ibfk_1` FOREIGN KEY (`game_map_token_id`) REFERENCES `game_map_token` (`id`)
+  KEY `game_map_token_id` (`map_token_id`),
+  CONSTRAINT `collectables_ibfk_1` FOREIGN KEY (`map_token_id`) REFERENCES `map_token` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -87,78 +87,6 @@ CREATE TABLE `game_character` (
   KEY `character_id` (`character_id`),
   CONSTRAINT `game_character_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`),
   CONSTRAINT `game_character_ibfk_2` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `game_map_character`
---
-
-DROP TABLE IF EXISTS `game_map_character`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `game_map_character` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `game_map_id` int(10) unsigned NOT NULL,
-  `character_id` int(10) unsigned NOT NULL,
-  `pos_x` smallint(5) unsigned NOT NULL,
-  `pos_y` smallint(5) unsigned NOT NULL,
-  `hidden` tinyint(1) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `game_map_id` (`game_map_id`),
-  KEY `character_id` (`character_id`),
-  CONSTRAINT `game_map_character_ibfk_1` FOREIGN KEY (`game_map_id`) REFERENCES `game_maps` (`id`),
-  CONSTRAINT `game_map_character_ibfk_2` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `game_map_token`
---
-
-DROP TABLE IF EXISTS `game_map_token`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `game_map_token` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `game_map_id` int(10) unsigned NOT NULL,
-  `token_id` int(10) unsigned NOT NULL,
-  `name` varchar(50) DEFAULT NULL,
-  `pos_x` smallint(5) unsigned NOT NULL,
-  `pos_y` smallint(5) unsigned NOT NULL,
-  `rotation` smallint(5) unsigned NOT NULL,
-  `hidden` tinyint(1) NOT NULL,
-  `armor_class` tinyint(3) unsigned NOT NULL,
-  `hitpoints` smallint(5) unsigned NOT NULL,
-  `damage` smallint(5) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `game_map_id` (`game_map_id`),
-  KEY `token_id` (`token_id`),
-  CONSTRAINT `game_map_token_ibfk_1` FOREIGN KEY (`game_map_id`) REFERENCES `game_maps` (`id`),
-  CONSTRAINT `game_map_token_ibfk_2` FOREIGN KEY (`token_id`) REFERENCES `tokens` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `game_maps`
---
-
-DROP TABLE IF EXISTS `game_maps`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `game_maps` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `game_id` int(10) unsigned NOT NULL,
-  `title` varchar(50) NOT NULL,
-  `url` varchar(500) NOT NULL,
-  `type` enum('image','video') NOT NULL,
-  `width` smallint(5) unsigned NOT NULL,
-  `height` smallint(3) unsigned NOT NULL,
-  `grid_size` tinyint(3) unsigned NOT NULL,
-  `show_grid` tinyint(1) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `game_id` (`game_id`),
-  CONSTRAINT `game_maps_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -181,7 +109,28 @@ CREATE TABLE `games` (
   KEY `dm_id` (`dm_id`),
   KEY `active_map_id` (`active_map_id`),
   CONSTRAINT `games_ibfk_1` FOREIGN KEY (`dm_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `games_ibfk_2` FOREIGN KEY (`active_map_id`) REFERENCES `game_maps` (`id`)
+  CONSTRAINT `games_ibfk_2` FOREIGN KEY (`active_map_id`) REFERENCES `maps` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `journal`
+--
+
+DROP TABLE IF EXISTS `journal`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `journal` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `game_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `entry` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `game_id` (`game_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `journal_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`),
+  CONSTRAINT `journal_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -201,6 +150,79 @@ CREATE TABLE `languages` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `page` (`page`,`name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `map_character`
+--
+
+DROP TABLE IF EXISTS `map_character`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `map_character` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `game_map_id` int(10) unsigned NOT NULL,
+  `character_id` int(10) unsigned NOT NULL,
+  `pos_x` smallint(5) unsigned NOT NULL,
+  `pos_y` smallint(5) unsigned NOT NULL,
+  `hidden` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `game_map_id` (`game_map_id`),
+  KEY `character_id` (`character_id`),
+  CONSTRAINT `map_character_ibfk_1` FOREIGN KEY (`game_map_id`) REFERENCES `maps` (`id`),
+  CONSTRAINT `map_character_ibfk_2` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `map_token`
+--
+
+DROP TABLE IF EXISTS `map_token`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `map_token` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `game_map_id` int(10) unsigned NOT NULL,
+  `token_id` int(10) unsigned NOT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `pos_x` smallint(5) unsigned NOT NULL,
+  `pos_y` smallint(5) unsigned NOT NULL,
+  `rotation` smallint(5) unsigned NOT NULL,
+  `hidden` tinyint(1) NOT NULL,
+  `armor_class` tinyint(3) unsigned NOT NULL,
+  `hitpoints` smallint(5) unsigned NOT NULL,
+  `damage` smallint(5) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `game_map_id` (`game_map_id`),
+  KEY `token_id` (`token_id`),
+  CONSTRAINT `map_token_ibfk_1` FOREIGN KEY (`game_map_id`) REFERENCES `maps` (`id`),
+  CONSTRAINT `map_token_ibfk_2` FOREIGN KEY (`token_id`) REFERENCES `tokens` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `maps`
+--
+
+DROP TABLE IF EXISTS `maps`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `maps` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `game_id` int(10) unsigned NOT NULL,
+  `title` varchar(50) NOT NULL,
+  `url` varchar(500) NOT NULL,
+  `type` enum('image','video') NOT NULL,
+  `width` smallint(5) unsigned NOT NULL,
+  `height` smallint(3) unsigned NOT NULL,
+  `grid_size` tinyint(3) unsigned NOT NULL,
+  `show_grid` tinyint(1) NOT NULL,
+  `dm_notes` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `game_id` (`game_id`),
+  CONSTRAINT `maps_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -420,7 +442,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','4'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
+INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','5'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string','ovIEN5r3TSbl7mNYsJ1BDacwaVOkzOdg'),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','hugo@leisink.net'),(36,'screen_grid_size','integer','50');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -486,8 +508,6 @@ CREATE TABLE `users` (
   `authenticator_secret` varchar(16) DEFAULT NULL,
   `fullname` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
-  `avatar` tinytext NOT NULL,
-  `signature` tinytext NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`),
@@ -522,22 +542,13 @@ CREATE TABLE `zones` (
   `width` tinyint(3) unsigned NOT NULL,
   `height` tinyint(3) unsigned NOT NULL,
   `color` varchar(7) NOT NULL,
-  `opacity` decimal(1,1) NOT NULL,
+  `opacity` decimal(3,1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `game_map_id` (`game_map_id`),
-  CONSTRAINT `zones_ibfk_1` FOREIGN KEY (`game_map_id`) REFERENCES `game_maps` (`id`)
+  CONSTRAINT `zones_ibfk_1` FOREIGN KEY (`game_map_id`) REFERENCES `maps` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `zones`
---
--- ORDER BY:  `id`
-
-LOCK TABLES `zones` WRITE;
-/*!40000 ALTER TABLE `zones` DISABLE KEYS */;
-/*!40000 ALTER TABLE `zones` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -548,4 +559,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-02-01 13:20:38
+-- Dump completed on 2021-02-10  8:42:09
