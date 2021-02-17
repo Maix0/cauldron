@@ -1,6 +1,6 @@
 div.well {
 	cursor:pointer;
-	height:135px;
+	height:140px;
 }
 
 div.well img {
@@ -31,4 +31,27 @@ form img.portrait {
 		float:right;
 		max-width:200px;
 	}
+}
+
+/* Alternates
+ */
+div.alternates {
+	margin-bottom:50px;
+}
+
+div.alternate {
+	width:100px;
+}
+
+div.alternate img.icon {
+	width:100%;
+}
+
+div.alternate span {
+	display:block;
+	text-align:center;
+}
+
+div.alternate input.btn {
+	width:100%;
 }

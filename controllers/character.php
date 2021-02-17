@@ -23,6 +23,27 @@
 			$this->view->close_tag();
 		}
 
+		private function show_alternate_form($character_id) {
+			if (($character = $this->model->get_character($character_id)) == false) {
+				$this->view->add_tag("result", "Character not found.");
+				return;
+			}
+
+			if (($alternates = $this->model->get_alternates($character_id)) === false) {
+				$this->view->add_tag("result", "Database error.");
+				return;
+			}
+
+			$attr = array(
+				"char_id"   => $character["id"],
+				"character" => $character["name"]);
+			$this->view->open_tag("alternates", $attr);
+			foreach ($alternates as $alternate) {
+				$this->view->record($alternate, "alternate");
+			}
+			$this->view->close_tag();
+		}
+
 		public function execute() {
 			$this->view->title = "Characters";
 
@@ -30,14 +51,6 @@
 				if ($_POST["submit_button"] == "Save character") {
 					/* Save character
 					 */
-					if ($_FILES["portrait"]["error"] == 0) {
-						list(, $extension) = explode("/", $_FILES["portrait"]["type"], 2);
-						if ($extension == "jpeg") {
-							$extension = "jpg";
-						}
-						$_FILES["portrait"]["extension"] = $extension;
-					}
-
 					if ($this->model->save_oke($_POST, $_FILES["portrait"]) == false) {
 						$this->show_character_form($_POST);
 					} else if (isset($_POST["id"]) === false) {
@@ -73,11 +86,30 @@
 						$this->user->log_action("character %d deleted", $_POST["id"]);
 						$this->show_overview();
 					}
-				} else if ($_POST["submit_button"] == "search") {
-					/* Search
+ 				} else if ($_POST["submit_button"] == "Add portrait") {
+					/* Add alternate portrait
 					 */
-					$_SESSION["character_search"] = $_POST["search"];
+					if ($this->model->portrait_oke($_POST, $_FILES["portrait"]) != false) {
+						if ($this->model->add_portrait($_POST, $_FILES["portrait"]) == false) {
+							$this->view->add_message("Error adding alternate portrait.");
+						}
+					}
+					$this->show_alternate_form($_POST["char_id"]);
+ 				} else if ($_POST["submit_button"] == "delete") {
+					/* Delete alternate portrait
+					 */
+					if (($char_id = $this->model->delete_portrait($_POST["icon_id"])) == false) {
+						$this->view->add_system_warning("Portrait not found.");
+						$this->show_overview();
+					} else {
+						$this->show_alternate_form($char_id);
+					}
+				} else {
 					$this->show_overview();
+				}
+			} else if ($this->page->parameters[0] === "alternate") {
+				if (valid_input($this->page->parameters[1], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
+					$this->show_alternate_form($this->page->parameters[1]);
 				} else {
 					$this->show_overview();
 				}

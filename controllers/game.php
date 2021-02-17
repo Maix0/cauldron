@@ -87,6 +87,11 @@
 					return;
 				}
 
+				if (($conditions = $this->model->get_conditions()) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
 				if (($zones = $this->model->get_zones($game["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
@@ -95,6 +100,24 @@
 				if (($journal = $this->model->get_journal($game_id)) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
+				}
+
+				$attr = array("name" => "Dungeon Master");
+				if ($user_is_dungeon_master == false) {
+					foreach ($characters as $character) {
+						if ($character["user_id"] == $this->user->id) {
+							$my_name = $character["name"];
+							$my_icon = "character".$character["instance_id"];
+
+							if (($alternates = $this->model->get_alternate_icons($character["id"])) === false) {
+								$this->view->add_tag("result", "Database error.");
+								return;
+							}
+							break;
+						}
+					}
+				} else {
+					$my_name = "Dungeon Master";
 				}
 
 				$factor = 1 / $active_map["grid_size"] * $grid_cell_size;
@@ -108,7 +131,6 @@
 			if ($active_map != null) {
 				$this->view->add_javascript("webui/jquery-ui.js");
 				$this->view->add_javascript("banshee/jquery.contextMenu.js");
-				$this->view->add_javascript("banshee/jquery.cookie.js");
 				$this->view->add_javascript("game.js");
 
             	$this->view->add_css("banshee/context-menu.css");
@@ -193,23 +215,42 @@
 				}
 				$this->view->close_tag();
 
-				$attr = array("name" => "Dungeon Master");
+				$attr = array("name" => $my_name);
 				if ($user_is_dungeon_master == false) {
-					foreach ($characters as $character) {
-						if ($character["user_id"] == $this->user->id) {
-							$attr["mine"] = "character".$character["instance_id"];
-							$attr["name"] = $character["name"];
-						}
-					}
+					$attr["mine"] = $my_icon;
 				}
-
 				$this->view->open_tag("characters", $attr);
 				foreach ($characters as $character) {
 					$character["pos_x"] *= $grid_cell_size;
 					$character["pos_y"] *= $grid_cell_size;
+					$character["width"] = $grid_cell_size;
+					$character["height"] = $grid_cell_size;
 					$character["hidden"] = show_boolean($character["hidden"]);
 					$character["perc"] = round(100 * $character["damage"] / $character["hitpoints"]);
+					$character["orig_src"] = $character["id"].".".$character["extension"];
+					if ($character["alternate_id"] != null) {
+						$character["src"] = $character["id"]."_".$character["alternate_id"].".".$character["extension"];
+						$character["width"] *= $character["alternate_size"];
+						$character["height"] *= $character["alternate_size"];
+					} else {
+						$character["src"] = $character["orig_src"];
+					}
 					$this->view->record($character, "character");
+				}
+				$this->view->close_tag();
+
+				if (is_array($alternates)) {
+					$this->view->open_tag("alternates");
+					foreach ($alternates as $alternate) {
+						$alternate["filename"] = $alternate["character_id"]."_".$alternate["id"].".".$alternate["extension"];
+						$this->view->record($alternate, "alternate");
+					}
+					$this->view->close_tag();
+				}
+
+				$this->view->open_tag("conditions");
+				foreach ($conditions as $condition) {
+					$this->view->add_tag("condition", $condition["name"], array("id" => $condition["id"]));
 				}
 				$this->view->close_tag();
 

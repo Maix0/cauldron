@@ -17,7 +17,7 @@ if [ -d ${target}-${version} ]; then
 	exit
 fi
 
-cp -r ${target} ${target}-${version}
+rsync -avq ${target}/ ${target}-${version} --exclude 'files/maps/*'
 cd ${target}-${version}
 
 # Empty logfiles
@@ -51,7 +51,6 @@ rm -f public/files/collectables/*
 rm -f public/files/maps/*
 rm -f public/files/portraits/*
 rm -f public/files/tokens/*
-rm -f public/files/effects/demon.png
 rm -f font
 rm -f public/font.php
 rm -f ws_server
@@ -60,3 +59,4 @@ rm -f ws_server
 #cd ..
 #tar -czf ${target}-${version}.tar.gz ${target}-${version}
 #rm -rf ${target}-${version}
+echo "../${target}-${version} created."

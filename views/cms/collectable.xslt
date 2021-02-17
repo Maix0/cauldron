@@ -79,6 +79,7 @@
 //
 //-->
 <xsl:template match="content">
+<img src="/images/icons/collectables.png" class="title_icon" />
 <h1>Collectable administration</h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />

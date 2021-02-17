@@ -41,6 +41,7 @@
 <xsl:template match="game">
 <!-- Menu -->
 <div class="menu">
+<span id="infobar"></span>
 <xsl:if test="maps">
 <select class="form-control map-selector" onChange="javascript:change_map()">
 <xsl:if test="traveled_from"><xsl:attribute name="style">display:none</xsl:attribute></xsl:if>
@@ -89,6 +90,12 @@
 </div>
 </div>
 </xsl:if>
+<!-- Conditions -->
+<div class="conditions">
+<xsl:for-each select="conditions/condition">
+<div con_id="{@id}"><xsl:value-of select="." /></div>
+</xsl:for-each>
+</div>
 <!-- Collectables -->
 <div class="collectables overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-success" onClick="javascript:event.stopPropagation()">
@@ -142,11 +149,17 @@
 <xsl:for-each select="characters/character">
 <div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-<img src="/files/portraits/{@id}.{extension}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
-<span><xsl:value-of select="name" /></span>
+<img src="/files/portraits/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
+<span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>
 </div>
+</div>
+<!-- Alternate icons -->
+<div class="alternates">
+<xsl:for-each select="alternates/alternate">
+<div icon_id="{@id}" size="{size}" filename="{filename}"><xsl:value-of select="name" /></div>
+</xsl:for-each>
 </div>
 <!-- Right bar -->
 <div class="sidebar">

@@ -1,3 +1,14 @@
+tabletop (0.6) stable; urgency=low
+
+  * Alternate portraits for characters.
+  * Added character and token conditions.
+  * Steer object with the keys w, a, s and d.
+  * Roll D20 dice, optionally with advantage or disadvantage.
+  * Small bugfixes and improvements.
+  * Bugfix: correct position of right mouse click on edges of map.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 17 Feb 2020 10:15:47 +0100
+
 tabletop (0.5) stable; urgency=low
 
   * Added game journal.

@@ -94,6 +94,7 @@
 //
 //-->
 <xsl:template match="content">
+<img src="/images/icons/map.png" class="title_icon" />
 <h1>Map administration</h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />

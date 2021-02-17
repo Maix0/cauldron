@@ -296,6 +296,21 @@
 				$this->settings->database_version = 5;
 			}
 
+			if ($this->settings->database_version == 5) {
+				$this->db_query("CREATE TABLE character_icons (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
+				                "character_id int(10) unsigned NOT NULL, name varchar(20) NOT NULL, "
+				                "size tinyint(3) unsigned NOT NULL, extension varchar(3) NOT NULL, PRIMARY KEY (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8");
+				$this->db_query("ALTER TABLE game_character ADD alternate_icon_id INT UNSIGNED NULL AFTER character_id");
+				$this->db_query("ALTER TABLE game_character ADD FOREIGN KEY (alternate_icon_id) ".
+				                "REFERENCES character_icons(id) ON DELETE RESTRICT ON UPDATE RESTRICT");
+				$this->db_query("ALTER TABLE collectables ADD FOREIGN KEY (game_id) ".
+				                "REFERENCES games(id) ON DELETE RESTRICT ON UPDATE RESTRICT");
+				$this->db_query("DROP TABLE languages");
+
+				$this->settings->database_version = 6;
+			}
+
 			return true;
 		}
 

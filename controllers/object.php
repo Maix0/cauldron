@@ -138,5 +138,11 @@
 		public function post_journal() {
 			$this->model->journal_add($_POST["game_id"], $_POST["content"]);
 		}
+
+		/* Alternates
+		 */
+		public function post_alternate() {
+			$this->model->set_alternate($_POST["game_id"], $_POST["char_id"], $_POST["alternate_id"]);
+		}
 	}
 ?>

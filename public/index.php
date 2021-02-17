@@ -21,9 +21,6 @@
 	$_user     = new Core\user($_database, $_settings, $_session);
 	$_page     = new Core\page($_database, $_settings, $_user);
 	$_view     = new Core\view($_database, $_settings, $_user, $_page);
-	if (is_true(MULTILINGUAL)) {
-		$_language = new Core\language($_database, $_page, $_view);
-	}
 
 	/* Web Analytics
 	 */

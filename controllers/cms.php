@@ -17,9 +17,9 @@
 					"User switch"   => array("cms/switch", "switch.png")),
 				"Content" => array(
 					"Files"         => array("cms/file", "file.png"),
-					"Languages"     => array("cms/language", "language.png"),
 					"Menu"          => array("cms/menu", "menu.png"),
 					"Pages"         => array("cms/page", "page.png"),
+					"Conditions"    => array("cms/condition", "conditions.png"),
 					"Tokens"        => array("cms/token", "token.png"),
 					"Games"         => array("cms/game", "game.png"),
 					"Maps"          => array("cms/map", "map.png"),
@@ -44,10 +44,6 @@
 
 			/* Show icons
 			 */
-			if (is_false(MULTILINGUAL)) {
-				unset($menu["Content"]["Languages"]);
-			}
-
 			$access_list = page_access_list($this->db, $this->user);
 			$private_modules = config_file("private_modules");
 

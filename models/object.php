@@ -355,5 +355,29 @@
 
 			return $this->db->insert("journal", $data) != false;
 		}
+
+		/* Alternate functions
+		 */
+		public function set_alternate($game_id, $character_id, $alternate_id) {
+			$query = "select * from game_character g, characters c ".
+			         "where g.game_id=%d and g.character_id=c.id and c.id=%d and c.user_id=%d";
+
+			if (($character = $this->db->execute($query, $game_id, $character_id, $this->user->id)) == false) {
+				return false;
+			}
+
+			$params = array();
+			$query = "update game_character set alternate_icon_id=";
+			if ($alternate_id == 0) {
+			 	$query .= "null";
+			} else {
+				$query .= "%d";
+				array_push($params, $alternate_id);
+			}
+			$query .= " where game_id=%d and character_id=%d";
+			array_push($params, $game_id, $character_id);
+
+			return $this->db->query($query, $params) !== false;
+		}
 	}
 ?>

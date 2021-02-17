@@ -4,6 +4,8 @@ var game_id = null;
 var map_id = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
+var mouse_x = 0;
+var mouse_y = 0;
 
 function filter_library() {
 	var filter = $('input#filter').val().toLowerCase();
@@ -444,22 +446,8 @@ function context_menu_handler(key, options) {
 			}
 			break;
 		case 'zone_create':
-			var menu = $('div#context-menu-layer + ul.context-menu-root');
-			var pos_menu = menu.position();
-
-			if (pos_menu == undefined) {
-				menu = $('ul.context-menu-root + div#context-menu-layer').prev();
-				pos_menu = menu.position();
-
-				if (pos_menu == undefined) {
-					break;
-				}
-			}
-
-			var pos_x = Math.floor(pos_menu.left) + $('div.playarea').scrollLeft() - 16;
-			pos_x = coord_to_grid(pos_x, false);
-			var pos_y = Math.floor(pos_menu.top) + $('div.playarea').scrollTop() - 41;
-			pos_y = coord_to_grid(pos_y, false);
+			var pos_x = coord_to_grid(mouse_x, false);
+			var pos_y = coord_to_grid(mouse_y, false);
 
 			var zone_define = '<div class="zone_create overlay" onClick="javascript:$(this).remove()"><div class="panel panel-default" onClick="javascript:event.stopPropagation()"><div class="panel-heading">Create zone<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().remove()"></span></div><div class="panel-body" style="max-height:335px">';
 			zone_define += '<label for="width">Width:</label>';
@@ -602,6 +590,8 @@ $(document).ready(function() {
 			'armor_class': {name:'Armor class', icon:'fa-shield'},
 			'hitpoints': {name:'Hitpoints', icon:'fa-heartbeat'},
 			'sep2': '-',
+			'zone_create': {name:'Zone', icon:'fa-square-o'},
+			'sep3': '-',
 			'lower': {name:'Lower', icon:'fa-arrow-down'},
 			'clone': {name:'Clone', icon:'fa-copy'},
 			'delete': {name:'Delete', icon:'fa-trash'}
@@ -614,7 +604,9 @@ $(document).ready(function() {
 		callback: context_menu_handler,
 		items: {
 			'info': {name:'Info', icon:'fa-info-circle'},
-			'presence': {name:'Presence', icon:'fa-low-vision'}
+			'presence': {name:'Presence', icon:'fa-low-vision'},
+			'sep1': '-',
+			'zone_create': {name:'Zone', icon:'fa-square-o'}
 		},
 		zIndex: DEFAULT_Z_INDEX + 3
 	});
@@ -653,4 +645,12 @@ $(document).ready(function() {
 		}
 	});
 
+	/* Capture right mouse click
+	 */
+	$('div.playarea').mousedown(function(event) {
+		if (event.which == 3) {
+			mouse_x = event.clientX + $('div.playarea').scrollLeft() - 16;
+			mouse_y = event.clientY + $('div.playarea').scrollTop() - 41;
+		}
+	});
 });

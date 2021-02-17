@@ -89,8 +89,8 @@
 			<xsl:if test="/output/user">
 			<span>Logged in as <a href="/profile"><xsl:value-of select="/output/user" /></a></span>
 			<span><a href="/session">Session manager</a></span>
-			</xsl:if>
 			<span><a href="/cms">CMS</a></span>
+			</xsl:if>
 		</div>
 	</div>
 

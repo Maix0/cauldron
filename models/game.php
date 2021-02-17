@@ -42,11 +42,27 @@
 		}
 
 		public function get_characters($map_id) {
-			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.hidden ".
-			         "from characters c, map_character i ".
-			         "where c.id=i.character_id and i.game_map_id=%d order by id desc";
+			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.hidden, ".
+			         "a.id as alternate_id, a.extension as alternate_extension, a.size as alternate_size ".
+			         "from characters c, map_character i, maps m, game_character g ".
+			         "left join character_icons a on g.alternate_icon_id=a.id ".
+			         "where c.id=i.character_id and i.game_map_id=%d and m.id=i.game_map_id ".
+			         "and g.game_id=m.game_id and g.character_id=c.id ".
+			         "order by id desc";
 
 			return $this->db->execute($query, $map_id);
+		}
+
+		public function get_alternate_icons($character_id) {
+			$query = "select * from character_icons where id=%d order by name";
+
+			return $this->db->execute($query, $character_id);
+		}
+
+		public function get_conditions() {
+			$query = "select * from conditions order by name";
+
+			return $this->db->execute($query);
 		}
 
 		public function get_zones($map_id) {

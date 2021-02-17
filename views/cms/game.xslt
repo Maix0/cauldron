@@ -84,6 +84,7 @@
 //
 //-->
 <xsl:template match="content">
+<img src="/images/icons/game.png" class="title_icon" />
 <h1>Game administration</h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />

@@ -31,6 +31,23 @@ CREATE TABLE `cache` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `character_icons`
+--
+
+DROP TABLE IF EXISTS `character_icons`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `character_icons` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `character_id` int(10) unsigned NOT NULL,
+  `name` varchar(20) NOT NULL,
+  `size` tinyint(3) unsigned NOT NULL,
+  `extension` varchar(3) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `characters`
 --
 
@@ -69,9 +86,36 @@ CREATE TABLE `collectables` (
   `hide` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `game_map_token_id` (`map_token_id`),
-  CONSTRAINT `collectables_ibfk_1` FOREIGN KEY (`map_token_id`) REFERENCES `map_token` (`id`)
+  KEY `game_id` (`game_id`),
+  CONSTRAINT `collectables_ibfk_1` FOREIGN KEY (`map_token_id`) REFERENCES `map_token` (`id`),
+  CONSTRAINT `collectables_ibfk_2` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `conditions`
+--
+
+DROP TABLE IF EXISTS `conditions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `conditions` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `conditions`
+--
+-- ORDER BY:  `id`
+
+LOCK TABLES `conditions` WRITE;
+/*!40000 ALTER TABLE `conditions` DISABLE KEYS */;
+INSERT INTO `conditions` VALUES (1,'Blinded'),(2,'Charmed'),(3,'Deafened'),(4,'Exhausted'),(5,'Frightened'),(6,'Grappled'),(7,'Incapacitated'),(8,'Paralyzed'),(9,'Invisible'),(10,'Petrified'),(11,'Poisoned'),(12,'Prone'),(13,'Restrained'),(14,'Stunned'),(15,'Unconscious');
+/*!40000 ALTER TABLE `conditions` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `game_character`
@@ -83,10 +127,13 @@ DROP TABLE IF EXISTS `game_character`;
 CREATE TABLE `game_character` (
   `game_id` int(10) unsigned NOT NULL,
   `character_id` int(10) unsigned NOT NULL,
+  `alternate_icon_id` int(10) unsigned DEFAULT NULL,
   KEY `game_id` (`game_id`),
   KEY `character_id` (`character_id`),
+  KEY `alternate_icon_id` (`alternate_icon_id`),
   CONSTRAINT `game_character_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`),
-  CONSTRAINT `game_character_ibfk_2` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`)
+  CONSTRAINT `game_character_ibfk_2` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`),
+  CONSTRAINT `game_character_ibfk_3` FOREIGN KEY (`alternate_icon_id`) REFERENCES `character_icons` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -105,6 +152,7 @@ CREATE TABLE `games` (
   `dm_id` int(10) unsigned NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `active_map_id` int(10) unsigned DEFAULT NULL,
+  `player_access` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `dm_id` (`dm_id`),
   KEY `active_map_id` (`active_map_id`),
@@ -125,31 +173,13 @@ CREATE TABLE `journal` (
   `game_id` int(10) unsigned NOT NULL,
   `user_id` int(10) unsigned NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `entry` text NOT NULL,
+  `content` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `game_id` (`game_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `journal_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`),
   CONSTRAINT `journal_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `languages`
---
-
-DROP TABLE IF EXISTS `languages`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `languages` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `page` varchar(50) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `en` text NOT NULL,
-  `nl` text NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `page` (`page`,`name`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -368,7 +398,6 @@ CREATE TABLE `roles` (
   `cms/settings` tinyint(1) NOT NULL,
   `cms/switch` tinyint(1) NOT NULL,
   `cms/user` tinyint(1) NOT NULL,
-  `cms/language` tinyint(1) NOT NULL,
   `cms/reroute` tinyint(4) DEFAULT '0',
   `character` tinyint(4) DEFAULT '0',
   `cms/token` tinyint(4) DEFAULT '0',
@@ -378,6 +407,7 @@ CREATE TABLE `roles` (
   `cms/map/arrange` tinyint(4) DEFAULT '0',
   `object` tinyint(4) DEFAULT '0',
   `cms/collectable` tinyint(4) DEFAULT '0',
+  `cms/condition` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -390,7 +420,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
-INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0),(3,'Dungeon Master',1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0);
+INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0),(3,'Dungeon Master',1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0);
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -442,7 +472,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','5'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string','ovIEN5r3TSbl7mNYsJ1BDacwaVOkzOdg'),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','hugo@leisink.net'),(36,'screen_grid_size','integer','50');
+INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','6'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -523,7 +553,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,1,'admin','none',NULL,NULL,1,NULL,'Administrator','root@localhost','','');
+INSERT INTO `users` VALUES (1,1,'admin','none',NULL,NULL,1,NULL,'Administrator','root@localhost');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -559,4 +589,4 @@ CREATE TABLE `zones` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-02-10  8:42:09
+-- Dump completed on 2021-02-16 16:24:32
