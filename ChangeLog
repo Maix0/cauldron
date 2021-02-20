@@ -1,3 +1,12 @@
+tabletop (0.7) stable; urgency=low
+
+  * Turn token via the keys q and e.
+  * Added TheTrove download script (see /extra/).
+  * Bugfix: added missing database upgrades in setup.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 20 Feb 2020 12:03:24 +0100
+
 tabletop (0.6) stable; urgency=low
 
   * Alternate portraits for characters.

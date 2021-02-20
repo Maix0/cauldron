@@ -53,7 +53,10 @@
 <label for="title">Title:</label>
 <input type="text" id="title" name="title" value="{map/title}" class="form-control" />
 <label for="url">URL:</label>
+<div class="input-group">
 <input type="text" id="url" name="url" value="{map/url}" class="form-control" />
+<span class="input-group-btn"><input type="button" value="Local maps" class="btn btn-default" onClick="javascript:browse_local()" /></span>
+</div>
 <label for="url">Map type:</label>
 <select name="type" class="form-control">
 <xsl:for-each select="map_types/type">

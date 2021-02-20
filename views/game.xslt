@@ -8,6 +8,7 @@
 //
 //-->
 <xsl:template match="games">
+<xsl:if test="count(game)=0">No games available yet.</xsl:if>
 <div class="row">
 <xsl:for-each select="game">
 <div class="col-sm-6">
@@ -61,9 +62,10 @@
 </div>
 <xsl:if test="not(map)">
 <input id="game_id" type="hidden" name="game_id" value="{@id}" />
-<p>No map has been selected yet.</p>
+<p class="nomap">No map has been selected yet.</p>
 </xsl:if>
 <!-- Journal -->
+<xsl:if test="map">
 <div class="journal overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-info" style="max-width:800px" onClick="javascript:event.stopPropagation()">
 <div class="panel-heading">Journal<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
@@ -115,7 +117,6 @@
 </div>
 </div>
 <!-- Play area -->
-<xsl:if test="map">
 <div class="playarea" game_id="{@id}" map_id="{map/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <div>

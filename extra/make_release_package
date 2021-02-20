@@ -46,14 +46,15 @@ change_setting DEBUG_MODE yes
 
 # Remove files
 rm -f database/*.gz
-rm -f public/files/*.*
+rm -f public/files/glitters.png
+rm -f public/files/phandelver.jpg
 rm -f public/files/collectables/*
 rm -f public/files/maps/*
 rm -f public/files/portraits/*
 rm -f public/files/tokens/*
-rm -f font
-rm -f public/font.php
-rm -f ws_server
+rm -f public/font.php font
+rm -f ws_server module layout
+rm -rf templates
 
 # Make package
 #cd ..

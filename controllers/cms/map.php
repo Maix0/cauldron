@@ -7,7 +7,7 @@
 			}
 
 			if (count($games) == 0) {
-				$this->view->add_tag("result", "Create a game first.", array("url" => "cms/game"));
+				$this->view->add_tag("result", "Create a game first.", array("url" => "cms/game/new"));
 				return;
 			}
 
@@ -41,6 +41,8 @@
 		}
 
 		private function show_map_form($map) {
+			$this->view->add_javascript("cms/map.js");
+
 			$this->view->open_tag("edit");
 
 			$this->view->open_tag("map_types");
@@ -49,14 +51,27 @@
 			$this->view->close_tag();
 
 			$map["show_grid"] = show_boolean($map["show_grid"]);
-
 			$this->view->record($map, "map");
 
 			$this->view->close_tag();
 		}
 
+		private function show_local_maps() {
+			if (($maps = $this->model->get_local_maps()) == false) {
+				return false;
+			}
+
+			$this->view->open_tag("maps");
+			foreach ($maps as $map) {
+				$this->view->add_tag("map", $map);
+			}
+			$this->view->close_tag();
+		}
+
 		public function execute() {
-			if ($_SERVER["REQUEST_METHOD"] == "POST") {
+			if ($this->page->ajax_request) {
+				$this->show_local_maps();
+			} else if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				if ($_POST["submit_button"] == "Change game") {
 					/* Change game
 					 */

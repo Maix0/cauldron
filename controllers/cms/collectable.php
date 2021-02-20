@@ -7,7 +7,7 @@
 			}
 
 			if (count($games) == 0) {
-				$this->view->add_tag("result", "Create a game first.", array("url" => "cms/game"));
+				$this->view->add_tag("result", "Create a game first.", array("url" => "cms/game/new"));
 				return;
 			}
 

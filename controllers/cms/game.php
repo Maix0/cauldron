@@ -19,14 +19,16 @@
 		}
 
 		private function show_game_form($game) {
-			if (($characters = $this->model->get_characters()) === false) {
-				$this->view->add_tag("result", "Database error.");
-				return;
-			}
+			if (isset($game["id"]) == false) {
+				if (($characters = $this->model->get_characters()) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
 
-			if ((isset($game["id"]) == false) && (count($characters) == 0)) {
-				$this->view->add_tag("result", "No characters available to start a new game.");
-				return;
+				if (count($characters) == 0) {
+					$this->view->add_tag("result", "No characters available to create a new game.");
+					return;
+				}
 			}
 
 			if (is_array($game["characters"]) == false) {
@@ -38,18 +40,20 @@
 			$game["player_access"] = show_boolean($game["player_access"]);
 			$this->view->record($game, "game");
 
-			$this->view->open_tag("characters");
-			foreach ($characters as $user => $chars) {
-				$this->view->open_tag("user", array("name" => $user));
-				foreach ($chars as $char) {
-					$attr = array(
-						"id"      => $char["id"],
-						"checked" => show_boolean(in_array($char["id"], $game["characters"])));
-					$this->view->add_tag("character", $char["name"], $attr);
+			if (is_array($characters)) {
+				$this->view->open_tag("characters");
+				foreach ($characters as $user => $chars) {
+					$this->view->open_tag("user", array("name" => $user));
+					foreach ($chars as $char) {
+						$attr = array(
+							"id"      => $char["id"],
+							"checked" => show_boolean(in_array($char["id"], $game["characters"])));
+						$this->view->add_tag("character", $char["name"], $attr);
+					}
+					$this->view->close_tag();
 				}
 				$this->view->close_tag();
 			}
-			$this->view->close_tag();
 
 			$this->view->close_tag();
 		}

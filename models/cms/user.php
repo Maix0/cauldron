@@ -344,6 +344,24 @@
 				$result = false;
 			}
 
+			$query = "select count(*) as count from characters where user_id=%d";
+			if (($chars = $this->db->execute($query, $user_id)) == false) {
+				$this->view->add_message("Database error.");
+				$result = false;
+			} else if ($chars[0]["count"] > 0) {
+				$this->view->add_message("This account contains characters.");
+				$result = false;
+			}
+
+			$query = "select count(*) as count from games where dm_id=%d";
+			if (($chars = $this->db->execute($query, $user_id)) == false) {
+				$this->view->add_message("Database error.");
+				$result = false;
+			} else if ($chars[0]["count"] > 0) {
+				$this->view->add_message("This account contains games.");
+				$result = false;
+			}
+
 			if ($this->user->is_admin == false) {
 				if (($current = $this->get_user($user_id)) == false) {
 					$this->view->add_message("User not found.");
@@ -362,41 +380,6 @@
 
 		public function delete_user($user_id) {
 			$queries = array();
-
-			/* Mailbox
-			 */
-			if (table_exists($this->db, "mailbox")) {
-				array_push($queries, array("delete from mailbox where to_user_id=%d", $user_id));
-				array_push($queries, array("delete from mailbox where from_user_id=%d", $user_id));
-			}
-
-			/* Forum
-			 */
-			if (table_exists($this->db, "forum_last_view")) {
-				array_push($queries, array("delete from forum_last_view where user_id=%d", $user_id));
-			}
-
-			if (table_exists($this->db, "forum_messages")) {
-				$query = "update forum_messages set user_id=null, username=".
-				         "(select fullname from users where id=%d limit 1) where user_id=%d";
-				array_push($queries, array($query, $user_id, $user_id));
-			}
-
-			/* Weblog
-			 */
-			if (table_exists($this->db, "weblogs")) {
-				array_push($queries, array("delete from weblog_comments where weblog_id in ".
-				                           "(select id from weblogs where user_id=%d)", $user_id));
-				array_push($queries, array("delete from weblogs where user_id=%d", $user_id));
-			}
-
-			/* Webshop
-			 */
-			if (table_exists($this->db, "shop_orders")) {
-				array_push($queries, array("delete from shop_order_article where shop_order_id in ".
-				                           "(select id from shop_orders where user_id=%d)", $user_id));
-				array_push($queries, array("delete from shop_orders where user_id=%d", $user_id));
-			}
 
 			array_push($queries,
 				array("delete from sessions where user_id=%d", $user_id),

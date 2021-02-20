@@ -3,7 +3,10 @@
 		/* Character functions
 		 */
 		public function get_characters() {
-			$query = "select * from characters where user_id=%d order by name";
+			$query = "select c.*, g.title from characters c ".
+			         "left join game_character p on c.id=p.character_id ".
+			         "left join games g on p.game_id=g.id ".
+			         "where user_id=%d order by name";
 
 			return $this->db->execute($query, $this->user->id);
 		}

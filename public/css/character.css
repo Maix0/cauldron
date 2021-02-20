@@ -1,6 +1,6 @@
 div.well {
 	cursor:pointer;
-	height:140px;
+	height:170px;
 }
 
 div.well img {
@@ -12,6 +12,15 @@ div.well img {
 
 div.well div.name {
 	font-weight:bold;
+}
+
+div.well div.game {
+	clear:both;
+	margin-top:10px;
+}
+
+div.well div.game span {
+	font-style:italic;
 }
 
 div.input-group {

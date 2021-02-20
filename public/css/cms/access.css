@@ -1,11 +1,6 @@
 @media (min-width:767px) {
 	table.table th {
-		width:120px;
-	}
-
-	table.table th:first-child {
 		width:150px;
-		min-width:150px;
 	}
 
 	table.table th:last-child {

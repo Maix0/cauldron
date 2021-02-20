@@ -588,7 +588,32 @@ function object_steer(event) {
 		case 83:
 			object_step(0, 1);
 			break;
+		case 81:
+			object_turn(-45);
+			break;
+		case 69:
+			object_turn(45);
+			break;
 	}
+}
+
+function object_turn(direction) {
+	if (focus_obj == null) {
+		return;
+	}
+
+	if (focus_obj.prop('id').substr(0, 5) != 'token') {
+		return;
+	}
+
+	var rotation = parseInt(focus_obj.attr('rotation')) + direction;
+	if (direction < 0) {
+		direction += 360;
+	} else if (rotation >= 360) {
+		rotation -= 360;
+	}
+
+	object_rotate(focus_obj, rotation);
 }
 
 function object_view(obj, max_size = 300) {

@@ -25,10 +25,10 @@
 		public function get_characters() {
 			$query = "select c.*, u.fullname, ".
 			         "(select count(*) from game_character where character_id=c.id) as involved ".
-			         "from characters c, users u ".
-			         "where c.user_id=u.id and u.id!=%d having involved=%d order by u.fullname, c.name";
+			         "from characters c, users u where c.user_id=u.id and u.organisation_id=%d ".
+			         "and u.id!=%d having involved=%d order by u.fullname, c.name";
 
-			if (($characters = $this->db->execute($query, $this->user->id, 0)) === false) {
+			if (($characters = $this->db->execute($query, $this->user->organisation_id, $this->user->id, 0)) === false) {
 				return false;
 			}
 
@@ -68,6 +68,15 @@
 				} else if (count($game["characters"]) == 0) {
 					$this->view->add_message("Select at least one character.");
 					$result = false;
+				} else {
+					$format = implode(", ", array_fill(1, count($game["characters"]), "%d"));
+					$query = "select count(*) as count from characters where user_id=%d and id in (".$format.")";
+					if (($result = $this->db->execute($query, $this->user->id, $game["characters"])) == false) {
+						$result = false;
+					} else if ($result[0]["count"] > 0)  {
+						$this->view->add_message("You can't play in your own game.");
+						$result = false;
+					}
 				}
 			}
 

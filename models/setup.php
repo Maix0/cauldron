@@ -298,7 +298,7 @@
 
 			if ($this->settings->database_version == 5) {
 				$this->db_query("CREATE TABLE character_icons (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
-				                "character_id int(10) unsigned NOT NULL, name varchar(20) NOT NULL, "
+				                "character_id int(10) unsigned NOT NULL, name varchar(20) NOT NULL, ".
 				                "size tinyint(3) unsigned NOT NULL, extension varchar(3) NOT NULL, PRIMARY KEY (id)) ".
 				                "ENGINE=InnoDB DEFAULT CHARSET=utf8");
 				$this->db_query("ALTER TABLE game_character ADD alternate_icon_id INT UNSIGNED NULL AFTER character_id");
@@ -309,6 +309,20 @@
 				$this->db_query("DROP TABLE languages");
 
 				$this->settings->database_version = 6;
+			}
+
+			if ($this->settings->database_version == 6) {
+				$this->db_query("CREATE TABLE conditions (id int(10) unsigned NOT NULL AUTO_INCREMENT, name varchar(20) NOT NULL, ".
+				                "PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+				$this->db_query("INSERT INTO conditions VALUES (1,%s),(2,%s),(3,%s),(4,%s),(5,%s),(6,%s),".
+				                "(7,%s),(8,%s),(9,%s),(10,%s),(11,%s),(12,%s),(13,%s),(14,%s),(15,%s)",
+				                "Blinded", "Charmed", "Deafened", "Exhausted", "Frightened", "Grappled",
+				                "Incapacitated", "Paralyzed", "Invisible", "Petrified", "Poisoned", "Prone",
+				                "Restrained", "Stunned", "Unconscious");
+				$this->db_query("ALTER TABLE journal CHANGE entry content TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL");
+				$this->db_query("ALTER TABLE map_character ADD hidden BOOLEAN NOT NULL AFTER pos_y");
+
+				$this->settings->database_version = 7;
 			}
 
 			return true;

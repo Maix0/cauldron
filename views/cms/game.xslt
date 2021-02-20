@@ -50,7 +50,7 @@
 <textarea id="story" name="story" class="form-control"><xsl:value-of select="game/story" /></textarea>
 <div>Accessible for players: <input type="checkbox" name="player_access"><xsl:if test="game/player_access='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
 
-<xsl:if test="count(characters/user)>0">
+<xsl:if test="characters">
 <label for="title">Characters:</label>
 <div class="row">
 <xsl:for-each select="characters/user">

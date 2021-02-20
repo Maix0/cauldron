@@ -18,6 +18,38 @@
 			return $this->db->execute($query, $game_id);
 		}
 
+		private function get_files($path) {
+			if (($dp = opendir($path)) == false) {
+				return false;
+			}
+
+			$maps = array();
+			while (($file = readdir($dp)) != false) {
+				if (substr($file, 0, 1) == ".") {
+					continue;
+				}
+
+				$file = $path."/".$file;
+				if (is_dir($file) == false) {
+					array_push($maps, $file);
+				} else if (($dir = $this->get_files($file)) != false) {
+					$maps = array_merge($maps, $dir);
+				}
+			}
+
+			closedir($dp);
+
+			return $maps;
+		}
+
+		public function get_local_maps() {
+			if (($maps = $this->get_files("files/maps")) !== false) {
+				sort($maps);
+			}
+
+			return $maps;
+		}
+
 		public function get_map($map_id) {
 			$query = "select m.* from maps m, games g ".
 			         "where m.game_id=g.id and m.id=%d and g.dm_id=%d";
@@ -37,6 +69,18 @@
 					$this->view->add_message("Map not found.");
 					$result = false;
 				}
+			}
+
+			if (trim($map["title"]) == "") {
+				$this->view->add_message("Give the map a title.");
+				$result = false;
+			}
+
+			$min_size = 2 * $this->settings->screen_grid_size;
+
+			if (((int)$map["width"] < $min_size) || ((int)$map["height"] < $min_size)) {
+				$this->view->add_message("The map must be at least %sx%s pixels.", $min_size, $min_size);
+				$result = false;
 			}
 
 			return $result;

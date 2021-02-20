@@ -10,6 +10,9 @@
 
 			$this->view->open_tag("characters");
 			foreach ($characters as $character) {
+				if ($character["title"] == "") {
+					$character["title"] = "(none)";
+				}
 				$this->view->record($character, "character");
 			}
 			$this->view->close_tag();
@@ -34,13 +37,24 @@
 				return;
 			}
 
+			$sizes = array(1 => "Medium", 2 => "Large");
+
 			$attr = array(
 				"char_id"   => $character["id"],
 				"character" => $character["name"]);
 			$this->view->open_tag("alternates", $attr);
+
 			foreach ($alternates as $alternate) {
+				$alternate["size"] = strtolower($sizes[$alternate["size"]]);
 				$this->view->record($alternate, "alternate");
 			}
+
+			$this->view->open_tag("sizes");
+			foreach ($sizes as $value => $label) {
+				$this->view->add_tag("size", $label, array("value" => $value));
+			}
+			$this->view->close_tag();
+			
 			$this->view->close_tag();
 		}
 
@@ -51,6 +65,11 @@
 				if ($_POST["submit_button"] == "Save character") {
 					/* Save character
 					 */
+					if ($_FILES["portrait"]["error"] == 0) {
+						list(, $extension) = explode("/", $_FILES["portrait"]["type"], 2);
+						$_FILES["portrait"]["extension"] = $extension;
+					}
+
 					if ($this->model->save_oke($_POST, $_FILES["portrait"]) == false) {
 						$this->show_character_form($_POST);
 					} else if (isset($_POST["id"]) === false) {

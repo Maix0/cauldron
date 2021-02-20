@@ -1,3 +1,7 @@
+p.nomap {
+	margin-top:40px;
+}
+
 div.stories {
 	display:none;
 }
@@ -247,4 +251,40 @@ div.marker span {
 div.token span.conditions,
 div.character span.conditions {
 	background-color:#ffa0a0;
+}
+
+/* Mobile view
+ */
+@media (max-width:991px) {
+	div.playarea,
+	div.sidebar {
+		top:70px;
+		bottom:10px;
+	}
+
+	div.menu {
+		top:40px;
+	}
+}
+
+/* Mobile view
+ */
+@media (max-width:767px) {
+	div.playarea,
+	div.sidebar {
+		top:95px;
+	}
+
+	div.menu {
+		top:40px;
+		right:0;
+	}
+
+	div.menu div.btn-group {
+		display:block;
+	}
+
+	div.menu select {
+		right:10px;
+	}
 }

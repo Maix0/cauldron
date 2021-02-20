@@ -305,7 +305,7 @@ CREATE TABLE `organisations` (
 
 LOCK TABLES `organisations` WRITE;
 /*!40000 ALTER TABLE `organisations` DISABLE KEYS */;
-INSERT INTO `organisations` VALUES (1,'Dungeons & Dragons');
+INSERT INTO `organisations` VALUES (1,'TableTop');
 /*!40000 ALTER TABLE `organisations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -472,7 +472,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','6'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
+INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','7'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -589,4 +589,4 @@ CREATE TABLE `zones` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-02-16 16:24:32
+-- Dump completed on 2021-02-20 11:40:52

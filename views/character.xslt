@@ -18,6 +18,7 @@
 <div>Armor class: <xsl:value-of select="armor_class" /></div>
 <div>Initiative bonus: <xsl:value-of select="initiative" /></div>
 <div><a href="/character/alternate/{@id}">Alternate portraits</a></div>
+<div class="game">Game: <span><xsl:value-of select="title" /></span></div>
 </div>
 </div>
 </xsl:for-each>
@@ -38,6 +39,7 @@
 <form action="/{/output/page}" method="post" enctype="multipart/form-data">
 <xsl:if test="character/@id">
 <input type="hidden" name="id" value="{character/@id}" />
+<input type="hidden" name="extension" value="{character/extension}" />
 <img src="/files/portraits/{character/@id}.{character/extension}" class="portrait" />
 </xsl:if>
 
@@ -76,7 +78,7 @@
 <p>Alternate portraits for <xsl:value-of select="@character" />.</p>
 <div class="row alternates">
 <xsl:for-each select="alternate">
-<div class="col-md-2 col-sm-3 col-xs-6"><div class="alternate"><img src="/files/portraits/{character_id}_{@id}.{extension}" class="icon" /><span><xsl:value-of select="name" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="icon_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
+<div class="col-md-2 col-sm-3 col-xs-6"><div class="alternate"><img src="/files/portraits/{character_id}_{@id}.{extension}" class="icon" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="icon_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
 </xsl:for-each>
 </div>
 
@@ -85,7 +87,7 @@
 <label for="name">Name:</label>
 <input type="text" id="name" name="name" value="{character/name}" class="form-control" />
 <label for="size">Size:</label>
-<select name="size" class="form-control"><option value="1">Medium</option><option value="2">Large</option></select>
+<select name="size" class="form-control"><xsl:for-each select="sizes/size"><option value="{@value}"><xsl:value-of select="." /></option></xsl:for-each></select>
 <label for="portrait">Alternate portrait:</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
