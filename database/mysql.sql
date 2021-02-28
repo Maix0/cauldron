@@ -248,6 +248,8 @@ CREATE TABLE `maps` (
   `height` smallint(3) unsigned NOT NULL,
   `grid_size` tinyint(3) unsigned NOT NULL,
   `show_grid` tinyint(1) NOT NULL,
+  `start_x` smallint(5) unsigned NOT NULL,
+  `start_y` smallint(5) unsigned NOT NULL,
   `dm_notes` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `game_id` (`game_id`),
@@ -573,6 +575,8 @@ CREATE TABLE `zones` (
   `height` tinyint(3) unsigned NOT NULL,
   `color` varchar(7) NOT NULL,
   `opacity` decimal(3,1) NOT NULL,
+  `script` text NOT NULL,
+  `group` varchar(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
   CONSTRAINT `zones_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
