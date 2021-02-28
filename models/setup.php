@@ -325,6 +325,18 @@
 				$this->settings->database_version = 7;
 			}
 
+			if ($this->settings->database_version == 7) {
+				$this->db_query("ALTER TABLE maps ADD start_x SMALLINT UNSIGNED NOT NULL AFTER show_grid, ".
+				                "ADD start_y SMALLINT UNSIGNED NOT NULL AFTER start_x");
+				$this->db_query("ALTER TABLE map_character CHANGE game_map_id map_id INT(10) UNSIGNED NOT NULL");
+				$this->db_query("ALTER TABLE map_token CHANGE game_map_id map_id INT(10) UNSIGNED NOT NULL");
+				$this->db_query("ALTER TABLE zones CHANGE game_map_id map_id INT(10) UNSIGNED NOT NULL");
+				$this->db_query("ALTER TABLE zones ADD script TEXT NOT NULL AFTER opacity");
+				$this->db_query("ALTER TABLE zones ADD %S VARCHAR(10) NOT NULL AFTER script", "group");
+
+				$this->settings->database_version = 8;
+			}
+
 			return true;
 		}
 

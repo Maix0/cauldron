@@ -1,9 +1,10 @@
 <?php
 	class object_model extends Banshee\api_model {
 		private function valid_game_id($game_id) {
-			$query = "select count(*) as count from games g, game_character p, characters c ".
-			         "where g.id=p.game_id and p.character_id=c.id ".
-			         "and g.id=%d and (g.dm_id=%d or c.user_id=%d)";
+			$query = "select count(*) as count from games g ".
+			         "left join game_character i on g.id=i.game_id ".
+			         "left join characters c on i.character_id=c.id ".
+			         "where g.id=%d and (g.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $game_id, $this->user->id, $this->user->id)) === false) {
 				return false;
@@ -32,7 +33,19 @@
 
 			$query = "update games set active_map_id=%d where id=%d and dm_id=%d";
 
-			return $this->db->query($query, $map_id, $game_id, $this->user->id);
+			return $this->db->query($query, $map_id, $game_id, $this->user->id) != false;
+		}
+
+		/* Start functions
+		 */
+		public function start_move($map_id, $pos_x, $pos_y) {
+			if ($this->valid_map_id($map_id) == false) {
+				return false;
+			}
+
+			$query = "update maps set start_x=%d, start_y=%d where id=%d";
+
+			return $this->db->query($query, $pos_x, $pos_y, $map_id) != false;
 		}
 
 		/* Token functions
@@ -40,7 +53,7 @@
 		private function valid_token_instance_id($instance_id) {
 			$query = "select count(*) as count ".
 			         "from map_token t, maps m, games g, game_character p, characters c ".
-			         "where t.game_map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id ".
+			         "where t.map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id ".
 			         "and t.id=%d and (g.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $instance_id, $this->user->id, $this->user->id)) === false) {
@@ -66,7 +79,7 @@
 
 			$data = array(
 				"id"          => null,
-				"game_map_id" => (int)$token["map_id"],
+				"map_id"      => (int)$token["map_id"],
 				"token_id"    => (int)$token["token_id"],
 				"name"        => null,
 				"pos_x"       => (int)$token["pos_x"],
@@ -166,7 +179,7 @@
 		private function valid_character_instance_id($instance_id) {
 			$query = "select count(*) as count ".
 			         "from map_character h, maps m, games g, game_character p, characters c ".
-			         "where h.game_map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id and h.character_id=c.id ".
+			         "where h.map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id and h.character_id=c.id ".
 			         "and h.id=%d and (g.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $instance_id, $this->user->id, $this->user->id)) === false) {
@@ -221,7 +234,7 @@
 		 */
 		private function valid_zone_id($zone_id) {
 			$query = "select count(*) as count from zones z, maps m, games g ".
-			         "where z.game_map_id=m.id and m.game_id=g.id and z.id=%d and g.dm_id=%d";
+			         "where z.map_id=m.id and m.game_id=g.id and z.id=%d and g.dm_id=%d";
 
 			if (($result = $this->db->execute($query, $zone_id, $this->user->id)) === false) {
 				return false;
@@ -236,14 +249,14 @@
 			}
 
 			$data = array(
-				"id"          => null,
-				"game_map_id" => (int)$zone["map_id"],
-				"pos_x"       => (int)$zone["pos_x"],
-				"pos_y"       => (int)$zone["pos_y"],
-				"width"       => (int)$zone["width"],
-				"height"      => (int)$zone["height"],
-				"color"       => $zone["color"],
-				"opacity"     => $zone["opacity"]);
+				"id"      => null,
+				"map_id"  => (int)$zone["map_id"],
+				"pos_x"   => (int)$zone["pos_x"],
+				"pos_y"   => (int)$zone["pos_y"],
+				"width"   => (int)$zone["width"],
+				"height"  => (int)$zone["height"],
+				"color"   => $zone["color"],
+				"opacity" => $zone["opacity"]);
 
 			if ($this->db->insert("zones", $data) === false) {
 				return false;
@@ -266,6 +279,15 @@
 			}
 
 			$data = array("pos_x" => (int)$pos_x, "pos_y" => (int)$pos_y);
+			return $this->db->update("zones", $zone_id, $data) !== false;
+		}
+
+		public function script_save($zone_id, $script, $group) {
+			if ($this->valid_zone_id($zone_id) == false) {
+				return false;
+			}
+
+			$data = array("script" => trim($script), "group" => trim($group));
 			return $this->db->update("zones", $zone_id, $data) !== false;
 		}
 
@@ -378,6 +400,38 @@
 			array_push($params, $game_id, $character_id);
 
 			return $this->db->query($query, $params) !== false;
+		}
+
+		/* Audio functions
+		 */
+		public function get_audio_files($game_id) {
+			if (valid_input($game_id, VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {
+				return false;
+			}
+
+			$directory = "files/audio/".$game_id;
+
+			if (file_exists($directory) == false) {
+				return false;
+			}
+
+			if (($dp = opendir($directory)) == false) {
+				return false;
+			}
+
+			$files = array();
+			while (($file = readdir($dp)) != false) {
+				if (substr($file, 0, 1) == ".") {
+					continue;
+				}
+				array_push($files, $file);
+			}
+
+			closedir($dp);
+
+			sort($files);
+
+			return $files;
 		}
 	}
 ?>

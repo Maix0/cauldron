@@ -1,7 +1,11 @@
-table.table th:nth-child(n+2) {
+table.table th:first-child {
+	width:50px;
+}
+
+table.table th:nth-child(n+3) {
 	width:80px;
 }
 
-input[type=checkbox] {
-	margin-right:5px;
+textarea.form-control {
+	height:150px;
 }

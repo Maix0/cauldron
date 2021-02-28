@@ -43,10 +43,13 @@
 
 			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("banshee/jquery.contextMenu.js");
+			$this->view->add_javascript("includes/library.js");
+			$this->view->add_javascript("includes/script.js");
 			$this->view->add_javascript("cms/map/arrange.js");
 
 		   	$this->view->add_css("banshee/context-menu.css");
 			$this->view->add_css("banshee/font-awesome.css");
+			$this->view->add_css("includes/tabletop.css");
 
 			$attr = array(
 				"id"             => $game["id"],
@@ -55,6 +58,8 @@
 			$this->view->record($game);
 
 			$map["show_grid"] = show_boolean($map["show_grid"]);
+			$map["start_x"] *= $grid_cell_size;
+			$map["start_y"] *= $grid_cell_size;
 			$this->view->record($map, "map");
 
 			$this->view->open_tag("library");
@@ -69,7 +74,9 @@
 				$zone["pos_y"] *= $grid_cell_size;
 				$zone["width"] *= $grid_cell_size;
 				$zone["height"] *= $grid_cell_size;
-				if ($zone["opacity"] > 0.8) {
+				if ($zone["opacity"] < 0.2) {
+					$zone["opacity"] = 0.2;
+				} else if ($zone["opacity"] > 0.8) {
 					$zone["opacity"] = 0.8;
 				}
 				$this->view->record($zone, "zone");

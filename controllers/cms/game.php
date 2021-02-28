@@ -19,41 +19,10 @@
 		}
 
 		private function show_game_form($game) {
-			if (isset($game["id"]) == false) {
-				if (($characters = $this->model->get_characters()) === false) {
-					$this->view->add_tag("result", "Database error.");
-					return;
-				}
-
-				if (count($characters) == 0) {
-					$this->view->add_tag("result", "No characters available to create a new game.");
-					return;
-				}
-			}
-
-			if (is_array($game["characters"]) == false) {
-				$game["characters"] = array();
-			}
-
 			$this->view->open_tag("edit");
 
 			$game["player_access"] = show_boolean($game["player_access"]);
 			$this->view->record($game, "game");
-
-			if (is_array($characters)) {
-				$this->view->open_tag("characters");
-				foreach ($characters as $user => $chars) {
-					$this->view->open_tag("user", array("name" => $user));
-					foreach ($chars as $char) {
-						$attr = array(
-							"id"      => $char["id"],
-							"checked" => show_boolean(in_array($char["id"], $game["characters"])));
-						$this->view->add_tag("character", $char["name"], $attr);
-					}
-					$this->view->close_tag();
-				}
-				$this->view->close_tag();
-			}
 
 			$this->view->close_tag();
 		}
@@ -98,11 +67,6 @@
 						$this->user->log_action("game %d deleted", $_POST["id"]);
 						$this->show_overview();
 					}
-				} else if ($_POST["submit_button"] == "search") {
-					/* Search
-					 */
-					$_SESSION["game_search"] = $_POST["search"];
-					$this->show_overview();
 				} else {
 					$this->show_overview();
 				}

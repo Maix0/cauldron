@@ -48,11 +48,11 @@ change_setting DEBUG_MODE yes
 rm -f database/*.gz
 rm -f public/files/glitters.png
 rm -f public/files/phandelver.jpg
+rm -rf public/files/audio/*
 rm -f public/files/collectables/*
 rm -f public/files/maps/*
 rm -f public/files/portraits/*
 rm -f public/files/tokens/*
-rm -f public/font.php font
 rm -f ws_server module layout
 rm -rf templates
 

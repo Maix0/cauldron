@@ -22,30 +22,6 @@
 			return $cache[$game_id];
 		}
 
-		public function get_characters() {
-			$query = "select c.*, u.fullname, ".
-			         "(select count(*) from game_character where character_id=c.id) as involved ".
-			         "from characters c, users u where c.user_id=u.id and u.organisation_id=%d ".
-			         "and u.id!=%d having involved=%d order by u.fullname, c.name";
-
-			if (($characters = $this->db->execute($query, $this->user->organisation_id, $this->user->id, 0)) === false) {
-				return false;
-			}
-
-			$result = array();
-			foreach ($characters as $character) {
-				if (isset($result[$character["fullname"]]) == false) {
-					$result[$character["fullname"]] = array();
-				}
-
-				array_push($result[$character["fullname"]], array(
-					"id"   => $character["id"],
-					"name" => $character["name"]));
-			}
-
-			return $result;
-		}
-
 		public function save_oke($game) {
 			$result = true;
 
@@ -61,38 +37,7 @@
 				$result = false;
 			}
 
-			if (isset($game["id"]) == false) {
-				if (is_array($game["characters"]) == false) {
-					$this->view->add_message("Select at least one character.");
-					$result = false;
-				} else if (count($game["characters"]) == 0) {
-					$this->view->add_message("Select at least one character.");
-					$result = false;
-				} else {
-					$format = implode(", ", array_fill(1, count($game["characters"]), "%d"));
-					$query = "select count(*) as count from characters where user_id=%d and id in (".$format.")";
-					if (($result = $this->db->execute($query, $this->user->id, $game["characters"])) == false) {
-						$result = false;
-					} else if ($result[0]["count"] > 0)  {
-						$this->view->add_message("You can't play in your own game.");
-						$result = false;
-					}
-				}
-			}
-
 			return $result;
-		}
-
-		private function save_characters($game_id, $characters) {
-			$data = array("game_id" => $game_id);
-			foreach ($characters as $character_id) {
-				$data["character_id"] = $character_id;
-				if ($this->db->insert("game_character", $data) === false) {
-					return false;
-				}
-			}
-
-			return true;
 		}
 
 		public function create_game($game) {
@@ -103,22 +48,7 @@
 			$game["active_map_id"] = null;
 			$game["player_access"] = is_true($game["player_access"]) ? YES : NO;
 
-			if ($this->db->query("begin") === false) {
-				return false;
-			}
-
-			if ($this->db->insert("games", $game, $keys) === false) {
-				$this->db->query("rollback");
-				return false;
-			}
-			$game_id = $this->db->last_insert_id;
-
-			if ($this->save_characters($game_id, $game["characters"]) == false) {
-				$this->db->query("rollback");
-				return false;
-			}
-
-			return $this->db->query("commit") !== false;
+			return $this->db->insert("games", $game, $keys) !== false;
 		}
 
 		public function update_game($game) {
@@ -126,7 +56,7 @@
 
 			$game["player_access"] = is_true($game["player_access"]) ? YES : NO;
 
-			return $this->db->update("games", $game["id"], $game, $keys);
+			return $this->db->update("games", $game["id"], $game, $keys) !== false;
 		}
 
 		public function delete_oke($game) {
@@ -149,9 +79,9 @@
 			$queries = array(
 				array("delete from journal where game_id=%d", $game_id),
 				array("delete from collectables where game_id=%d", $game_id),
-				array("delete from zones where game_map_id in (select id from maps where game_id=%d)", $game_id),
-				array("delete from map_token where game_map_id in (select id from maps where game_id=%d)", $game_id),
-				array("delete from map_character where game_map_id in (select id from maps where game_id=%d)", $game_id),
+				array("delete from zones where map_id in (select id from maps where game_id=%d)", $game_id),
+				array("delete from map_token where map_id in (select id from maps where game_id=%d)", $game_id),
+				array("delete from map_character where map_id in (select id from maps where game_id=%d)", $game_id),
 				array("delete from game_character where game_id=%d", $game_id),
 				array("update games set active_map_id=null where id=%d", $game_id),
 				array("delete from maps where game_id=%d", $game_id),

@@ -1,7 +1,17 @@
+tabletop (0.8) stable; urgency=low
+
+  * Zone event scripts.
+  * Start creating games and maps and invite players later.
+  * Support for playing audio files on demand.
+  * Steer object with the extra keys q, e, z and c.
+  * Turn token via the keys < and >.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 28 Feb 2020 11:00:02 +0100
+
 tabletop (0.7) stable; urgency=low
 
   * Turn token via the keys q and e.
-  * Added TheTrove download script (see /extra/).
+  * TheTrove download script (see /extra/).
   * Bugfix: added missing database upgrades in setup.
   * Small bugfixes and improvements.
 
@@ -10,7 +20,7 @@ tabletop (0.7) stable; urgency=low
 tabletop (0.6) stable; urgency=low
 
   * Alternate portraits for characters.
-  * Added character and token conditions.
+  * Character and token conditions.
   * Steer object with the keys w, a, s and d.
   * Roll D20 dice, optionally with advantage or disadvantage.
   * Small bugfixes and improvements.
@@ -20,8 +30,8 @@ tabletop (0.6) stable; urgency=low
 
 tabletop (0.5) stable; urgency=low
 
-  * Added game journal.
-  * Added Dungeon Master notes to maps.
+  * Game journal for players.
+  * Dungeon Master notes for each map.
   * Support for links via chat.
   * Calculate distance between two points.
   * Small bugfixes and improvements.
@@ -30,7 +40,7 @@ tabletop (0.5) stable; urgency=low
 
 tabletop (0.4) stable; urgency=low
 
-  * Added story and image to games overview.
+  * Story and image for each game in home page.
   * Scroll to character upon map load.
   * Improved zone-create dialog.
   * Security checks added to object module.
@@ -40,7 +50,7 @@ tabletop (0.4) stable; urgency=low
 
 tabletop (0.3) stable; urgency=low
 
-  * Added collectables.
+  * Collectables.
   * Overrule who's next in battle order.
   * Clone tokens.
 
@@ -49,7 +59,7 @@ tabletop (0.3) stable; urgency=low
 tabletop (0.2) stable; urgency=low
 
   * AJAX call handling moved to object module.
-  * Added map effects.
+  * Map effects.
   * Zones can be added via the map builder.
   * Make characters stick to other object.
   * Many small improvements.

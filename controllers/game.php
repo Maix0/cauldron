@@ -131,10 +131,13 @@
 			if ($active_map != null) {
 				$this->view->add_javascript("webui/jquery-ui.js");
 				$this->view->add_javascript("banshee/jquery.contextMenu.js");
+				$this->view->add_javascript("includes/library.js");
+				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("game.js");
 
             	$this->view->add_css("banshee/context-menu.css");
 				$this->view->add_css("banshee/font-awesome.css");
+				$this->view->add_css("includes/tabletop.css");
 			} else {
 				$this->view->add_javascript("game_no_map.js");
 			}
@@ -189,8 +192,14 @@
 					$zone["pos_y"] *= $grid_cell_size;
 					$zone["width"] *= $grid_cell_size;
 					$zone["height"] *= $grid_cell_size;
-					if ($user_is_dungeon_master && ($zone["opacity"] > 0.8)) {
-						$zone["opacity"] = 0.8;
+					if ($user_is_dungeon_master) {
+						if ($zone["opacity"] < 0.2) {
+							$zone["opacity"] = 0.2;
+						} else if ($zone["opacity"] > 0.8) {
+							$zone["opacity"] = 0.8;
+						}
+					} else {
+						unset($zone["script"]);
 					}
 					$this->view->record($zone, "zone");
 				}

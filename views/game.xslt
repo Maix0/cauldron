@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:import href="banshee/main.xslt" />
+<xsl:import href="includes/tabletop.xslt" />
 
 <!--
 //
@@ -56,7 +57,7 @@
 </xsl:if>
 <button class="btn btn-default btn-xs" onClick="javascript:collectables_show()">Inventory</button>
 <button class="btn btn-default btn-xs" onClick="javascript:scroll_to_my_character()">Scroll to character</button>
-<xsl:if test="map/type='video'"><button onClick="javascript:$('video').get(0).play(); $(this).remove();" class="btn btn-default btn-xs">Play video</button></xsl:if>
+<xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
 <a href="/game" class="btn btn-default btn-xs">Back</a>
 </div>
 </div>
@@ -68,7 +69,7 @@
 <xsl:if test="map">
 <div class="journal overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-info" style="max-width:800px" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">Journal<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
+<div class="panel-heading">Journal<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.journal').hide()"></span></div>
 <div class="panel-body" style="max-height:400px; height:400px;">
 <div class="entries">
 <xsl:for-each select="journal/entry">
@@ -87,7 +88,7 @@
 <xsl:if test="map/dm_notes!=''">
 <div class="notes overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-danger" style="max-width:600px" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">DM notes<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
+<div class="panel-heading">DM notes<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.notes').hide()"></span></div>
 <div class="panel-body"><xsl:value-of disable-output-escaping="yes" select="map/dm_notes" /></div>
 </div>
 </div>
@@ -101,14 +102,19 @@
 <!-- Collectables -->
 <div class="collectables overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-success" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">Inventory<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
+<div class="panel-heading">Inventory<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.collectables').hide()"></span></div>
 <div class="panel-body"></div>
 </div>
 </div>
+<!-- Script -->
+<xsl:call-template name="script_editor" />
+<xsl:call-template name="script_manual" />
+<!-- Zone create -->
+<xsl:call-template name="zone_create" />
 <!-- Effects -->
 <div class="effects overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-default" onClick="javascript:event.stopPropagation();">
-<div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>
+<div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.effects').hide()"></span></div>
 <div class="panel-body">
 <xsl:for-each select="effects/effect">
 <img src="/files/effects/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" onClick="javascript:effect_create($(this))" /><xsl:text>
@@ -126,7 +132,7 @@
 </xsl:text></xsl:if>
 <!-- Zones -->
 <xsl:for-each select="zones/zone">
-<div id="zone{@id}" class="zone" style="position:absolute; left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};" />
+<div id="zone{@id}" class="zone" style="position:absolute; left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};"><xsl:if test="group!=''"><xsl:attribute name="group"><xsl:value-of select="group" /></xsl:attribute></xsl:if><xsl:if test="script!=''"><div class="script"><xsl:value-of select="script" /></div></xsl:if></div>
 </xsl:for-each>
 <!-- Tokens -->
 <xsl:for-each select="tokens/token">

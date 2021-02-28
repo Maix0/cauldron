@@ -22,11 +22,15 @@ var mouse_x = 0;
 var mouse_y = 0;
 var measuring = false;
 var effect_id = 1;
-var effect_pos_x = null;
-var effect_pos_y = null;
+var effect_x = 0;
+var effect_y = 0;
 var stick_to = null;
 var stick_to_x = 0;
 var stick_to_y = 0;
+var zone_presence = [];
+var zone_x = 0;
+var zone_y = 0;
+var zone_menu = null;
 
 function change_map() {
 	$.post('/object/change_map', {
@@ -50,6 +54,10 @@ function scroll_to_my_character() {
 		var spot = focus_obj;
 	} else {
 		var spot = $('div.character').first();
+		if (spot.length == 0) {
+			write_sidebar("No characters on this map!");
+			return;
+		}
 	}
 
 	var pos_x = -($('div.playarea').width() >> 1);
@@ -80,7 +88,7 @@ function show_image(img) {
 	$('body').append(image);
 }
 
-function say_message(name, message) {
+function message_to_sidebar(name, message) {
 	if ((message.substr(0, 7) == 'http://') || (message.substr(0, 8) == 'https://')) {
 		var parts = message.split('.');
 		var extension = parts.pop();
@@ -101,17 +109,17 @@ function say_message(name, message) {
 	write_sidebar(message);
 }
 
-function send_message(message, write_to_sidebar = true) {
+function send_message(message, name, write_to_sidebar = true) {
 	var data = {
 		game_id: game_id,
 		action: 'say',
-		name: my_name,
+		name: name,
 		mesg: message
 	};
 	websocket.send(JSON.stringify(data));
 
 	if (write_to_sidebar) {
-		say_message(my_name, message);
+		message_to_sidebar(name, message);
 	}
 }
 
@@ -167,7 +175,7 @@ function roll_dice(dice, send_to_others = true) {
 
 	var message = 'Dice roll ' + dice_str + ':\n' + output + ' > ' + result;
 	if (send_to_others) {
-		send_message(message);
+		send_message(message, my_name);
 	} else {
 		write_sidebar(message);
 	}
@@ -242,7 +250,7 @@ function roll_d20(bonus, type = ROLL_NORMAL) {
 		}
 	}
 
-	send_message(message);
+	send_message(message, my_name);
 }
 
 function show_help() {
@@ -263,11 +271,11 @@ function show_help() {
 		'<b>/log &lt;message&gt;</b>: Add message to journal.<br />' +
 		(dungeon_master ?
 		'<b>/next [&lt;name&gt;]</b>: Next turn in battle.<br />' +
+		'<b>/ping</b>: See who\'s online in the game.<br />' +
+		'<b>/play [&lt;nr&gt;]:</b> Play audio file.<br />' +
 		'<b>/reload</b>: Reload current page.<br />' +
 		'<b>/remove &lt;name&gt;</b>: Remove one from battle.<br />' : '') +
 		'<b>/roll &lt;dice&gt;</b>: Roll dice.<br />' +
-		(dungeon_master ?
-		'<b>/ping</b>: See who\'s online in the game.<br />' : '') +
 		'<b>&lt;message&gt;</b>: Send text message.<br />' +
 		'<br />Right-click an icon or the map for more options.';
 
@@ -289,9 +297,9 @@ function show_battle_order(first_round = false, send = true) {
 	});
 
 	if (send) {
-		send_message(message);
+		send_message(message, 'Battle status');
 	} else {
-		say_message('Active battle', message);
+		message_to_sidebar('Active battle', message);
 	}
 }
 
@@ -393,54 +401,58 @@ function object_handover(obj) {
 	websocket.send(JSON.stringify(data));
 }
 
-function object_hide(obj) {
+function object_hide(obj, send = true) {
 	if (dungeon_master) {
-		obj.fadeTo('fast', 0.5);
+		obj.fadeTo(0, 0.5);
 	} else {
-		obj.hide();
+		obj.hide(100);
 	}
 	obj.attr('is_hidden', 'yes');
 
-	var data = {
-		game_id: game_id,
-		action: 'hide',
-		instance_id: obj.prop('id')
-	};
-	websocket.send(JSON.stringify(data));
+	if (send) {
+		var data = {
+			game_id: game_id,
+			action: 'hide',
+			instance_id: obj.prop('id')
+		};
+		websocket.send(JSON.stringify(data));
 
-	$.post('/object/hide', {
-		instance_id: obj.prop('id')
-	});
+		$.post('/object/hide', {
+			instance_id: obj.prop('id')
+		});
+	}
 }
 
 function object_info(obj) {
 	var info = '';
 
-	var name = obj.find('span');
-	if (name.length > 0) {
-		info += 'Name: ' + name.text() + '<br />';
-	}
-
-	if (dungeon_master || obj.is(my_character)) {
-		if (obj.attr('id').substr(0, 5) == 'token') {
-			info += 'Type: ' + obj.attr('type') + '<br />';
+    if (obj.attr('id').substr(0, 4) != 'zone') {
+		var name = obj.find('span');
+		if (name.length > 0) {
+			info += 'Name: ' + name.text() + '<br />';
 		}
-		info += 'Armor class: ' + obj.attr('armor_class') + '<br />';
-	}
 
-	info += 'Max hit points: ' + obj.attr('hitpoints') + '<br />';
+		if (dungeon_master || obj.is(my_character)) {
+			if (obj.attr('id').substr(0, 5) == 'token') {
+				info += 'Type: ' + obj.attr('type') + '<br />';
+			}
+			info += 'Armor class: ' + obj.attr('armor_class') + '<br />';
+		}
 
-	var remaining = parseInt(obj.attr('hitpoints')) - parseInt(obj.attr('damage'));
-	info +=
-		'Damage: ' + obj.attr('damage') + '<br />' +
-		'Hit points: ' + remaining.toString() + '<br />';
+		info += 'Max hit points: ' + obj.attr('hitpoints') + '<br />';
 
-	if (obj.is(my_character)) {
-		info += 'Temp, hit points: ' + temporary_hitpoints.toString() + '<br />';
+		var remaining = parseInt(obj.attr('hitpoints')) - parseInt(obj.attr('damage'));
+		info +=
+			'Damage: ' + obj.attr('damage') + '<br />' +
+			'Hit points: ' + remaining.toString() + '<br />';
+
+		if (obj.is(my_character)) {
+			info += 'Temp, hit points: ' + temporary_hitpoints.toString() + '<br />';
+		}
 	}
 
 	if (dungeon_master) {
-		info += 'Instance: ' + obj.attr('id') + '<br />';
+		info += 'Object ID: ' + obj.attr('id') + '<br />';
 	}
 
 	write_sidebar(info);
@@ -476,10 +488,10 @@ function object_move(obj, speed = 200) {
 	var data = {
 		game_id: game_id,
 		action: 'move',
-		speed: speed,
 		instance_id: obj.prop('id'),
-		pos_x: obj.css('left'),
-		pos_y: obj.css('top')
+		pos_x: pos.left,
+		pos_y: pos.top,
+		speed: speed
 	};
 	websocket.send(JSON.stringify(data));
 
@@ -488,6 +500,71 @@ function object_move(obj, speed = 200) {
 		pos_x: Math.round(pos.left / grid_cell_size),
 		pos_y: Math.round(pos.top / grid_cell_size)
 	});
+
+	if (obj.is(my_character) == false) {
+		return;
+	}
+
+	var zone_events = {
+		leave: [],
+		move:  [],
+		enter: []
+	}
+
+	$('div.zone').each(function() {
+		var zone_pos = $(this).position();
+		zone_pos.left += $('div.playarea').scrollLeft();
+		zone_pos.top += $('div.playarea').scrollTop();
+
+		var in_zone = true;
+		if (pos.left < zone_pos.left) {
+			in_zone = false;
+		} else if (pos.top < zone_pos.top) {
+			in_zone = false;
+		} else if (pos.left >= zone_pos.left + $(this).width()) {
+			in_zone = false;
+		} else if (pos.top >= zone_pos.top + $(this).height()) {
+			in_zone = false;
+		}
+
+		var zone_id = $(this).prop('id');
+		var zone_event = null;
+
+		if (in_zone) {
+			if (zone_presence.includes(zone_id) == false) {
+				zone_presence.push(zone_id);
+				zone_event = 'enter';
+			} else {
+				zone_event = 'move';
+			}
+		} else {
+			if (zone_presence.includes(zone_id)) {
+				zone_presence = array_remove(zone_presence, zone_id);
+				zone_event = 'leave';
+			}
+		}
+
+		if (zone_event != null) {
+			zone_events[zone_event].push(zone_id);
+		}
+	});
+
+	zone_events = filter_zone_events(zone_events);
+
+	for (var [event_type, items] of Object.entries(zone_events)) {
+		items.forEach(function(zone_id) {
+			var data = {
+				game_id: game_id,
+				action: 'event',
+				zone: zone_id,
+				character: my_character.prop('id'),
+				zone_event: event_type,
+				pos_x: pos.left,
+				pos_y: pos.top
+			};
+			websocket.send(JSON.stringify(data));
+		});
+	}
 }
 
 function object_move_to_sticked(obj) {
@@ -501,7 +578,22 @@ function object_move_to_sticked(obj) {
 	object_move(my_character);
 }
 
-function object_rotate(obj, rotation, send = true) {
+function getRotationDegrees(obj) {
+    var matrix = obj.css("-webkit-transform") ||
+    obj.css("-moz-transform")    ||
+    obj.css("-ms-transform")     ||
+    obj.css("-o-transform")      ||
+    obj.css("transform");
+    if(matrix !== 'none') {
+        var values = matrix.split('(')[1].split(')')[0].split(',');
+        var a = values[0];
+        var b = values[1];
+        var angle = Math.round(Math.atan2(b, a) * (180/Math.PI));
+    } else { var angle = 0; }
+    return (angle < 0) ? angle + 360 : angle;
+}
+
+function object_rotate(obj, rotation, send = true, speed = 500) {
 	var img = obj.find('img');
 	var width = img.width() / grid_cell_size;
 	var height = img.height() / grid_cell_size;
@@ -518,7 +610,28 @@ function object_rotate(obj, rotation, send = true) {
 		img.css('transform-origin', tox + 'px ' + toy + 'px');
 	}
 
-	img.css('transform', 'rotate(' + rotation + 'deg)');
+	var currot = parseInt(obj.attr('rotation'));
+	var anirot = rotation;
+
+	if ((360 + currot - anirot) < (anirot - currot)) {	
+		anirot -= 360;
+	} else if ((360 + anirot - currot) < (currot - anirot)) {
+		anirot += 360;
+	}
+
+	img.stop(false, true);
+	img.animate({
+		rotation: anirot
+	}, {
+		duration: speed,
+		step: function(now) {
+        	$(this).css('transform', 'rotate(' + now + 'deg)');
+		},
+		done: function() {
+			img.animate({ rotation: rotation });
+		}
+	});
+
 	obj.attr('rotation', rotation);
 
 	if (send) {
@@ -526,7 +639,8 @@ function object_rotate(obj, rotation, send = true) {
 			game_id: game_id,
 			action: 'rotate',
 			instance_id: obj.prop('id'),
-			rotation: rotation
+			rotation: rotation,
+			speed: speed
 		};
 		websocket.send(JSON.stringify(data));
 
@@ -537,20 +651,26 @@ function object_rotate(obj, rotation, send = true) {
 	}
 }
 
-function object_show(obj) {
-	obj.fadeTo('fast', 1);
+function object_show(obj, send = true) {
+	if (dungeon_master) {
+		obj.fadeTo(0, 1);
+	} else {
+		obj.show(100);
+	}
 	obj.attr('is_hidden', 'no');
 
-	var data = {
-		game_id: game_id,
-		action: 'show',
-		instance_id: obj.prop('id')
-	};
-	websocket.send(JSON.stringify(data));
+	if (send) {
+		var data = {
+			game_id: game_id,
+			action: 'show',
+			instance_id: obj.prop('id')
+		};
+		websocket.send(JSON.stringify(data));
 
-	$.post('/object/show', {
-		instance_id: obj.prop('id')
-	});
+		$.post('/object/show', {
+			instance_id: obj.prop('id')
+		});
+	}
 }
 
 function object_step(x, y) {
@@ -572,26 +692,52 @@ function object_step(x, y) {
 	obj.css('top', pos.top + 'px');
 
 	object_move(obj, 50);
+
+	if (stick_to != null) {
+		stick_to_x += x;
+		stick_to_y += y;
+	}
 }
 
 function object_steer(event) {
+	if (my_character != null) {
+		var hitpoints = parseInt(my_character.attr('hitpoints'));
+		var damage = parseInt(my_character.attr('damage'));
+
+		if (damage == hitpoints) {
+			return;
+		}
+	}
+
 	switch (event.which) {
+		case 81:
+			object_step(-1, -1);
+			break;
+		case 87:
+			object_step(0, -1);
+			break;
+		case 69:
+			object_step(1, -1);
+			break;
 		case 65:
 			object_step(-1, 0);
 			break;
 		case 68:
 			object_step(1, 0);
 			break;
-		case 87:
-			object_step(0, -1);
+		case 90:
+			object_step(-1, 1);
 			break;
 		case 83:
 			object_step(0, 1);
 			break;
-		case 81:
+		case 67:
+			object_step(1, 1);
+			break;
+		case 188:
 			object_turn(-45);
 			break;
-		case 69:
+		case 190:
 			object_turn(45);
 			break;
 	}
@@ -613,7 +759,7 @@ function object_turn(direction) {
 		rotation -= 360;
 	}
 
-	object_rotate(focus_obj, rotation);
+	object_rotate(focus_obj, rotation, true, 100);
 }
 
 function object_view(obj, max_size = 300) {
@@ -662,7 +808,7 @@ function object_view(obj, max_size = 300) {
 				collectable_id: collectable_id
 			});
 
-			send_message(my_name + ' found an item! Check the inventory.', false);
+			send_message(my_name + ' has found an item! Check the inventory.', my_name, false);
 
 			if (obj.attr('c_hide') == 'yes') {
 				object_hide(obj);
@@ -708,7 +854,7 @@ function effect_create(template) {
 		return;
 	}
 
-	effect_create_object(effect_id, src, effect_pos_x, effect_pos_y, width, height);
+	effect_create_object(effect_id, src, effect_x, effect_y, width, height);
 
 	effect_create_final(src, width, height);
 }
@@ -720,8 +866,8 @@ function effect_create_final(src, width, height) {
 		action: 'effect_create',
 		instance_id: effect_id,
 		src: src,
-		pos_x: effect_pos_x,
-		pos_y: effect_pos_y,
+		pos_x: effect_x,
+		pos_y: effect_y,
 		width: width,
 		height: height
 	};
@@ -759,20 +905,28 @@ function zone_create_object(id, pos_x, pos_y, width, height, color, opacity) {
 	width *= grid_cell_size;
 	height *= grid_cell_size;
 
-	if (dungeon_master && (opacity > 0.8)) {
-		opacity = 0.8;
+	if (dungeon_master) {
+		if (opacity < 0.2) {
+			opacity = 0.2;
+		} else if (opacity > 0.8) {
+			opacity = 0.8;
+		}
 	}
 
-	var zone = '<div id="' + id + '" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:3;" />';
+	var zone = '<div id="' + id + '" class="zone" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:3;" />';
 
 	$('div.playarea > div').prepend(zone);
+
+	if (dungeon_master) {
+		$('div#' + id).append('<div class="script"></div>');
+	}
 }
 
-function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
+function zone_create(width, height, color, opacity) {
 	$.post('/object/create_zone', {
 		map_id: map_id,
-		pos_x: pos_x / grid_cell_size,
-		pos_y: pos_y / grid_cell_size,
+		pos_x: zone_x / grid_cell_size,
+		pos_y: zone_y / grid_cell_size,
 		width: width,
 		height: height,
 		color: color,
@@ -780,7 +934,7 @@ function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
 
-		zone_create_object(instance_id, pos_x, pos_y, width, height, color, opacity);
+		zone_create_object(instance_id, zone_x, zone_y, width, height, color, opacity);
 
 		$('div#zone' + instance_id).draggable({
 			create: function(event, ui) {
@@ -795,8 +949,8 @@ function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
 			game_id: game_id,
 			action: 'zone_create',
 			instance_id: instance_id,
-			pos_x: pos_x,
-			pos_y: pos_y,
+			pos_x: zone_x,
+			pos_y: zone_y,
 			width: width,
 			height: height,
 			color: color,
@@ -807,17 +961,89 @@ function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
 		$.contextMenu({
 			selector: 'div#zone' + instance_id,
 			callback: context_menu_handler,
-			items: {
-				'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
-				'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
-				'sep1': '-',
-				'zone_delete': {name:'Delete', icon:'fa-trash'},
-			},
+			items: zone_menu,
 			zIndex: DEFAULT_Z_INDEX + 4
 		});
 	}).fail(function(data) {
 		alert('Zone create error');
 	});
+}
+
+function zone_delete(obj) {
+	var zone_id = obj.prop('id');
+	if (zone_id.substr(0, 4) != 'zone') {
+		return;
+	}
+
+	$.post('/object/delete', {
+		instance_id:zone_id
+	}).done(function() {
+		var data = {
+			game_id: game_id,
+			action: 'zone_delete',
+			instance_id: zone_id
+		};
+		websocket.send(JSON.stringify(data));
+
+		obj.remove();
+	});
+}
+
+function zone_init_presence() {
+	zone_presence = [];
+
+	$('div.zone').each(function() {
+		var my_pos = my_character.position();
+		var zone_pos = $(this).position();
+
+		if (my_pos.left < zone_pos.left) {
+			return;
+		} else if (my_pos.top < zone_pos.top) {
+			return;
+		} else if (my_pos.left >= zone_pos.left + $(this).width()) {
+			return;
+		} else if (my_pos.top >= zone_pos.top + $(this).height()) {
+			return;
+		}
+
+		zone_presence.push($(this).prop('id'));
+	});
+}
+
+function zone_check_presence_for_turn(character) {
+	var char_id = character.prop('id');
+
+	$('div.zone').each(function() {
+		var my_pos = character.position();
+		my_pos.left += $('div.playarea').scrollLeft();
+		my_pos.top += $('div.playarea').scrollTop();
+
+		var zone_pos = $(this).position();
+		zone_pos.left += $('div.playarea').scrollLeft();
+		zone_pos.top += $('div.playarea').scrollTop();
+
+		if (my_pos.left < zone_pos.left) {
+			return;
+		} else if (my_pos.top < zone_pos.top) {
+			return;
+		} else if (my_pos.left >= zone_pos.left + $(this).width()) {
+			return;
+		} else if (my_pos.top >= zone_pos.top + $(this).height()) {
+			return;
+		}
+
+		zone_run_script($(this).prop('id'), char_id, 'turn', my_pos.left, my_pos.top);
+	});
+}
+
+function zone_announce_group_id(zone_id, zone_group) {
+	var data = {
+		game_id: game_id,
+		action: 'zone_group',
+		zone_id: zone_id,
+		zone_group: zone_group
+	};
+	websocket.send(JSON.stringify(data));
 }
 
 /* Marker functions
@@ -964,11 +1190,11 @@ function handle_input(input) {
 		if (input.substr(0, 4).toLowerCase() == "dice") {
 			return;
 		}
-		send_message(input);
+		send_message(input, my_name);
 		return;
 	}
 
-	var parts = input.split(' ');
+	var parts = input.split(' ', 1);
 	var command = parts[0].substr(1);
 	var param = input.substr(parts[0].length + 1).trim();
 
@@ -1083,7 +1309,8 @@ function handle_input(input) {
 
 					var item = {
 						key: roll + '-enemy',
-						name: parts[0]
+						name: parts[0],
+						char_id: null
 					}
 					battle_order.push(item);
 
@@ -1100,7 +1327,8 @@ function handle_input(input) {
 				}
 				var item = {
 					key: roll + '-' + $(this).attr('id'),
-					name: $(this).find('span.name').text()
+					name: $(this).find('span.name').text(),
+					char_id: $(this).prop('id')
 				};
 				battle_order.push(item);
 			});
@@ -1108,6 +1336,12 @@ function handle_input(input) {
 			battle_order.sort((a, b) => b.key.localeCompare(a.key));
 
 			show_battle_order(true);
+
+			$('div.character').each(function() {
+				if ($(this).prop('id') == battle_order[0].char_id) {
+					zone_check_presence_for_turn($(this));
+				}
+			});
 
 			localStorage.setItem('battle_order', JSON.stringify(battle_order));
 			break;
@@ -1161,6 +1395,12 @@ function handle_input(input) {
 
 			show_battle_order();
 
+			$('div.character').each(function() {
+				if ($(this).prop('id') == battle_order[0].char_id) {
+					zone_check_presence_for_turn($(this));
+				}
+			});
+
 			localStorage.setItem('battle_order', JSON.stringify(battle_order));
 			break;
 		case 'ping':
@@ -1175,6 +1415,41 @@ function handle_input(input) {
 				action: 'ping'
 			};
 			websocket.send(JSON.stringify(data));
+			break;
+		case 'play':
+			$.post('/object/audio', {
+				game_id: game_id,
+			}).done(function(data) {
+				if (param == '') {
+					var audio_files = $(data).find('audio file');
+					if (audio_files.length == 0) {
+						write_sidebar('Directory audio/' + game_id + ' is empty.');
+					} else {
+						var nr = 1;
+						audio_files.each(function() {
+							write_sidebar(nr + ': ' + $(this).text());
+							nr++;
+						});
+					}
+				} else {
+					var file = $(data).find('audio file').eq(param - 1).text();
+					write_sidebar('Playing ' + file + '.');
+
+					var filename = '/files/audio/' + game_id + '/' + file;
+
+					var data = {
+						game_id: game_id,
+						action: 'audio',
+						filename: filename
+					};
+					websocket.send(JSON.stringify(data));
+
+					var audio = new Audio(filename);
+					audio.play();
+				}
+			}).fail(function() {
+				write_sidebar('Directory audio/' + game_id + ' not found. Create it via File Administration in the CMS and upload some audio files.');
+			});
 			break;
 		case 'reload':
 			if (dungeon_master == false) {
@@ -1330,7 +1605,7 @@ function context_menu_handler(key, options) {
 			}
 			message += (roll == 20) ? 'CRIT!' :
 
-			send_message(message);
+			send_message(message, my_name);
 
 			if (dungeon_master) {
 				write_sidebar('&nbsp;&nbsp;&nbsp;&nbsp;Attack roll: ' + roll);
@@ -1351,7 +1626,7 @@ function context_menu_handler(key, options) {
 				}
 
 				if (conditions.includes(condition)) {
-					conditions.splice(condition, 1);
+					conditions = array_remove(conditions, condition);
 				} else {
 					conditions.push(condition);
 					conditions.sort();
@@ -1371,6 +1646,11 @@ function context_menu_handler(key, options) {
 				condition: conditions
 			};
 			websocket.send(JSON.stringify(data));
+			break;
+		case 'coordinates':
+			var pos_x = coord_to_grid(mouse_x, false) / grid_cell_size;
+			var pos_y = coord_to_grid(mouse_y, false) / grid_cell_size;
+			write_sidebar('Coordinates: ' + pos_x + ', ' + pos_y);
 			break;
 		case 'damage':
 			var points;
@@ -1412,20 +1692,20 @@ function context_menu_handler(key, options) {
 			measuring = true;
 			break;
 		case 'effect_create':
-			effect_pos_x = coord_to_grid(mouse_x, false);
-			effect_pos_y = coord_to_grid(mouse_y, false);
+			effect_x = coord_to_grid(mouse_x, false);
+			effect_y = coord_to_grid(mouse_y, false);
 			$('div.effects').show();
 			break;
 		case 'effect_duplicate':
 			var pos = $(this).position();
-			effect_pos_x = pos.left + $('div.playarea').scrollLeft() + grid_cell_size;
-			effect_pos_y = pos.top + $('div.playarea').scrollTop();
+			effect_x = pos.left + $('div.playarea').scrollLeft() + grid_cell_size;
+			effect_y = pos.top + $('div.playarea').scrollTop();
 
 			var src = $(this).find('img').prop('src');
 			var width = parseInt($(this).width()) / grid_cell_size;
 			var height = parseInt($(this).height()) / grid_cell_size;
 
-			effect_create_object(effect_id, src, effect_pos_x, effect_pos_y, width, height);
+			effect_create_object(effect_id, src, effect_x, effect_y, width, height);
 			effect_create_final(src, width, height);
 			break;
 		case 'effect_delete':
@@ -1498,6 +1778,13 @@ function context_menu_handler(key, options) {
 				object_hide(obj);
 			}
 			break;
+		case 'script':
+			$('div.script_editor input#zone_id').val($(this).prop('id'));
+			$('div.script_editor input#zone_group').val($(this).attr('group'));
+			$('div.script_editor textarea').val($(this).find('div.script').text());
+			$('div.script_editor').show();
+			$('div.script_editor textarea').focus();
+			break;
 		case 'stick':
 			var obj_pos = obj.position();
 			var obj_x = Math.floor((obj_pos.left + $('div.playarea').scrollLeft()) / grid_cell_size);
@@ -1568,72 +1855,16 @@ function context_menu_handler(key, options) {
 			object_view(obj);
 			break;
 		case 'zone_create':
-			var pos_x = coord_to_grid(mouse_x, false);
-			var pos_y = coord_to_grid(mouse_y, false);
+			zone_x = coord_to_grid(mouse_x, false);
+			zone_y = coord_to_grid(mouse_y, false);
 
-			var zone_define = '<div class="zone_create overlay" onClick="javascript:$(this).remove()"><div class="panel panel-default" onClick="javascript:event.stopPropagation()"><div class="panel-heading">Create zone<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().remove()"></span></div><div class="panel-body" style="max-height:335px">';
-			zone_define += '<label for="width">Width:</label>';
-			zone_define += '<input type="text" id="width" value="3" class="form-control" onKeyUp="javascript:$(\'#height\').val($(this).val())" />';
-			zone_define += '<label for="height">Height:</label>';
-			zone_define += '<input type="text" id="height" value="3" class="form-control" />';
-			zone_define += '<label for="color">Color:</label>';
-			zone_define += '<input type="text" id="color" value="#ff0000" class="form-control" />';
-			zone_define += '<label for="opacity">Opacity:</label>';
-			zone_define += '<input type="text" id="opacity" value="0.2" class="form-control" />';
-			zone_define += '<div class="btn-group"><button class="btn btn-default">Create zone</button></div>';
-			zone_define += '</div></div></div>';
-
-			$('body').prepend(zone_define);
-			$('div.zone_create div.panel').draggable({
-				handle: 'div.panel-heading',
-				cursor: 'grab'
-			});
-
-			$('div.zone_create button').on('click', function() {
-				var width = parseInt($('input#width').val());
-				var height = parseInt($('input#height').val());
-				var color = $('input#color').val();
-				var opacity = parseFloat($('input#opacity').val());
-
-				if (isNaN(width)) {
-					write_sidebar('Invalid width.');
-					return;
-				} else if (isNaN(height)) {
-					write_sidebar('Invalid height.');
-					return;
-				} else if (isNaN(opacity)) {
-					write_sidebar('Invalid opacity.');
-					return;
-				}
-
-				if (opacity < 0.2) {
-					opacity = 0.2;
-				} else if (opacity > 1) {
-					opacity = 1;
-				}
-
-				pos_x -= Math.floor((width - 1) / 2) * grid_cell_size;
-				pos_y -= Math.floor((height - 1) / 2) * grid_cell_size;
-
-				zone_create(obj, pos_x, pos_y, width, height, color, opacity);
-
-				$(this).parent().parent().parent().parent().remove();
-			});
+			$('div.zone_create input#width').val(3);
+			$('div.zone_create input#height').val(3);
+			$('div.zone_create').show();
 			break;
 		case 'zone_delete':
 			if (confirm('Delete zone?')) {
-				$.post('/object/delete', {
-					instance_id:obj.prop('id')
-				}).done(function() {
-					var data = {
-						game_id: game_id,
-						action: 'zone_delete',
-						instance_id: obj.prop('id')
-					};
-					websocket.send(JSON.stringify(data));
-
-					obj.remove();
-				});
+				zone_delete(obj);
 			}
 			break;
 		default:
@@ -1660,7 +1891,7 @@ $(document).ready(function() {
 
 	websocket.onopen = function(event) {
 		write_sidebar('Connection established.');
-		send_message('Entered the game.', false);
+		send_message('Entered the game.', my_name, false);
 
 		var data = {
 			game_id: game_id,
@@ -1693,6 +1924,10 @@ $(document).ready(function() {
 				$('div#' + data.char_id).find('img').attr('src', '/files/portraits/' + data.src);
 				$('div#' + data.char_id).find('img').css('width', data.size + 'px');
 				$('div#' + data.char_id).find('img').css('height', data.size + 'px');
+				break;
+			case 'audio':
+				var audio = new Audio(data.filename);
+				audio.play();
 				break;
 			case 'condition':
 				var obj = $('div#' + data.object_id);
@@ -1742,6 +1977,11 @@ $(document).ready(function() {
 					};
 					websocket.send(JSON.stringify(data));
 				});
+				break;
+			case 'event':
+				if (dungeon_master) {
+					zone_run_script(data.zone, data.character, data.zone_event, data.pos_x, data.pos_y);
+				}
 				break;
 			case 'handover':
 				if (data.owner_id != my_character.prop('id')) {
@@ -1795,12 +2035,8 @@ $(document).ready(function() {
 				});
 				break;
 			case 'hide':
-				if (dungeon_master == false) {
-					$('div#' + data.instance_id).hide();
-				} else {
-					$('div#' + data.instance_id).fadeTo('fast', 0.5);
-					$('div#' + data.instance_id).attr('is_hidden', 'yes');
-				}
+				var obj = $('div#' + data.instance_id);
+				object_hide(obj, false);
 				break;
 			case 'journal':
 				journal_add_entry(data.name, data.content);
@@ -1815,10 +2051,15 @@ $(document).ready(function() {
 				break;
 			case 'move':
 				var obj = $('div#' + data.instance_id);
+				obj.stop(false, true);
 				obj.animate({
 					left: data.pos_x,
 					top: data.pos_y
 				}, data.speed, function() {
+					if (obj.hasClass('zone') || obj.is(my_character)) {
+						zone_init_presence();
+					}
+
 					if (data.instance_id == stick_to) {
 						object_move_to_sticked(obj);
 					}
@@ -1842,13 +2083,14 @@ $(document).ready(function() {
 				break;
 			case 'rotate':
 				var obj = $('div#' + data.instance_id);
-				object_rotate(obj, data.rotation, false);
+				object_rotate(obj, data.rotation, false, data.speed);
 				break;
 			case 'say':
-				say_message(data.name, data.mesg);
+				message_to_sidebar(data.name, data.mesg);
 				break;
 			case 'show':
-				$('div#' + data.instance_id).show();
+				var obj = $('div#' + data.instance_id);
+				object_show(obj, false);
 				break;
 			case 'takeback':
 				$('div#' + data.instance_id).css('cursor', 'default');
@@ -1876,11 +2118,23 @@ $(document).ready(function() {
 					document.location = '/game/' + game_id + '/' + data.map_id;
 				}
 				break;
+			case 'whisper':
+				if (data.to == my_character.prop('id')) {
+					message_to_sidebar(data.name, data.mesg);
+				}
+				break;
 			case 'zone_create':
 				zone_create_object(data.instance_id, data.pos_x, data.pos_y, data.width, data.height, data.color, data.opacity);
 				break;
 			case 'zone_delete':
 				$('div#' + data.instance_id).remove();
+				break;
+			case 'zone_group':
+				if (data.zone_group != '') {
+					$('div#' + data.zone_id).attr('group', data.zone_group);
+				} else {
+					$('div#' + data.zone_id).removeAttr('group');
+				}
 				break;
 			default:
 				alert('Unknown action: ' + data.action);
@@ -1910,15 +2164,66 @@ $(document).ready(function() {
 		}
 	}
 
-	/* Objects
+	/* Zones
 	 */
 	$('div.zone').css('z-index', 3);
 
+	$('div.zone_create div.panel').draggable({
+		handle: 'div.panel-heading',
+		cursor: 'grab'
+	});
+
+	$('div.zone_create button').on('click', function() {
+		var width = parseInt($('input#width').val());
+		var height = parseInt($('input#height').val());
+		var color = $('input#color').val();
+		var opacity = parseFloat($('input#opacity').val());
+
+		if (isNaN(width)) {
+			write_sidebar('Invalid width.');
+			return;
+		} else if (isNaN(height)) {
+			write_sidebar('Invalid height.');
+			return;
+		} else if (isNaN(opacity)) {
+			write_sidebar('Invalid opacity.');
+			return;
+		}
+
+		if (opacity < 0) {
+			opacity = 0;
+		} else if (opacity > 1) {
+			opacity = 1;
+		}
+
+		zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
+		zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
+
+		zone_create(width, height, color, opacity);
+
+		$('div.zone_create').hide();
+	});
+
+	$('div.script_editor div.panel').draggable({
+		handle: 'div.panel-heading',
+		cursor: 'grab'
+	});
+
+	$('div.script_manual div.panel').draggable({
+		handle: 'div.panel-heading',
+		cursor: 'grab'
+	});
+
+	/* Objects
+	 */
 	if ($('video').length > 0) {
 		$('video').on('loadeddata', function() {
 			$('div.token[is_hidden=no]').each(function() {
 				$(this).show();
 			});
+		});
+		$('video').on('play', function() {
+			$('button#playvideo').remove();
 		});
 		$('video').append('<source src="' + $('video').attr('source') + '"></source>');
 	} else {
@@ -1928,16 +2233,12 @@ $(document).ready(function() {
 	}
 
 	$('div.character[is_hidden=yes]').each(function() {
-		if (dungeon_master) {
-			$(this).fadeTo('fast', 0.5);
-		} else {
-			$(this).hide();
-		}
+		object_hide($(this), false);
 	});
 
 	$('div.token').each(function() {
 		$(this).css('z-index', DEFAULT_Z_INDEX + 1);
-		object_rotate($(this), $(this).attr('rotation'), false);
+		object_rotate($(this), $(this).attr('rotation'), false, 0);
 
 		if ($(this).attr('hitpoints') > 0) {
 			if ($(this).attr('damage') == $(this).attr('hitpoints')) {
@@ -1958,6 +2259,13 @@ $(document).ready(function() {
 			stop: function(event, ui) {
 				object_move($(this));
 			}
+		});
+		$('div.zone').filter(function() {
+			return $(this).css('background-color') == 'rgb(0, 0, 0)';
+		}).hover(function() {
+			$(this).css('border', '1px solid #a0a000');
+		}, function() {
+			$(this).css('border', '');
 		});
 
 		$('div.token').draggable({
@@ -1981,20 +2289,30 @@ $(document).ready(function() {
 		});
 
 		$('div.token[is_hidden=yes]').each(function() {
-			$(this).fadeTo('fast', 0.5);
+			$(this).fadeTo(0, 0.5);
 		});
 
 		/* Menu zones
 		 */
+		zone_menu = {
+			'info': {name:'Info', icon:'fa-info-circle'},
+			'script': {name:'Event script', icon:'fa-edit'},
+			'sep1': '-',
+			'marker': {name:'Marker', icon:'fa-map-marker'},
+			'distance': {name:'Distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'effect_create': {name:'Effect', icon:'fa-fire'},
+			'sep2': '-',
+			'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
+			'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
+			'sep3': '-',
+			'zone_delete': {name:'Delete', icon:'fa-trash'},
+		};
+
 		$.contextMenu({
 			selector: 'div.zone',
 			callback: context_menu_handler,
-			items: {
-				'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
-				'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
-				'sep1': '-',
-				'zone_delete': {name:'Delete', icon:'fa-trash'},
-			},
+			items: zone_menu,
 			zIndex: DEFAULT_Z_INDEX + 4
 		});
 
@@ -2022,6 +2340,7 @@ $(document).ready(function() {
 			'sep2': '-',
 			'marker': {name:'Marker', icon:'fa-map-marker'},
 			'distance': {name:'Distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Coordinates', icon:'fa-flag'},
 			'zone_create': {name:'Zone', icon:'fa-square-o'},
 			'sep3': '-',
 			'attack': {name:'Attack', icon:'fa-shield'},
@@ -2065,6 +2384,7 @@ $(document).ready(function() {
 			'sep1': '-',
 			'focus': {name:'Focus', icon:'fa-binoculars'},
 			'distance': {name:'Distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Coordinates', icon:'fa-flag'},
 			'sep2': '-',
 			'attack': {name:'Attack', icon:'fa-shield'},
 			'damage': {name:'Damage', icon:'fa-warning'},
@@ -2092,6 +2412,8 @@ $(document).ready(function() {
 			items: {
 				'marker': {name:'Marker', icon:'fa-map-marker'},
 				'distance': {name:'Distance', icon:'fa-map-signs'},
+				'coordinates': {name:'Coordinates', icon:'fa-flag'},
+				'sep1': '-',
 				'effect_create': {name:'Effect', icon:'fa-fire'},
 				'zone_create': {name:'Zone', icon:'fa-square-o'}
 			},
@@ -2159,6 +2481,10 @@ $(document).ready(function() {
 				items: items,
 				zIndex: DEFAULT_Z_INDEX + 4
 			});
+
+			/* Zone presence
+			 */
+			zone_init_presence();
 		}
 
 		/* Menu tokens
@@ -2203,6 +2529,8 @@ $(document).ready(function() {
 		});
 	}
 
+	/* Input field
+	 */
 	$('div.input input').focusout(function() {
 		$('body').keydown(object_steer);
 	});
@@ -2211,8 +2539,6 @@ $(document).ready(function() {
 		$('body').off('keydown');
 	});
 
-	/* Input field
-	 */
 	$('div.input input').on('keyup', function (e) {
 		if ((e.key === 'Enter') || (e.keyCode === 13)) {
 			var input = $(this).val();

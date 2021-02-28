@@ -4,7 +4,8 @@ div.character {
 }
 
 div.token img,
-div.character img {
+div.character img,
+div#start img {
 	cursor:grab;
 }
 
@@ -25,12 +26,12 @@ select#collectable {
 /* Faded overlay dialog
  */
 div.overlay {
+	display:none;
 	position:fixed;
 	top:0;
 	bottom:0;
 	left:0;
 	right:0;
-	z-index:2;
 	background:rgba(64, 64, 64, 0.7);
 }
 
@@ -54,15 +55,30 @@ div.menu {
 	margin:0;
 }
 
+div.menu span#infobar {
+	margin-right:15px;
+	display:inline-block;
+	position:relative;
+	top:4px;
+	margin-right:15px;
+	margin-top:-5px;
+	width:150px;
+	height:20px;
+	text-align:right;
+}
+
 div.menu div.btn-group {
 	margin:0;
 	display:inline-block;
 }
 
-/* Collectables
+/* Zones
  */
-div.collectables {
-    display:none;
+div.zone:hover {
+	border:3px double #ff8800;
+}
+div.zone div.script {
+	display:none;
 }
 
 /* Playarea
@@ -125,4 +141,6 @@ div.sidebar {
 	right:0px;
 	bottom:0px;
 	width:200px;
+	overflow-y:scroll;
+	overflow-x:hidden;
 }

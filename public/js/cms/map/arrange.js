@@ -6,6 +6,10 @@ var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
 var mouse_x = 0;
 var mouse_y = 0;
+var zone_presence = [];
+var zone_x = 0;
+var zone_y = 0;
+var measuring = false;
 
 function filter_library() {
 	var filter = $('input#filter').val().toLowerCase();
@@ -26,8 +30,8 @@ function filter_library() {
 
 function write_sidebar(message) {
 	var sidebar = $('div.sidebar');
-	sidebar.empty();
 	sidebar.append('<p>' + message + '</p>');
+	sidebar.prop('scrollTop', sidebar.prop('scrollHeight'));
 }
 
 function coord_to_grid(coord, edge = true) {
@@ -142,6 +146,26 @@ function object_create(icon, x, y) {
 	});
 }
 
+function object_damage(obj, points) {
+	var hitpoints = parseInt(obj.attr('hitpoints'));
+	var damage = parseInt(obj.attr('damage'));
+	damage += points;
+
+	if (damage > hitpoints) {
+		damage = hitpoints;
+	} else if (damage < 0) {
+		damage = 0;
+	}
+
+	obj.attr('damage', damage);
+
+	if (points > 0) {
+		points = '+' + points.toString();
+	}
+
+	write_sidebar('Character damage:<br />' + points + ' (' + damage + '/' + hitpoints + ')');
+}
+
 function object_delete(obj) {
 	$.post('/object/delete', {
 		instance_id: obj.prop('id'),
@@ -151,7 +175,7 @@ function object_delete(obj) {
 }
 
 function object_hide(obj) {
-	obj.fadeTo('fast', 0.5);
+	obj.fadeTo(0, 0.5);
 	obj.attr('is_hidden', 'yes');
 
 	var data = {
@@ -192,10 +216,13 @@ function object_info(obj) {
 		info += 'Type: ' + obj.attr('type') + '<br />';
 	}
 
-	info +=
-		'Hitpoints: ' + obj.attr('hitpoints') + '<br />' +
-		'Damage: ' + obj.attr('damage') + '<br />' +
-		'Instance: ' + obj.attr('id') + '<br />';
+	if (obj.attr('id').substr(0, 4) != 'zone') {
+		info +=
+			'Hitpoints: ' + obj.attr('hitpoints') + '<br />' +
+			'Damage: ' + obj.attr('damage') + '<br />';
+	}
+
+	info += 'Object ID: ' + obj.attr('id') + '<br />';
 
 	var name = obj.attr('name');
 	if (name == undefined) {
@@ -212,21 +239,28 @@ function object_move(obj) {
 	var pos = obj.position();
 	var map = $('div.playarea div');
 
+	var min = 0;
 	var max_x = map.width() - obj.width();
 	var max_y = map.height() - obj.height();
+
+	if (obj.prop('id') == 'start') {
+		min += grid_cell_size;
+		max_x -= grid_cell_size;
+		max_y -= grid_cell_size;
+	}
 
 	pos.left += $('div.playarea').scrollLeft();
 	pos.top += $('div.playarea').scrollTop();
 
-	if (pos.left < 0) {
-		pos.left = 0;
+	if (pos.left < min) {
+		pos.left = min;
 	} else if (pos.left > max_x) {
 		pos.left = max_x;
 	}
 	pos.left = coord_to_grid(pos.left);
 
-	if (pos.top < 0) {
-		pos.top = 0;
+	if (pos.top < min) {
+		pos.top = min;
 	} else if (pos.top > max_y) {
 		pos.top = max_y;
 	}
@@ -237,9 +271,76 @@ function object_move(obj) {
 
 	$.post('/object/move', {
 		instance_id: obj.prop('id'),
+		map_id: map_id,
 		pos_x: (pos.left / grid_cell_size),
 		pos_y: (pos.top / grid_cell_size)
 	});
+
+	if (obj.hasClass('zone')) {
+		zone_init_presence();
+	} else if (obj.hasClass('character') == false) {
+		return;
+	}
+
+	/* Zone events
+	 */
+	var zone_events = {
+		leave: [],
+		move:  [],
+		enter: []
+	}
+
+	var char_id = obj.prop('id');
+	var char_pos = obj.position();
+
+	$('div.zone').each(function() {
+		var zone_pos = $(this).position();
+
+		var in_zone = true;
+		if (char_pos.left < zone_pos.left) {
+			in_zone = false;
+		} else if (char_pos.top < zone_pos.top) {
+			in_zone = false;
+		} else if (char_pos.left >= zone_pos.left + $(this).width()) {
+			in_zone = false;
+		} else if (char_pos.top >= zone_pos.top + $(this).height()) {
+			in_zone = false;
+		}
+
+		var zone_id = $(this).prop('id');
+		var zone_event = null;
+
+		if (Array.isArray(zone_presence[char_id]) == false) {
+			zone_presence[char_id] = [];
+		}
+
+		if (in_zone) {
+			if (zone_presence[char_id].includes(zone_id) == false) {
+				zone_presence[char_id].push(zone_id);
+				zone_event = 'enter';
+			} else {
+				zone_event = 'move';
+			}
+		} else {
+			if (zone_presence[char_id].includes(zone_id)) {
+				zone_presence = array_remove(zone_presence, zone_id);	
+				zone_event = 'leave';
+			}
+		}
+
+		if (zone_event != null) {
+			zone_events[zone_event].push(zone_id);
+
+		}
+	});
+
+	zone_events = filter_zone_events(zone_events);
+
+	for (var [event_type, items] of Object.entries(zone_events)) {
+		items.forEach(function(zone_id) {
+			zone_run_script(zone_id, char_id, event_type, pos.left, pos.top, true);
+		});
+	}
 }
 
 function object_name(obj) {
@@ -285,7 +386,7 @@ function object_rotate(obj, rotation, send_to_backend = true) {
 }
 
 function object_show(obj) {
-	obj.fadeTo('fast', 1);
+	obj.fadeTo(0, 1);
 	obj.attr('is_hidden', 'no');
 
 	var data = {
@@ -298,11 +399,40 @@ function object_show(obj) {
 	});
 }
 
-function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
+/* Zone functions
+ */
+function zone_init_presence() {
+	zone_presence = [];
+
+	$('div.character').each(function() {
+		var character = $(this);
+		var char_id = character.prop('id');
+		zone_presence[char_id] = [];
+
+		$('div.zone').each(function() {
+			var my_pos = character.position();
+			var zone_pos = $(this).position();
+
+			if (my_pos.left < zone_pos.left) {
+				return;
+			} else if (my_pos.top < zone_pos.top) {
+				return;
+			} else if (my_pos.left >= zone_pos.left + $(this).width()) {
+				return;
+			} else if (my_pos.top >= zone_pos.top + $(this).height()) {
+				return;
+			}
+
+			zone_presence[char_id].push($(this).prop('id'));
+		});
+	});
+}
+
+function zone_create(width, height, color, opacity) {
 	$.post('/object/create_zone', {
 		map_id: map_id,
-		pos_x: pos_x / grid_cell_size,
-		pos_y: pos_y / grid_cell_size,
+		pos_x: zone_x / grid_cell_size,
+		pos_y: zone_y / grid_cell_size,
 		width: width,
 		height: height,
 		color: color,
@@ -313,11 +443,13 @@ function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
 		width *= grid_cell_size;
 		height *= grid_cell_size;
 
-		if (opacity > 0.8) {
+		if (opacity < 0.2) {
+			opacity = 0.2;
+		} else if (opacity > 0.8) {
 			opacity = 0.8;
 		}
 
-		var zone = '<div id="zone' + instance_id + '" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:3;" />';
+		var zone = '<div id="zone' + instance_id + '" class="zone" style="position:absolute; left:' + zone_x + 'px; top:' + zone_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:3;"><div class="script"></div></div>';
 
 		$('div.playarea > div').prepend(zone);
 
@@ -334,7 +466,13 @@ function zone_create(obj, pos_x, pos_y, width, height, color, opacity) {
 			selector: 'div#zone' + instance_id,
 			callback: context_menu_handler,
 			items: {
-				'delete': {name:'Delete', icon:'fa-trash'},
+				'info': {name:'Info', icon:'fa-info-circle'},
+				'script': {name:'Event script', icon:'fa-edit'},
+				'sep1': '-',
+				'distance': {name:'Distance', icon:'fa-map-signs'},
+				'coordinates': {name:'Coordinates', icon:'fa-flag'},
+				'sep2': '-',
+				'delete': {name:'Delete', icon:'fa-trash'}
 			},
 			zIndex: DEFAULT_Z_INDEX + 3
 		});
@@ -413,10 +551,40 @@ function context_menu_handler(key, options) {
 		case 'collectable':
 			collectables_select(obj);
 			break;
+		case 'coordinates':
+			var pos_x = coord_to_grid(mouse_x, false) / grid_cell_size;
+			var pos_y = coord_to_grid(mouse_y, false) / grid_cell_size;
+			write_sidebar('Coordinates: ' + pos_x + ', ' + pos_y);
+			break;
 		case 'delete':
 			if (confirm('Delete object?')) {
 				object_delete(obj);
 			}
+			break;
+		case 'distance':
+			var pos_x = coord_to_grid(mouse_x, false) + (grid_cell_size >> 1) - 12;
+			var pos_y = coord_to_grid(mouse_y, false) - (grid_cell_size >> 1) + 7;
+			var marker = '<img src="/images/pin.png" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; z-index:' + (DEFAULT_Z_INDEX + 4) + '" class="pin" />';
+			$('div.playarea > div').append(marker);
+
+			$('div.playarea').mousemove(function(event) {
+				var from_x = coord_to_grid(mouse_x, false);
+				var from_y = coord_to_grid(mouse_y, false);
+
+				var to_x = event.clientX + $('div.playarea').scrollLeft() - 16;
+				to_x = coord_to_grid(to_x, false);
+				var to_y = event.clientY + $('div.playarea').scrollTop() - 41;
+				to_y = coord_to_grid(to_y, false);
+
+				var diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
+				var diff_y = Math.round(Math.abs(to_y - from_y) / grid_cell_size);
+
+				var distance = (diff_x > diff_y) ? diff_x : diff_y;
+
+				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft');
+			});
+
+			measuring = true;
 			break;
 		case 'info':
 			object_info(obj);
@@ -445,59 +613,20 @@ function context_menu_handler(key, options) {
 				object_rotate(obj, direction);
 			}
 			break;
+		case 'script':
+			$('div.script_editor input#zone_id').val($(this).prop('id'));
+			$('div.script_editor input#zone_group').val($(this).attr('group'));
+			$('div.script_editor textarea').val($(this).find('div.script').text());
+			$('div.script_editor').show();
+			$('div.script_editor textarea').focus();
+			break;
 		case 'zone_create':
-			var pos_x = coord_to_grid(mouse_x, false);
-			var pos_y = coord_to_grid(mouse_y, false);
+			zone_x = coord_to_grid(mouse_x, false);
+			zone_y = coord_to_grid(mouse_y, false);
 
-			var zone_define = '<div class="zone_create overlay" onClick="javascript:$(this).remove()"><div class="panel panel-default" onClick="javascript:event.stopPropagation()"><div class="panel-heading">Create zone<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().remove()"></span></div><div class="panel-body" style="max-height:335px">';
-			zone_define += '<label for="width">Width:</label>';
-			zone_define += '<input type="text" id="width" value="3" class="form-control" onKeyUp="javascript:$(\'#height\').val($(this).val())" />';
-			zone_define += '<label for="height">Height:</label>';
-			zone_define += '<input type="text" id="height" value="3" class="form-control" />';
-			zone_define += '<label for="color">Color:</label>';
-			zone_define += '<input type="text" id="color" value="#ff0000" class="form-control" />';
-			zone_define += '<label for="opacity">Opacity:</label>';
-			zone_define += '<input type="text" id="opacity" value="0.2" class="form-control" />';
-			zone_define += '<div class="btn-group"><button class="btn btn-default">Create zone</button></div>';
-			zone_define += '</div></div></div>';
-
-			$('body').prepend(zone_define);
-			$('div.zone_create div.panel').draggable({
-				handle: 'div.panel-heading',
-				cursor: 'grab'
-			});
-			$('div.zone_create').css('z-index', DEFAULT_Z_INDEX + 5);
-
-			$('div.zone_create button').on('click', function() {
-				var width = parseInt($('input#width').val());
-				var height = parseInt($('input#height').val());
-				var color = $('input#color').val();
-				var opacity = parseFloat($('input#opacity').val());
-
-				if (isNaN(width)) {
-					write_sidebar('Invalid width.');
-					return;
-				} else if (isNaN(height)) {
-					write_sidebar('Invalid height.');
-					return;
-				} else if (isNaN(opacity)) {
-					write_sidebar('Invalid opacity.');
-					return;
-				}
-
-				if (opacity < 0.2) {
-					opacity = 0.2;
-				} else if (opacity > 1) {
-					opacity = 1;
-				}
-
-				pos_x -= Math.floor((width - 1) / 2) * grid_cell_size;
-				pos_y -= Math.floor((height - 1) / 2) * grid_cell_size;
-
-				zone_create(obj, pos_x, pos_y, width, height, color, opacity);
-
-				$(this).parent().parent().parent().parent().remove();
-			});
+			$('div.zone_create input#width').val(3);
+			$('div.zone_create input#height').val(3);
+			$('div.zone_create').show();
 			break;
 		default:
 			write_sidebar('Unknown menu option: ' + key);
@@ -524,8 +653,22 @@ $(document).ready(function() {
 		}
 	}
 
-	/* Objects
+	$('div.overlay').css('z-index', DEFAULT_Z_INDEX + 5);
+
+	/* Player start position
 	 */
+	$('div#start').css('z-index', DEFAULT_Z_INDEX + 1);
+
+	$('div#start').draggable({
+		handle: 'img',
+		stop: function(event, ui) {
+			object_move($(this));
+		}
+	});
+
+	/* Zones
+	 */
+	$('div.zone').css('z-index', 3);
 	$('div.zone').draggable({
 		create: function(event, ui) {
 			$(this).css('cursor', 'grab');
@@ -535,6 +678,73 @@ $(document).ready(function() {
 		}
 	});
 
+	zone_init_presence();
+
+	$('div.zone_create div.panel').draggable({
+		handle: 'div.panel-heading',
+		cursor: 'grab'
+	});
+
+	$('div.zone_create').css('z-index', DEFAULT_Z_INDEX + 5);
+
+	$('div.zone_create button.create').on('click', function() {
+		var width = parseInt($('input#width').val());
+		var height = parseInt($('input#height').val());
+		var color = $('input#color').val();
+		var opacity = parseFloat($('input#opacity').val());
+
+		if (isNaN(width)) {
+			write_sidebar('Invalid width.');
+			return;
+		} else if (isNaN(height)) {
+			write_sidebar('Invalid height.');
+			return;
+		} else if (isNaN(opacity)) {
+			write_sidebar('Invalid opacity.');
+			return;
+		}
+
+		if (opacity < 0) {
+			opacity = 0;
+		} else if (opacity > 1) {
+			opacity = 1;
+		}
+
+		zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
+		zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
+
+		zone_create(width, height, color, opacity);
+
+		$('div.zone_create').hide();
+	});
+
+	$.contextMenu({
+		selector: 'div.zone',
+		callback: context_menu_handler,
+		items: {
+			'info': {name:'Info', icon:'fa-info-circle'},
+			'script': {name:'Event script', icon:'fa-edit'},
+			'sep1': '-',
+			'distance': {name:'Distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'sep2': '-',
+			'delete': {name:'Delete', icon:'fa-trash'}
+		},
+		zIndex: DEFAULT_Z_INDEX + 3
+	});
+
+	$('div.script_editor div.panel').draggable({
+		handle: 'div.panel-heading',
+		cursor: 'grab'
+	});
+
+	$('div.script_manual div.panel').draggable({
+		handle: 'div.panel-heading',
+		cursor: 'grab'
+	});
+
+	/* Objects
+	 */
 	$('div.token[is_hidden=no]').each(function() {
 		$(this).show();
 	});
@@ -561,11 +771,11 @@ $(document).ready(function() {
 	});
 
 	$('div.token[is_hidden=yes]').each(function() {
-		$(this).fadeTo('fast', 0.5);
+		$(this).fadeTo(0, 0.5);
 	});
 
 	$('div.character[is_hidden=yes]').each(function() {
-		$(this).fadeTo('fast', 0.5);
+		$(this).fadeTo(0, 0.5);
 	});
 
 	$.contextMenu({
@@ -590,8 +800,11 @@ $(document).ready(function() {
 			'armor_class': {name:'Armor class', icon:'fa-shield'},
 			'hitpoints': {name:'Hitpoints', icon:'fa-heartbeat'},
 			'sep2': '-',
-			'zone_create': {name:'Zone', icon:'fa-square-o'},
+			'distance': {name:'Distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Coordinates', icon:'fa-flag'},
 			'sep3': '-',
+			'zone_create': {name:'Zone', icon:'fa-square-o'},
+			'sep4': '-',
 			'lower': {name:'Lower', icon:'fa-arrow-down'},
 			'clone': {name:'Clone', icon:'fa-copy'},
 			'delete': {name:'Delete', icon:'fa-trash'}
@@ -606,16 +819,10 @@ $(document).ready(function() {
 			'info': {name:'Info', icon:'fa-info-circle'},
 			'presence': {name:'Presence', icon:'fa-low-vision'},
 			'sep1': '-',
+			'distance': {name:'Distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'sep2': '-',
 			'zone_create': {name:'Zone', icon:'fa-square-o'}
-		},
-		zIndex: DEFAULT_Z_INDEX + 3
-	});
-
-	$.contextMenu({
-		selector: 'div.zone',
-		callback: context_menu_handler,
-		items: {
-			'delete': {name:'Delete', icon:'fa-trash'},
 		},
 		zIndex: DEFAULT_Z_INDEX + 3
 	});
@@ -624,6 +831,9 @@ $(document).ready(function() {
 		selector: 'div.playarea > div',
 		callback: context_menu_handler,
 		items: {
+			'distance': {name:'Distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'sep1': '-',
 			'zone_create': {name:'Zone', icon:'fa-square-o'}
 		},
 		zIndex: DEFAULT_Z_INDEX + 4
@@ -651,6 +861,13 @@ $(document).ready(function() {
 		if (event.which == 3) {
 			mouse_x = event.clientX + $('div.playarea').scrollLeft() - 16;
 			mouse_y = event.clientY + $('div.playarea').scrollTop() - 41;
+		}
+
+		if (measuring) {
+			$('div.playarea').off('mousemove');
+			$('span#infobar').text('');
+			$('img.pin').remove();
+			measuring = false;
 		}
 	});
 });

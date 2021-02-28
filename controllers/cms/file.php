@@ -84,7 +84,7 @@
 				 */
 				$this->view->open_tag("current");
 				$path = "";
-				$this->view->add_tag("path", "", array("label" => "root"));
+				$this->view->add_tag("path", "", array("label" => "files"));
 				foreach ($this->page->parameters as $dir) {
 					$path .= "/".$dir;
 					$this->view->add_tag("path", $path, array("label" => $dir));

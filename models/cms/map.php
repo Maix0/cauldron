@@ -76,6 +76,11 @@
 				$result = false;
 			}
 
+			if (trim($map["url"]) == "") {
+				$this->view->add_message("Empty URL is not allowed.");
+				$result = false;
+			}
+
 			$min_size = 2 * $this->settings->screen_grid_size;
 
 			if (((int)$map["width"] < $min_size) || ((int)$map["height"] < $min_size)) {
@@ -86,39 +91,56 @@
 			return $result;
 		}
 
-		private function place_characters($game_id, $map_id) {
-			$query = "select l.character_id from game_character l, characters c ".
-			         "where l.character_id=c.id and game_id=%d order by c.name";
+		public function place_characters($game_id, $map_id, $start_x, $start_y) {
+			if (($map = $this->db->entry("maps", $map_id)) == false) {
+				return false;
+			}
 
-			if (($characters = $this->db->execute($query, $game_id)) === false) {
+			$query = "select l.character_id from game_character l, characters c ".
+			         "where l.character_id=c.id and game_id=%d and l.character_id not in ".
+			         "(select character_id from map_character where map_id=%d) order by c.name";
+
+			if (($characters = $this->db->execute($query, $game_id, $map_id)) === false) {
 				return false;
 			}
 
 			$data = array(
-				"id"          => null,
-				"game_map_id" => $map_id,
-				"pos_x"       => 1,
-				"pos_y"       => 1,
-				"hidden"      => NO);
+				"id"     => null,
+				"map_id" => $map_id,
+				"pos_x"  => $start_x,
+				"pos_y"  => $start_y,
+				"hidden" => NO);
+
+			$positions = array(
+				array( 0, -1), array( 1,  1), array(-1,  1), array(-1, -1),
+				array( 0, -1), array( 2,  0), array( 0,  2), array(-2,  0),
+				array( 1, -1));
 
 			foreach ($characters as $character) {
 				$data["character_id"] = $character["character_id"];
 				if ($this->db->insert("map_character", $data) == false) {
 					return false;
 				}
-				$data["pos_x"]++;
+
+				$delta = array_shift($positions);
+				$data["pos_x"] += $delta[0];
+				$data["pos_y"] += $delta[1];
+				array_push($positions, $delta);
 			}
 
 			return true;
 		}
 
 		public function create_map($map) {
-			$keys = array("id", "game_id", "title", "url", "type", "width", "height", "grid_size", "show_grid", "dm_notes");
+			$keys = array("id", "game_id", "title", "url", "type", "width", "height",
+			              "grid_size", "show_grid", "start_x", "start_y", "dm_notes");
 
 			$map["id"] = null;
 			$map["game_id"] = $_SESSION["edit_game_id"];
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
+			$map["start_x"] = 2;
+			$map["start_y"] = 2;
 
 			if ($this->db->query("begin") === false) {
 				return false;
@@ -130,7 +152,7 @@
 			}
 			$map_id = $this->db->last_insert_id;
 
-			if ($this->place_characters($_SESSION["edit_game_id"], $map_id) == false) {
+			if ($this->place_characters($_SESSION["edit_game_id"], $map_id, $map["start_x"], $map["start_y"]) == false) {
 				$this->db->query("rollback");
 				return false;
 			}
@@ -165,9 +187,9 @@
 
 		public function delete_map($map_id) {
 			$queries = array(
-				array("delete from zones where game_map_id=%d", $map_id),
-				array("delete from map_token where game_map_id=%d", $map_id),
-				array("delete from map_character where game_map_id=%d", $map_id),
+				array("delete from zones where map_id=%d", $map_id),
+				array("delete from map_token where map_id=%d", $map_id),
+				array("delete from map_character where map_id=%d", $map_id),
 				array("update games set active_map_id=null where active_map_id=%d", $map_id),
 				array("delete from maps where id=%d", $map_id));
 

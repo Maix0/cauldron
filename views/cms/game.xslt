@@ -11,11 +11,12 @@
 <xsl:template match="overview">
 <table class="table table-condensed table-striped table-hover">
 <thead>
-<tr><th>Title</th><th>Players</th><th>Accessible</th></tr>
+<tr><th>ID</th><th>Title</th><th>Players</th><th>Accessible</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="games/game">
 <tr class="click" onClick="javascript:document.location='/{/output/page}/{@id}'">
+<td><xsl:value-of select="@id" /></td>
 <td><xsl:value-of select="title" /></td>
 <td><xsl:value-of select="players" /></td>
 <td><xsl:value-of select="player_access" /></td>
@@ -44,29 +45,11 @@
 
 <label for="title">Title:</label>
 <input type="text" id="title" name="title" value="{game/title}" class="form-control" />
-<label for="image">URL to background image:</label>
+<label for="image">Background image URL:</label>
 <input type="text" id="image" name="image" value="{game/image}" class="form-control" />
 <label for="story">Introduction story:</label>
 <textarea id="story" name="story" class="form-control"><xsl:value-of select="game/story" /></textarea>
 <div>Accessible for players: <input type="checkbox" name="player_access"><xsl:if test="game/player_access='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
-
-<xsl:if test="characters">
-<label for="title">Characters:</label>
-<div class="row">
-<xsl:for-each select="characters/user">
-<div class="col-xs-6 col-sm-4 col-md-3">
-<div class="panel panel-default">
-<div class="panel-heading"><xsl:value-of select="@name" /></div>
-<div class="panel-body">
-<xsl:for-each select="character">
-<div><input type="checkbox" name="characters[]" value="{@id}"><xsl:if test="@checked='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input><xsl:value-of select="." /></div>
-</xsl:for-each>
-</div>
-</div>
-</div>
-</xsl:for-each>
-</div>
-</xsl:if>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save game" class="btn btn-default" />

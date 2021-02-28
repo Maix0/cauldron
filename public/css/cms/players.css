@@ -1,0 +1,15 @@
+table.table th:nth-child(n+2) {
+	width:80px;
+}
+
+table.table tr.click {
+	cursor:pointer;
+}
+
+table.table tbody tr:not(.click) {
+	color:#c0c0c0;
+}
+
+input[type=checkbox] {
+	margin-right:5px;
+}

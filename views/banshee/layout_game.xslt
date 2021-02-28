@@ -48,8 +48,6 @@
 <div class="wrapper">
 	<div class="content">
 		<div class="container">
-			<xsl:apply-templates select="/output/system_warnings" />
-			<xsl:apply-templates select="/output/system_messages" />
 			<xsl:apply-templates select="/output/content" />
 		</div>
 	</div>

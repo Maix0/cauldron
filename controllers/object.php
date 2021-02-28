@@ -67,7 +67,9 @@
 		}
 
 		public function post_move() {
-			if (substr($_POST["instance_id"], 0, 9) == "character") {
+			if ($_POST["instance_id"] == "start") {
+				$this->model->start_move($_POST["map_id"], $_POST["pos_x"], $_POST["pos_y"]);
+			} else if (substr($_POST["instance_id"], 0, 9) == "character") {
 				$instance_id = substr($_POST["instance_id"], 9);
 				$this->model->character_move($instance_id, $_POST["pos_x"], $_POST["pos_y"]);
 			} else if (substr($_POST["instance_id"], 0, 5) == "token") {
@@ -143,6 +145,26 @@
 		 */
 		public function post_alternate() {
 			$this->model->set_alternate($_POST["game_id"], $_POST["char_id"], $_POST["alternate_id"]);
+		}
+
+		/* Script
+		 */
+		public function post_script() {
+			$this->model->script_save($_POST["zone_id"], $_POST["script"], $_POST["zone_group"]);
+		}
+
+		/* Audio
+		 */
+		public function post_audio() {
+			if (($files = $this->model->get_audio_files($_POST["game_id"])) === false) {
+				return false;
+			}
+
+			$this->view->open_tag("audio");
+			foreach ($files as $file) {
+				$this->view->add_tag("file", $file);
+			}
+			$this->view->close_tag();
 		}
 	}
 ?>
