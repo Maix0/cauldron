@@ -195,10 +195,11 @@ CREATE TABLE `map_character` (
   `character_id` int(10) unsigned NOT NULL,
   `pos_x` smallint(5) unsigned NOT NULL,
   `pos_y` smallint(5) unsigned NOT NULL,
+  `rotation` smallint(5) unsigned NOT NULL,
   `hidden` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `map_id` (`map_id`),
   KEY `character_id` (`character_id`),
+  KEY `map_id` (`map_id`) USING BTREE,
   CONSTRAINT `map_character_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`),
   CONSTRAINT `map_character_ibfk_2` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -224,8 +225,8 @@ CREATE TABLE `map_token` (
   `hitpoints` smallint(5) unsigned NOT NULL,
   `damage` smallint(5) unsigned NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `map_id` (`map_id`),
   KEY `token_id` (`token_id`),
+  KEY `map_id` (`map_id`) USING BTREE,
   CONSTRAINT `map_token_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`),
   CONSTRAINT `map_token_ibfk_2` FOREIGN KEY (`token_id`) REFERENCES `tokens` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -243,6 +244,7 @@ CREATE TABLE `maps` (
   `game_id` int(10) unsigned NOT NULL,
   `title` varchar(50) NOT NULL,
   `url` varchar(500) NOT NULL,
+  `audio` tinytext NOT NULL,
   `type` enum('image','video') NOT NULL,
   `width` smallint(5) unsigned NOT NULL,
   `height` smallint(3) unsigned NOT NULL,
@@ -280,7 +282,7 @@ CREATE TABLE `menu` (
 
 LOCK TABLES `menu` WRITE;
 /*!40000 ALTER TABLE `menu` DISABLE KEYS */;
-INSERT INTO `menu` VALUES (1,0,'Games','/game'),(2,0,'Characters','/character'),(3,0,'Logout','/logout');
+INSERT INTO `menu` VALUES (1,0,'Games','/game'),(2,0,'Characters','/character'),(3,0,'CMS','/cms'),(4,0,'Logout','/logout');
 /*!40000 ALTER TABLE `menu` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -410,7 +412,7 @@ CREATE TABLE `roles` (
   `object` tinyint(4) DEFAULT '0',
   `cms/collectable` tinyint(4) DEFAULT '0',
   `cms/condition` tinyint(4) DEFAULT '0',
-  `cms/players` tinyint(4) DEFAULT '0',  
+  `cms/players` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -423,7 +425,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
-INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0),(3,'Dungeon Master',1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,1);
+INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0),(3,'Dungeon Master',1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,1);
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -475,7 +477,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','8'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
+INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','9'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -579,7 +581,7 @@ CREATE TABLE `zones` (
   `script` text NOT NULL,
   `group` varchar(10) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `map_id` (`map_id`),
+  KEY `map_id` (`map_id`) USING BTREE,
   CONSTRAINT `zones_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -594,4 +596,4 @@ CREATE TABLE `zones` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-02-20 11:40:52
+-- Dump completed on 2021-03-14 13:18:40

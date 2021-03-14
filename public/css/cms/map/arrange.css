@@ -23,29 +23,6 @@ select#collectable {
     font-family:sans-serif;
 }
 
-/* Faded overlay dialog
- */
-div.overlay {
-	display:none;
-	position:fixed;
-	top:0;
-	bottom:0;
-	left:0;
-	right:0;
-	background:rgba(64, 64, 64, 0.7);
-}
-
-div.overlay div.panel {
-	width:450px;
-	margin:0 auto;
-	margin-top:200px;
-}
-
-div.overlay div.panel-body {
-	max-height:315px;
-	overflow-y:auto;
-}
-
 /* Menu
  */
 div.menu {
@@ -75,8 +52,9 @@ div.menu div.btn-group {
 /* Zones
  */
 div.zone:hover {
-	border:3px double #ff8800;
+	border:3px double #ff8000;
 }
+
 div.zone div.script {
 	display:none;
 }
@@ -87,7 +65,7 @@ div.playarea {
 	position:absolute;
 	top:40px;
 	right:215px;
-	bottom:0;
+	bottom:15px;
 	left:15px;
 	border:1px solid #000000;
 	overflow:auto;
@@ -115,6 +93,7 @@ div.library img.icon {
 	float:left;
 	max-width:50px;
 	max-height:50px;
+	transform:rotate(180deg);
 }
 
 div.library div.well div {
@@ -122,6 +101,10 @@ div.library div.well div {
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
+}
+
+img.ui-draggable-dragging {
+	transform:rotate(180deg);
 }
 
 /* Right bar

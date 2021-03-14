@@ -18,6 +18,7 @@ div.token img.icon {
 	float:left;
 	max-width:50px;
 	max-height:50px;
+	transform:rotate(180deg);
 }
 
 div.token div div {
@@ -38,6 +39,7 @@ span.input-group-btn label {
 
 img.token {
 	display:block;
+	transform:rotate(180deg);
 }
 
 @media (min-width:767px ) {

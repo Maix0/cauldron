@@ -63,6 +63,10 @@
 		}
 
 		private function save_image($image, $id) {
+			$token = new \Banshee\image($image["tmp_name"]);
+			$token->rotate(180);
+			$token->save($image["tmp_name"]);
+
 			return copy($image["tmp_name"], "files/tokens/".$id.".".$image["extension"]);
 		}
 
@@ -106,7 +110,16 @@
 			$result = true;
 
 			if (($current = $this->get_token($token["id"])) == false) {
-				$this->view->add_message("Chacaracter not found.");
+				$this->view->add_message("Token not found.");
+				$result = false;
+			}
+
+			$query = "select count(*) as count from map_token where token_id=%d";
+			if (($tokens = $this->db->execute($query, $token["id"])) === false) {
+				$this->view->add_message("Database error.");
+				$result = false;
+			} else if ($tokens[0]["count"] > 0) {
+				$this->view->add_message("This token is being used.");
 				$result = false;
 			}
 

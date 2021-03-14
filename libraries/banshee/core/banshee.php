@@ -57,9 +57,6 @@
 
 			$rename = array(
 				"https"     => "http",
-				"jpg_image" => "image",
-				"png_image" => "image",
-				"gif_image" => "image",
 				"pop3s"     => "pop3");
 
 			if (isset($rename[$class])) {

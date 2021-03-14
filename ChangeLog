@@ -1,3 +1,16 @@
+tabletop (0.9) stable; urgency=low
+
+  * Set script for entire zone group.
+  * Make character tokens rotatable.
+  * Added background audio for maps.
+  * Object steering changed.
+  * Bugfix: edit tokens on map with no characters.
+  * Bugfix: showing wrong alternate character icon.
+  * Bugfix: effects interfered with effects on other maps.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 14 Mar 2021 13:29:37 +0100
+
 tabletop (0.8) stable; urgency=low
 
   * Zone event scripts.
@@ -6,7 +19,7 @@ tabletop (0.8) stable; urgency=low
   * Steer object with the extra keys q, e, z and c.
   * Turn token via the keys < and >.
 
- -- Hugo Leisink <hugo@leisink.net>  Sun, 28 Feb 2020 11:00:02 +0100
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 28 Feb 2021 11:00:02 +0100
 
 tabletop (0.7) stable; urgency=low
 
@@ -15,7 +28,7 @@ tabletop (0.7) stable; urgency=low
   * Bugfix: added missing database upgrades in setup.
   * Small bugfixes and improvements.
 
- -- Hugo Leisink <hugo@leisink.net>  Sat, 20 Feb 2020 12:03:24 +0100
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 20 Feb 2021 12:03:24 +0100
 
 tabletop (0.6) stable; urgency=low
 
@@ -26,7 +39,7 @@ tabletop (0.6) stable; urgency=low
   * Small bugfixes and improvements.
   * Bugfix: correct position of right mouse click on edges of map.
 
- -- Hugo Leisink <hugo@leisink.net>  Wed, 17 Feb 2020 10:15:47 +0100
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 17 Feb 2021 10:15:47 +0100
 
 tabletop (0.5) stable; urgency=low
 
@@ -36,7 +49,7 @@ tabletop (0.5) stable; urgency=low
   * Calculate distance between two points.
   * Small bugfixes and improvements.
 
- -- Hugo Leisink <hugo@leisink.net>  Sun, 14 Feb 2020 11:28:31 +0100
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 14 Feb 2021 11:28:31 +0100
 
 tabletop (0.4) stable; urgency=low
 
@@ -46,7 +59,7 @@ tabletop (0.4) stable; urgency=low
   * Security checks added to object module.
   * Small bugfixes and improvements.
 
- -- Hugo Leisink <hugo@leisink.net>  Wed, 10 Feb 2020 07:48:53 +0100
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 10 Feb 2021 07:48:53 +0100
 
 tabletop (0.3) stable; urgency=low
 
@@ -54,7 +67,7 @@ tabletop (0.3) stable; urgency=low
   * Overrule who's next in battle order.
   * Clone tokens.
 
- -- Hugo Leisink <hugo@leisink.net>  Mon,  8 Feb 2020 08:55:02 +0100
+ -- Hugo Leisink <hugo@leisink.net>  Mon,  8 Feb 2021 08:55:02 +0100
 
 tabletop (0.2) stable; urgency=low
 
@@ -64,10 +77,10 @@ tabletop (0.2) stable; urgency=low
   * Make characters stick to other object.
   * Many small improvements.
 
- -- Hugo Leisink <hugo@leisink.net>  Thu,  4 Feb 2020 19:45:23 +0100
+ -- Hugo Leisink <hugo@leisink.net>  Thu,  4 Feb 2021 19:45:23 +0100
 
 tabletop (0.1) stable; urgency=low
 
   * Initial release.
 
- -- Hugo Leisink <hugo@leisink.net>  Thu, 28 Jan 2020 09:51:07 +0100
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 28 Jan 2021 09:51:07 +0100

@@ -51,9 +51,9 @@
 </xsl:for-each>
 <!-- Characters -->
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" hitpoints="{hitpoints}" damage="{damage}">
-<img src="/files/portraits/{@id}.{extension}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
-<span><xsl:value-of select="name" /></span>
+<div id="character{instance_id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" hitpoints="{hitpoints}" damage="{damage}">
+<img src="/files/characters/{@id}.{extension}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
+<span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>
 </div>

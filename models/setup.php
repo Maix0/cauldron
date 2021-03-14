@@ -337,6 +337,15 @@
 				$this->settings->database_version = 8;
 			}
 
+			if ($this->settings->database_version == 8) {
+				$this->db_query("ALTER TABLE map_character ADD rotation SMALLINT UNSIGNED NOT NULL AFTER pos_y");
+				$this->db_query("ALTER TABLE maps ADD audio TINYTEXT NOT NULL AFTER url");
+				$this->db_query("UPDATE menu SET id=4 WHERE id=3");
+				$this->db_query("INSERT INTO menu (id, parent_id, text, link) VALUES (3, 0, %s, %s)", "CMS", "/cms");
+
+				$this->settings->database_version = 9;
+			}
+
 			return true;
 		}
 

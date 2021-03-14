@@ -1,3 +1,15 @@
+function zone_group_change(init = false) {
+	if (init) {
+		$('input#copy_script').prop('checked', false);
+	}
+
+	if ($('input#zone_group').val() == '') {
+		$('div.copy_script').hide();
+	} else {
+		$('div.copy_script').show();
+	}
+}
+
 function script_error(message) {
 	write_sidebar('<b>Script error</b><br />' + message);
 }
@@ -40,7 +52,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 	var name = character.find('span.name').text();
 
 	var valid_triggers = ['enter', 'move', 'turn', 'leave'];
-	var speaker = 'Zone event';
+	var speaker = null;
 
 	var script = zone_script.text().split('\n');
 	for (ip = 0; ip < script.length; ip++) {
@@ -157,6 +169,19 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				var coord = parts[1].split(/, */);
 				var x = parseInt(coord[0]);
 				var y = parseInt(coord[1]);
+
+				if ((isNaN(x) || isNaN(y)) && (parts[0] == 'player') && (parts[3] == undefined)) {
+					var pos = object_position(character);
+
+					if (coord[0] == 'x') {
+						x = Math.floor(pos.left / grid_cell_size);
+					}
+
+					if (coord[1] == 'y') {
+						y = Math.floor(pos.top / grid_cell_size);
+					}
+				}
+
 				if (isNaN(x) || isNaN(y)) {
 					if (debug) {
 						script_error('Invalid coordinate: ' + parts[1] + ', ' + parts[2]);
@@ -197,9 +222,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 						break;
 					}
 
-					var pos = object.position();
-					pos.left += $('div.playarea').scrollLeft();
-					pos.top += $('div.playarea').scrollTop();
+					var pos = object_position(object);
 					pos_x = pos.left + x * grid_cell_size;
 					pos_y = pos.top + y * grid_cell_size;
 				} else {
@@ -303,7 +326,13 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 					websocket.send(JSON.stringify(data));
 				}
 
-				write_sidebar('<b>Sent to ' + name + ':</b><br />' + param);
+				message = '<b>Sent to ' + name + ':</b>';
+				if (speaker != null) {
+					message += '<br />' + speaker + ':';
+				}
+				message += '<br />' + param;
+
+				write_sidebar(message);
 				break;
 			case 'write_all':
 				param = param.replace('PLAYER', name);
@@ -328,25 +357,39 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 function script_save(zone) {
 	var zone_id = $('div.script_editor input#zone_id').val();
 	var zone_group = $('div.script_editor input#zone_group').val();
+	var copy_script = $('div.script_editor input#copy_script').prop('checked');
 	var script = $('div.script_editor textarea').val();
 
 	$.post('/object/script', {
 		zone_id: zone_id.substr(4),
+		map_id: map_id,
 		script: script,
+		copy_script: copy_script ? 'true' : 'false',
 		zone_group: zone_group
 	}).done(function(data) {
-		$('div#' + zone_id + ' div.script').text(script);
+		if ($('div#' + zone_id + ' div.script').length == 0) {
+			$('div#'  + zone_id).append('<div class="script"></div>');
+		}
+
+		if (copy_script) {
+			$('div.zone[group=' + zone_group + '] div.script').text(script);
+		} else {
+			$('div#' + zone_id + ' div.script').text(script);
+		}
+
 		if (zone_group != '') {
 			$('div#' + zone_id).attr('group', zone_group);
 		} else {
 			$('div#' + zone_id).removeAttr('group');
 		}
+
 		$('div#' + zone_id + ' div.script').removeAttr('disabled');
-		$('div.script_editor').hide();
 
 		if (typeof zone_announce_group_id == 'function') {
 			zone_announce_group_id(zone_id, zone_group);
 		}
+
+		$('div.script_editor').hide();
 	}).fail(function(data) {
 		alert('Script save error');
 	});

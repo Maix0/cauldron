@@ -52,13 +52,16 @@
 		 */
 		private function valid_token_instance_id($instance_id) {
 			$query = "select count(*) as count ".
-			         "from map_token t, maps m, games g, game_character p, characters c ".
-			         "where t.map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id ".
-			         "and t.id=%d and (g.dm_id=%d or c.user_id=%d)";
+			         "from map_token t, maps m, games g ".
+			         "left join game_character i on g.id=i.game_id ".
+			         "left join characters c on i.character_id=c.id ".
+			         "where t.id=%d and t.map_id=m.id and m.game_id=g.id ".
+			         "and (g.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $instance_id, $this->user->id, $this->user->id)) === false) {
 				return false;
 			}
+
 
 			return $result[0]["count"] > 0;
 		}
@@ -179,8 +182,8 @@
 		private function valid_character_instance_id($instance_id) {
 			$query = "select count(*) as count ".
 			         "from map_character h, maps m, games g, game_character p, characters c ".
-			         "where h.map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id and h.character_id=c.id ".
-			         "and h.id=%d and (g.dm_id=%d or c.user_id=%d)";
+			         "where h.map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id ".
+			         "and h.character_id=c.id and h.id=%d and (g.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $instance_id, $this->user->id, $this->user->id)) === false) {
 				return false;
@@ -230,13 +233,25 @@
 			return $this->db->update("map_character", $instance_id, $data) !== false;
 		}
 
+		public function character_rotate($instance_id, $direction) {
+			if ($this->valid_character_instance_id($instance_id) == false) {
+				return false;
+			}
+
+			$data = array("rotation" => (int)$direction);
+			return $this->db->update("map_character", $instance_id, $data) !== false;
+		}
+
 		/* Zone functions
 		 */
 		private function valid_zone_id($zone_id) {
 			$query = "select count(*) as count from zones z, maps m, games g ".
-			         "where z.map_id=m.id and m.game_id=g.id and z.id=%d and g.dm_id=%d";
+			         "left join game_character i on g.id=i.game_id ".
+			         "left join characters c on i.character_id=c.id ".
+			         "where z.id=%d and z.map_id=m.id and m.game_id=g.id ".
+			         "and (g.dm_id=%d or c.user_id=%d)";
 
-			if (($result = $this->db->execute($query, $zone_id, $this->user->id)) === false) {
+			if (($result = $this->db->execute($query, $zone_id, $this->user->id, $this->user->id)) === false) {
 				return false;
 			}
 
@@ -256,7 +271,8 @@
 				"width"   => (int)$zone["width"],
 				"height"  => (int)$zone["height"],
 				"color"   => $zone["color"],
-				"opacity" => $zone["opacity"]);
+				"opacity" => $zone["opacity"],
+				"group"   => $zone["group"]);
 
 			if ($this->db->insert("zones", $data) === false) {
 				return false;
@@ -282,9 +298,21 @@
 			return $this->db->update("zones", $zone_id, $data) !== false;
 		}
 
-		public function script_save($zone_id, $script, $group) {
+		public function script_save($zone_id, $map_id, $script, $group, $copy_script) {
 			if ($this->valid_zone_id($zone_id) == false) {
 				return false;
+			}
+
+			if ($copy_script && ($group != '')) {
+				if ($this->valid_map_id($map_id) == false) {
+					return false;
+				}
+
+				$query = "update zones set script=%s where %S=%s and map_id=%d";
+				if ($this->db->query($query, $script, 'group', $group, $map_id) === false) {
+					return false;
+				}
+
 			}
 
 			$data = array("script" => trim($script), "group" => trim($group));
@@ -294,9 +322,10 @@
 		/* Collectable functions
 		 */
 		private function valid_collectable_id($collectable_id) {
-			$query = "select count(*) as count from collectables i, games g, game_character p, characters c ".
-			         "where i.game_id=g.id and g.id=p.game_id and p.character_id=c.id ".
-			         "and i.id=%d and (g.dm_id=%d or c.user_id=%d)";
+			$query = "select count(*) as count from collectables o, games g ".
+			         "left join game_character i on g.id=i.game_id ".
+			         "left join characters c on i.character_id=c.id ".
+			         "where o.id=%d and o.game_id=g.id and (g.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $collectable_id, $this->user->id, $this->user->id)) === false) {
 				return false;

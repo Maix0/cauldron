@@ -8,7 +8,7 @@
 
 	namespace Banshee;
 
-	abstract class image {
+	class image {
 		public $resource = null;
 		protected $load_image = null;
 		protected $save_image = null;
@@ -19,13 +19,39 @@
 
 		/* Constructor
 		 *
-		 * INPUT:  string filename
+		 * INPUT:  string filename or image string
 		 * OUTPUT: -
 		 * ERROR:  -
 		 */
-		public function __construct($filename = null) {
-			if ($filename !== null) {
-				$this->load($filename);
+		public function __construct($image) {
+			if (substr($image, -4) == ".gif") {
+				$this->set_image_format("gif");
+				$this->load($image);
+				return;
+			} else if (substr($image, -4) == ".jpg") {
+				$this->set_image_format("jpeg");
+				$this->load($image);
+				return;
+			} else if (substr($image, -4) == ".png") {
+				$this->set_image_format("png");
+				$this->load($image);
+				return;
+			} else if (substr($image, 0, 5) == "/tmp/") {
+				$image = file_get_contents($image);
+			}
+
+			if (substr($image, 0, 6) == "GIF89a") {
+				$this->set_image_format("gif");
+				$this->from_string($image);
+			} else if (substr($image, 6, 4) == "JFIF") {
+				$this->set_image_format("jpeg");
+				$this->from_string($image);
+			} else if (substr($image, 6, 4) == "Exif") {
+				$this->set_image_format("jpeg");
+				$this->from_string($image);
+			} else if (substr($image, 1, 3) == "PNG") {
+				$this->set_image_format("png");
+				$this->from_string($image);
 			}
 		}
 
@@ -39,6 +65,18 @@
 			if ($this->resource !== null) {
 				imagedestroy($this->resource);
 			}
+		}
+
+		/* Set image format
+		 *
+		 * INPUT:  string gif|jpeg|png
+		 * OUTPUT: -
+		 * ERROR:  -
+		 */
+		private function set_image_format($format) {
+			$this->load_image = "imagecreatefrom".$format;
+			$this->save_image = "image".$format;
+			$this->mime_format  = "image/".$format;
 		}
 
 		/* Magic method get
@@ -68,7 +106,9 @@
 		 * ERROR:  false
 		 */
 		public function load($filename) {
-			if (($resource = call_user_func($this->load_image, $filename)) === false) {
+			if (file_exists($filename) == false) {
+				return false;
+			} else if (($resource = call_user_func($this->load_image, $filename)) === false) {
 				return false;
 			}
 
@@ -93,6 +133,8 @@
 			if ($filename === null) {
 				$filename = $this->filename;
 			}
+
+			imagesavealpha($this->resource, true);
 
 			return call_user_func($this->save_image, $this->resource, $filename);
 		}
@@ -120,7 +162,7 @@
 		 * OUTPUT: true
 		 * ERROR:  false
 		 */
-		public function update_size() {
+		private function update_size() {
 			if ($this->resource === null) {
 				return false;
 			}
@@ -133,9 +175,9 @@
 
 		/* Resize image
 		 *
-		 * INPUT:  int new height[, int max new width]
-		 * OUTPUT: true
-		 * ERROR:  false
+		 * input:  int new height[, int max new width]
+		 * output: true
+		 * error:  false
 		 */
 		public function resize($height, $max_width = null) {
 			if ($this->resource === null) {
@@ -155,6 +197,32 @@
 				return false;
 			}
 			if (imagecopyresampled($resource, $this->resource, 0, 0, 0, 0, $width, $height, $this->width, $this->height) == false) {
+				return false;
+			}
+
+			imagedestroy($this->resource);
+			$this->resource = $resource;
+			$this->update_size();
+
+			return true;
+		}
+
+		/* Rotate image
+		 *
+		 * input:  int new angle[, int background color]
+		 * output: true
+		 * error:  false
+		 */
+		public function rotate($angle, $bgcolor = null) {
+			if ($this->resource === null) {
+				return false;
+			}
+
+			if ($bgcolor === null) {
+				$bgcolor = imagecolorallocatealpha($this->resource, 0, 0, 0, 127);
+			}
+
+			if (($resource = imagerotate($this->resource, $angle, $bgcolor, 0)) == false) {
 				return false;
 			}
 
@@ -206,42 +274,6 @@
 
 			header("Content-Type: ".$this->mime_type);
 			return call_user_func($this->save_image, $this->resource);
-		}
-	}
-
-	/* JPG image
-	 */
-	class jpg_image extends image {
-		public function __construct($filename = null) {
-			$this->load_image = "imagecreatefromjpeg";
-			$this->save_image = "imagejpeg";
-			$this->mime_type  = "image/jpeg";
-
-			parent::__construct($filename);
-		}
-	}
-
-	/* PNG image
-	 */
-	class png_image extends image {
-		public function __construct($filename = null) {
-			$this->load_image = "imagecreatefrompng";
-			$this->save_image = "imagepng";
-			$this->mime_type  = "image/png";
-
-			parent::__construct($filename);
-		}
-	}
-
-	/* GIF image
-	 */
-	class gif_image extends image {
-		public function __construct($filename = null) {
-			$this->load_image = "imagecreatefromgif";
-			$this->save_image = "imagegif";
-			$this->mime_type  = "image/gif";
-
-			parent::__construct($filename);
 		}
 	}
 ?>

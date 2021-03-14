@@ -9,7 +9,7 @@
 	class profile_model extends Banshee\model {
 		private $hashed = null;
 
-        public function get_user($user_id) {
+		public function get_user($user_id) {
 			$query = "select fullname, email".
 			         "from users where id=%d limit 1";
 

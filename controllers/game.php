@@ -102,7 +102,6 @@
 					return;
 				}
 
-				$attr = array("name" => "Dungeon Master");
 				if ($user_is_dungeon_master == false) {
 					foreach ($characters as $character) {
 						if ($character["user_id"] == $this->user->id) {
@@ -135,9 +134,8 @@
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("game.js");
 
-            	$this->view->add_css("banshee/context-menu.css");
+				$this->view->add_css("banshee/context-menu.css");
 				$this->view->add_css("banshee/font-awesome.css");
-				$this->view->add_css("includes/tabletop.css");
 			} else {
 				$this->view->add_javascript("game_no_map.js");
 			}

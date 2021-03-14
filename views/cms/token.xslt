@@ -53,7 +53,7 @@
 <input type="text" id="width" name="width" value="{token/width}" class="form-control" />
 <label for="height">Height:</label>
 <input type="text" id="height" name="height" value="{token/height}" class="form-control" />
-<label for="image">Image (make sure the token is facing upwards):</label>
+<label for="image">Image (make sure the token is facing down):</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
 <input type="file" name="image" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name)" />Browse</label></span>

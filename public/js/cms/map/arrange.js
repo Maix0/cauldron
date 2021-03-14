@@ -77,12 +77,12 @@ function object_create(icon, x, y) {
 		var armor_class = 10;
 		var hitpoints = 0;
 		var type = $(icon).parent().find('div.name').text();
-		var rotation = 0;
+		var rotation = 180;
 		var hidden = 'no';
 		x -= 30;
 		y -= 40;
 	} else {
-		// Cloned token
+		// Duplicated token
 		var token_id = $(icon).parent().attr('token_id');
 		var width = $(icon).width();
 		var height = $(icon).height();
@@ -278,7 +278,9 @@ function object_move(obj) {
 
 	if (obj.hasClass('zone')) {
 		zone_init_presence();
-	} else if (obj.hasClass('character') == false) {
+	}
+
+	if (obj.hasClass('character') == false) {
 		return;
 	}
 
@@ -428,7 +430,7 @@ function zone_init_presence() {
 	});
 }
 
-function zone_create(width, height, color, opacity) {
+function zone_create(width, height, color, opacity, group) {
 	$.post('/object/create_zone', {
 		map_id: map_id,
 		pos_x: zone_x / grid_cell_size,
@@ -436,7 +438,8 @@ function zone_create(width, height, color, opacity) {
 		width: width,
 		height: height,
 		color: color,
-		opacity: opacity
+		opacity: opacity,
+		group: group
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
 
@@ -449,7 +452,11 @@ function zone_create(width, height, color, opacity) {
 			opacity = 0.8;
 		}
 
-		var zone = '<div id="zone' + instance_id + '" class="zone" style="position:absolute; left:' + zone_x + 'px; top:' + zone_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:3;"><div class="script"></div></div>';
+		var zone = $('<div id="zone' + instance_id + '" class="zone" style="position:absolute; left:' + zone_x + 'px; top:' + zone_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:3;"><div class="script"></div></div>');
+
+		if (group != '') {
+			zone.attr('group', group);
+		}
 
 		$('div.playarea > div').prepend(zone);
 
@@ -479,6 +486,20 @@ function zone_create(width, height, color, opacity) {
 	}).fail(function(data) {
 		alert('Zone create error');
 	});
+}
+
+function zone_group_highlight() {
+	var group = $(this).attr('group');
+
+	if ((group == undefined) || (group == '')) {
+		return;
+	}
+
+	$('div.zone[group=' + group + ']').css('border', '3px double #ff8000');
+}
+
+function zone_group_unhighlight() {
+	$('div.zone').css('border', '');
 }
 
 /* Collectable functions
@@ -530,7 +551,7 @@ function collectables_select(obj) {
  */
 function context_menu_handler(key, options) {
 	var obj = $(this);
-	if (obj.prop('tagName') == 'IMG') {
+	if (obj.prop('tagName').toLowerCase() == 'img') {
 		var obj = $(this).parent();
 	}
 
@@ -543,10 +564,6 @@ function context_menu_handler(key, options) {
 	switch (key) {
 		case 'armor_class':
 			object_armor_class(obj);
-			break;
-		case 'clone':
-			var pos = obj.position();
-			object_create($(this), pos.left + grid_cell_size, pos.top);
 			break;
 		case 'collectable':
 			collectables_select(obj);
@@ -586,6 +603,10 @@ function context_menu_handler(key, options) {
 
 			measuring = true;
 			break;
+		case 'duplicate':
+			var pos = obj.position();
+			object_create($(this), pos.left + grid_cell_size, pos.top);
+			break;
 		case 'info':
 			object_info(obj);
 			break;
@@ -617,6 +638,7 @@ function context_menu_handler(key, options) {
 			$('div.script_editor input#zone_id').val($(this).prop('id'));
 			$('div.script_editor input#zone_group').val($(this).attr('group'));
 			$('div.script_editor textarea').val($(this).find('div.script').text());
+			zone_group_change(true);
 			$('div.script_editor').show();
 			$('div.script_editor textarea').focus();
 			break;
@@ -678,6 +700,8 @@ $(document).ready(function() {
 		}
 	});
 
+	$('div.zone').hover(zone_group_highlight, zone_group_unhighlight);
+
 	zone_init_presence();
 
 	$('div.zone_create div.panel').draggable({
@@ -692,6 +716,7 @@ $(document).ready(function() {
 		var height = parseInt($('input#height').val());
 		var color = $('input#color').val();
 		var opacity = parseFloat($('input#opacity').val());
+		var group = $('input#group').val();
 
 		if (isNaN(width)) {
 			write_sidebar('Invalid width.');
@@ -713,7 +738,7 @@ $(document).ready(function() {
 		zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
 		zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
 
-		zone_create(width, height, color, opacity);
+		zone_create(width, height, color, opacity, group);
 
 		$('div.zone_create').hide();
 	});
@@ -754,7 +779,10 @@ $(document).ready(function() {
 		object_rotate($(this), $(this).attr('rotation'), false);
 	});
 
-	$('div.character').css('z-index', DEFAULT_Z_INDEX + 2);
+	$('div.character').each(function() {
+		$(this).css('z-index', DEFAULT_Z_INDEX + 2);
+		object_rotate($(this), $(this).attr('rotation'), false);
+	});
 
 	$('div.token').draggable({
 		handle: 'img',
@@ -806,7 +834,7 @@ $(document).ready(function() {
 			'zone_create': {name:'Zone', icon:'fa-square-o'},
 			'sep4': '-',
 			'lower': {name:'Lower', icon:'fa-arrow-down'},
-			'clone': {name:'Clone', icon:'fa-copy'},
+			'duplicate': {name:'Duplicate', icon:'fa-copy'},
 			'delete': {name:'Delete', icon:'fa-trash'}
 		},
 		zIndex: DEFAULT_Z_INDEX + 3
@@ -818,6 +846,16 @@ $(document).ready(function() {
 		items: {
 			'info': {name:'Info', icon:'fa-info-circle'},
 			'presence': {name:'Presence', icon:'fa-low-vision'},
+			'rotate': {name:'Rotate', icon:'fa-compass', items:{
+				'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
+				'rotate_ne': {name:'North East'},
+				'rotate_e':  {name:'East', icon:'fa-arrow-circle-right'},
+				'rotate_se': {name:'South East'},
+				'rotate_s':  {name:'South', icon:'fa-arrow-circle-down'},
+				'rotate_sw': {name:'South West'},
+				'rotate_w':  {name:'West', icon:'fa-arrow-circle-left'},
+				'rotate_nw': {name:'North West'},
+			}},
 			'sep1': '-',
 			'distance': {name:'Distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Coordinates', icon:'fa-flag'},
@@ -870,4 +908,6 @@ $(document).ready(function() {
 			measuring = false;
 		}
 	});
+
+	filter_library();
 });

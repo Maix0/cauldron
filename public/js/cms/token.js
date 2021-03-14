@@ -14,3 +14,7 @@ function filter_tokens() {
 		}
 	});
 }
+
+$(document).ready(function() {
+	filter_tokens();
+});

@@ -52,7 +52,7 @@
 
 <label for="title">Title:</label>
 <input type="text" id="title" name="title" value="{map/title}" class="form-control" />
-<label for="url">URL:</label>
+<label for="url">Image/video URL:</label>
 <div class="input-group">
 <input type="text" id="url" name="url" value="{map/url}" class="form-control" />
 <span class="input-group-btn"><input type="button" value="Local maps" class="btn btn-default" onClick="javascript:browse_local()" /></span>
@@ -63,10 +63,12 @@
 <option><xsl:if test=".=../../map/type"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
 </xsl:for-each>
 </select>
+<label for="audio">Background audio URL:</label>
+<input type="text" id="audio" name="audio" value="{map/audio}" class="form-control" />
 <label for="width">Width:</label>
-<input type="text" id="width" name="width" value="{map/width}" class="form-control" />
+<input type="text" id="width" name="width" value="{map/width}" placeholder="For image map, leave empty for automatic detection" class="form-control" />
 <label for="height">Height:</label>
-<input type="text" id="height" name="height" value="{map/height}" class="form-control" />
+<input type="text" id="height" name="height" value="{map/height}" placeholder="For image map, leave empty for automatic detection" class="form-control" />
 <label for="grid_size">Grid size:</label>
 <input type="text" id="grid_size" name="grid_size" value="{map/grid_size}" class="form-control" />
 <div>Show grid: <input type="checkbox" name="show_grid"><xsl:if test="map/show_grid='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>

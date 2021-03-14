@@ -35,8 +35,8 @@
 			$this->view->add_tag("username", $this->user->username);
 			$this->view->add_tag("organisation", $organisation);
 			foreach (array_keys($profile) as $key) {
-                $this->view->add_tag($key, $profile[$key]);
-            }
+				$this->view->add_tag($key, $profile[$key]);
+			}
 
 			/* Action log
 			 */

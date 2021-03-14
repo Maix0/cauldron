@@ -13,6 +13,7 @@ function browse_local() {
 		dialog += '</ul></div></div>';
 
 		$('body').append(dialog);
+		$('body div.overlay').show();
 	});
 }
 

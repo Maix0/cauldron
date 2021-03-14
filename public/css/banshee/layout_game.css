@@ -59,3 +59,45 @@ a {
 		width:100%;
 	}
 }
+
+/* Script
+ */
+div.script_editor div.panel-body {
+	height:310px;
+}
+
+div.script_editor textarea {
+	height:200px;
+}
+
+div.script_editor div.game_id {
+	color:#a0a0a0;
+	float:right;
+	position:relative;
+	top:20px;
+}
+
+div.script_editor span.zone_group {
+	margin-left:50px;
+}
+
+div.script_editor input#zone_group {
+	border:0;
+	border-radius:5px;
+	padding:0 5px;
+	width:125px;
+	color:#000000;
+}
+
+div.script_manual div.panel {
+	max-width:600px;
+	width:100%;
+}
+
+div.script_manual div.panel-body {
+	font-family:sans-serif;
+}
+
+div.script_manual ul {
+	margin-left:15px;
+}

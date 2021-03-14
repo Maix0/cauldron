@@ -89,7 +89,10 @@
 		}
 
 		public function post_rotate() {
-			if (substr($_POST["instance_id"], 0, 5) == "token") {
+			if (substr($_POST["instance_id"], 0, 9) == "character") {
+				$instance_id = substr($_POST["instance_id"], 9);
+				$this->model->character_rotate($instance_id, $_POST["rotation"]);
+			} else if (substr($_POST["instance_id"], 0, 5) == "token") {
 				$instance_id = substr($_POST["instance_id"], 5);
 				$this->model->token_rotate($instance_id, $_POST["rotation"]);
 			}
@@ -150,7 +153,8 @@
 		/* Script
 		 */
 		public function post_script() {
-			$this->model->script_save($_POST["zone_id"], $_POST["script"], $_POST["zone_group"]);
+			$copy_script = is_true($_POST["copy_script"]);
+			$this->model->script_save($_POST["zone_id"], $_POST["map_id"], $_POST["script"], $_POST["zone_group"], $copy_script);
 		}
 
 		/* Audio

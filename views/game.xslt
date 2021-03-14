@@ -27,7 +27,7 @@
 
 <div class="overlay stories" onClick="javascript:close_story()">
 <xsl:for-each select="game">
-<div id="story{@id}" class="panel panel-default story" style="max-width:600px" onClick="javascript:event.stopPropagation()">
+<div id="story{@id}" class="panel panel-default story" onClick="javascript:event.stopPropagation()">
 <div class="panel-heading"><xsl:value-of select="title" /><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:close_story()"></span></div>
 <div class="panel-body"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
 </div>
@@ -68,9 +68,9 @@
 <!-- Journal -->
 <xsl:if test="map">
 <div class="journal overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-info" style="max-width:800px" onClick="javascript:event.stopPropagation()">
+<div class="panel panel-info" onClick="javascript:event.stopPropagation()">
 <div class="panel-heading">Journal<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.journal').hide()"></span></div>
-<div class="panel-body" style="max-height:400px; height:400px;">
+<div class="panel-body">
 <div class="entries">
 <xsl:for-each select="journal/entry">
 <xsl:if test="session"><div class="session"><xsl:value-of select="session" /></div></xsl:if>
@@ -87,7 +87,7 @@
 <!-- DM notes -->
 <xsl:if test="map/dm_notes!=''">
 <div class="notes overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-danger" style="max-width:600px" onClick="javascript:event.stopPropagation()">
+<div class="panel panel-danger" onClick="javascript:event.stopPropagation()">
 <div class="panel-heading">DM notes<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.notes').hide()"></span></div>
 <div class="panel-body"><xsl:value-of disable-output-escaping="yes" select="map/dm_notes" /></div>
 </div>
@@ -123,8 +123,9 @@
 </div>
 </div>
 <!-- Play area -->
-<div class="playarea" game_id="{@id}" map_id="{map/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" name="{characters/@name}">
+<div version="{/output/tabletop/version}" class="playarea" game_id="{@id}" map_id="{map/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
+<xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div>
 <xsl:if test="map/type='image'"><xsl:attribute name="style">background-image:url(<xsl:value-of select="map/url" />); background-size:<xsl:value-of select="map/width" />px <xsl:value-of select="map/height" />px; width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute></xsl:if>
 <xsl:if test="map/type='video'"><xsl:attribute name="style">width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute>
@@ -154,9 +155,9 @@
 </xsl:for-each>
 <!-- Characters -->
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
+<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-<img src="/files/portraits/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
+<img src="/files/characters/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>

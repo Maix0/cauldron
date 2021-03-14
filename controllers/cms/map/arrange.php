@@ -49,7 +49,6 @@
 
 		   	$this->view->add_css("banshee/context-menu.css");
 			$this->view->add_css("banshee/font-awesome.css");
-			$this->view->add_css("includes/tabletop.css");
 
 			$attr = array(
 				"id"             => $game["id"],

@@ -61,6 +61,37 @@
 			return $maps[0];
 		}
 
+		public function get_image_dimensions($map) {
+			if (substr($map["url"], 0, 1) == "/") {
+				$image = substr($map["url"], 1);
+			} else {
+				list(,, $hostname, $path) = explode("/", $map["url"], 4);
+				if (substr($map["url"], 0, 7) == "http://") {
+					$website = new \Banshee\Protocol\HTTPS($hostname);
+				} else if (substr($map["url"], 0, 8) == "https://") {
+					$website = new \Banshee\Protocol\HTTPS($hostname);
+				} else {
+					return false;
+				}
+
+				if (($result = $website->GET($map["url"])) === false) {
+					return false;
+				}
+				if ($result["status"] != 200) {
+					return false;
+				}
+
+				$image = $result["body"];
+			}
+
+			$image = new \Banshee\image($image);
+
+			$map["width"] = $image->width;
+			$map["height"] = $image->height;
+
+			return $map;
+		}
+
 		public function save_oke($map) {
 			$result = true;
 
@@ -88,6 +119,11 @@
 				$result = false;
 			}
 
+			if ($map["grid_size"] < 10) {
+				$this->view->add_message("Invalid grid size.");
+				$result = false;
+			}
+
 			return $result;
 		}
 
@@ -105,11 +141,12 @@
 			}
 
 			$data = array(
-				"id"     => null,
-				"map_id" => $map_id,
-				"pos_x"  => $start_x,
-				"pos_y"  => $start_y,
-				"hidden" => NO);
+				"id"       => null,
+				"map_id"   => $map_id,
+				"pos_x"    => $start_x,
+				"pos_y"    => $start_y,
+				"rotation" => 180,
+				"hidden"   => NO);
 
 			$positions = array(
 				array( 0, -1), array( 1,  1), array(-1,  1), array(-1, -1),
@@ -132,7 +169,7 @@
 		}
 
 		public function create_map($map) {
-			$keys = array("id", "game_id", "title", "url", "type", "width", "height",
+			$keys = array("id", "game_id", "title", "url", "audio", "type", "width", "height",
 			              "grid_size", "show_grid", "start_x", "start_y", "dm_notes");
 
 			$map["id"] = null;
@@ -166,7 +203,7 @@
 				return false;
 			}
 
-			$keys = array("title", "url", "type", "width", "height", "grid_size", "show_grid", "dm_notes");
+			$keys = array("title", "url", "audio", "type", "width", "height", "grid_size", "show_grid", "dm_notes");
 
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;

@@ -80,6 +80,14 @@
 					}
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save map") {
+					if (($_POST["type"] == "image") && ($_POST["width"] == "") && ($_POST["height"] == "")) {
+						if (($result = $this->model->get_image_dimensions($_POST)) !== false) {
+							$_POST = $result;
+						} else {
+print "Can't load image";
+						}
+					}
+
 					/* Save map
 					 */
 					if ($this->model->save_oke($_POST) == false) {

@@ -29,18 +29,18 @@
 			return $characters[$character_id];
 		}
 
-		private function file_upload_oke($portrait) {
+		private function file_upload_oke($icon) {
 			$result = true;
 
-			if ($portrait["error"] != 0) {
+			if ($icon["error"] != 0) {
 				if (isset($character["id"]) == false) {
-					$this->view->add_message("Upload a portrait.");
+					$this->view->add_message("Upload a icon.");
 					$result = false;
 				}
 			} else {
-				list(, $extension) = explode("/", $portrait["type"], 2);
+				list(, $extension) = explode("/", $icon["type"], 2);
 				if (in_array($extension, array("gif", "jpg", "png")) == false) {
-					$this->view->add_message("Invalid portrait.");
+					$this->view->add_message("Invalid icon.");
 					$result = false;
 				}
 			}
@@ -48,7 +48,7 @@
 			return $result;
 		}
 
-		public function save_oke($character, $portrait) {
+		public function save_oke($character, $icon) {
 			$result = true;
 
 			if (isset($character["id"])) {
@@ -72,7 +72,7 @@
 			}
 
 			if (isset($character["id"]) == false) {
-				if ($this->file_upload_oke($portrait) == false) {
+				if ($this->file_upload_oke($icon) == false) {
 					$result = false;
 				}
 			}
@@ -80,11 +80,15 @@
 			return $result;
 		}
 
-		private function save_portrait($portrait, $id) {
-			return copy($portrait["tmp_name"], "files/portraits/".$id.".".$portrait["extension"]);
+		private function save_icon($icon, $id) {
+			$token = new \Banshee\image($icon["tmp_name"]);
+			$token->rotate(180);
+			$token->save($icon["tmp_name"]);
+
+			return copy($icon["tmp_name"], "files/characters/".$id.".".$icon["extension"]);
 		}
 
-		public function create_character($character, $portrait) {
+		public function create_character($character, $icon) {
 			$keys = array("id", "user_id", "name", "initiative", "armor_class", "hitpoints");
 
 			$character["id"] = null;
@@ -95,9 +99,9 @@
 			}
 			$char_id = $this->db->last_insert_id;
 
-			if ($this->save_portrait($portrait, $char_id)) {
+			if ($this->save_icon($icon, $char_id)) {
 				$keys = array("extension");
-				$character["extension"] = $portrait["extension"];
+				$character["extension"] = $icon["extension"];
 				$this->db->update("characters", $char_id, $character, $keys);
 			} else {
 				$this->db->delete("characters", $char_id);
@@ -107,19 +111,19 @@
 			return true;
 		}
 
-		public function update_character($character, $portrait) {
+		public function update_character($character, $icon) {
 			$keys = array("name", "initiative", "armor_class", "hitpoints");
 
-			if ($portrait["error"] == 0) {
+			if ($icon["error"] == 0) {
 				if (($current = $this->get_character($character["id"])) == false) {
 					$this->view->add_message("Character not found.");
 					$result = false;
 				}
-				unlink("files/portraits/".$current["id"].".".$current["extension"]);
+				unlink("files/characters/".$current["id"].".".$current["extension"]);
 
-				if ($this->save_portrait($portrait, $character["id"])) {
+				if ($this->save_icon($icon, $character["id"])) {
 					array_push($keys, "extension");
-					$character["extension"] = $portrait["extension"];
+					$character["extension"] = $icon["extension"];
 				} else {
 					return false;
 				}
@@ -162,10 +166,10 @@
 			}
 
 			foreach ($alternates as $alternate) {
-				unlink("files/portraits/".$character_id."_".$alternate["id"].".".$alternate["extension"]);
+				unlink("files/characters/".$character_id."_".$alternate["id"].".".$alternate["extension"]);
 			}
 
-			unlink("files/portraits/".$character_id.".".$current["extension"]);
+			unlink("files/characters/".$character_id.".".$current["extension"]);
 
 			$queries = array(
 				array("delete from character_icons where character_id=%d", $character_id),
@@ -182,7 +186,7 @@
 			return $this->db->execute($query, $character_id);
 		}
 
-		public function portrait_oke($info, $portrait) {
+		public function icon_oke($info, $icon) {
 			$result = true;
 
 			if ($this->get_character($info["char_id"]) == false) {
@@ -200,15 +204,15 @@
 				$result = false;
 			}
 
-			if ($this->file_upload_oke($portrait) == false) {
+			if ($this->file_upload_oke($icon) == false) {
 				$result = false;
 			}
 
 			return $result;
 		}
 
-		public function add_portrait($info, $portrait) {
-			$parts = pathinfo($portrait["name"]);
+		public function add_icon($info, $icon) {
+			$parts = pathinfo($icon["name"]);
 
 			$data = array(
 				"id"           => null,
@@ -222,14 +226,18 @@
 			}
 			$id = $this->db->last_insert_id;
 
-			if (copy($portrait["tmp_name"], "files/portraits/".$info["char_id"]."_".$id.".".$parts["extension"]) == false) {
+			$token = new \Banshee\image($icon["tmp_name"]);
+			$token->rotate(180);
+			$token->save($icon["tmp_name"]);
+
+			if (copy($icon["tmp_name"], "files/characters/".$info["char_id"]."_".$id.".".$parts["extension"]) == false) {
 				$this->db->delete("character_icons", $id);
 			}
 
 			return true;
 		}
 
-		public function delete_portrait($icon_id) {
+		public function delete_icon($icon_id) {
 			$query = "select * from character_icons i, characters c ".
 			         "where i.character_id=c.id and i.id=%d and c.user_id=%d";
 			if (($character = $this->db->execute($query, $icon_id, $this->user->id)) == false) {
@@ -237,11 +245,15 @@
 			}
 			$current = $character[0];
 
-			if ($this->db->delete("character_icons", $icon_id) == false) {
+			$queries = array(
+				array("update game_character set alternate_icon_id=null where alternate_icon_id=%d", $icon_id),
+				array("delete from character_icons where id=%d", $icon_id));
+
+			if ($this->db->transaction($queries) == false) {
 				return false;
 			}
 
-			unlink("files/portraits/".$current["character_id"]."_".$icon_id.".".$current["extension"]);
+			unlink("files/characters/".$current["character_id"]."_".$icon_id.".".$current["extension"]);
 
 			return $current["character_id"];
 		}

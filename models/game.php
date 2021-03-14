@@ -40,13 +40,13 @@
 			         "i.id as instance_id, i.name, i.pos_x, i.pos_y, i.rotation, i.hidden, i.armor_class, i.hitpoints, i.damage ".
 			         "from tokens t, map_token i ".
 					 "left join collectables c on c.map_token_id=i.id ".
-			         "where t.id=i.token_id and i.map_id=%d order by id desc";
+			         "where t.id=i.token_id and i.map_id=%d order by i.id";
 
 			return $this->db->execute($query, $map_id);
 		}
 
 		public function get_characters($map_id) {
-			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.hidden, ".
+			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.rotation, i.hidden, ".
 			         "a.id as alternate_id, a.extension as alternate_extension, a.size as alternate_size ".
 			         "from characters c, map_character i, maps m, game_character g ".
 			         "left join character_icons a on g.alternate_icon_id=a.id ".
@@ -58,7 +58,7 @@
 		}
 
 		public function get_alternate_icons($character_id) {
-			$query = "select * from character_icons where id=%d order by name";
+			$query = "select * from character_icons where character_id=%d order by name";
 
 			return $this->db->execute($query, $character_id);
 		}

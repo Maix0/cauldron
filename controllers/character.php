@@ -65,17 +65,17 @@
 				if ($_POST["submit_button"] == "Save character") {
 					/* Save character
 					 */
-					if ($_FILES["portrait"]["error"] == 0) {
-						list(, $extension) = explode("/", $_FILES["portrait"]["type"], 2);
-						$_FILES["portrait"]["extension"] = $extension;
+					if ($_FILES["icon"]["error"] == 0) {
+						list(, $extension) = explode("/", $_FILES["icon"]["type"], 2);
+						$_FILES["icon"]["extension"] = $extension;
 					}
 
-					if ($this->model->save_oke($_POST, $_FILES["portrait"]) == false) {
+					if ($this->model->save_oke($_POST, $_FILES["icon"]) == false) {
 						$this->show_character_form($_POST);
 					} else if (isset($_POST["id"]) === false) {
 						/* Create character
 						 */
-						if ($this->model->create_character($_POST, $_FILES["portrait"]) === false) {
+						if ($this->model->create_character($_POST, $_FILES["icon"]) === false) {
 							$this->view->add_message("Error creating character.");
 							$this->show_character_form($_POST);
 						} else {
@@ -85,7 +85,7 @@
 					} else {
 						/* Update character
 						 */
-						if ($this->model->update_character($_POST, $_FILES["portrait"]) === false) {
+						if ($this->model->update_character($_POST, $_FILES["icon"]) === false) {
 							$this->view->add_message("Error updating character.");
 							$this->show_character_form($_POST);
 						} else {
@@ -105,19 +105,19 @@
 						$this->user->log_action("character %d deleted", $_POST["id"]);
 						$this->show_overview();
 					}
- 				} else if ($_POST["submit_button"] == "Add portrait") {
-					/* Add alternate portrait
+				} else if ($_POST["submit_button"] == "Add icon") {
+					/* Add alternate icon
 					 */
-					if ($this->model->portrait_oke($_POST, $_FILES["portrait"]) != false) {
-						if ($this->model->add_portrait($_POST, $_FILES["portrait"]) == false) {
-							$this->view->add_message("Error adding alternate portrait.");
+					if ($this->model->icon_oke($_POST, $_FILES["icon"]) != false) {
+						if ($this->model->add_icon($_POST, $_FILES["icon"]) == false) {
+							$this->view->add_message("Error adding alternate icon.");
 						}
 					}
 					$this->show_alternate_form($_POST["char_id"]);
- 				} else if ($_POST["submit_button"] == "delete") {
-					/* Delete alternate portrait
+				} else if ($_POST["submit_button"] == "delete") {
+					/* Delete alternate icon
 					 */
-					if (($char_id = $this->model->delete_portrait($_POST["icon_id"])) == false) {
+					if (($char_id = $this->model->delete_icon($_POST["icon_id"])) == false) {
 						$this->view->add_system_warning("Portrait not found.");
 						$this->show_overview();
 					} else {

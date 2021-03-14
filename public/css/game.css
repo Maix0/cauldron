@@ -27,8 +27,14 @@ div.well div.btn-group {
 	right:15px;
 }
 
-div.story {
+/* Stories
+ */
+div.stories > div {
 	display:none;
+}
+
+div.stories div.panel {
+	max-width:600px;
 }
 
 /* Run a game
@@ -71,33 +77,17 @@ table.table th:last-child {
 	width:200px;
 }
 
-/* Faded overlay dialog
- */
-div.overlay {
-	display:none;
-	position:fixed;
-	top:0;
-	bottom:0;
-	left:0;
-	right:0;
-	background:rgba(64, 64, 64, 0.7);
-	z-index:2;
-}
-
-div.overlay div.panel {
-	width:100%;
-	max-width:475px;
-	margin:0 auto;
-	margin-top:200px;
-}
-
-div.overlay div.panel-body {
-	max-height:315px;
-	overflow-y:auto;
-}
-
 /* Journal
  */
+div.journal div.panel {
+	max-width:800px;
+}
+
+div.journal div.panel-body {
+	max-height:400px;
+	height:400px;
+}
+
 div.journal div.session {
 	text-align:center;
 	font-weight:bold;
@@ -124,6 +114,12 @@ div.journal span.writer:after {
 	margin-right:5px;
 }
 
+/* Collectables
+ */
+div.collectables div.panel {
+	max-width:490px;
+}
+
 /* Effects
  */
 div.effects div.panel-heading span.size {
@@ -144,13 +140,24 @@ div.effects img.effect {
 	cursor:pointer;
 }
 
+/* DM notes
+ */
+div.notes div.panel {
+	max-width:600px;
+}
+
+div.notes div.panel-body {
+	white-space:pre-wrap;
+	padding:0 15px;
+}
+
 /* Screen elements
  */
 div.playarea {
 	position:absolute;
 	top:40px;
 	right:215px;
-	bottom:0;
+	bottom:15px;
 	left:15px;
 	border:1px solid #000000;
 	overflow:auto;
@@ -168,10 +175,14 @@ div.sidebar {
 	position:absolute;
 	top:40px;
 	right:0px;
-	bottom:55px;
+	bottom:65px;
 	width:200px;
 	overflow-y:scroll;
 	overflow-x:hidden;
+}
+
+div.sidebar b {
+	color:#4040a0;
 }
 
 div.input {
@@ -179,7 +190,7 @@ div.input {
 	right:10px;
 	bottom:5px;
 	width:195px;
-	height:40px;
+	height:45px;
 }
 
 /* Conditions
@@ -245,7 +256,6 @@ div.zone div.script {
 	div.playarea,
 	div.sidebar {
 		top:70px;
-		bottom:10px;
 	}
 
 	div.menu {
@@ -256,7 +266,10 @@ div.zone div.script {
 /* Mobile view
  */
 @media (max-width:767px) {
-	div.playarea,
+	div.playarea {
+		top:95px;
+	}
+
 	div.sidebar {
 		top:95px;
 	}
