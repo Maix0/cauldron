@@ -192,27 +192,47 @@
 			return $result[0]["count"] > 0;
 		}
 
-		public function character_damage($instance_id, $damage) {
-			if ($this->valid_character_instance_id($instance_id) == false) {
-				return false;
-			}
-
+		private function get_character($instance_id) {
 			$query = "select c.* from characters c, map_character i ".
 			         "where c.id=i.character_id and i.id=%d";
 			if (($characters = $this->db->execute($query, $instance_id)) == false) {
 				return false;
 			}
-			$current = $characters[0];
 
-			if ($damage > $current["hitpoints"]) {
-				$damage = $current["hitpoints"];
+			return $characters[0];
+		}
+
+		public function character_armor_class($instance_id, $armor_class) {
+			if ($this->valid_character_instance_id($instance_id) == false) {
+				return false;
+			}
+
+			if (($character = $this->get_character($instance_id)) == false) {
+				return false;
+			}
+
+			$data = array("armor_class" => $armor_class);
+			return $this->db->update("characters", $character["id"], $data) !== false;
+		}
+
+		public function character_damage($instance_id, $damage) {
+			if ($this->valid_character_instance_id($instance_id) == false) {
+				return false;
+			}
+
+			if (($character = $this->get_character($instance_id)) == false) {
+				return false;
+			}
+
+			if ($damage > $character["hitpoints"]) {
+				$damage = $character["hitpoints"];
 			} else if ($damage < 0) {
 				$damage = 0;
 			}
 
 			$query = "update characters set damage=%d where id=%d";
 
-			return $this->db->query($query, $damage, $current["id"]) !== false;
+			return $this->db->query($query, $damage, $character["id"]) !== false;
 		}
 
 		public function character_hide($instance_id, $hidden) {
@@ -222,6 +242,19 @@
 
 			$data = array("hidden" => is_true($hidden) ? YES : NO);
 			return $this->db->update("map_character", $instance_id, $data) !== false;
+		}
+
+		public function character_hitpoints($instance_id, $hitpoints) {
+			if ($this->valid_character_instance_id($instance_id) == false) {
+				return false;
+			}
+
+			if (($character = $this->get_character($instance_id)) == false) {
+				return false;
+			}
+
+			$data = array("hitpoints" => $hitpoints);
+			return $this->db->update("characters", $character["id"], $data) !== false;
 		}
 
 		public function character_move($instance_id, $pos_x, $pos_y) {

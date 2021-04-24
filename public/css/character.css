@@ -1,26 +1,26 @@
-div.well {
+div.pane; {
 	cursor:pointer;
 	height:170px;
 }
 
-div.well img {
+div.panel img {
 	max-width:100px;
 	max-height:100px;
-	margin-right:15px;
+	margin-right:25px;
 	float:left;
 	transform:rotate(180deg);
 }
 
-div.well div.name {
+div.panel-heading {
 	font-weight:bold;
 }
 
-div.well div.game {
-	clear:both;
-	margin-top:10px;
+div.panel-heading a {
+	float:right;
+	margin-left:15px;
 }
 
-div.well div.game span {
+div.panel-footer span {
 	font-style:italic;
 }
 
@@ -35,12 +35,13 @@ span.input-group-btn label {
 form img.icon {
 	display:block;
 	transform:rotate(180deg);
+	max-width:100%;
 }
 
-@media (min-width:767px ) {
+@media (min-width:768px ) {
 	form img.icon {
 		float:right;
-		max-width:200px;
+		max-width:250px;
 	}
 }
 
@@ -52,6 +53,7 @@ div.alternates {
 
 div.alternate {
 	width:100px;
+	height:220px;
 }
 
 div.alternate img.icon {

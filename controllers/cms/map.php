@@ -131,7 +131,7 @@ print "Can't load image";
 			} else if ($this->page->parameters[0] === "new") {
 				/* New map
 				 */
-				$map = array();
+				$map = array("grid_size" => 50);
 				$this->show_map_form($map);
 			} else if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
 				/* Edit map

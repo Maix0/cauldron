@@ -74,10 +74,9 @@
 					return false;
 				}
 
-				if (($result = $website->GET($map["url"])) === false) {
+				if (($result = $website->GET("/".$path)) === false) {
 					return false;
-				}
-				if ($result["status"] != 200) {
+				} else if ($result["status"] != 200) {
 					return false;
 				}
 

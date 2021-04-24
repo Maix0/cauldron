@@ -3,12 +3,16 @@ Installation
 This application has been built upon the Banshee PHP framework. Use the
 following steps to install a Banshee based website.
 
+This application was developed on a Linux system. It will very likely run
+well on other Unix clones. Other operating systems are not supported. This
+is mainly due to the required websocket server (see below).
+
 
 Configure your webserver
 ------------------------
-Use the directory 'public' as the webroot directory and allow PHP execution.
-Banshee needs URL rewriting. If you use the Hiawatha webserver, you can use
-the following configuration:
+Use the directory 'public' as the webroot (documentroot) directory and allow
+PHP execution. Banshee needs URL rewriting. If you use the Hiawatha webserver,
+you can use the following configuration:
 
 	UrlToolkit {
 		ToolkitID = banshee
@@ -52,9 +56,9 @@ writable for the webserver.
 
 Configure PHP
 -------------
-Banshee requires at least PHP v7.2 and needs PHP's JSON, MySQL and XML module.
-If you use the Banshee image library, you need PHP's GD module. Make sure the
-date.timezone setting in php.ini has been set correctly.
+TableTop requires at least PHP v7.2 and needs PHP's JSON, MySQLi, GD and
+XML/XSL module. Enable them in your PHP configuration. Also, make sure that
+the date.timezone setting has been set correctly.
 
 
 Configure your database

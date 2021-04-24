@@ -26,6 +26,8 @@
 					$this->model->update_database();
 				} else if ($_POST["submit_button"] == "Set password") {
 					$this->model->set_admin_credentials($_POST["username"], $_POST["password"], $_POST["repeat"]);
+				} else if ($_POST["submit_button"] == "Create directories") {
+					$this->model->create_directories();
 				}
 			}
 
@@ -52,6 +54,9 @@
 					ob_clean();
 					break;
 				case "update_db":
+					ob_clean();
+					break;
+				case "create_dirs":
 					ob_clean();
 					break;
 				case "credentials":

@@ -8,6 +8,7 @@ const ROLL_DISADVANTAGE = 2;
 var websocket;
 var game_id = null;
 var map_id = null;
+var user_id = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
 var dungeon_master = null;
@@ -34,6 +35,7 @@ var zone_menu = null;
 
 function websocket_send(data) {
 	data.game_id = game_id;
+	data.user_id = user_id;
 	data = JSON.stringify(data);
 
 	websocket.send(data);
@@ -147,14 +149,18 @@ function roll_dice(dice, send_to_others = true) {
 		if (roll.length > 2) {
 			return false;
 		} else if (roll.length == 2) {
-			var count = parseInt(roll[0]);
+			if (roll[0] == '') {
+				var count = 1;
+			} else {
+				var count = parseInt(roll[0]);
+			}
 			var sides = parseInt(roll[1]);
 
 			if (dices.includes(sides) == false) {
 				return false;
 			}
 
-			if (count > 10) {
+			if (count > 25) {
 				return false;
 			}
 
@@ -201,16 +207,15 @@ function roll_d20(bonus, type = ROLL_NORMAL) {
 
 	var roll = Math.floor(Math.random() * 20) + 1;
 
-	var message;
 	switch (type) {
 		case ROLL_ADVANTAGE:
-			message = 'Advantage d';
+			var message = 'Advantage d';
 			break;
 		case ROLL_DISADVANTAGE:
-			message = 'Disadvantage d';
+			var message = 'Disadvantage d';
 			break;
 		default:
-			message = 'D';
+			var message = 'D';
 			break;
 	}
 
@@ -333,10 +338,6 @@ function object_damage(obj, points) {
 	var hitpoints = parseInt(obj.attr('hitpoints'));
 	var damage = parseInt(obj.attr('damage'));
 
-	if (hitpoints == 0) {
-		return;
-	}
-
 	if (obj.is(my_character) && (points > 0)) {
 		if ((points -= temporary_hitpoints) <= 0) {
 			temporary_hitpoints = -points;
@@ -429,7 +430,7 @@ function object_info(obj) {
 	var info = '';
 
     if (obj.attr('id').substr(0, 4) != 'zone') {
-		var name = obj.find('span');
+		var name = obj.find('span.name');
 		if (name.length > 0) {
 			info += 'Name: ' + name.text() + '<br />';
 		}
@@ -610,7 +611,6 @@ function object_step(obj, x, y) {
 
 	obj.css('left', pos.left + 'px');
 	obj.css('top', pos.top + 'px');
-
 	object_move(obj, 50);
 
 	if (stick_to != null) {
@@ -1588,6 +1588,37 @@ function context_menu_handler(key, options) {
 				alternate_id: alternate_id
 			});
 			break;
+		case 'armor':
+			if (my_character == null) {
+				return;
+			}
+
+			var armor_class = my_character.attr('armor_class');
+			var points = window.prompt('Armor class:', armor_class);
+			if (points == undefined) {
+				break;
+			}
+	
+			points = parseInt(points);
+			if (isNaN(points)) {
+				write_sidebar('Invalid armor class.');
+				break;
+			}
+
+			var data = {
+				action: 'armor',
+				instance_id: my_character.prop('id'),
+				points: points
+			};
+			websocket_send(data);
+
+			$.post('/object/armor_class', {
+				instance_id: my_character.prop('id'),
+				armor_class: points
+			});
+
+			my_character.attr('armor_class', points);
+			break;
 		case 'attack':
 			var bonus = 0;
 			if ((bonus = window.prompt('Attack bonus:', bonus)) == undefined) {
@@ -1603,7 +1634,7 @@ function context_menu_handler(key, options) {
 			var armor_class = parseInt(obj.attr('armor_class'));
 
 			var message = '';
-			var name = obj.find('span').text();
+			var name = obj.find('span.name').text();
 			if (name != '') {
 				message += 'Target: ' + name + '\n';
 			} else {
@@ -1680,8 +1711,8 @@ function context_menu_handler(key, options) {
 			write_sidebar('Coordinates: ' + pos_x + ', ' + pos_y);
 			break;
 		case 'damage':
-			var points;
-			if ((points = window.prompt('Points:')) == undefined) {
+			var points = window.prompt('Points:');
+			if (points == undefined) {
 				break;
 			}
 
@@ -1761,8 +1792,8 @@ function context_menu_handler(key, options) {
 			object_handover(obj);
 			break;
 		case 'heal':
-			var points;
-			if ((points = window.prompt('Points:')) == undefined) {
+			var points = window.prompt('Points:');
+			if (points == undefined) {
 				break;
 			}
 
@@ -1797,11 +1828,50 @@ function context_menu_handler(key, options) {
 			};
 			websocket_send(data);
 			break;
+		case 'maxhp':
+			if (my_character == null) {
+				return;
+			}
+
+			var max_hp = my_character.attr('hitpoints');
+			var points = window.prompt('Maximum hit points:', max_hp);
+			if (points == undefined) {
+				break;
+			}
+
+			points = parseInt(points);
+			if (isNaN(points)) {
+				write_sidebar('Invalid hit points.');
+				break;
+			}
+
+			var data = {
+				action: 'maxhp',
+				instance_id: my_character.prop('id'),
+				points: points
+			};
+			websocket_send(data);
+
+			$.post('/object/hitpoints', {
+				instance_id: my_character.prop('id'),
+				hitpoints: points
+			});
+
+			my_character.attr('hitpoints', points);
+			object_damage(my_character, points - max_hp);
+			break;
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
 				object_show(obj);
 			} else {
 				object_hide(obj);
+			}
+			break;
+		case 'rotate':
+			var compass = { 'n':   0, 'ne':  45, 'e':  90, 'se': 135,
+			                's': 180, 'sw': 225, 'w': 270, 'nw': 315 };
+			if ((direction = compass[direction]) != undefined) {
+				object_rotate(obj, direction);
 			}
 			break;
 		case 'script':
@@ -1833,13 +1903,6 @@ function context_menu_handler(key, options) {
 				stick_to = obj.prop('id');
 			}
 			break;
-		case 'rotate':
-			var compass = { 'n':   0, 'ne':  45, 'e':  90, 'se': 135,
-			                's': 180, 'sw': 225, 'w': 270, 'nw': 315 };
-			if ((direction = compass[direction]) != undefined) {
-				object_rotate(obj, direction);
-			}
-			break;
 		case 'takeback':
 			var data = {
 				action: 'takeback',
@@ -1848,14 +1911,14 @@ function context_menu_handler(key, options) {
 			websocket_send(data);
 			break;
 		case 'temphp':
-			var points;
-			if ((points = window.prompt('Temporary hit points:', temporary_hitpoints)) == undefined) {
+			var points = window.prompt('Temporary hit points:', temporary_hitpoints);
+			if (points == undefined) {
 				break;
 			}
 
 			points = parseInt(points);
 			if (isNaN(points)) {
-				write_sidebar('Invalid healing points.');
+				write_sidebar('Invalid hit points.');
 				break;
 			}
 
@@ -1893,7 +1956,18 @@ function context_menu_handler(key, options) {
 			break;
 		case 'zone_delete':
 			if (confirm('Delete zone?')) {
-				zone_delete(obj);
+				var group = obj.attr('group');
+				if (group != undefined) {
+					if (confirm('Delete all zones in group ' + group + '?')) {
+						$('div.zone[group=' + group +']').each(function() {
+							zone_delete($(this));
+						});
+					} else {
+						zone_delete(obj);
+					}
+				} else {
+					zone_delete(obj);
+				}
 			}
 			break;
 		default:
@@ -1906,12 +1980,13 @@ function context_menu_handler(key, options) {
 $(document).ready(function() {
 	game_id = parseInt($('div.playarea').attr('game_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
+	user_id = parseInt($('div.playarea').attr('user_id'));
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
 	my_name = $('div.playarea').attr('name');
 	dungeon_master = ($('div.playarea').attr('dm') == 'yes');
 	var version = $('div.playarea').attr('version');
 
-	write_sidebar('<b>Welcome to TableTop v' + version + '.</b>');
+	write_sidebar('<b>Welcome to TableTop v' + version + '</b>');
 	write_sidebar('Type /help for command information.');
 	write_sidebar('You are ' + my_name + '.');
 
@@ -1947,15 +2022,22 @@ $(document).ready(function() {
 
 		if (data.game_id != game_id) {
 			return;
+		} else if (data.user_id == user_id) {
+			return;
 		}
 
 		delete data.game_id;
+		delete data.user_id;
 
 		switch (data.action) {
 			case 'alternate':
 				$('div#' + data.char_id).find('img').attr('src', '/files/characters/' + data.src);
 				$('div#' + data.char_id).find('img').css('width', data.size + 'px');
 				$('div#' + data.char_id).find('img').css('height', data.size + 'px');
+				break;
+			case 'armor':
+				var obj = $('div#' + data.instance_id);
+				obj.attr('armor_class', data.points);
 				break;
 			case 'audio':
 				var audio = new Audio(data.filename);
@@ -2089,6 +2171,10 @@ $(document).ready(function() {
 				break;
 			case 'marker':
 				marker_create(data.pos_x, data.pos_y, data.name);
+				break;
+			case 'maxhp':
+				var obj = $('div#' + data.instance_id);
+				obj.attr('hitpoints', data.points);
 				break;
 			case 'move':
 				var obj = $('div#' + data.instance_id);
@@ -2448,6 +2534,7 @@ $(document).ready(function() {
 			'attack': {name:'Attack', icon:'fa-shield'},
 			'damage': {name:'Damage', icon:'fa-warning'},
 			'heal': {name:'Heal', icon:'fa-medkit'},
+			'conditions': {name:'Conditions', icon:'fa-heartbeat', items:conditions},
 			'sep3': '-',
 			'zone_create': {name:'Zone', icon:'fa-square-o'}
 		};
@@ -2508,6 +2595,9 @@ $(document).ready(function() {
 				'heal': {name:'Heal', icon:'fa-medkit'},
 				'temphp': {name:'Temporary hit points', icon:'fa-heart-o'},
 				'sep2': '-',
+				'maxhp': {name:'Maximum hit points', icon:'fa-heart'},
+				'armor': {name:'Armor class', icon:'fa-shield'},
+				'sep3': '-',
 				'rotate': {name:'Rotate', icon:'fa-compass', items:{
 					'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
 					'rotate_ne': {name:'North East'},

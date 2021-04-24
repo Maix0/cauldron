@@ -46,8 +46,9 @@ change_setting DEBUG_MODE yes
 
 # Remove files
 rm -f database/*.gz
-find public/files/* ! -name 'token.png' -type f -exec rm -f {} +
+rm -f public/files/*.*
 rm -rf public/files/audio/*
+rm -f public/files/characters/*
 rm -f public/files/collectables/*
 rm -f public/files/maps/*
 rm -f public/files/portraits/*

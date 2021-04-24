@@ -11,14 +11,19 @@
 <div class="row">
 <xsl:for-each select="characters/character">
 <div class="col-md-4 col-sm-6 col-xs-12">
-<div class="well" onClick="javascript:document.location='/{/output/page}/{@id}'">
+<div class="panel panel-default">
+<div class="panel-heading">
+<xsl:value-of select="name" />
+<a href="{/output/page}/alternate/{@id}" title="Alternate icons"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></a>
+<a href="{/output/page}/{@id}" title="Edit character"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+</div>
+<div class="panel-body">
 <img src="/files/characters/{@id}.{extension}" class="icon" />
-<div class="name"><xsl:value-of select="name" /></div>
 <div>Hit points: <xsl:value-of select="hitpoints" /></div>
 <div>Armor class: <xsl:value-of select="armor_class" /></div>
 <div>Initiative bonus: <xsl:value-of select="initiative" /></div>
-<div><a href="/character/alternate/{@id}">Alternate icons</a></div>
-<div class="game">Game: <span><xsl:value-of select="title" /></span></div>
+</div>
+<div class="panel-footer">Game: <span><xsl:value-of select="title" /></span></div>
 </div>
 </div>
 </xsl:for-each>
@@ -76,16 +81,13 @@
 <xsl:template match="alternates">
 <xsl:call-template name="show_messages" />
 <p>Alternate icons for <xsl:value-of select="@character" />.</p>
-<div class="row alternates">
-<xsl:for-each select="alternate">
-<div class="col-md-2 col-sm-3 col-xs-6"><div class="alternate"><img src="/files/characters/{character_id}_{@id}.{extension}" class="icon" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="icon_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
-</xsl:for-each>
-</div>
+<div class="row">
 
+<div class="col-sm-4">
 <form action="/{/output/page}" method="post"  enctype="multipart/form-data">
 <input type="hidden" name="char_id" value="{@char_id}" />
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{character/name}" class="form-control" />
+<input type="text" id="name" name="name" value="{character/name}" maxlength="25" class="form-control" />
 <label for="size">Size:</label>
 <select name="size" class="form-control"><xsl:for-each select="sizes/size"><option value="{@value}"><xsl:value-of select="." /></option></xsl:for-each></select>
 <label for="icon">Alternate icon (make sure the token is facing down):</label>
@@ -100,6 +102,19 @@
 <a href="/character" class="btn btn-default">Back</a>
 </div>
 </form>
+</div>
+
+<div class="col-sm-8">
+
+<div class="row">
+<xsl:for-each select="alternate">
+<div class="col-md-3 col-sm-4 col-xs-6"><div class="alternate"><img src="/files/characters/{character_id}_{@id}.{extension}" class="icon" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="icon_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
+</xsl:for-each>
+</div>
+
+</div>
+</div>
+
 </xsl:template>
 
 <!--

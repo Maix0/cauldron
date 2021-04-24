@@ -94,6 +94,20 @@
 
 <!--
 //
+//  Create directories template
+//
+//-->
+<xsl:template match="create_dirs">
+<xsl:call-template name="show_messages" />
+
+<p>Some directores in public/files are missing. Create them to continue.</p>
+<form action="/{/output/page}" method="post">
+<input type="submit" name="submit_button" value="Create directories" class="btn btn-default" />
+</form>
+</xsl:template>
+
+<!--
+//
 //  Credentials template
 //
 //-->

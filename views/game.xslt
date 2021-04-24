@@ -123,7 +123,7 @@
 </div>
 </div>
 <!-- Play area -->
-<div version="{/output/tabletop/version}" class="playarea" game_id="{@id}" map_id="{map/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" name="{characters/@name}">
+<div version="{/output/tabletop/version}" class="playarea" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div>

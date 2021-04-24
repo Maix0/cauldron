@@ -24,7 +24,7 @@ img.collectable {
 	max-width:450px;
 }
 
-@media (min-width:767px ) {
+@media (min-width:768px ) {
 	img.collectable {
 		float:right;
 		max-width:200px;

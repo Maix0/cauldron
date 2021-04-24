@@ -218,6 +218,7 @@ function object_info(obj) {
 
 	if (obj.attr('id').substr(0, 4) != 'zone') {
 		info +=
+			'Armor class: ' + obj.attr('armor_class') + '<br />' +
 			'Hitpoints: ' + obj.attr('hitpoints') + '<br />' +
 			'Damage: ' + obj.attr('damage') + '<br />';
 	}
@@ -226,7 +227,7 @@ function object_info(obj) {
 
 	var name = obj.attr('name');
 	if (name == undefined) {
-		name = obj.find('span').text();
+		name = obj.find('span.name').text();
 	}
 	if ((name != undefined) && (name != '')) {
 		info = 'Name: ' + name + '<br />' + info;
@@ -575,7 +576,18 @@ function context_menu_handler(key, options) {
 			break;
 		case 'delete':
 			if (confirm('Delete object?')) {
-				object_delete(obj);
+				var group = obj.attr('group');
+				if (group != undefined) {
+					if (confirm('Delete all zones in group ' + group + '?')) {
+						$('div.zone[group=' + group +']').each(function() {
+							object_delete($(this));
+						});
+					} else {
+						object_delete(obj);
+					}
+				} else {
+					object_delete(obj);
+				}
 			}
 			break;
 		case 'distance':

@@ -8,6 +8,7 @@
 
 	class setup_model extends Banshee\model {
 		private $required_php_extensions = array("gd", "libxml", "mysqli", "xsl");
+		private $directories = array("audio", "characters", "collectables", "effects", "maps", "tokens");
 
 		/* Determine next step
 		 */
@@ -43,6 +44,10 @@
 
 			if ($this->settings->database_version < $this->latest_database_version()) {
 				return "update_db";
+			}
+
+			if ($this->directories_exist() == false) {
+				return "create_dirs";
 			}
 
 			$result = $db->execute("select password from users where username=%s", "admin");
@@ -346,6 +351,10 @@
 				$this->settings->database_version = 9;
 			}
 
+			if ($this->settings->database_version == 9) {
+				$this->settings->database_version = 10;
+			}
+
 			return true;
 		}
 
@@ -380,6 +389,24 @@
 			}
 
 			return true;
+		}
+
+		/* Directories
+		 */
+		public function directories_exist() {
+			foreach ($this->directories as $directory) {
+				if (is_dir("files/".$directory) == false) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		public function create_directories() {
+			foreach ($this->directories as $directory) {
+				mkdir("files/".$directory, 0755);
+			}
 		}
 	}
 

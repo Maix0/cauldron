@@ -1,7 +1,10 @@
 <?php
 	class object_controller extends Banshee\api_controller {
 		public function post_armor_class() {
-			if (substr($_POST["instance_id"], 0, 5) == "token") {
+			if (substr($_POST["instance_id"], 0, 9) == "character") {
+				$instance_id = substr($_POST["instance_id"], 9);
+				$this->model->character_armor_class($instance_id, $_POST["armor_class"]);
+			} else if (substr($_POST["instance_id"], 0, 5) == "token") {
 				$instance_id = substr($_POST["instance_id"], 5);
 				$this->model->token_armor_class($instance_id, $_POST["armor_class"]);
 			}
@@ -60,7 +63,10 @@
 		}
 
 		public function post_hitpoints() {
-			if (substr($_POST["instance_id"], 0, 5) == "token") {
+			if (substr($_POST["instance_id"], 0, 9) == "character") {
+				$instance_id = substr($_POST["instance_id"], 9);
+				$this->model->character_hitpoints($instance_id, $_POST["hitpoints"]);
+			} else if (substr($_POST["instance_id"], 0, 5) == "token") {
 				$instance_id = substr($_POST["instance_id"], 5);
 				$this->model->token_hitpoints($instance_id, $_POST["hitpoints"]);
 			}
