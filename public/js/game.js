@@ -21,7 +21,6 @@ var input_history = [];
 var input_index = -1;
 var mouse_x = 0;
 var mouse_y = 0;
-var measuring = false;
 var effect_counter = 1;
 var effect_x = 0;
 var effect_y = 0;
@@ -244,7 +243,7 @@ function roll_d20(bonus, type = ROLL_NORMAL) {
 		if ((roll == 20) && (bonus == 0)) {
 			message += ' CRIT!';
 		}
-		
+
 		message += '\n';
 	}
 
@@ -546,7 +545,7 @@ function object_rotate(obj, rotation, send = true, speed = 500) {
 	var currot = parseInt(obj.attr('rotation'));
 	var anirot = rotation;
 
-	if ((360 + currot - anirot) < (anirot - currot)) {	
+	if ((360 + currot - anirot) < (anirot - currot)) {
 		anirot -= 360;
 	} else if ((360 + anirot - currot) < (currot - anirot)) {
 		anirot += 360;
@@ -606,6 +605,64 @@ function object_show(obj, send = true) {
 
 function object_step(obj, x, y) {
 	var pos = object_position(obj);
+	var width = Math.round(obj.width() / grid_cell_size);
+	var height = Math.round(obj.height() / grid_cell_size);
+
+	/* Wall collision?
+	 */
+	var pos_x = pos.left / grid_cell_size;
+	var pos_y = pos.top / grid_cell_size;
+
+	if ((width == 1) && (height == 1)) {
+		/* 1 x 1
+		 */
+		if (wall_collision(pos_x, pos_y, pos_x + x, pos_y + y)) {
+			return;
+		}
+		if (door_collision(pos_x, pos_y, pos_x + x, pos_y + y)) {
+			return;
+		}
+	} else if (width == height) {
+		/* N x N
+		 */
+		pos_x += x;
+		pos_y += y;
+		width -= 1;
+		height -= 1;
+
+		for (bx = 0; bx < width; bx++) {
+			if (wall_collision(pos_x + bx, pos_y, pos_x + bx + 1, pos_y)) {
+				return;
+			}
+			if (wall_collision(pos_x + bx, pos_y + height, pos_x + bx + 1, pos_y + height)) {
+				return;
+			}
+
+			if (door_collision(pos_x + bx, pos_y, pos_x + bx + 1, pos_y)) {
+				return;
+			}
+			if (door_collision(pos_x + bx, pos_y + height, pos_x + bx + 1, pos_y + height)) {
+				return;
+			}
+		}
+
+		for (by = 0; by < height; by++) {
+			if (wall_collision(pos_x, pos_y + by, pos_x, pos_y + by + 1)) {
+				return;
+			}
+			if (wall_collision(pos_x + width, pos_y + by, pos_x + width, pos_y + by + 1)) {
+				return;
+			}
+
+			if (door_collision(pos_x, pos_y + by, pos_x, pos_y + by + 1)) {
+				return;
+			}
+			if (door_collision(pos_x + width, pos_y + by, pos_x + width, pos_y + by + 1)) {
+				return;
+			}
+		}
+	}
+
 	pos.left += (x * grid_cell_size);
 	pos.top += (y * grid_cell_size);
 
@@ -638,10 +695,10 @@ function object_steer(event) {
 	}
 
 	switch (event.which) {
-		case 65: // a
+		case 81: // q
 			object_turn(obj, -45);
 			return;
-		case 68: // d
+		case 69: // e
 			object_turn(obj, 45);
 			return;
 	}
@@ -660,10 +717,10 @@ function object_steer(event) {
 	var rotation = parseInt(obj.attr('rotation'));
 
 	switch (event.which) {
-		case 81: // q
+		case 65: // a
 			rotation = (rotation + 270) % 360;
 			break;
-		case 69: // e
+		case 68: // d
 			rotation = (rotation + 90) % 360;
 			break;
 		case 87: // w
@@ -835,6 +892,302 @@ function effect_create_final(effect_id, src, width, height) {
 		},
 		zIndex: DEFAULT_Z_INDEX + 4
 	});
+}
+
+/* Measuring functions
+ */
+function measuring_stop() {
+	$('div.playarea').off('mousemove');
+	$('span#infobar').text('');
+	$('img.pin').remove();
+}
+
+/* Door functions
+ */
+function door_position(door) {
+	var pos_x = parseInt(door.attr('pos_x')) * grid_cell_size;
+	var pos_y = parseInt(door.attr('pos_y')) * grid_cell_size;
+	var length = parseInt(door.attr('length')) * grid_cell_size;
+	var direction = door.attr('direction');
+	var state = door.attr('state');
+
+	if (direction == 'horizontal') {
+		var width = length;
+		var height = 7;
+		pos_y -= 3;
+	} else if (direction == 'vertical') {
+		var width = 7;
+		var height = length;
+		pos_x -= 3;
+	} else {
+		write_sidebar('Invalid door!');
+		return;
+	}
+
+	door.css('left', pos_x + 'px');
+	door.css('top', pos_y + 'px');
+	door.css('width', width + 'px');
+	door.css('height', height + 'px');
+
+	if (state == 'open') {
+		door_show_open(door);
+	} else if (state == 'locked') {
+		door_show_locked(door);
+	}
+}
+
+function door_collision(x1, y1, x2, y2) {
+	var x = ((x1 + 0.5) + (x2 + 0.5)) / 2;
+	var y = ((y1 + 0.5) + (y2 + 0.5)) / 2;
+	var result = false;
+
+	$('div.door').each(function() {
+		if ($(this).attr('state') == 'open') {
+			return;
+		}
+
+		var direction = $(this).attr('direction');
+
+		if (direction == 'horizontal') {
+			var wx1 = parseInt($(this).attr('pos_x'));
+			var wx2 = wx1 + parseInt($(this).attr('length'));
+			var wy = parseInt($(this).attr('pos_y'));
+
+			if ((y == wy) && (x >= wx1) && (x <= wx2)) {
+				result = true;
+				return false;
+			}
+		} else if (direction == 'vertical') {
+			var wx = parseInt($(this).attr('pos_x'));
+			var wy1 = parseInt($(this).attr('pos_y'));
+			var wy2 = wy1 + parseInt($(this).attr('length'));
+
+			if ((x == wx) && (y >= wy1) && (y <= wy2)) {
+				result = true;
+				return false;
+			}
+		}
+	});
+
+	return result;
+}
+
+function door_send_state(door) {
+	var data = {
+		action: 'door_state',
+		door_id: door.prop('id'),
+		state: door.attr('state')
+	};
+	websocket_send(data);
+
+	$.post('/object/door_state', {
+		door_id: door.prop('id').substr(4),
+		state: door.attr('state')
+	});
+}
+
+function door_nearby(door) {
+	if (my_character == null) {
+		return false;
+	}
+
+	var door_x = parseInt(door.attr('pos_x'));
+	var door_y = parseInt(door.attr('pos_y'));
+	var length = parseInt(door.attr('length'));
+	var direction = door.attr('direction');
+
+	if (direction == 'horizontal') {
+		door_y -= 0.5;
+	} else if (direction == 'vertical') {
+		door_x -= 0.5;
+	}
+
+	var my_pos = object_position(my_character);
+	var my_x = my_pos.left / grid_cell_size;
+	var my_y = my_pos.top / grid_cell_size;
+
+	var my_size = my_character.width() / grid_cell_size;
+	if (door_x > my_x) {
+		my_x += (my_size - 1);
+	}
+	if (door_y > my_y) {
+		my_y += (my_size - 1);
+	}
+
+	while (length > 0) {
+		var dist_x = Math.abs(door_x - my_x);
+		var dist_y = Math.abs(door_y - my_y);
+		var distance = Math.max(dist_x, dist_y);
+
+		if (distance <= 1.5) {
+			return true;
+		}
+
+		if (direction == 'horizontal') {
+			door_x++;
+		} else if (direction == 'vertical') {
+			door_y++;
+		} else {
+			write_sidebar('Invalid door');
+		}
+
+		length--;
+	}
+
+	return false;
+}
+
+function door_make_closed(door) {
+	if (door.attr('state') != 'open') {
+		return;
+	}
+
+	if (dungeon_master == false) {
+		if (door_nearby(door) == false) {
+			write_sidebar('You are too far away.');
+			return;
+		}
+	}
+
+	write_sidebar('The door is now closed.');
+	door_show_closed(door);
+	door_send_state(door);
+}
+
+function door_make_locked(door) {
+	if ((dungeon_master == false) || (door.attr('state') == 'locked')) {
+		return;
+	}
+
+	write_sidebar('The door is now locked.');
+	door_show_locked(door);
+	door_send_state(door);
+}
+
+function door_make_open(door) {
+	if (door.attr('state') == 'open') {
+		return;
+	}
+
+	if (dungeon_master == false) {
+		if (door_nearby(door) == false) {
+			write_sidebar('You are too far away.');
+			return;
+		}
+
+		if (door.attr('state') == 'locked') {
+			write_sidebar('The door won\'t go open.');
+			return;
+		}
+	}
+
+	write_sidebar('The door is now open.');
+	door_show_open(door);
+	door_send_state(door);
+}
+
+function door_make_unlocked(door) {
+	if ((dungeon_master == false) || (door.attr('state') != 'locked')) {
+		return;
+	}
+
+	write_sidebar('The door is now unlocked.');
+	door_show_unlocked(door);
+	door_send_state(door);
+}
+
+function door_show_closed(door) {
+	door.attr('state', 'closed');
+
+	door.css('opacity', '1');
+	door.css('background-color', '');
+}
+
+function door_show_open(door) {
+	door.attr('state', 'open');
+
+	door.css('opacity', '0.4');
+	door.css('background-color', '#ffffff');
+}
+
+function door_show_locked(door) {
+	door_show_closed(door);
+	if (dungeon_master) {
+		door.css('background-color', '#c00000');
+	}
+
+	door.attr('state', 'locked');
+}
+
+function door_show_unlocked(door) {
+	if (dungeon_master) {
+		door_show_closed(door);
+	}
+
+	door.attr('state', 'closed');
+}
+
+/* Wall functions
+ */
+function wall_position(wall) {
+	var pos_x = parseInt(wall.attr('pos_x')) * grid_cell_size;
+	var pos_y = parseInt(wall.attr('pos_y')) * grid_cell_size;
+	var length = parseInt(wall.attr('length')) * grid_cell_size;
+	var direction = wall.attr('direction');
+
+	if (direction == 'horizontal') {
+		var width = length;
+		var height = 5;
+		pos_y -= 2;
+	} else if (direction == 'vertical') {
+		var width = 5;
+		var height = length;
+		pos_x -= 2;
+	} else {
+		write_sidebar('Invalid wall!');
+		return;
+	}
+
+	if (dungeon_master == false) {
+		wall.css('display', 'none');
+	}
+
+	wall.css('left', pos_x + 'px');
+	wall.css('top', pos_y + 'px');
+	wall.css('width', width + 'px');
+	wall.css('height', height + 'px');
+}
+
+function wall_collision(x1, y1, x2, y2) {
+	var x = ((x1 + 0.5) + (x2 + 0.5)) / 2;
+	var y = ((y1 + 0.5) + (y2 + 0.5)) / 2;
+	var result = false;
+
+	$('div.wall').each(function() {
+		var direction = $(this).attr('direction');
+
+		if (direction == 'horizontal') {
+			var wx1 = parseInt($(this).attr('pos_x'));
+			var wx2 = wx1 + parseInt($(this).attr('length'));
+			var wy = parseInt($(this).attr('pos_y'));
+
+			if ((y == wy) && (x >= wx1) && (x <= wx2)) {
+				result = true;
+				return false;
+			}
+		} else if (direction == 'vertical') {
+			var wx = parseInt($(this).attr('pos_x'));
+			var wy1 = parseInt($(this).attr('pos_y'));
+			var wy2 = wy1 + parseInt($(this).attr('length'));
+
+			if ((x == wx) && (y >= wy1) && (y <= wy2)) {
+				result = true;
+				return false;
+			}
+		}
+	});
+
+	return result;
 }
 
 /* Zone functions
@@ -1568,11 +1921,12 @@ function context_menu_handler(key, options) {
 				var filename = $('div.alternates div[icon_id=' + alternate_id + ']').attr('filename');
 				var size = $('div.alternates div[icon_id=' + alternate_id + ']').attr('size');
 			}
-			size *= grid_cell_size;
+
+			var img_size = size * grid_cell_size;
 
 			my_character.find('img').attr('src', '/files/characters/' + filename);
-			my_character.find('img').css('width', size + 'px');
-			my_character.find('img').css('height', size + 'px');
+			my_character.find('img').css('width', img_size + 'px');
+			my_character.find('img').css('height', img_size + 'px');
 
 			var data = {
 				action: 'alternate',
@@ -1598,7 +1952,7 @@ function context_menu_handler(key, options) {
 			if (points == undefined) {
 				break;
 			}
-	
+
 			points = parseInt(points);
 			if (isNaN(points)) {
 				write_sidebar('Invalid armor class.');
@@ -1725,6 +2079,8 @@ function context_menu_handler(key, options) {
 			object_damage(obj, points);
 			break;
 		case 'distance':
+			measuring_stop();
+
 			var pos_x = coord_to_grid(mouse_x, false) + (grid_cell_size >> 1) - 12;
 			var pos_y = coord_to_grid(mouse_y, false) - (grid_cell_size >> 1) + 7;
 			var marker = '<img src="/images/pin.png" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; z-index:' + (DEFAULT_Z_INDEX + 4) + '" class="pin" />';
@@ -1741,13 +2097,27 @@ function context_menu_handler(key, options) {
 
 				var diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
 				var diff_y = Math.round(Math.abs(to_y - from_y) / grid_cell_size);
-				
+
 				var distance = (diff_x > diff_y) ? diff_x : diff_y;
 
 				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft');
 			});
 
-			measuring = true;
+			$('div.playarea').on('click', function(event) {
+				measuring_stop();
+			});
+			break;
+		case 'door_close':
+			door_make_closed(obj);
+			break;
+		case 'door_lock':
+			door_make_locked(obj);
+			break;
+		case 'door_open':
+			door_make_open(obj);
+			break;
+		case 'door_unlock':
+			door_make_unlocked(obj);
 			break;
 		case 'effect_create':
 			effect_x = coord_to_grid(mouse_x, false);
@@ -2031,13 +2401,17 @@ $(document).ready(function() {
 
 		switch (data.action) {
 			case 'alternate':
+				var img_size = data.size * grid_cell_size;
 				$('div#' + data.char_id).find('img').attr('src', '/files/characters/' + data.src);
-				$('div#' + data.char_id).find('img').css('width', data.size + 'px');
-				$('div#' + data.char_id).find('img').css('height', data.size + 'px');
+				$('div#' + data.char_id).find('img').css('width', img_size + 'px');
+				$('div#' + data.char_id).find('img').css('height', img_size + 'px');
 				break;
 			case 'armor':
 				var obj = $('div#' + data.instance_id);
 				obj.attr('armor_class', data.points);
+				if (dungeon_master) {
+					write_sidebar(obj.find('span.name').text() + '\'s armor class set to ' + data.points + '.');
+				}
 				break;
 			case 'audio':
 				var audio = new Audio(data.filename);
@@ -2060,6 +2434,15 @@ $(document).ready(function() {
 				break;
 			case 'done':
 				battle_done();
+				break;
+			case 'door_state':
+				var obj = $('div#' + data.door_id);
+				switch (data.state) {
+					case 'closed': door_show_closed(obj); break;
+					case 'locked': door_show_locked(obj); break;
+					case 'open': door_show_open(obj); break;
+					case 'unlocked': door_show_unlocked(obj); break;
+				}
 				break;
 			case 'effect_create':
 				if (data.map_id != map_id) {
@@ -2137,7 +2520,7 @@ $(document).ready(function() {
 					callback: context_menu_handler,
 					items: {
 						'info': {name:'Info', icon:'fa-info-circle'},
-						'stick': {name:'Stick to', icon:'fa-lock'},
+						'stick': {name:'Stick to / unstick', icon:'fa-lock'},
 						'rotate': {name:'Rotate', icon:'fa-compass', items:{
 							'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
 							'rotate_ne': {name:'North East'},
@@ -2175,6 +2558,9 @@ $(document).ready(function() {
 			case 'maxhp':
 				var obj = $('div#' + data.instance_id);
 				obj.attr('hitpoints', data.points);
+				if (dungeon_master) {
+					write_sidebar(obj.find('span.name').text() + '\'s maximum hit points set to ' + data.points + '.');
+				}
 				break;
 			case 'move':
 				var obj = $('div#' + data.instance_id);
@@ -2244,7 +2630,7 @@ $(document).ready(function() {
 					callback: context_menu_handler,
 					items: {
 						'view': {name:'View', icon:'fa-search'},
-						'stick': {name:'Stick to', icon:'fa-lock'},
+						'stick': {name:'Stick to / unstick', icon:'fa-lock'},
 						'attack': {name:'Attack', icon:'fa-shield'}
 					},
 					zIndex: DEFAULT_Z_INDEX + 4
@@ -2354,6 +2740,39 @@ $(document).ready(function() {
 	$('div.script_manual div.panel').draggable({
 		handle: 'div.panel-heading',
 		cursor: 'grab'
+	});
+
+	/* Doors
+	 */
+	$('div.door').css('z-index', 3);
+
+	$('div.door').each(function() {
+		door_position($(this));
+	});
+
+	var items = {
+		'door_open': {name:'Open', icon:'fa-toggle-on'},
+		'door_close': {name:'Close', icon:'fa-toggle-off'},
+	};
+
+	if (dungeon_master) {
+		items['door_lock'] = {name:'Lock', icon:'fa-lock'};
+		items['door_unlock'] = {name:'Unlock', icon:'fa-unlock'};
+	}
+
+	$.contextMenu({
+		selector: 'div.door',
+		callback: context_menu_handler,
+		items: items,
+		zIndex: DEFAULT_Z_INDEX + 4
+	});
+
+	/* Walls
+	 */
+	$('div.wall').css('z-index', 3);
+
+	$('div.wall').each(function() {
+		wall_position($(this));
 	});
 
 	/* Objects
@@ -2572,16 +2991,18 @@ $(document).ready(function() {
 		if (my_char != undefined) {
 			my_character = $('div#' + my_char);
 
-			my_character.draggable({
-				create: function(event, ui) {
-					$(this).css('cursor', 'grab');
-				},
-				handle: 'img',
-				stop: function(event, ui) {
-					stick_to = null;
-					object_move($(this));
-				}
-			});
+			if ($('div.playarea').attr('drag_character') == 'yes') {
+				my_character.draggable({
+					create: function(event, ui) {
+						$(this).css('cursor', 'grab');
+					},
+					handle: 'img',
+					stop: function(event, ui) {
+						stick_to = null;
+						object_move($(this));
+					}
+				});
+			}
 
 			my_character.css('z-index', DEFAULT_Z_INDEX + 3);
 
@@ -2655,7 +3076,7 @@ $(document).ready(function() {
 				'view': {name:'View', icon:'fa-search'},
 				'marker': {name:'Marker', icon:'fa-map-marker'},
 				'distance': {name:'Distance', icon:'fa-map-signs'},
-				'stick': {name:'Stick to', icon:'fa-lock'},
+				'stick': {name:'Stick to / unstick', icon:'fa-lock'},
 				'attack': {name:'Attack', icon:'fa-shield'}
 			},
 			zIndex: DEFAULT_Z_INDEX + 4
@@ -2691,11 +3112,11 @@ $(document).ready(function() {
 	/* Input field
 	 */
 	$('div.input input').focusout(function() {
-		$('body').keydown(object_steer);
+		$('body').keyup(object_steer);
 	});
 
 	$('div.input input').focusin(function() {
-		$('body').off('keydown');
+		$('body').off('keyup');
 	});
 
 	$('div.input input').on('keyup', function (e) {
@@ -2734,13 +3155,6 @@ $(document).ready(function() {
 			mouse_x = event.clientX + $('div.playarea').scrollLeft() - 16;
 			mouse_y = event.clientY + $('div.playarea').scrollTop() - 41;
 		}
-
-		if (measuring) {
-			$('div.playarea').off('mousemove');
-			$('span#infobar').text('');
-			$('img.pin').remove();
-			measuring = false;
-		}
 	});
 
 	$('div.effects div.panel').draggable({
@@ -2763,8 +3177,8 @@ $(document).ready(function() {
 		cursor: 'grab'
 	});
 
-	$('select.map-selector').click(function(e) {
-		e.stopPropagation();
+	$('select.map-selector').click(function(event) {
+		event.stopPropagation();
 	});
 
 	if (dungeon_master) {
@@ -2790,7 +3204,8 @@ $(document).ready(function() {
 		audio.play();
 	}
 
-	$('div.input input').focus();
+	$('body').keyup(object_steer);
+//	$('div.input input').focus();
 
 	scroll_to_my_character();
 });

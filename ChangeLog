@@ -1,3 +1,13 @@
+tabletop (1.1) stable; urgency=low
+
+  * Walls and doors.
+  * Character dragging by players made optional.
+  * Changed buttons for character steering.
+  * Small improvements.
+  * Bugfix: move call in script didn't work in CMS.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  5 May 2021 09:53:07 +0200
+
 tabletop (1.0) stable; urgency=low
 
   * Change own maximum hit points and armor class during the game.

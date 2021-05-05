@@ -1,6 +1,8 @@
 function filter_tokens() {
 	var filter = $('input#filter').val().toLowerCase();
 
+	localStorage.setItem('cms_token_filter', filter);
+
 	$('div.token').show();
 
 	if (filter == '') {
@@ -16,5 +18,7 @@ function filter_tokens() {
 }
 
 $(document).ready(function() {
+	$('input#filter').val(localStorage.getItem('cms_token_filter'));
+
 	filter_tokens();
 });

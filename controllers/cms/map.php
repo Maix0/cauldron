@@ -51,6 +51,7 @@
 			$this->view->close_tag();
 
 			$map["show_grid"] = show_boolean($map["show_grid"]);
+			$map["drag_character"] = show_boolean($map["drag_character"]);
 			$this->view->record($map, "map");
 
 			$this->view->close_tag();
@@ -83,8 +84,6 @@
 					if (($_POST["type"] == "image") && ($_POST["width"] == "") && ($_POST["height"] == "")) {
 						if (($result = $this->model->get_image_dimensions($_POST)) !== false) {
 							$_POST = $result;
-						} else {
-print "Can't load image";
 						}
 					}
 

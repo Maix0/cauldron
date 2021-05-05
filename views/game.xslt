@@ -123,7 +123,7 @@
 </div>
 </div>
 <!-- Play area -->
-<div version="{/output/tabletop/version}" class="playarea" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" name="{characters/@name}">
+<div version="{/output/tabletop/version}" class="playarea" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div>
@@ -131,6 +131,14 @@
 <xsl:if test="map/type='video'"><xsl:attribute name="style">width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute>
 <video width="{map/width}" height="{map/height}" autoplay="true" loop="true" source="{map/url}" /><xsl:text>
 </xsl:text></xsl:if>
+<!-- Doors -->
+<xsl:for-each select="doors/door">
+<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" />
+</xsl:for-each>
+<!-- Walls -->
+<xsl:for-each select="walls/wall">
+<div class="wall" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" />
+</xsl:for-each>
 <!-- Zones -->
 <xsl:for-each select="zones/zone">
 <div id="zone{@id}" class="zone" style="position:absolute; left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};"><xsl:if test="group!=''"><xsl:attribute name="group"><xsl:value-of select="group" /></xsl:attribute></xsl:if><xsl:if test="script!=''"><div class="script"><xsl:value-of select="script" /></div></xsl:if></div>

@@ -355,6 +355,24 @@
 				$this->settings->database_version = 10;
 			}
 
+			if ($this->settings->database_version == 10) {
+				$this->db_query("CREATE TABLE walls (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
+				                "map_id int(10) unsigned NOT NULL, pos_x smallint(5) unsigned NOT NULL, ".
+				                "pos_y smallint(5) unsigned NOT NULL, length smallint(3) unsigned NOT NULL, ".
+				                "direction enum(%s,%s) NOT NULL, PRIMARY KEY (id), ".
+				                "KEY map_id (map_id), CONSTRAINT walls_ibfk_1 FOREIGN KEY (map_id) REFERENCES maps (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8", "horizontal", "vertical");
+				$this->db_query("CREATE TABLE doors (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
+				                "map_id int(10) unsigned NOT NULL, pos_x smallint(5) unsigned NOT NULL, ".
+				                "pos_y smallint(5) unsigned NOT NULL, length smallint(3) unsigned NOT NULL, ".
+				                "direction enum(%s,%s) NOT NULL, state enum(%s,%s,%s) NOT NULL, PRIMARY KEY (id), ".
+				                "KEY map_id (map_id), CONSTRAINT doors_ibfk_1 FOREIGN KEY (map_id) REFERENCES maps (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8", "horizontal", "vertical", "open", "closed", "locked");
+				$this->db_query("ALTER TABLE maps ADD drag_character BOOLEAN NOT NULL AFTER show_grid");
+
+				$this->settings->database_version = 11;
+			}
+
 			return true;
 		}
 

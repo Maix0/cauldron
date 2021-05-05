@@ -71,7 +71,8 @@
 <input type="text" id="height" name="height" value="{map/height}" placeholder="For image map, leave empty for automatic detection" class="form-control" />
 <label for="grid_size">Grid size:</label>
 <input type="text" id="grid_size" name="grid_size" value="{map/grid_size}" class="form-control" />
-<div>Show grid: <input type="checkbox" name="show_grid"><xsl:if test="map/show_grid='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
+<div><b>Show grid:</b><input type="checkbox" name="show_grid"><xsl:if test="map/show_grid='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
+<div><b>Players can drag own character:</b><input type="checkbox" name="drag_character"><xsl:if test="map/drag_character='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
 <label for="dm_notes">Notes:</label>
 <textarea id="dm_notes" name="dm_notes" class="form-control"><xsl:value-of select="map/dm_notes" /></textarea>
 

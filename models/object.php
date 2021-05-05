@@ -275,6 +275,106 @@
 			return $this->db->update("map_character", $instance_id, $data) !== false;
 		}
 
+		/* Door functions
+		 */
+		private function valid_door_id($door_id) {
+			$query = "select count(*) as count from doors d, maps m, games g ".
+			         "left join game_character i on g.id=i.game_id ".
+			         "left join characters c on i.character_id=c.id ".
+			         "where d.id=%d and d.map_id=m.id and m.game_id=g.id ".
+			         "and (g.dm_id=%d or c.user_id=%d)";
+
+			if (($result = $this->db->execute($query, $door_id, $this->user->id, $this->user->id)) === false) {
+				return false;
+			}
+
+			return $result[0]["count"] > 0;
+		}
+
+		public function door_create($door) {
+			if ($this->valid_map_id($door["map_id"]) == false) {
+				return false;
+			}
+
+			$data = array(
+				"id"        => null,
+				"map_id"    => (int)$door["map_id"],
+				"pos_x"     => (int)$door["pos_x"],
+				"pos_y"     => (int)$door["pos_y"],
+				"length"    => (int)$door["length"],
+				"direction" => $door["direction"],
+				"state"     => $door["state"]);
+
+			if ($this->db->insert("doors", $data) === false) {
+				return false;
+			}
+
+			return $this->db->last_insert_id;
+		}
+
+		public function door_state($door_id, $state) {
+			if ($this->valid_door_id($door_id) == false) {
+				return false;
+			}
+
+			$valid_states = array("open", "closed", "locked");
+			if (in_array($state, $valid_states) == false) {
+				return false;
+			}
+
+			$data = array("state" => $state);
+			return $this->db->update("doors", $door_id, $data) !== false;
+		}
+
+		public function door_delete($door_id) {
+			if ($this->valid_door_id($door_id) == false) {
+				return false;
+			}
+
+			return $this->db->delete("doors", $door_id) !== false;
+		}
+
+		/* Wall functions
+		 */
+		private function valid_wall_id($wall_id) {
+			$query = "select count(*) as count from walls w, maps m, games g ".
+			         "where w.id=%d and w.map_id=m.id and m.game_id=g.id and g.dm_id=%d";
+
+			if (($result = $this->db->execute($query, $wall_id, $this->user->id)) === false) {
+				return false;
+			}
+
+			return $result[0]["count"] > 0;
+		}
+
+		public function wall_create($wall) {
+			if ($this->valid_map_id($wall["map_id"]) == false) {
+				return false;
+			}
+
+			$data = array(
+				"id"        => null,
+				"map_id"    => (int)$wall["map_id"],
+				"pos_x"     => (int)$wall["pos_x"],
+				"pos_y"     => (int)$wall["pos_y"],
+				"length"    => (int)$wall["length"],
+				"direction" => $wall["direction"]);
+
+			if ($this->db->insert("walls", $data) === false) {
+				return false;
+			}
+
+			return $this->db->last_insert_id;
+		}
+
+		public function wall_delete($wall_id) {
+			if ($this->valid_wall_id($wall_id) == false) {
+				return false;
+			}
+
+			return $this->db->delete("walls", $wall_id) !== false;
+		}
+
 		/* Zone functions
 		 */
 		private function valid_zone_id($zone_id) {

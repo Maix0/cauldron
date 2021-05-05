@@ -92,6 +92,16 @@
 					return;
 				}
 
+				if (($doors = $this->model->get_doors($game["active_map_id"])) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
+				if (($walls = $this->model->get_walls($game["active_map_id"])) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
 				if (($zones = $this->model->get_zones($game["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
@@ -147,6 +157,8 @@
 			$this->view->open_tag("game", $attr);
 			$this->view->record($game);
 
+			/* Map selector
+			 */
 			if ($maps != null) {
 				$this->view->open_tag("maps");
 				if ($active_map == null) {
@@ -165,6 +177,8 @@
 				$this->view->close_tag();
 			}
 
+			/* Effects
+			 */
 			if ($effects != null) {
 				$this->view->open_tag("effects");
 				foreach ($effects as $effect) {
@@ -182,8 +196,27 @@
 					unset($active_map["dm_notes"]);
 				}
 				$active_map["show_grid"] = show_boolean($active_map["show_grid"]);
+				$active_map["drag_character"] = show_boolean($active_map["drag_character"]);
 				$this->view->record($active_map, "map");
 
+				/* Doors
+				 */
+				$this->view->open_tag("doors");
+				foreach ($doors as $door) {
+					$this->view->record($door, "door");
+				}
+				$this->view->close_tag();
+
+				/* Walls
+				 */
+				$this->view->open_tag("walls");
+				foreach ($walls as $wall) {
+					$this->view->record($wall, "wall");
+				}
+				$this->view->close_tag();
+
+				/* Zones
+				 */
 				$this->view->open_tag("zones");
 				foreach ($zones as $zone) {
 					$zone["pos_x"] *= $grid_cell_size;
@@ -203,6 +236,8 @@
 				}
 				$this->view->close_tag();
 
+				/* Tokens
+				 */
 				$this->view->open_tag("tokens");
 				foreach ($tokens as $token) {
 					$token["type"] = rtrim($token["type"], " 01234567890");
@@ -222,6 +257,8 @@
 				}
 				$this->view->close_tag();
 
+				/* Characters
+				 */
 				$attr = array("name" => $my_name);
 				if ($user_is_dungeon_master == false) {
 					$attr["mine"] = $my_icon;
@@ -246,6 +283,8 @@
 				}
 				$this->view->close_tag();
 
+				/* Alternates
+				 */
 				if (is_array($alternates)) {
 					$this->view->open_tag("alternates");
 					foreach ($alternates as $alternate) {
@@ -255,12 +294,16 @@
 					$this->view->close_tag();
 				}
 
+				/* Conditions
+				 */
 				$this->view->open_tag("conditions");
 				foreach ($conditions as $condition) {
 					$this->view->add_tag("condition", $condition["name"], array("id" => $condition["id"]));
 				}
 				$this->view->close_tag();
 
+				/* Journal
+				 */
 				$timestamp = 0;
 				$session = 1;
 				$this->view->open_tag("journal");

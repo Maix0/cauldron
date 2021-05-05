@@ -6,13 +6,18 @@ var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
 var mouse_x = 0;
 var mouse_y = 0;
+var door_x = 0;
+var door_y = 0;
+var wall_x = 0;
+var wall_y = 0;
 var zone_presence = [];
 var zone_x = 0;
 var zone_y = 0;
-var measuring = false;
 
 function filter_library() {
 	var filter = $('input#filter').val().toLowerCase();
+
+	localStorage.setItem('cms_token_filter', filter);
 
 	$('div.library div.well').show();
 
@@ -43,6 +48,11 @@ function coord_to_grid(coord, edge = true) {
 	}
 
 	return coord;
+}
+
+function capture_mouse_position() {
+	mouse_x = event.clientX + $('div.playarea').scrollLeft() - 16;
+	mouse_y = event.clientY + $('div.playarea').scrollTop() - 41;
 }
 
 /* Object functions
@@ -79,8 +89,9 @@ function object_create(icon, x, y) {
 		var type = $(icon).parent().find('div.name').text();
 		var rotation = 180;
 		var hidden = 'no';
-		x -= 30;
-		y -= 40;
+
+		x += $('div.playarea').scrollLeft() - 30;
+		y += $('div.playarea').scrollTop() - 40;
 	} else {
 		// Duplicated token
 		var token_id = $(icon).parent().attr('token_id');
@@ -94,10 +105,7 @@ function object_create(icon, x, y) {
 		var hidden = $(icon).parent().attr('is_hidden');
 	}
 
-	x += $('div.playarea').scrollLeft();
 	x = coord_to_grid(x, false);
-
-	y += $('div.playarea').scrollTop();
 	y = coord_to_grid(y, false);
 
 	$.post('/object/create_token', {
@@ -237,7 +245,7 @@ function object_info(obj) {
 }
 
 function object_move(obj) {
-	var pos = obj.position();
+	var pos = object_position(obj);
 	var map = $('div.playarea div');
 
 	var min = 0;
@@ -249,9 +257,6 @@ function object_move(obj) {
 		max_x -= grid_cell_size;
 		max_y -= grid_cell_size;
 	}
-
-	pos.left += $('div.playarea').scrollLeft();
-	pos.top += $('div.playarea').scrollTop();
 
 	if (pos.left < min) {
 		pos.left = min;
@@ -294,10 +299,10 @@ function object_move(obj) {
 	}
 
 	var char_id = obj.prop('id');
-	var char_pos = obj.position();
+	var char_pos = object_position(obj);
 
 	$('div.zone').each(function() {
-		var zone_pos = $(this).position();
+		var zone_pos = object_position($(this));
 
 		var in_zone = true;
 		if (char_pos.left < zone_pos.left) {
@@ -326,7 +331,7 @@ function object_move(obj) {
 			}
 		} else {
 			if (zone_presence[char_id].includes(zone_id)) {
-				zone_presence = array_remove(zone_presence, zone_id);	
+				zone_presence = array_remove(zone_presence, zone_id);
 				zone_event = 'leave';
 			}
 		}
@@ -358,6 +363,14 @@ function object_name(obj) {
 		instance_id: obj.prop('id'),
 		name: name
 	});
+}
+
+function object_position(obj) {
+	var pos = obj.position();
+	pos.left += $('div.playarea').scrollLeft();
+	pos.top += $('div.playarea').scrollTop();
+
+	return pos;
 }
 
 function object_rotate(obj, rotation, send_to_backend = true) {
@@ -402,6 +415,151 @@ function object_show(obj) {
 	});
 }
 
+/* Measuring functions
+ */
+function measuring_stop() {
+	$('div.playarea').off('mousemove');
+	$('img.pin').remove();
+	$('span#infobar').text('');
+}
+
+/* Door functions
+ */
+function door_create(pos_x, pos_y, length, direction, state) {
+	$.post('/object/create_door', {
+		map_id: map_id,
+		pos_x: pos_x,
+		pos_y: pos_y,
+		length: length,
+		direction: direction,
+		state: state
+	}).done(function(data) {
+		instance_id = $(data).find('instance_id').text();
+
+		$('div.playarea div#new_door').attr('id', 'door' + instance_id);
+
+		$.contextMenu({
+			selector: 'div#door' + instance_id,
+			callback: context_menu_handler,
+			items: {
+				'door_lock': {name:'Lock', icon:'fa-lock'},
+				'door_unlock': {name:'Unlock', icon:'fa-unlock'},
+				'sep1:': '-',
+				'delete': {name:'Delete', icon:'fa-trash'}
+			},
+			zIndex: DEFAULT_Z_INDEX + 3
+		});
+	}).fail(function(data) {
+		$('div.playarea div#new_door').remove();
+		alert('Door create error');
+	});
+}
+
+function door_position(door) {
+	var pos_x = parseInt(door.attr('pos_x'));
+	var pos_y = parseInt(door.attr('pos_y'));
+	var length = parseInt(door.attr('length'));
+	var direction = door.attr('direction');
+	var state = door.attr('state');
+
+	pos_x *= grid_cell_size;
+	pos_y *= grid_cell_size;
+	length *= grid_cell_size;
+
+	if (direction == 'horizontal') {
+		var width = length;
+		var height = 7;
+		pos_y -= 3;
+	} else if (direction == 'vertical') {
+		var width = 7;
+		var height = length;
+		pos_x -= 3;
+	} else {
+		return;
+	}
+
+	door.css('left', pos_x + 'px');
+	door.css('top', pos_y + 'px');
+	door.css('width', width + 'px');
+	door.css('height', height + 'px');
+
+	if (state == 'locked') {
+		door.css('background-color', '#c00000');
+	}
+}
+
+function door_stop(remove = true) {
+	if (remove) {
+		$('div.playarea div#new_door').remove();
+	}
+	$('div.playarea').off('mousemove');
+	$('div.playarea').off('click');
+}
+
+/* Wall functions
+ */
+function wall_create(pos_x, pos_y, length, direction) {
+	$.post('/object/create_wall', {
+		map_id: map_id,
+		pos_x: pos_x,
+		pos_y: pos_y,
+		length: length,
+		direction: direction
+	}).done(function(data) {
+		instance_id = $(data).find('instance_id').text();
+
+		$('div.playarea div#new_wall').attr('id', 'wall' + instance_id);
+
+		$.contextMenu({
+			selector: 'div#wall' + instance_id,
+			callback: context_menu_handler,
+			items: {
+				'delete': {name:'Delete', icon:'fa-trash'}
+			},
+			zIndex: DEFAULT_Z_INDEX + 3
+		});
+	}).fail(function(data) {
+		$('div.playarea div#new_wall').remove();
+		alert('Wall create error');
+	});
+}
+
+function wall_position(wall) {
+	var pos_x = parseInt(wall.attr('pos_x'));
+	var pos_y = parseInt(wall.attr('pos_y'));
+	var length = parseInt(wall.attr('length'));
+	var direction = wall.attr('direction');
+
+	pos_x *= grid_cell_size;
+	pos_y *= grid_cell_size;
+	length *= grid_cell_size;
+
+	if (direction == 'horizontal') {
+		var width = length;
+		var height = 5;
+		pos_y -= 2;
+	} else if (direction == 'vertical') {
+		var width = 5;
+		var height = length;
+		pos_x -= 2;
+	} else {
+		return;
+	}
+
+	wall.css('left', pos_x + 'px');
+	wall.css('top', pos_y + 'px');
+	wall.css('width', width + 'px');
+	wall.css('height', height + 'px');
+}
+
+function wall_stop(remove = true) {
+	if (remove) {
+		$('div.playarea div#new_wall').remove();
+	}
+	$('div.playarea').off('mousemove');
+	$('div.playarea').off('click');
+}
+
 /* Zone functions
  */
 function zone_init_presence() {
@@ -413,8 +571,8 @@ function zone_init_presence() {
 		zone_presence[char_id] = [];
 
 		$('div.zone').each(function() {
-			var my_pos = character.position();
-			var zone_pos = $(this).position();
+			var my_pos = object_position(character);
+			var zone_pos = object_position($(this));
 
 			if (my_pos.left < zone_pos.left) {
 				return;
@@ -591,6 +749,10 @@ function context_menu_handler(key, options) {
 			}
 			break;
 		case 'distance':
+			door_stop();
+			measuring_stop();
+			wall_stop();
+
 			var pos_x = coord_to_grid(mouse_x, false) + (grid_cell_size >> 1) - 12;
 			var pos_y = coord_to_grid(mouse_y, false) - (grid_cell_size >> 1) + 7;
 			var marker = '<img src="/images/pin.png" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; z-index:' + (DEFAULT_Z_INDEX + 4) + '" class="pin" />';
@@ -613,10 +775,86 @@ function context_menu_handler(key, options) {
 				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft');
 			});
 
-			measuring = true;
+			$('div.playarea').on('click', function(event) {
+				measuring_stop();
+			});
+			break;
+		case 'door_create':
+			door_stop();
+			measuring_stop();
+			wall_stop();
+
+			door_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+			door_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+			var door = '<div id="new_door" class="door" pos_x="' + door_x + '" pos_y="' + door_y + '" length="0" direction="horizontal" />';
+			$('div.playarea > div').append(door);
+			$('div.playarea div#new_door').each(function() {
+				door_position($(this));
+			});
+
+			$('div.playarea').mousemove(function(event) {
+				capture_mouse_position();
+
+				var pos_x = door_x;
+				var pos_y = door_y;
+				var end_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+				var end_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+				var diff_x = Math.abs(end_x - pos_x);
+				var diff_y = Math.abs(end_y - pos_y);
+
+				if (diff_x > diff_y) {
+					if (end_x < pos_x) {
+						pos_x = end_x;
+					}
+					var length = diff_x;
+					var direction = 'horizontal';
+				} else {
+					if (end_y < pos_y) {
+						pos_y = end_y;
+					}
+					var length = diff_y;
+					var direction = 'vertical';
+				}
+
+				$('div.playarea div#new_door').each(function() {
+					$(this).attr('pos_x', pos_x);
+					$(this).attr('pos_y', pos_y);
+					$(this).attr('length', length);
+					$(this).attr('direction', direction);
+					door_position($(this));
+				});
+			});
+
+			$('div.playarea').on('click', function(event) {
+				door_stop(false);
+
+				var pos_x = $('div.playarea div#new_door').attr('pos_x');
+				var pos_y = $('div.playarea div#new_door').attr('pos_y');
+				var length = $('div.playarea div#new_door').attr('length');
+				var direction = $('div.playarea div#new_door').attr('direction');
+
+				door_create(pos_x, pos_y, length, direction, 'closed');
+			});
+			break;
+		case 'door_lock':
+			obj.css('background-color', '#c00000');
+			$.post('/object/door_state', {
+				door_id: obj.prop('id').substr(4),
+				state: 'locked'
+			});
+			break;
+		case 'door_unlock':
+			obj.css('background-color', '');
+			$.post('/object/door_state', {
+				door_id: obj.prop('id').substr(4),
+				state: 'closed'
+			});
+
 			break;
 		case 'duplicate':
-			var pos = obj.position();
+			var pos = object_position(obj);
 			object_create($(this), pos.left + grid_cell_size, pos.top);
 			break;
 		case 'info':
@@ -653,6 +891,66 @@ function context_menu_handler(key, options) {
 			zone_group_change(true);
 			$('div.script_editor').show();
 			$('div.script_editor textarea').focus();
+			break;
+		case 'wall_create':
+			door_stop();
+			measuring_stop();
+			wall_stop();
+
+			wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+			wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+			var wall = '<div id="new_wall" class="wall" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" />';
+			$('div.playarea > div').append(wall);
+			$('div.playarea div#new_wall').each(function() {
+				wall_position($(this));
+			});
+
+			$('div.playarea').mousemove(function(event) {
+				capture_mouse_position();
+
+				var pos_x = wall_x;
+				var pos_y = wall_y;
+				var end_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+				var end_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+				var diff_x = Math.abs(end_x - pos_x);
+				var diff_y = Math.abs(end_y - pos_y);
+
+				if (diff_x > diff_y) {
+					if (end_x < pos_x) {
+						pos_x = end_x;
+					}
+					var length = diff_x;
+					var direction = 'horizontal';
+				} else {
+					if (end_y < pos_y) {
+						pos_y = end_y;
+					}
+					var length = diff_y;
+					var direction = 'vertical';
+				}
+
+				$('div.playarea div#new_wall').each(function() {
+					$(this).attr('pos_x', pos_x);
+					$(this).attr('pos_y', pos_y);
+					$(this).attr('length', length);
+					$(this).attr('direction', direction);
+					wall_position($(this));
+				});
+			});
+
+			$('div.playarea').on('click', function(event) {
+				wall_stop(false);
+
+				var pos_x = $('div.playarea div#new_wall').attr('pos_x');
+				var pos_y = $('div.playarea div#new_wall').attr('pos_y');
+				var length = $('div.playarea div#new_wall').attr('length');
+				var direction = $('div.playarea div#new_wall').attr('direction');
+
+				wall_create(pos_x, pos_y, length, direction);
+			});
+
 			break;
 		case 'zone_create':
 			zone_x = coord_to_grid(mouse_x, false);
@@ -698,6 +996,43 @@ $(document).ready(function() {
 		stop: function(event, ui) {
 			object_move($(this));
 		}
+	});
+
+	/* Doors
+	 */
+	$('div.door').css('z-index', 3);
+
+	$('div.door').each(function() {
+		door_position($(this));
+	});
+
+	$.contextMenu({
+		selector: 'div.door',
+		callback: context_menu_handler,
+		items: {
+			'door_lock': {name:'Lock', icon:'fa-lock'},
+			'door_unlock': {name:'Unlock', icon:'fa-unlock'},
+			'sep1:': '-',
+			'delete': {name:'Delete', icon:'fa-trash'}
+		},
+		zIndex: DEFAULT_Z_INDEX + 3
+	});
+
+	/* Walls
+	 */
+	$('div.wall').css('z-index', 3);
+
+	$('div.wall').each(function() {
+		wall_position($(this));
+	});
+
+	$.contextMenu({
+		selector: 'div.wall',
+		callback: context_menu_handler,
+		items: {
+			'delete': {name:'Delete', icon:'fa-trash'}
+		},
+		zIndex: DEFAULT_Z_INDEX + 3
 	});
 
 	/* Zones
@@ -843,6 +1178,8 @@ $(document).ready(function() {
 			'distance': {name:'Distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Coordinates', icon:'fa-flag'},
 			'sep3': '-',
+			'door_create': {name:'Door', icon:'fa-columns'},
+			'wall_create': {name:'Wall', icon:'fa-th-large'},
 			'zone_create': {name:'Zone', icon:'fa-square-o'},
 			'sep4': '-',
 			'lower': {name:'Lower', icon:'fa-arrow-down'},
@@ -872,6 +1209,8 @@ $(document).ready(function() {
 			'distance': {name:'Distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Coordinates', icon:'fa-flag'},
 			'sep2': '-',
+			'door_create': {name:'Door', icon:'fa-columns'},
+			'wall_create': {name:'Wall', icon:'fa-th-large'},
 			'zone_create': {name:'Zone', icon:'fa-square-o'}
 		},
 		zIndex: DEFAULT_Z_INDEX + 3
@@ -884,6 +1223,8 @@ $(document).ready(function() {
 			'distance': {name:'Distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Coordinates', icon:'fa-flag'},
 			'sep1': '-',
+			'door_create': {name:'Door', icon:'fa-columns'},
+			'wall_create': {name:'Wall', icon:'fa-th-large'},
 			'zone_create': {name:'Zone', icon:'fa-square-o'}
 		},
 		zIndex: DEFAULT_Z_INDEX + 4
@@ -909,17 +1250,10 @@ $(document).ready(function() {
 	 */
 	$('div.playarea').mousedown(function(event) {
 		if (event.which == 3) {
-			mouse_x = event.clientX + $('div.playarea').scrollLeft() - 16;
-			mouse_y = event.clientY + $('div.playarea').scrollTop() - 41;
-		}
-
-		if (measuring) {
-			$('div.playarea').off('mousemove');
-			$('span#infobar').text('');
-			$('img.pin').remove();
-			measuring = false;
+			capture_mouse_position();
 		}
 	});
 
+	$('input#filter').val(localStorage.getItem('cms_token_filter'));
 	filter_library();
 });

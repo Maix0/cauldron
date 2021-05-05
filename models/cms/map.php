@@ -169,12 +169,13 @@
 
 		public function create_map($map) {
 			$keys = array("id", "game_id", "title", "url", "audio", "type", "width", "height",
-			              "grid_size", "show_grid", "start_x", "start_y", "dm_notes");
+			              "grid_size", "show_grid", "drag_character", "start_x", "start_y", "dm_notes");
 
 			$map["id"] = null;
 			$map["game_id"] = $_SESSION["edit_game_id"];
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
+			$map["drag_character"] = is_true($map["drag_character"]) ? YES : NO;
 			$map["start_x"] = 2;
 			$map["start_y"] = 2;
 
@@ -202,10 +203,12 @@
 				return false;
 			}
 
-			$keys = array("title", "url", "audio", "type", "width", "height", "grid_size", "show_grid", "dm_notes");
+			$keys = array("title", "url", "audio", "type", "width", "height", "grid_size", "show_grid",
+			              "drag_character", "dm_notes");
 
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
+			$map["drag_character"] = is_true($map["drag_character"]) ? YES : NO;
 
 			return $this->db->update("maps", $map["id"], $map, $keys);
 		}
@@ -223,6 +226,8 @@
 
 		public function delete_map($map_id) {
 			$queries = array(
+				array("delete from doors where map_id=%d", $map_id),
+				array("delete from walls where map_id=%d", $map_id),
 				array("delete from zones where map_id=%d", $map_id),
 				array("delete from map_token where map_id=%d", $map_id),
 				array("delete from map_character where map_id=%d", $map_id),

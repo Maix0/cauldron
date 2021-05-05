@@ -39,6 +39,14 @@
 <xsl:if test="not(characters/character)">
 <div id="start" style="position:absolute; left:{map/start_x}px; top:{map/start_y}px;"><img src="/images/player_start.png" style="width:{@grid_cell_size}px; height:{@grid_cell_size}px;" /></div>
 </xsl:if>
+<!-- Doors -->
+<xsl:for-each select="doors/door">
+<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" />
+</xsl:for-each>
+<!-- Walls -->
+<xsl:for-each select="walls/wall">
+<div id="wall{@id}" class="wall" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" />
+</xsl:for-each>
 <!-- Zones -->
 <xsl:for-each select="zones/zone">
 <div id="zone{@id}" class="zone" style="position:absolute; left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};"><xsl:if test="group!=''"><xsl:attribute name="group"><xsl:value-of select="group" /></xsl:attribute></xsl:if><div class="script"><xsl:value-of select="script" /></div></div>

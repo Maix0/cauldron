@@ -77,6 +77,22 @@ table.table th:last-child {
 	width:200px;
 }
 
+/* Doors
+ */
+div.door {
+	position:absolute;
+	background-color:#a06000;
+	border:1px solid #402000;
+}
+
+/* Walls
+ */
+div.wall {
+	position:absolute;
+	background-color:#ffa000;
+	border:1px solid #ff0000;
+}
+
 /* Journal
  */
 div.journal div.panel {

@@ -63,6 +63,18 @@
 			return $this->db->execute($query, $map_id);
 		}
 
+		public function get_doors($map_id) {
+			$query = "select * from doors where map_id=%d";
+
+			return $this->db->execute($query, $map_id);
+		}
+
+		public function get_walls($map_id) {
+			$query = "select * from walls where map_id=%d";
+
+			return $this->db->execute($query, $map_id);
+		}
+
 		public function get_zones($map_id) {
 			$query = "select * from zones where map_id=%d";
 

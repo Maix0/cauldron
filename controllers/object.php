@@ -14,8 +14,26 @@
 			$this->model->change_map($_POST["game_id"], $_POST["map_id"]);
 		}
 
+		public function post_create_door() {
+			if (($instance_id = $this->model->door_create($_POST)) !== false) {
+				$this->view->add_tag("instance_id", $instance_id);
+			} else {
+				debug_log($_POST);
+				return false;
+			}
+		}
+
 		public function post_create_token() {
 			if (($instance_id = $this->model->token_create($_POST)) !== false) {
+				$this->view->add_tag("instance_id", $instance_id);
+			} else {
+				debug_log($_POST);
+				return false;
+			}
+		}
+
+		public function post_create_wall() {
+			if (($instance_id = $this->model->wall_create($_POST)) !== false) {
 				$this->view->add_tag("instance_id", $instance_id);
 			} else {
 				debug_log($_POST);
@@ -43,9 +61,15 @@
 		}
 
 		public function post_delete() {
-			if (substr($_POST["instance_id"], 0, 5) == "token") {
+			if (substr($_POST["instance_id"], 0, 4) == "door") {
+				$instance_id = substr($_POST["instance_id"], 4);
+				$this->model->door_delete($instance_id);
+			} else if (substr($_POST["instance_id"], 0, 5) == "token") {
 				$instance_id = substr($_POST["instance_id"], 5);
 				$this->model->token_delete($instance_id);
+			} else if (substr($_POST["instance_id"], 0, 4) == "wall") {
+				$instance_id = substr($_POST["instance_id"], 4);
+				$this->model->wall_delete($instance_id);
 			} else if (substr($_POST["instance_id"], 0, 4) == "zone") {
 				$instance_id = substr($_POST["instance_id"], 4);
 				$this->model->zone_delete($instance_id);
@@ -142,6 +166,12 @@
 			foreach ($collectables as $collectable) {
 				$this->view->record($collectable, "collectable");
 			}
+		}
+
+		/* Door state
+		 */
+		public function post_door_state() {
+			$this->model->door_state($_POST["door_id"], $_POST["state"]);
 		}
 
 		/* Journal

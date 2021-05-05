@@ -28,6 +28,16 @@
 				return;
 			}
 
+			if (($doors = $this->model->get_doors($map_id)) === false) {
+				$this->view->add_tag("result", "Database error.");
+				return;
+			}
+
+			if (($walls = $this->model->get_walls($map_id)) === false) {
+				$this->view->add_tag("result", "Database error.");
+				return;
+			}
+
 			if (($zones = $this->model->get_zones($map_id)) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
@@ -61,12 +71,32 @@
 			$map["start_y"] *= $grid_cell_size;
 			$this->view->record($map, "map");
 
+			/* Library
+			 */
 			$this->view->open_tag("library");
 			foreach ($library as $token) {
 				$this->view->record($token, "token");
 			}
 			$this->view->close_tag();
 
+			/* Doors
+			 */
+			$this->view->open_tag("doors");
+			foreach ($doors as $door) {
+				$this->view->record($door, "door");
+			}
+			$this->view->close_tag();
+
+			/* Walls
+			 */
+			$this->view->open_tag("walls");
+			foreach ($walls as $wall) {
+				$this->view->record($wall, "wall");
+			}
+			$this->view->close_tag();
+
+			/* Zones
+			 */
 			$this->view->open_tag("zones");
 			foreach ($zones as $zone) {
 				$zone["pos_x"] *= $grid_cell_size;
@@ -82,6 +112,8 @@
 			}
 			$this->view->close_tag();
 
+			/* Tokens
+			 */
 			$this->view->open_tag("tokens");
 			foreach ($tokens as $token) {
 				$token["pos_x"] *= $grid_cell_size;
@@ -93,6 +125,8 @@
 			}
 			$this->view->close_tag();
 
+			/* Characters
+			 */
 			$this->view->open_tag("characters");
 			foreach ($characters as $character) {
 				$character["pos_x"] *= $grid_cell_size;

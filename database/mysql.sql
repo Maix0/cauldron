@@ -118,6 +118,27 @@ INSERT INTO `conditions` VALUES (1,'Blinded'),(2,'Charmed'),(3,'Deafened'),(4,'E
 UNLOCK TABLES;
 
 --
+-- Table structure for table `doors`
+--
+
+DROP TABLE IF EXISTS `doors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `doors` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) unsigned NOT NULL,
+  `pos_x` smallint(5) unsigned NOT NULL,
+  `pos_y` smallint(5) unsigned NOT NULL,
+  `length` smallint(3) unsigned NOT NULL,
+  `direction` enum('horizontal','vertical') NOT NULL,
+  `state` enum('open','closed','locked') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `map_id` (`map_id`),
+  CONSTRAINT `doors_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `game_character`
 --
 
@@ -250,6 +271,7 @@ CREATE TABLE `maps` (
   `height` smallint(3) unsigned NOT NULL,
   `grid_size` tinyint(3) unsigned NOT NULL,
   `show_grid` tinyint(1) NOT NULL,
+  `drag_character` tinyint(1) NOT NULL,
   `start_x` smallint(5) unsigned NOT NULL,
   `start_y` smallint(5) unsigned NOT NULL,
   `dm_notes` text NOT NULL,
@@ -563,6 +585,26 @@ INSERT INTO `users` VALUES (1,1,'admin','none',NULL,NULL,1,NULL,'Administrator',
 UNLOCK TABLES;
 
 --
+-- Table structure for table `walls`
+--
+
+DROP TABLE IF EXISTS `walls`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `walls` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) unsigned NOT NULL,
+  `pos_x` smallint(5) unsigned NOT NULL,
+  `pos_y` smallint(5) unsigned NOT NULL,
+  `length` smallint(3) unsigned NOT NULL,
+  `direction` enum('horizontal','vertical') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `map_id` (`map_id`),
+  CONSTRAINT `walls_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `zones`
 --
 
@@ -585,7 +627,6 @@ CREATE TABLE `zones` (
   CONSTRAINT `zones_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -596,4 +637,4 @@ CREATE TABLE `zones` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-04-21 21:54:41
+-- Dump completed on 2021-05-05 10:11:15
