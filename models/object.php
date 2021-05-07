@@ -353,12 +353,13 @@
 			}
 
 			$data = array(
-				"id"        => null,
-				"map_id"    => (int)$wall["map_id"],
-				"pos_x"     => (int)$wall["pos_x"],
-				"pos_y"     => (int)$wall["pos_y"],
-				"length"    => (int)$wall["length"],
-				"direction" => $wall["direction"]);
+				"id"          => null,
+				"map_id"      => (int)$wall["map_id"],
+				"pos_x"       => (int)$wall["pos_x"],
+				"pos_y"       => (int)$wall["pos_y"],
+				"length"      => (int)$wall["length"],
+				"direction"   => $wall["direction"],
+				"transparent" => is_true($wall["transparent"]) ? YES : NO);
 
 			if ($this->db->insert("walls", $data) === false) {
 				return false;

@@ -143,6 +143,9 @@
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("game.js");
+				if (is_true($active_map["fog_of_war"])) {
+					$this->view->add_javascript("includes/fog_of_war.js");
+				}
 
 				$this->view->add_css("banshee/context-menu.css");
 				$this->view->add_css("banshee/font-awesome.css");
@@ -195,8 +198,11 @@
 				} else {
 					unset($active_map["dm_notes"]);
 				}
+
 				$active_map["show_grid"] = show_boolean($active_map["show_grid"]);
 				$active_map["drag_character"] = show_boolean($active_map["drag_character"]);
+				$active_map["fog_of_war"] = show_boolean($active_map["fog_of_war"]);
+
 				$this->view->record($active_map, "map");
 
 				/* Doors
@@ -211,6 +217,7 @@
 				 */
 				$this->view->open_tag("walls");
 				foreach ($walls as $wall) {
+					$wall["transparent"] = show_boolean($wall["transparent"]);
 					$this->view->record($wall, "wall");
 				}
 				$this->view->close_tag();

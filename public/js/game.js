@@ -16,7 +16,10 @@ var my_name = null;
 var my_character = null;
 var temporary_hitpoints = 0;
 var battle_order = [];
+var keep_centered = false;
 var focus_obj = null;
+var fog_of_war = null;
+var fow_obj = null;
 var input_history = [];
 var input_index = -1;
 var mouse_x = 0;
@@ -54,7 +57,7 @@ function change_map() {
 	});
 }
 
-function scroll_to_my_character() {
+function scroll_to_my_character(speed = 1000) {
 	if (my_character != null) {
 		var spot = my_character;
 	} else if (focus_obj != null) {
@@ -78,7 +81,7 @@ function scroll_to_my_character() {
 	$('div.playarea').animate({
 		scrollLeft: pos_x,
 		scrollTop:  pos_y
-	}, 1000);
+	}, speed);
 }
 
 function write_sidebar(message) {
@@ -323,6 +326,21 @@ function coord_to_grid(coord, edge = true) {
 	return coord;
 }
 
+function center_character(button) {
+	if (keep_centered == false) {
+		keep_centered = true;
+		if ((my_character != null) || (focus_obj != null)) {
+			scroll_to_my_character(0);
+		}
+		$(button).addClass('btn-primary');
+	} else {
+		keep_centered = false;
+		$(button).removeClass('btn-primary');
+	}
+
+	$(button).blur();
+}
+
 /* Object functions
  */
 function object_alive(obj) {
@@ -482,6 +500,10 @@ function object_move(obj, speed = 200) {
 
 	obj.css('left', pos.left + 'px');
 	obj.css('top', pos.top + 'px');
+
+	if (obj.is(fow_obj) || (fog_of_war && obj.is(my_character))) {
+		fog_of_war_update(obj);
+	}
 
 	var data = {
 		action: 'move',
@@ -673,6 +695,10 @@ function object_step(obj, x, y) {
 	if (stick_to != null) {
 		stick_to_x += x;
 		stick_to_y += y;
+	}
+
+	if (keep_centered) {
+		scroll_to_my_character(0);
 	}
 }
 
@@ -913,12 +939,12 @@ function door_position(door) {
 
 	if (direction == 'horizontal') {
 		var width = length;
-		var height = 7;
-		pos_y -= 3;
+		var height = 9;
+		pos_y -= 4;
 	} else if (direction == 'vertical') {
-		var width = 7;
+		var width = 9;
 		var height = length;
-		pos_x -= 3;
+		pos_x -= 4;
 	} else {
 		write_sidebar('Invalid door!');
 		return;
@@ -1101,13 +1127,25 @@ function door_show_closed(door) {
 
 	door.css('opacity', '1');
 	door.css('background-color', '');
+
+	if (fog_of_war && (my_character != null)) {
+		fog_of_war_update(my_character);
+	} else if (fow_obj != null) {
+		fog_of_war_update(fow_obj);
+	}
 }
 
 function door_show_open(door) {
 	door.attr('state', 'open');
 
-	door.css('opacity', '0.4');
-	door.css('background-color', '#ffffff');
+	door.css('opacity', '0.6');
+	door.css('background-color', '#40c040');
+
+	if (fog_of_war && (my_character != null)) {
+		fog_of_war_update(my_character);
+	} else if (fow_obj != null) {
+		fog_of_war_update(fow_obj);
+	}
 }
 
 function door_show_locked(door) {
@@ -1941,6 +1979,10 @@ function context_menu_handler(key, options) {
 				char_id: my_character.attr('char_id'),
 				alternate_id: alternate_id
 			});
+
+			if (fog_of_war && (my_character != null)) {
+				fog_of_war_update(my_character);
+			}
 			break;
 		case 'armor':
 			if (my_character == null) {
@@ -2158,6 +2200,19 @@ function context_menu_handler(key, options) {
 				focus_obj = null;
 			}
 			break;
+		case 'fow':
+			if (fow_obj == null) {
+				fog_of_war_init();
+				fog_of_war_update(obj);
+				fow_obj = obj;
+			} else if (obj.is(fow_obj)) {
+				fog_of_war_destroy();
+				fow_obj = null;
+			} else {
+				fog_of_war_update(obj);
+				fow_obj = obj;
+			}
+			break;
 		case 'handover':
 			object_handover(obj);
 			break;
@@ -2354,6 +2409,7 @@ $(document).ready(function() {
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
 	my_name = $('div.playarea').attr('name');
 	dungeon_master = ($('div.playarea').attr('dm') == 'yes');
+	fog_of_war = ($('div.playarea').attr('fog_of_war') == 'yes');
 	var version = $('div.playarea').attr('version');
 
 	write_sidebar('<b>Welcome to TableTop v' + version + '</b>');
@@ -2588,6 +2644,10 @@ $(document).ready(function() {
 						}
 					}
 
+					if (obj.is(fow_obj) || (fog_of_war && obj.is(my_character))) {
+						fog_of_war_update(obj);
+					}
+
 					if (data.instance_id == stick_to) {
 						object_move_to_sticked(obj);
 					}
@@ -2771,6 +2831,8 @@ $(document).ready(function() {
 	 */
 	$('div.wall').css('z-index', 3);
 
+	$('div.wall[transparent="yes"]').addClass('window');
+
 	$('div.wall').each(function() {
 		wall_position($(this));
 	});
@@ -2947,6 +3009,7 @@ $(document).ready(function() {
 			'presence': {name:'Presence', icon:'fa-low-vision'},
 			'sep1': '-',
 			'focus': {name:'Focus', icon:'fa-binoculars'},
+			'fow': {name:'Fog of War', icon:'fa-cloud'},
 			'distance': {name:'Distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Coordinates', icon:'fa-flag'},
 			'sep2': '-',
@@ -2957,6 +3020,10 @@ $(document).ready(function() {
 			'sep3': '-',
 			'zone_create': {name:'Zone', icon:'fa-square-o'}
 		};
+
+		if (fog_of_war == false) {
+			delete items['fow'];
+		}
 
 		if (Object.keys(maps).length > 0) {
 			items['send'] = {name:'Send to', icon:'fa-compass', items:maps};
@@ -3065,6 +3132,13 @@ $(document).ready(function() {
 			/* Zone presence
 			 */
 			zone_init_presence();
+
+			/* Fog of war
+			 */
+			if (fog_of_war) {
+				fog_of_war_init();
+				fog_of_war_update(my_character);
+			}
 		}
 
 		/* Menu tokens

@@ -373,6 +373,13 @@
 				$this->settings->database_version = 11;
 			}
 
+			if ($this->settings->database_version == 11) {
+				$this->db_query("ALTER TABLE maps ADD fog_of_war BOOLEAN NOT NULL AFTER drag_character");
+				$this->db_query("ALTER TABLE walls ADD transparent BOOLEAN NOT NULL AFTER direction");
+
+				$this->settings->database_version = 12;
+			}
+
 			return true;
 		}
 

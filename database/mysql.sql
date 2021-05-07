@@ -272,6 +272,7 @@ CREATE TABLE `maps` (
   `grid_size` tinyint(3) unsigned NOT NULL,
   `show_grid` tinyint(1) NOT NULL,
   `drag_character` tinyint(1) NOT NULL,
+  `fog_of_war` tinyint(1) NOT NULL,
   `start_x` smallint(5) unsigned NOT NULL,
   `start_y` smallint(5) unsigned NOT NULL,
   `dm_notes` text NOT NULL,
@@ -598,6 +599,7 @@ CREATE TABLE `walls` (
   `pos_y` smallint(5) unsigned NOT NULL,
   `length` smallint(3) unsigned NOT NULL,
   `direction` enum('horizontal','vertical') NOT NULL,
+  `transparent` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
   CONSTRAINT `walls_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)

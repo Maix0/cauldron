@@ -52,6 +52,8 @@
 
 			$map["show_grid"] = show_boolean($map["show_grid"]);
 			$map["drag_character"] = show_boolean($map["drag_character"]);
+			$map["fog_of_war"] = show_boolean($map["fog_of_war"]);
+
 			$this->view->record($map, "map");
 
 			$this->view->close_tag();

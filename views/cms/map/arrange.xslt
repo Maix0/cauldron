@@ -45,7 +45,7 @@
 </xsl:for-each>
 <!-- Walls -->
 <xsl:for-each select="walls/wall">
-<div id="wall{@id}" class="wall" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" />
+<div id="wall{@id}" class="wall" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" transparent="{transparent}" />
 </xsl:for-each>
 <!-- Zones -->
 <xsl:for-each select="zones/zone">
@@ -57,6 +57,8 @@
 <img src="/files/tokens/{@id}.{extension}" style="width:{width}px; height:{height}px" />
 </div>
 </xsl:for-each>
+<!-- Fog of war -->
+<div class="fog_of_war"></div>
 <!-- Characters -->
 <xsl:for-each select="characters/character">
 <div id="character{instance_id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" hitpoints="{hitpoints}" damage="{damage}">

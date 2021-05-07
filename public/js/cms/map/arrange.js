@@ -4,6 +4,7 @@ var game_id = null;
 var map_id = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
+var fow_obj = null;
 var mouse_x = 0;
 var mouse_y = 0;
 var door_x = 0;
@@ -290,6 +291,10 @@ function object_move(obj) {
 		return;
 	}
 
+	if (obj.is(fow_obj)) {
+		fog_of_war_update(obj);
+	}
+
 	/* Zone events
 	 */
 	var zone_events = {
@@ -468,12 +473,12 @@ function door_position(door) {
 
 	if (direction == 'horizontal') {
 		var width = length;
-		var height = 7;
-		pos_y -= 3;
+		var height = 9;
+		pos_y -= 4;
 	} else if (direction == 'vertical') {
-		var width = 7;
+		var width = 9;
 		var height = length;
-		pos_x -= 3;
+		pos_x -= 4;
 	} else {
 		return;
 	}
@@ -498,13 +503,14 @@ function door_stop(remove = true) {
 
 /* Wall functions
  */
-function wall_create(pos_x, pos_y, length, direction) {
+function wall_create(pos_x, pos_y, length, direction, transparent) {
 	$.post('/object/create_wall', {
 		map_id: map_id,
 		pos_x: pos_x,
 		pos_y: pos_y,
 		length: length,
-		direction: direction
+		direction: direction,
+		transparent: transparent
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
 
@@ -857,6 +863,19 @@ function context_menu_handler(key, options) {
 			var pos = object_position(obj);
 			object_create($(this), pos.left + grid_cell_size, pos.top);
 			break;
+		case 'fow':
+			if (fow_obj == null) {
+				fog_of_war_init();
+				fog_of_war_update(obj);
+				fow_obj = obj;
+			} else if (obj.is(fow_obj)) {
+				fog_of_war_destroy();
+				fow_obj = null;
+			} else {
+				fog_of_war_update(obj);
+				fow_obj = obj;
+			}
+			break;
 		case 'info':
 			object_info(obj);
 			break;
@@ -893,6 +912,7 @@ function context_menu_handler(key, options) {
 			$('div.script_editor textarea').focus();
 			break;
 		case 'wall_create':
+		case 'window_create':
 			door_stop();
 			measuring_stop();
 			wall_stop();
@@ -900,7 +920,8 @@ function context_menu_handler(key, options) {
 			wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
 			wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
 
-			var wall = '<div id="new_wall" class="wall" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" />';
+			var type = (key == 'wall_create') ? 'wall' : 'window';
+			var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" />';
 			$('div.playarea > div').append(wall);
 			$('div.playarea div#new_wall').each(function() {
 				wall_position($(this));
@@ -948,7 +969,7 @@ function context_menu_handler(key, options) {
 				var length = $('div.playarea div#new_wall').attr('length');
 				var direction = $('div.playarea div#new_wall').attr('direction');
 
-				wall_create(pos_x, pos_y, length, direction);
+				wall_create(pos_x, pos_y, length, direction, key == 'window_create');
 			});
 
 			break;
@@ -1021,6 +1042,8 @@ $(document).ready(function() {
 	/* Walls
 	 */
 	$('div.wall').css('z-index', 3);
+
+	$('div.wall[transparent="yes"]').addClass('window');
 
 	$('div.wall').each(function() {
 		wall_position($(this));
@@ -1180,6 +1203,7 @@ $(document).ready(function() {
 			'sep3': '-',
 			'door_create': {name:'Door', icon:'fa-columns'},
 			'wall_create': {name:'Wall', icon:'fa-th-large'},
+			'window_create': {name:'Window', icon:'fa-window-maximize'},
 			'zone_create': {name:'Zone', icon:'fa-square-o'},
 			'sep4': '-',
 			'lower': {name:'Lower', icon:'fa-arrow-down'},
@@ -1205,12 +1229,14 @@ $(document).ready(function() {
 				'rotate_w':  {name:'West', icon:'fa-arrow-circle-left'},
 				'rotate_nw': {name:'North West'},
 			}},
+			'fow': {name:'Fog of War', icon:'fa-cloud'},
 			'sep1': '-',
 			'distance': {name:'Distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Coordinates', icon:'fa-flag'},
 			'sep2': '-',
 			'door_create': {name:'Door', icon:'fa-columns'},
 			'wall_create': {name:'Wall', icon:'fa-th-large'},
+			'window_create': {name:'Window', icon:'fa-window-maximize'},
 			'zone_create': {name:'Zone', icon:'fa-square-o'}
 		},
 		zIndex: DEFAULT_Z_INDEX + 3
@@ -1225,6 +1251,7 @@ $(document).ready(function() {
 			'sep1': '-',
 			'door_create': {name:'Door', icon:'fa-columns'},
 			'wall_create': {name:'Wall', icon:'fa-th-large'},
+			'window_create': {name:'Window', icon:'fa-window-maximize'},
 			'zone_create': {name:'Zone', icon:'fa-square-o'}
 		},
 		zIndex: DEFAULT_Z_INDEX + 4

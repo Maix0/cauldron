@@ -56,6 +56,7 @@
 			$this->view->add_javascript("includes/library.js");
 			$this->view->add_javascript("includes/script.js");
 			$this->view->add_javascript("cms/map/arrange.js");
+			$this->view->add_javascript("includes/fog_of_war.js");
 
 		   	$this->view->add_css("banshee/context-menu.css");
 			$this->view->add_css("banshee/font-awesome.css");
@@ -91,6 +92,7 @@
 			 */
 			$this->view->open_tag("walls");
 			foreach ($walls as $wall) {
+				$wall["transparent"] = show_boolean($wall["transparent"]);
 				$this->view->record($wall, "wall");
 			}
 			$this->view->close_tag();

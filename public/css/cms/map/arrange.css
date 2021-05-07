@@ -65,6 +65,12 @@ div.wall {
 	border:1px solid #ff0000;
 }
 
+div.window {
+	position:absolute;
+	background:#0080ff;
+	border:1px solid #0000ff;
+}
+
 /* Zones
  */
 div.zone:hover {
