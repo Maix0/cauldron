@@ -123,6 +123,14 @@
 				$result = false;
 			}
 
+			if (valid_input($map["fow_distance"], VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {
+				$this->view->add_message("Invalid FoW distance.");
+				$result = false;
+			} else if ((int)$map["fow_distance"] == 0) {
+				$this->view->add_message("Invalid FoW distance.");
+				$result = false;
+			}
+
 			return $result;
 		}
 
@@ -168,15 +176,15 @@
 		}
 
 		public function create_map($map) {
-			$keys = array("id", "game_id", "title", "url", "audio", "type", "width", "height", "grid_size", 
-			              "show_grid", "drag_character", "fog_of_war", "start_x", "start_y", "dm_notes");
+			$keys = array("id", "game_id", "title", "url", "audio", "type", "width", "height",
+			              "grid_size", "show_grid", "drag_character", "fog_of_war",
+			              "fow_distance", "start_x", "start_y", "dm_notes");
 
 			$map["id"] = null;
 			$map["game_id"] = $_SESSION["edit_game_id"];
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
 			$map["drag_character"] = is_true($map["drag_character"]) ? YES : NO;
-			$map["fog_of_war"] = is_true($map["fog_of_war"]) ? YES : NO;
 			$map["start_x"] = 2;
 			$map["start_y"] = 2;
 
@@ -204,13 +212,12 @@
 				return false;
 			}
 
-			$keys = array("title", "url", "audio", "type", "width", "height", "grid_size", "show_grid",
-			              "drag_character", "fog_of_war", "dm_notes");
+			$keys = array("title", "url", "audio", "type", "width", "height", "grid_size",
+			              "show_grid", "drag_character", "fog_of_war", "fow_distance", "dm_notes");
 
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
 			$map["drag_character"] = is_true($map["drag_character"]) ? YES : NO;
-			$map["fog_of_war"] = is_true($map["fog_of_war"]) ? YES : NO;
 
 			return $this->db->update("maps", $map["id"], $map, $keys);
 		}

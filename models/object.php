@@ -334,6 +334,74 @@
 			return $this->db->delete("doors", $door_id) !== false;
 		}
 
+		/* Light functions
+		 */
+		private function valid_light_id($light_id) {
+			$query = "select count(*) as count from lights l, maps m, games g ".
+			         "where l.id=%d and l.map_id=m.id and m.game_id=g.id and g.dm_id=%d";
+
+			if (($result = $this->db->execute($query, $light_id, $this->user->id)) === false) {
+				return false;
+			}
+
+			return $result[0]["count"] > 0;
+		}
+
+		public function light_create($light) {
+			if ($this->valid_map_id($light["map_id"]) == false) {
+				return false;
+			}
+
+			$data = array(
+				"id"        => null,
+				"map_id"    => (int)$light["map_id"],
+				"pos_x"     => (int)$light["pos_x"],
+				"pos_y"     => (int)$light["pos_y"],
+				"radius"    => $light["radius"],
+				"state"     => "on");
+
+			if ($this->db->insert("lights", $data) === false) {
+				return false;
+			}
+
+			return $this->db->last_insert_id;
+		}
+
+		public function light_move($light_id, $pos_x, $pos_y) {
+			if ($this->valid_light_id($light_id) == false) {
+				return false;
+			}
+
+			$data = array("pos_x" => (int)$pos_x, "pos_y" => (int)$pos_y);
+			return $this->db->update("lights", $light_id, $data) !== false;
+		}
+
+		public function light_radius($light_id, $radius) {
+			if ($this->valid_light_id($light_id) == false) {
+				return false;
+			}
+
+			$data = array("radius" => $radius);
+			return $this->db->update("lights", $light_id, $data) !== false;
+		}
+
+		public function light_state($light_id, $state) {
+			if ($this->valid_light_id($light_id) == false) {
+				return false;
+			}
+
+			$data = array("state" => $state);
+			return $this->db->update("lights", $light_id, $data) !== false;
+		}
+
+		public function light_delete($light_id) {
+			if ($this->valid_light_id($light_id) == false) {
+				return false;
+			}
+
+			return $this->db->delete("lights", $light_id) !== false;
+		}
+
 		/* Wall functions
 		 */
 		private function valid_wall_id($wall_id) {

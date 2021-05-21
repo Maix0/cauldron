@@ -1,15 +1,17 @@
 const CELL_PADDING = 0.25;
 const POINTS_VISIBLE = 2;
 
-var fow_map_width = null;
-var fow_map_height = null;
-var fow_checks = [
+var fog_of_war_map_width = null;
+var fog_of_war_map_height = null;
+var fog_of_war_checks = [
 	[1, 0.5, 0.5],
 	[2, 0.5, CELL_PADDING],
 	[4, 1 - CELL_PADDING, 0.5],
 	[8, 0.5, 1 - CELL_PADDING],
 	[16, CELL_PADDING, 0.5]];
-var fow_spot_max = null;
+var fog_of_war_spot_max = null;
+var fog_of_war_distance = 0;
+var fog_of_war_lights = {};
 
 /* Check if two lines cross
  */
@@ -62,29 +64,7 @@ function lines_intersect(line1_p1, line1_p2, line2_p1, line2_p2) {
 
 /* Fog of War functions
  */
-function fog_of_war_init() {
-	fow_map_width = Math.floor($('div.playarea > div').width() / grid_cell_size);
-	fow_map_height = Math.floor($('div.playarea > div').height() / grid_cell_size);
-
-	for (var y = 0; y < fow_map_height; y++) {
-		for (var x = 0; x < fow_map_width; x++) {
-			var left = x * grid_cell_size;
-			var top = y * grid_cell_size;
-			var fog = '<div id="fow_' + x + '_' + y +'" class="fow" style="position:absolute; left:' + left + 'px; top:' + top + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; background-color:#202020;" />';
-
-			$('div.playarea div.fog_of_war').append(fog);
-		}
-	}
-
-	fow_spot_max = 0;
-	for (s = 0; s < fow_checks.length; s++) {
-		fow_spot_max += fow_checks[s][0];
-	}
-
-	$('div.fow').css('z-index', DEFAULT_Z_INDEX + 3);
-}
-
-function check_vision(char_pos, construct, fow_spots) {
+function check_vision(char_pos, construct, fog_of_war_spots) {
 	var cons_x = parseInt(construct.attr('pos_x'));
 	var cons_y = parseInt(construct.attr('pos_y'));
 
@@ -109,14 +89,14 @@ function check_vision(char_pos, construct, fow_spots) {
 		top: cons_y * grid_cell_size
 	}
 
-	for (var y = 0; y < fow_map_height; y++) {
-		for (var x = 0; x < fow_map_width; x++) {
-			if (fow_spots[y][x] == 0) {
+	for (var y = 0; y < fog_of_war_map_height; y++) {
+		for (var x = 0; x < fog_of_war_map_width; x++) {
+			if (fog_of_war_spots[y][x] == 0) {
 				continue;
 			}
 
-			for (s = 0; s < fow_checks.length; s++) {
-				var step = fow_checks[s];
+			for (s = 0; s < fog_of_war_checks.length; s++) {
+				var step = fog_of_war_checks[s];
 
 				var cell_pos = {
 					left: (x + step[1]) * grid_cell_size,
@@ -124,17 +104,176 @@ function check_vision(char_pos, construct, fow_spots) {
 				}
 
 				if (lines_intersect(char_pos, cell_pos, cons_p1, cons_p2)) {
-					fow_spots[y][x] &= (fow_spot_max - step[0]);
+					fog_of_war_spots[y][x] &= (fog_of_war_spot_max - step[0]);
 				}
 			}
 		}
 	}
 
-	return fow_spots;
+	return fog_of_war_spots;
+}
+
+function check_lightning(pos, light_pos, construct, fog_of_war_spot) {
+	var cons_x = parseInt(construct.attr('pos_x'));
+	var cons_y = parseInt(construct.attr('pos_y'));
+
+	var cons_p1 = {
+		left: cons_x * grid_cell_size,
+		top: cons_y * grid_cell_size
+	}
+
+	var length = parseInt(construct.attr('length'));
+	var direction = construct.attr('direction');
+
+	if (direction == 'horizontal') {
+		cons_x += length;
+	} else if (direction == 'vertical') {
+		cons_y += length;
+	} else {
+		return;
+	}
+
+	var cons_p2 = {
+		left: cons_x * grid_cell_size,
+		top: cons_y * grid_cell_size
+	}
+
+	for (s = 0; s < fog_of_war_checks.length; s++) {
+		var step = fog_of_war_checks[s];
+
+		if (lines_intersect(pos, light_pos, cons_p1, cons_p2)) {
+			fog_of_war_spot &= (fog_of_war_spot_max - step[0]);
+		}
+	}
+
+	return fog_of_war_spot;
+}
+
+function distance(obj, x, y) {
+	x = Math.abs(x - obj.left);
+	y = Math.abs(y - obj.top);
+
+	return Math.sqrt(x*x + y*y).toFixed(1);
+}
+
+function enlightened(x, y) {
+	var pos = {
+		left: x,
+		top: y
+	}
+
+	for (var key in fog_of_war_lights) {
+		var light = fog_of_war_lights[key];
+
+		if (light[3] == 'off') {
+			continue;
+		}
+
+		var light_spot = fog_of_war_spot_max;
+		var light_pos = {
+			left: light[0] + (grid_cell_size >> 1),
+			top: light[1] + (grid_cell_size >> 1)
+		}
+		var radius = light[2] * grid_cell_size;
+
+		if (distance(light_pos, x, y) > radius) {
+			continue;
+		}
+
+		$('div.wall').each(function() {
+			if ($(this).attr('transparent') == 'yes') {
+				return;
+			}
+
+			light_spot = check_lightning(pos, light_pos, $(this), light_spot);
+
+			if (light_spot == 0) {
+				return false;
+			}
+		});
+
+		if (light_spot >= 0) {
+			$('div.door').each(function() {
+				if ($(this).attr('state') == 'open') {
+					return;
+				}
+
+				light_spot = check_lightning(pos, light_pos, $(this), light_spot);
+
+				if (light_spot == 0) {
+					return false;
+				}
+			});
+		}
+
+		var fog_of_war_bits = 0;
+		for (b = 0; b < fog_of_war_checks.length; b++) {
+			if ((light_spot & 1) == 1) {
+				fog_of_war_bits++;
+			}
+			light_spot >>= 1;
+		}
+
+		if (fog_of_war_bits >= POINTS_VISIBLE) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/* Fog of war interface
+ */
+function fog_of_war_init(z_index) {
+	fog_of_war_map_width = Math.floor($('div.playarea > div').width() / grid_cell_size);
+	fog_of_war_map_height = Math.floor($('div.playarea > div').height() / grid_cell_size);
+
+	for (var y = 0; y < fog_of_war_map_height; y++) {
+		for (var x = 0; x < fog_of_war_map_width; x++) {
+			var left = x * grid_cell_size;
+			var top = y * grid_cell_size;
+			var fog = '<div id="fog_of_war_' + x + '_' + y +'" class="fow" style="position:absolute; z-index:' + z_index + '; left:' + left + 'px; top:' + top + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; background-color:#202020;" />';
+
+			$('div.fog_of_war').append(fog);
+		}
+	}
+
+	fog_of_war_spot_max = 0;
+	for (s = 0; s < fog_of_war_checks.length; s++) {
+		fog_of_war_spot_max += fog_of_war_checks[s][0];
+	}
+}
+
+function fog_of_war_set_distance(distance) {
+	if (distance > 0) {
+		distance = (distance + 0.7) * grid_cell_size;
+	}
+
+	fog_of_war_distance = distance;
+}
+
+function fog_of_war_light(light) {
+	var id = light.prop('id');
+	var state = light.attr('state');
+
+	if (state == 'delete') {
+		delete fog_of_war_lights[id];
+	} else {
+		var pos = object_position(light);
+		var radius = parseInt(light.attr('radius'));
+
+		if (isNaN(radius)) {
+			return;
+		}
+
+		radius += 0.7;
+
+		fog_of_war_lights[id] = [pos.left, pos.top, radius, state];
+	}
 }
 
 function fog_of_war_update(obj) {
-	if (fow_spot_max == null) {
+	if (fog_of_war_spot_max == null) {
 		return;
 	}
 
@@ -145,11 +284,19 @@ function fog_of_war_update(obj) {
 		top: pos.top + (obj.width() / 2)
 	}
 
-	var fow_spots = [];
-	for (var y = 0; y < fow_map_height; y++) {
-		fow_spots[y] = [];
-		for (var x = 0; x < fow_map_width; x++) {
-			fow_spots[y][x] = fow_spot_max;
+	var fog_of_war_spots = [];
+	for (var y = 0; y < fog_of_war_map_height; y++) {
+		fog_of_war_spots[y] = [];
+		for (var x = 0; x < fog_of_war_map_width; x++) {
+			if (fog_of_war_distance == 0) {
+				fog_of_war_spots[y][x] = fog_of_war_spot_max;
+			} else if (distance(char_pos, (x + 0.5) * grid_cell_size, (y + 0.5) * grid_cell_size) <= fog_of_war_distance) {
+				fog_of_war_spots[y][x] = fog_of_war_spot_max;
+			} else if (enlightened((x + 0.5) * grid_cell_size, (y + 0.5) * grid_cell_size)) {
+				fog_of_war_spots[y][x] = fog_of_war_spot_max;
+			} else {
+				fog_of_war_spots[y][x] = 0;
+			}
 		}
 	}
 
@@ -158,7 +305,7 @@ function fog_of_war_update(obj) {
 			return;
 		}
 
-		fow_spots = check_vision(char_pos, $(this), fow_spots);
+		fog_of_war_spots = check_vision(char_pos, $(this), fog_of_war_spots);
 	});
 
 	$('div.door').each(function() {
@@ -166,25 +313,25 @@ function fog_of_war_update(obj) {
 			return;
 		}
 
-		fow_spots = check_vision(char_pos, $(this), fow_spots);
+		fog_of_war_spots = check_vision(char_pos, $(this), fog_of_war_spots);
 	});
 
-	for (var y = 0; y < fow_map_height; y++) {
-		for (var x = 0; x < fow_map_width; x++) {
-			var fow_cell = fow_spots[y][x];
+	for (var y = 0; y < fog_of_war_map_height; y++) {
+		for (var x = 0; x < fog_of_war_map_width; x++) {
+			var fog_of_war_cell = fog_of_war_spots[y][x];
 
-			var fow_bits = 0;
-			for (b = 0; b < fow_checks.length; b++) {
-				if ((fow_cell & 1) == 1) {
-					fow_bits++;
+			var fog_of_war_bits = 0;
+			for (b = 0; b < fog_of_war_checks.length; b++) {
+				if ((fog_of_war_cell & 1) == 1) {
+					fog_of_war_bits++;
 				}
-				fow_cell >>= 1;
+				fog_of_war_cell >>= 1;
 			}
 
-			if (fow_bits < POINTS_VISIBLE) {
-				$('div#fow_' + x + '_' + y).show();
+			if (fog_of_war_bits < POINTS_VISIBLE) {
+				$('div#fog_of_war_' + x + '_' + y).show();
 			} else {
-				$('div#fow_' + x + '_' + y).hide();
+				$('div#fog_of_war_' + x + '_' + y).hide();
 			}
 		}
 	}
@@ -192,5 +339,5 @@ function fog_of_war_update(obj) {
 
 function fog_of_war_destroy() {
 	$('div.fow').remove();
-	fow_spot_max = null;
+	fog_of_war_spot_max = null;
 }

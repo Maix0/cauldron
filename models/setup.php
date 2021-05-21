@@ -380,6 +380,18 @@
 				$this->settings->database_version = 12;
 			}
 
+			if ($this->settings->database_version == 12) {
+				$this->db_query("CREATE TABLE lights (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
+				                "map_id int(10) unsigned NOT NULL, pos_x smallint(5) unsigned NOT NULL, ".
+				                "pos_y smallint(5) unsigned NOT NULL, radius decimal(4,1) unsigned NOT NULL, ".
+				                "state enum(%s,%s) NOT NULL, PRIMARY KEY (id), KEY map_id (map_id), ".
+				                "CONSTRAINT lights_ibfk_1 FOREIGN KEY (map_id) REFERENCES maps (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8", "off", "on");
+				$this->db_query("ALTER TABLE maps ADD fow_distance TINYINT UNSIGNED NOT NULL AFTER fog_of_war");
+
+				$this->settings->database_version = 13;
+			}
+
 			return true;
 		}
 

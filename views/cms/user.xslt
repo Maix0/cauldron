@@ -112,8 +112,8 @@
 	<span class="input-group-btn"><input type="button" value="Generate" class="btn btn-default" onClick="javascript:set_authenticator_code()" /></span>
 </div>
 </xsl:if>
-<label for="cert_serial">Certificate serial:</label>
-<input type="text" id="cert_serial" name="cert_serial" value="{user/cert_serial}" class="form-control" />
+<!--<label for="cert_serial">Certificate serial:</label>
+<input type="text" id="cert_serial" name="cert_serial" value="{user/cert_serial}" class="form-control" />-->
 <label for="roles">Roles:</label>
 <xsl:for-each select="roles/role">
 <div><input type="checkbox" name="roles[{@id}]" value="{@id}" class="role">

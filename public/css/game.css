@@ -99,6 +99,12 @@ div.window {
 	border:1px solid #0000ff;
 }
 
+/* Lights
+ */
+div.light {
+	position:absolute;
+}
+
 /* Journal
  */
 div.journal div.panel {
@@ -144,20 +150,20 @@ div.collectables div.panel {
 
 /* Effects
  */
-div.effects div.panel-heading span.size {
+div.effect_create div.panel-heading span.size {
 	margin-left:70px;
 }
 
-div.effects div.panel-heading span.size input {
+div.effect_create div.panel-heading span.size input {
 	border:none;
 	width:40px;
 }
 
-div.effects div.panel-heading span.size input:first-child {
+div.effect_create div.panel-heading span.size input:first-child {
 	margin-right:10px;
 }
 
-div.effects img.effect {
+div.effect_create img.effect {
 	margin:15px;
 	cursor:pointer;
 }
@@ -266,6 +272,10 @@ div.marker span {
 div.token span.conditions,
 div.character span.conditions {
 	background-color:#ffa0a0;
+}
+
+div.zone {
+	position:absolute;
 }
 
 div.zone div.script {

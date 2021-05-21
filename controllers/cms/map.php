@@ -43,6 +43,8 @@
 		private function show_map_form($map) {
 			$this->view->add_javascript("cms/map.js");
 
+			$fog_of_war = array("Off", "On, day / illuminated", "On, night / dark");
+
 			$this->view->open_tag("edit");
 
 			$this->view->open_tag("map_types");
@@ -50,9 +52,14 @@
 			$this->view->add_tag("type", "video");
 			$this->view->close_tag();
 
+			$this->view->open_tag("fog_of_war");
+			foreach ($fog_of_war as $value => $label) {
+				$this->view->add_tag("type", $label, array("value" => $value));
+			}
+			$this->view->close_tag();
+
 			$map["show_grid"] = show_boolean($map["show_grid"]);
 			$map["drag_character"] = show_boolean($map["drag_character"]);
-			$map["fog_of_war"] = show_boolean($map["fog_of_war"]);
 
 			$this->view->record($map, "map");
 
@@ -132,7 +139,7 @@
 			} else if ($this->page->parameters[0] === "new") {
 				/* New map
 				 */
-				$map = array("grid_size" => 50);
+				$map = array("grid_size" => 50, "fow_distance" => 3);
 				$this->show_map_form($map);
 			} else if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
 				/* Edit map

@@ -33,6 +33,11 @@
 				return;
 			}
 
+			if (($lights = $this->model->get_lights($map_id)) === false) {
+				$this->view->add_tag("result", "Database error.");
+				return;
+			}
+
 			if (($walls = $this->model->get_walls($map_id)) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
@@ -85,6 +90,18 @@
 			$this->view->open_tag("doors");
 			foreach ($doors as $door) {
 				$this->view->record($door, "door");
+			}
+			$this->view->close_tag();
+
+			/* Lights
+			 */
+			$this->view->open_tag("lights");
+			foreach ($lights as $light) {
+				$light["pos_x"] *= $grid_cell_size;
+				$light["pos_y"] *= $grid_cell_size;
+				$light["width"] = $grid_cell_size;
+				$light["height"] = $grid_cell_size;
+				$this->view->record($light, "light");
 			}
 			$this->view->close_tag();
 

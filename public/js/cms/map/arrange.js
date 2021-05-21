@@ -1,4 +1,9 @@
 const DEFAULT_Z_INDEX = 10000;
+const LAYER_TOKEN = DEFAULT_Z_INDEX;
+const LAYER_CHARACTER = DEFAULT_Z_INDEX + 1;
+const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 2;
+const LAYER_MARKER = DEFAULT_Z_INDEX + 3;
+const LAYER_MENU = DEFAULT_Z_INDEX + 4;
 
 var game_id = null;
 var map_id = null;
@@ -117,11 +122,11 @@ function object_create(icon, x, y) {
 	}).done(function(data) {
 		var instance_id = $(data).find('instance_id').text();
 
-		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + (DEFAULT_Z_INDEX + 1) + '" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
+		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px;" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
 		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px;" />' +
 		          '</div>';
 
-		$('div.playarea > div').append(obj);
+		$('div.playarea div.tokens').append(obj);
 
 		if (parseInt(hitpoints) > 0) {
 			$.post('/object/hitpoints', {
@@ -148,7 +153,7 @@ function object_create(icon, x, y) {
 		$('div.playarea div#token' + instance_id).draggable({
 			stop: function(event, ui) {
 				object_move($(this));
-			}
+			},
 		});
 	}).fail(function() {
 		write_sidebar('Error creating object.');
@@ -452,7 +457,7 @@ function door_create(pos_x, pos_y, length, direction, state) {
 				'sep1:': '-',
 				'delete': {name:'Delete', icon:'fa-trash'}
 			},
-			zIndex: DEFAULT_Z_INDEX + 3
+			zIndex: LAYER_MENU
 		});
 	}).fail(function(data) {
 		$('div.playarea div#new_door').remove();
@@ -501,6 +506,44 @@ function door_stop(remove = true) {
 	$('div.playarea').off('click');
 }
 
+/* Light functions
+ */
+function light_create(pos_x, pos_y, radius) {
+	$.post('/object/create_light', {
+		map_id: map_id,
+		pos_x: pos_x,
+		pos_y: pos_y,
+		radius: radius
+	}).done(function(data) {
+		instance_id = $(data).find('instance_id').text();
+
+		pos_x *= grid_cell_size;
+		pos_y *= grid_cell_size;
+
+		var light = $('<img id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px" />');
+		$('div.playarea div.lights').append(light);
+
+		$('img#light' + instance_id).draggable({
+			stop: function(event, ui) {
+				object_move($(this));
+			}
+		});
+
+		$.contextMenu({
+			selector: 'img#light' + instance_id,
+			callback: context_menu_handler,
+			items: {
+				'light_radius': {name:'Radius', icon:'fa-dot-circle-o'},
+				'light_toggle': {name:'On / off', icon:'fa-toggle-on'},
+				'delete': {name:'Delete', icon:'fa-trash'}
+			},
+			zIndex: LAYER_MENU
+		});
+	}).fail(function(data) {
+		alert('Light create error');
+	});
+}
+
 /* Wall functions
  */
 function wall_create(pos_x, pos_y, length, direction, transparent) {
@@ -522,7 +565,7 @@ function wall_create(pos_x, pos_y, length, direction, transparent) {
 			items: {
 				'delete': {name:'Delete', icon:'fa-trash'}
 			},
-			zIndex: DEFAULT_Z_INDEX + 3
+			zIndex: LAYER_MENU
 		});
 	}).fail(function(data) {
 		$('div.playarea div#new_wall').remove();
@@ -617,7 +660,7 @@ function zone_create(width, height, color, opacity, group) {
 			opacity = 0.8;
 		}
 
-		var zone = $('<div id="zone' + instance_id + '" class="zone" style="position:absolute; left:' + zone_x + 'px; top:' + zone_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:3;"><div class="script"></div></div>');
+		var zone = $('<div id="zone' + instance_id + '" class="zone" style="position:absolute; left:' + zone_x + 'px; top:' + zone_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + ';"><div class="script"></div></div>');
 
 		if (group != '') {
 			zone.attr('group', group);
@@ -626,9 +669,6 @@ function zone_create(width, height, color, opacity, group) {
 		$('div.playarea > div').prepend(zone);
 
 		$('div#zone' + instance_id).draggable({
-            create: function(event, ui) {
-                $(this).css('cursor', 'grab');
-            },
             stop: function(event, ui) {
                 object_move($(this));
             }
@@ -641,12 +681,12 @@ function zone_create(width, height, color, opacity, group) {
 				'info': {name:'Info', icon:'fa-info-circle'},
 				'script': {name:'Event script', icon:'fa-edit'},
 				'sep1': '-',
-				'distance': {name:'Distance', icon:'fa-map-signs'},
-				'coordinates': {name:'Coordinates', icon:'fa-flag'},
+				'distance': {name:'Measure distance', icon:'fa-map-signs'},
+				'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 				'sep2': '-',
 				'delete': {name:'Delete', icon:'fa-trash'}
 			},
-			zIndex: DEFAULT_Z_INDEX + 3
+			zIndex: LAYER_MENU
 		});
 	}).fail(function(data) {
 		alert('Zone create error');
@@ -716,8 +756,10 @@ function collectables_select(obj) {
  */
 function context_menu_handler(key, options) {
 	var obj = $(this);
-	if (obj.prop('tagName').toLowerCase() == 'img') {
-		var obj = $(this).parent();
+	if (obj.hasClass('light') == false) {
+		if (obj.prop('tagName').toLowerCase() == 'img') {
+			var obj = $(this).parent();
+		}
 	}
 
 	var parts = key.split('_');
@@ -761,8 +803,8 @@ function context_menu_handler(key, options) {
 
 			var pos_x = coord_to_grid(mouse_x, false) + (grid_cell_size >> 1) - 12;
 			var pos_y = coord_to_grid(mouse_y, false) - (grid_cell_size >> 1) + 7;
-			var marker = '<img src="/images/pin.png" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; z-index:' + (DEFAULT_Z_INDEX + 4) + '" class="pin" />';
-			$('div.playarea > div').append(marker);
+			var marker = '<img src="/images/pin.png" style="position:absolute; z-index:' + LAYER_MARKER + '; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" class="pin" />';
+			$('div.playarea div.markers').append(marker);
 
 			$('div.playarea').mousemove(function(event) {
 				var from_x = coord_to_grid(mouse_x, false);
@@ -794,7 +836,7 @@ function context_menu_handler(key, options) {
 			door_y = coord_to_grid(mouse_y, true) / grid_cell_size;
 
 			var door = '<div id="new_door" class="door" pos_x="' + door_x + '" pos_y="' + door_y + '" length="0" direction="horizontal" />';
-			$('div.playarea > div').append(door);
+			$('div.playarea div.doors').append(door);
 			$('div.playarea div#new_door').each(function() {
 				door_position($(this));
 			});
@@ -865,7 +907,19 @@ function context_menu_handler(key, options) {
 			break;
 		case 'fow':
 			if (fow_obj == null) {
-				fog_of_war_init();
+				fog_of_war_set_distance(0);
+				var distance = null;
+				if ((distance = window.prompt('Fog of War distance:')) != undefined) {
+					distance = parseInt(distance);
+					if (isNaN(distance)) {
+						write_sidebar('Invalid distance');
+					} else if (distance < 1) {
+						write_sidebar('Invalid distance');
+					} else {
+						fog_of_war_set_distance(distance);
+					}
+				}
+				fog_of_war_init(LAYER_FOG_OF_WAR);
 				fog_of_war_update(obj);
 				fow_obj = obj;
 			} else if (obj.is(fow_obj)) {
@@ -879,6 +933,53 @@ function context_menu_handler(key, options) {
 		case 'info':
 			object_info(obj);
 			break;
+		case 'light_create':
+			var pos_x = coord_to_grid(mouse_x, false) / grid_cell_size;
+			var pos_y = coord_to_grid(mouse_y, false) / grid_cell_size;
+			var radius = 3;
+
+			if ((radius = window.prompt('Radius:', radius)) == undefined) {
+				return;
+			}
+
+			radius = parseInt(radius);
+			if (isNaN(radius)) {
+				write_sidebar('Invalid radius.');
+				return;
+			} else if (radius < 0) {
+				write_sidebar('Invalid radius.');
+				return;
+			}
+
+			light_create(pos_x, pos_y, radius);
+			break;
+		case 'light_radius':
+			var radius = obj.attr('radius');
+			
+			if ((radius = window.prompt('Radius:', radius)) == undefined) {
+				return;
+			}
+			
+			$.post('/object/light_radius', {
+				light_id: obj.prop('id').substr(5),
+				radius: radius
+			}).done(function(data) {
+				obj.attr('radius', radius);
+				obj.attr('title', 'Radius: ' + obj.attr('radius'));
+			});
+			break;
+		case 'light_toggle':
+			var toggle = { on:'off', off:'on' };
+			var state = toggle[obj.attr('state')];
+
+			$.post('/object/light_state', {
+				light_id: obj.prop('id').substr(5),
+				state: state
+			}).done(function(data) {
+				obj.attr('state', state);
+				obj.attr('src', '/images/light_' + state + '.png');
+			});
+			break;
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
 				object_show(obj);
@@ -890,8 +991,8 @@ function context_menu_handler(key, options) {
 			object_hitpoints(obj);
 			break;
 		case 'lower':
-			obj.css('z-index', z_index);
 			z_index--;
+			obj.css('z-index', z_index);
 			break;
 		case 'name':
 			object_name(obj);
@@ -922,8 +1023,8 @@ function context_menu_handler(key, options) {
 
 			var type = (key == 'wall_create') ? 'wall' : 'window';
 			var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" />';
-			$('div.playarea > div').append(wall);
-			$('div.playarea div#new_wall').each(function() {
+			$('div.playarea div.walls').append(wall);
+			$('div#new_wall').each(function() {
 				wall_position($(this));
 			});
 
@@ -1002,16 +1103,12 @@ $(document).ready(function() {
 
 		var cell = '<img src="/images/grid_cell.png" style="float:left; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; position:relative;" />';
 		for (var i = 0 ;i < count; i++) {
-			$('div.playarea > div').append(cell);
+			$('div.playarea div.grid').append(cell);
 		}
 	}
 
-	$('div.overlay').css('z-index', DEFAULT_Z_INDEX + 5);
-
 	/* Player start position
 	 */
-	$('div#start').css('z-index', DEFAULT_Z_INDEX + 1);
-
 	$('div#start').draggable({
 		handle: 'img',
 		stop: function(event, ui) {
@@ -1019,10 +1116,12 @@ $(document).ready(function() {
 		}
 	});
 
+	/* Windows
+	 */
+	$('div.windows > div').css('z-index', LAYER_MENU);
+
 	/* Doors
 	 */
-	$('div.door').css('z-index', 3);
-
 	$('div.door').each(function() {
 		door_position($(this));
 	});
@@ -1036,13 +1135,33 @@ $(document).ready(function() {
 			'sep1:': '-',
 			'delete': {name:'Delete', icon:'fa-trash'}
 		},
-		zIndex: DEFAULT_Z_INDEX + 3
+		zIndex: LAYER_MENU
+	});
+
+	/* Lights
+	 */
+	$('img.light').each(function() {
+		$(this).draggable({
+			stop: function(event, ui) {
+				object_move($(this));
+			}
+		});
+		$(this).attr('title', 'Radius: ' + $(this).attr('radius'));
+	});
+
+	$.contextMenu({
+		selector: 'img.light',
+		callback: context_menu_handler,
+		items: {
+			'light_radius': {name:'Set radius', icon:'fa-dot-circle-o'},
+			'light_toggle': {name:'Turn on / off', icon:'fa-toggle-on'},
+			'delete': {name:'Delete', icon:'fa-trash'}
+		},
+		zIndex: LAYER_MENU
 	});
 
 	/* Walls
 	 */
-	$('div.wall').css('z-index', 3);
-
 	$('div.wall[transparent="yes"]').addClass('window');
 
 	$('div.wall').each(function() {
@@ -1055,19 +1174,15 @@ $(document).ready(function() {
 		items: {
 			'delete': {name:'Delete', icon:'fa-trash'}
 		},
-		zIndex: DEFAULT_Z_INDEX + 3
+		zIndex: LAYER_MENU
 	});
 
 	/* Zones
 	 */
-	$('div.zone').css('z-index', 3);
 	$('div.zone').draggable({
-		create: function(event, ui) {
-			$(this).css('cursor', 'grab');
-		},
 		stop: function(event, ui) {
 			object_move($(this));
-		}
+		},
 	});
 
 	$('div.zone').hover(zone_group_highlight, zone_group_unhighlight);
@@ -1078,8 +1193,6 @@ $(document).ready(function() {
 		handle: 'div.panel-heading',
 		cursor: 'grab'
 	});
-
-	$('div.zone_create').css('z-index', DEFAULT_Z_INDEX + 5);
 
 	$('div.zone_create button.create').on('click', function() {
 		var width = parseInt($('input#width').val());
@@ -1117,15 +1230,15 @@ $(document).ready(function() {
 		selector: 'div.zone',
 		callback: context_menu_handler,
 		items: {
-			'info': {name:'Info', icon:'fa-info-circle'},
-			'script': {name:'Event script', icon:'fa-edit'},
+			'info': {name:'Get information', icon:'fa-info-circle'},
+			'script': {name:'Set event script', icon:'fa-edit'},
 			'sep1': '-',
-			'distance': {name:'Distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'distance': {name:'Measure distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'sep2': '-',
 			'delete': {name:'Delete', icon:'fa-trash'}
 		},
-		zIndex: DEFAULT_Z_INDEX + 3
+		zIndex: LAYER_MENU
 	});
 
 	$('div.script_editor div.panel').draggable({
@@ -1145,12 +1258,12 @@ $(document).ready(function() {
 	});
 
 	$('div.token').each(function() {
-		$(this).css('z-index', DEFAULT_Z_INDEX + 1);
+		$(this).css('z-index', LAYER_TOKEN);
 		object_rotate($(this), $(this).attr('rotation'), false);
 	});
 
 	$('div.character').each(function() {
-		$(this).css('z-index', DEFAULT_Z_INDEX + 2);
+		$(this).css('z-index', LAYER_CHARACTER);
 		object_rotate($(this), $(this).attr('rotation'), false);
 	});
 
@@ -1180,8 +1293,8 @@ $(document).ready(function() {
 		selector: 'div.token img',
 		callback: context_menu_handler,
 		items: {
-			'info': {name:'Info', icon:'fa-info-circle'},
-			'name': {name:'Name', icon:'fa-edit'},
+			'info': {name:'Get information', icon:'fa-info-circle'},
+			'name': {name:'Set name', icon:'fa-edit'},
 			'rotate': {name:'Rotate', icon:'fa-compass', items:{
 				'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
 				'rotate_ne': {name:'North East'},
@@ -1192,33 +1305,33 @@ $(document).ready(function() {
 				'rotate_w':  {name:'West', icon:'fa-arrow-circle-left'},
 				'rotate_nw': {name:'North West'},
 			}},
-			'presence': {name:'Presence', icon:'fa-low-vision'},
-			'collectable': {name:'Collectable', icon:'fa-key'},
+			'presence': {name:'Toggle presence', icon:'fa-low-vision'},
+			'collectable': {name:'Assign collectable', icon:'fa-key'},
 			'sep1': '-',
-			'armor_class': {name:'Armor class', icon:'fa-shield'},
-			'hitpoints': {name:'Hitpoints', icon:'fa-heartbeat'},
+			'armor_class': {name:'Set armor class', icon:'fa-shield'},
+			'hitpoints': {name:'Set hitpoints', icon:'fa-heartbeat'},
 			'sep2': '-',
-			'distance': {name:'Distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'distance': {name:'Measure distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'sep3': '-',
-			'door_create': {name:'Door', icon:'fa-columns'},
-			'wall_create': {name:'Wall', icon:'fa-th-large'},
-			'window_create': {name:'Window', icon:'fa-window-maximize'},
-			'zone_create': {name:'Zone', icon:'fa-square-o'},
+			'door_create': {name:'Create door', icon:'fa-columns'},
+			'wall_create': {name:'Create wall', icon:'fa-th-large'},
+			'window_create': {name:'Create window', icon:'fa-window-maximize'},
+			'zone_create': {name:'Create zone', icon:'fa-square-o'},
 			'sep4': '-',
 			'lower': {name:'Lower', icon:'fa-arrow-down'},
 			'duplicate': {name:'Duplicate', icon:'fa-copy'},
 			'delete': {name:'Delete', icon:'fa-trash'}
 		},
-		zIndex: DEFAULT_Z_INDEX + 3
+		zIndex: LAYER_MENU
 	});
 
 	$.contextMenu({
 		selector: 'div.character img',
 		callback: context_menu_handler,
 		items: {
-			'info': {name:'Info', icon:'fa-info-circle'},
-			'presence': {name:'Presence', icon:'fa-low-vision'},
+			'info': {name:'Get information', icon:'fa-info-circle'},
+			'presence': {name:'Toggle presence', icon:'fa-low-vision'},
 			'rotate': {name:'Rotate', icon:'fa-compass', items:{
 				'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
 				'rotate_ne': {name:'North East'},
@@ -1229,35 +1342,35 @@ $(document).ready(function() {
 				'rotate_w':  {name:'West', icon:'fa-arrow-circle-left'},
 				'rotate_nw': {name:'North West'},
 			}},
-			'fow': {name:'Fog of War', icon:'fa-cloud'},
+			'fow': {name:'Toggle fog of war', icon:'fa-cloud'},
 			'sep1': '-',
-			'distance': {name:'Distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'distance': {name:'Measure distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'sep2': '-',
-			'door_create': {name:'Door', icon:'fa-columns'},
-			'wall_create': {name:'Wall', icon:'fa-th-large'},
-			'window_create': {name:'Window', icon:'fa-window-maximize'},
-			'zone_create': {name:'Zone', icon:'fa-square-o'}
+			'door_create': {name:'Create door', icon:'fa-columns'},
+			'wall_create': {name:'Create wall', icon:'fa-th-large'},
+			'window_create': {name:'Create window', icon:'fa-window-maximize'},
+			'zone_create': {name:'Create zone', icon:'fa-square-o'}
 		},
-		zIndex: DEFAULT_Z_INDEX + 3
+		zIndex: LAYER_MENU
 	});
 
 	$.contextMenu({
 		selector: 'div.playarea > div',
 		callback: context_menu_handler,
 		items: {
-			'distance': {name:'Distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'distance': {name:'Measure distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'sep1': '-',
-			'door_create': {name:'Door', icon:'fa-columns'},
-			'wall_create': {name:'Wall', icon:'fa-th-large'},
-			'window_create': {name:'Window', icon:'fa-window-maximize'},
-			'zone_create': {name:'Zone', icon:'fa-square-o'}
+			'door_create': {name:'Create door', icon:'fa-columns'},
+			'light_create': {name:'Create light', icon:'fa-lightbulb-o'},
+			'wall_create': {name:'Create wall', icon:'fa-th-large'},
+			'window_create': {name:'Create window', icon:'fa-window-maximize'},
+			'zone_create': {name:'Create zone', icon:'fa-square-o'}
 		},
-		zIndex: DEFAULT_Z_INDEX + 4
+		zIndex: LAYER_MENU
 	});
 
-	$('div.collectables').css('z-index', DEFAULT_Z_INDEX + 5);
 	$('div.collectables div.panel').draggable({
 		handle: 'div.panel-heading',
 		cursor: 'grab'

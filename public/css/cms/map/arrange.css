@@ -5,6 +5,7 @@ div.character {
 
 div.token img,
 div.character img,
+img.light,
 div#start img {
 	cursor:grab;
 }
@@ -75,6 +76,7 @@ div.window {
  */
 div.zone:hover {
 	border:3px double #ff8000;
+	cursor:grab;
 }
 
 div.zone div.script {
@@ -116,6 +118,7 @@ div.library img.icon {
 	max-width:50px;
 	max-height:50px;
 	transform:rotate(180deg);
+	cursor:grab;
 }
 
 div.library div.well div {

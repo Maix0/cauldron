@@ -67,6 +67,7 @@
 </xsl:if>
 <!-- Journal -->
 <xsl:if test="map">
+<div class="windows">
 <div class="journal overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-info" onClick="javascript:event.stopPropagation()">
 <div class="panel-heading">Journal<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.journal').hide()"></span></div>
@@ -112,9 +113,9 @@
 <!-- Zone create -->
 <xsl:call-template name="zone_create" />
 <!-- Effects -->
-<div class="effects overlay" onClick="javascript:$(this).hide()">
+<div class="effect_create overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-default" onClick="javascript:event.stopPropagation();">
-<div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.effects').hide()"></span></div>
+<div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.effect_create').hide()"></span></div>
 <div class="panel-body">
 <xsl:for-each select="effects/effect">
 <img src="/files/effects/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" onClick="javascript:effect_create($(this))" /><xsl:text>
@@ -122,8 +123,9 @@
 </div>
 </div>
 </div>
+</div>
 <!-- Play area -->
-<div version="{/output/tabletop/version}" class="playarea" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" name="{characters/@name}">
+<div class="playarea" version="{/output/tabletop/version}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div>
@@ -131,11 +133,36 @@
 <xsl:if test="map/type='video'"><xsl:attribute name="style">width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute>
 <video width="{map/width}" height="{map/height}" autoplay="true" loop="true" source="{map/url}" /><xsl:text>
 </xsl:text></xsl:if>
+<!-- Grid -->
+<div class="grid"></div>
 <!-- Zones -->
+<div class="zones">
 <xsl:for-each select="zones/zone">
-<div id="zone{@id}" class="zone" style="position:absolute; left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};"><xsl:if test="group!=''"><xsl:attribute name="group"><xsl:value-of select="group" /></xsl:attribute></xsl:if><xsl:if test="script!=''"><div class="script"><xsl:value-of select="script" /></div></xsl:if></div>
+<div id="zone{@id}" class="zone" style="left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};"><xsl:if test="group!=''"><xsl:attribute name="group"><xsl:value-of select="group" /></xsl:attribute></xsl:if><xsl:if test="script!=''"><div class="script"><xsl:value-of select="script" /></div></xsl:if></div>
 </xsl:for-each>
+</div>
+<!-- Walls -->
+<div class="walls">
+<xsl:for-each select="walls/wall">
+<div id="wall{@id}" class="wall" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" transparent="{transparent}" />
+</xsl:for-each>
+</div>
+<!-- Doors -->
+<div class="doors">
+<xsl:for-each select="doors/door">
+<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" />
+</xsl:for-each>
+</div>
+<!-- Lights -->
+<div class="lights">
+<xsl:for-each select="lights/light">
+<div id="light{@id}" class="light" radius="{radius}" state="{state}" style="left:{pos_x}px; top:{pos_y}px; width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
+</xsl:for-each>
+</div>
+<!-- Effects -->
+<div class="effects"></div>
 <!-- Tokens -->
+<div class="tokens">
 <xsl:for-each select="tokens/token">
 <div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <xsl:if test="c_id!='' and c_found='no'">
@@ -153,17 +180,9 @@
 </xsl:if>
 </div>
 </xsl:for-each>
-<!-- Doors -->
-<xsl:for-each select="doors/door">
-<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" />
-</xsl:for-each>
-<!-- Walls -->
-<xsl:for-each select="walls/wall">
-<div id="wall{@id}" class="wall" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" transparent="{transparent}" />
-</xsl:for-each>
-<!-- Fog of war -->
-<div class="fog_of_war"></div>
+</div>
 <!-- Characters -->
+<div class="characters">
 <xsl:for-each select="characters/character">
 <div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
@@ -172,12 +191,17 @@
 </div>
 </xsl:for-each>
 </div>
+<!-- Fog of war -->
+<div class="fog_of_war"></div>
+<!-- Markers -->
+<div class="markers"></div>
 </div>
 <!-- Alternate icons -->
 <div class="alternates">
 <xsl:for-each select="alternates/alternate">
 <div icon_id="{@id}" size="{size}" filename="{filename}"><xsl:value-of select="name" /></div>
 </xsl:for-each>
+</div>
 </div>
 <!-- Right bar -->
 <div class="sidebar">

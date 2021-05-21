@@ -23,6 +23,15 @@
 			}
 		}
 
+		public function post_create_light() {
+			if (($instance_id = $this->model->light_create($_POST)) !== false) {
+				$this->view->add_tag("instance_id", $instance_id);
+			} else {
+				debug_log($_POST);
+				return false;
+			}
+		}
+
 		public function post_create_token() {
 			if (($instance_id = $this->model->token_create($_POST)) !== false) {
 				$this->view->add_tag("instance_id", $instance_id);
@@ -64,6 +73,9 @@
 			if (substr($_POST["instance_id"], 0, 4) == "door") {
 				$instance_id = substr($_POST["instance_id"], 4);
 				$this->model->door_delete($instance_id);
+			} else if (substr($_POST["instance_id"], 0, 5) == "light") {
+				$instance_id = substr($_POST["instance_id"], 5);
+				$this->model->light_delete($instance_id);
 			} else if (substr($_POST["instance_id"], 0, 5) == "token") {
 				$instance_id = substr($_POST["instance_id"], 5);
 				$this->model->token_delete($instance_id);
@@ -102,6 +114,9 @@
 			} else if (substr($_POST["instance_id"], 0, 9) == "character") {
 				$instance_id = substr($_POST["instance_id"], 9);
 				$this->model->character_move($instance_id, $_POST["pos_x"], $_POST["pos_y"]);
+			} else if (substr($_POST["instance_id"], 0, 5) == "light") {
+				$instance_id = substr($_POST["instance_id"], 5);
+				$this->model->light_move($instance_id, $_POST["pos_x"], $_POST["pos_y"]);
 			} else if (substr($_POST["instance_id"], 0, 5) == "token") {
 				$instance_id = substr($_POST["instance_id"], 5);
 				$this->model->token_move($instance_id, $_POST["pos_x"], $_POST["pos_y"]);
@@ -168,7 +183,13 @@
 			}
 		}
 
-		/* Door state
+		/* Alternates
+		 */
+		public function post_alternate() {
+			$this->model->set_alternate($_POST["game_id"], $_POST["char_id"], $_POST["alternate_id"]);
+		}
+
+		/* Doors
 		 */
 		public function post_door_state() {
 			$this->model->door_state($_POST["door_id"], $_POST["state"]);
@@ -180,10 +201,14 @@
 			$this->model->journal_add($_POST["game_id"], $_POST["content"]);
 		}
 
-		/* Alternates
+		/* Lights
 		 */
-		public function post_alternate() {
-			$this->model->set_alternate($_POST["game_id"], $_POST["char_id"], $_POST["alternate_id"]);
+		public function post_light_radius() {
+			$this->model->light_radius($_POST["light_id"], $_POST["radius"]);
+		}
+
+		public function post_light_state() {
+			$this->model->light_state($_POST["light_id"], $_POST["state"]);
 		}
 
 		/* Script

@@ -68,7 +68,19 @@
 			<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">
 				<xsl:for-each select="/output/menu/item">
-				<li><a href="{link}"><xsl:value-of select="text" /></a></li>
+					<xsl:if test="not(menu/item)">
+						<li><a href="{link}"><xsl:value-of select="text" /></a></li>
+					</xsl:if>
+					<xsl:if test="menu/item">
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><xsl:value-of select="text" /> <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+						<xsl:for-each select="menu/item">
+						<li><a href="{link}"><xsl:value-of select="text" /></a></li>
+						</xsl:for-each>
+						</ul>
+					</li>
+					</xsl:if>
 				</xsl:for-each>
 				</ul>
 			</div>

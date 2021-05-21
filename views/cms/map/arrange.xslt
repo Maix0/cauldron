@@ -17,6 +17,7 @@
 <a href="/cms/map" class="btn btn-default btn-xs">Back</a>
 </div>
 </div>
+<div class="windows">
 <!-- Collectables -->
 <div class="collectables overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-default" onClick="javascript:event.stopPropagation();">
@@ -29,6 +30,7 @@
 <xsl:call-template name="script_manual" />
 <!-- Zone create -->
 <xsl:call-template name="zone_create" />
+</div>
 <!-- Play area -->
 <div class="playarea" game_id="{@id}" map_id="{map/@id}" show_grid="{map/show_grid}" grid_cell_size="{@grid_cell_size}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
@@ -39,27 +41,42 @@
 <xsl:if test="not(characters/character)">
 <div id="start" style="position:absolute; left:{map/start_x}px; top:{map/start_y}px;"><img src="/images/player_start.png" style="width:{@grid_cell_size}px; height:{@grid_cell_size}px;" /></div>
 </xsl:if>
-<!-- Doors -->
-<xsl:for-each select="doors/door">
-<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" />
-</xsl:for-each>
-<!-- Walls -->
-<xsl:for-each select="walls/wall">
-<div id="wall{@id}" class="wall" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" transparent="{transparent}" />
-</xsl:for-each>
+<!-- Grid -->
+<div class="grid"></div>
 <!-- Zones -->
+<div class="zones">
 <xsl:for-each select="zones/zone">
 <div id="zone{@id}" class="zone" style="position:absolute; left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};"><xsl:if test="group!=''"><xsl:attribute name="group"><xsl:value-of select="group" /></xsl:attribute></xsl:if><div class="script"><xsl:value-of select="script" /></div></div>
 </xsl:for-each>
+</div>
+<!-- Walls -->
+<div class="walls">
+<xsl:for-each select="walls/wall">
+<div id="wall{@id}" class="wall" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" transparent="{transparent}" />
+</xsl:for-each>
+</div>
+<!-- Doors -->
+<div class="doors">
+<xsl:for-each select="doors/door">
+<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" />
+</xsl:for-each>
+</div>
+<!-- Lights -->
+<div class="lights">
+<xsl:for-each select="lights/light">
+<img id="light{@id}" src="/images/light_{state}.png" class="light" radius="{radius}" state="{state}" style="position:absolute; left:{pos_x}px; top:{pos_y}px; width:{width}px; height:{height}px" />
+</xsl:for-each>
+</div>
 <!-- Tokens -->
+<div class="tokens">
 <xsl:for-each select="tokens/token">
 <div id="token{instance_id}" token_id="{@id}" class="token" style="left:{pos_x}px; top:{pos_y}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" name="{name}">
 <img src="/files/tokens/{@id}.{extension}" style="width:{width}px; height:{height}px" />
 </div>
 </xsl:for-each>
-<!-- Fog of war -->
-<div class="fog_of_war"></div>
+</div>
 <!-- Characters -->
+<div class="characters">
 <xsl:for-each select="characters/character">
 <div id="character{instance_id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" hitpoints="{hitpoints}" damage="{damage}">
 <img src="/files/characters/{@id}.{extension}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
@@ -67,6 +84,11 @@
 </div>
 </xsl:for-each>
 </div>
+<!-- Fog of war -->
+<div class="fog_of_war"></div>
+</div>
+<!-- Markers -->
+<div class="markers"></div>
 </div>
 <!-- Right bar -->
 <div class="filter"><input id="filter" placeholder="Filter tokens" class="form-control" onKeyUp="javascript:filter_library()" /></div>

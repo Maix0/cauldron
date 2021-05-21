@@ -1,8 +1,8 @@
--- MySQL dump 10.16  Distrib 10.1.47-MariaDB, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.16  Distrib 10.1.48-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: tabletop
 -- ------------------------------------------------------
--- Server version	10.1.47-MariaDB-0ubuntu0.18.04.1
+-- Server version	10.1.48-MariaDB-0ubuntu0.18.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -204,6 +204,26 @@ CREATE TABLE `journal` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `lights`
+--
+
+DROP TABLE IF EXISTS `lights`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `lights` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) unsigned NOT NULL,
+  `pos_x` smallint(5) unsigned NOT NULL,
+  `pos_y` smallint(5) unsigned NOT NULL,
+  `radius` decimal(4,1) unsigned NOT NULL,
+  `state` enum('off','on') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `map_id` (`map_id`),
+  CONSTRAINT `lights_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `map_character`
 --
 
@@ -273,6 +293,7 @@ CREATE TABLE `maps` (
   `show_grid` tinyint(1) NOT NULL,
   `drag_character` tinyint(1) NOT NULL,
   `fog_of_war` tinyint(1) NOT NULL,
+  `fow_distance` tinyint(3) unsigned NOT NULL,
   `start_x` smallint(5) unsigned NOT NULL,
   `start_y` smallint(5) unsigned NOT NULL,
   `dm_notes` text NOT NULL,
@@ -416,7 +437,6 @@ CREATE TABLE `roles` (
   `cms` tinyint(1) NOT NULL,
   `cms/access` tinyint(1) NOT NULL,
   `cms/action` tinyint(1) NOT NULL,
-  `cms/apitest` tinyint(1) NOT NULL,
   `cms/file` tinyint(1) NOT NULL,
   `cms/menu` tinyint(1) NOT NULL,
   `cms/organisation` tinyint(1) NOT NULL,
@@ -448,7 +468,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
-INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0),(3,'Dungeon Master',1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,1);
+INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0),(3,'Dungeon Master',1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,1);
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -500,7 +520,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','10'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
+INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','13'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string',''),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','root@localhost'),(36,'screen_grid_size','integer','50');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -597,7 +617,7 @@ CREATE TABLE `walls` (
   `map_id` int(10) unsigned NOT NULL,
   `pos_x` smallint(5) unsigned NOT NULL,
   `pos_y` smallint(5) unsigned NOT NULL,
-  `length` smallint(3) unsigned NOT NULL,
+  `length` smallint(5) unsigned NOT NULL,
   `direction` enum('horizontal','vertical') NOT NULL,
   `transparent` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
@@ -639,4 +659,4 @@ CREATE TABLE `zones` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-05-05 10:11:15
+-- Dump completed on 2021-05-21 12:48:31

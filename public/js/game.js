@@ -1,9 +1,19 @@
 const WS_HOST = 'tabletop.leisink.net';
 const WS_PORT = '2000';
-const DEFAULT_Z_INDEX = 10000;
 const ROLL_NORMAL = 0;
 const ROLL_ADVANTAGE = 1;
 const ROLL_DISADVANTAGE = 2;
+const FOW_OFF = 0;
+const FOW_DAY = 1;
+const FOW_NIGHT = 2;
+
+const DEFAULT_Z_INDEX = 10000;
+const LAYER_TOKEN = DEFAULT_Z_INDEX;
+const LAYER_CHARACTER = DEFAULT_Z_INDEX + 1;
+const LAYER_CHARACTER_OWN = DEFAULT_Z_INDEX + 2;
+const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 3;
+const LAYER_MARKER = DEFAULT_Z_INDEX + 4;
+const LAYER_MENU = DEFAULT_Z_INDEX + 5;
 
 var websocket;
 var game_id = null;
@@ -18,8 +28,11 @@ var temporary_hitpoints = 0;
 var battle_order = [];
 var keep_centered = false;
 var focus_obj = null;
-var fog_of_war = null;
+var fow_type = null;
 var fow_obj = null;
+var fow_default_distance = null;
+var fow_char_distances = {};
+var fow_light_char = {};
 var input_history = [];
 var input_index = -1;
 var mouse_x = 0;
@@ -409,7 +422,7 @@ function object_handover(obj) {
 		return;
 	}
 
-	if (focus_obj.is('.character') == false) {
+	if (focus_obj.hasClass('character') == false) {
 		write_sidebar('Focus on a character first.');
 		return;
 	}
@@ -501,10 +514,6 @@ function object_move(obj, speed = 200) {
 	obj.css('left', pos.left + 'px');
 	obj.css('top', pos.top + 'px');
 
-	if (obj.is(fow_obj) || (fog_of_war && obj.is(my_character))) {
-		fog_of_war_update(obj);
-	}
-
 	var data = {
 		action: 'move',
 		instance_id: obj.prop('id'),
@@ -514,18 +523,33 @@ function object_move(obj, speed = 200) {
 	};
 	websocket_send(data);
 
-	if (data.instance_id.substr(0, 6) == 'effect') {
-		return;
+	if (obj.hasClass('effect') == false) {
+		$.post('/object/move', {
+			instance_id: obj.prop('id'),
+			pos_x: Math.round(pos.left / grid_cell_size),
+			pos_y: Math.round(pos.top / grid_cell_size)
+		});
 	}
-
-	$.post('/object/move', {
-		instance_id: obj.prop('id'),
-		pos_x: Math.round(pos.left / grid_cell_size),
-		pos_y: Math.round(pos.top / grid_cell_size)
-	});
 
 	if (obj.is(my_character)) {
 		zone_check_events(obj, pos);
+	}
+
+	/* Fog of War
+	 */
+	if (obj.is(fow_obj) || ((fow_type != FOW_OFF) && obj.is(my_character))) {
+		fog_of_war_update(obj);
+	}
+
+	if (fow_type == FOW_NIGHT) {
+		if (obj.hasClass('character')) {
+			light_follow(obj);
+		} else if (obj.hasClass('light')) {
+			fog_of_war_light(obj);
+			if (fow_obj != null) {	
+				fog_of_war_update(fow_obj);
+			}
+		}
 	}
 }
 
@@ -804,7 +828,7 @@ function object_view(obj, max_size = 300) {
 	}
 
 	var onclick = 'javascript:$(this).remove();';
-	var div_style = 'position:absolute; top:0; left:0; right:0; bottom:0; background-color:rgba(255, 255, 255, 0.8); z-index:' + (DEFAULT_Z_INDEX + 5);
+	var div_style = 'position:absolute; z-index:1; top:0; left:0; right:0; bottom:0; background-color:rgba(255, 255, 255, 0.8);';
 	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%)';
 	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px;';
 
@@ -844,13 +868,13 @@ function effect_create_object(effect_id, src, pos_x, pos_y, width, height) {
 	width *= grid_cell_size;
 	height *= grid_cell_size;
 
-	var effect = $('<div id="' + effect_id +'" class="effect" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + width + 'px; height:' + height + 'px; z-index:4;"><img src="' + src + '" style="width:100%; height:100%;" /></div>');
+	var effect = $('<div id="' + effect_id +'" class="effect" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + width + 'px; height:' + height + 'px;"><img src="' + src + '" style="width:100%; height:100%;" /></div>');
 
-	$('div.playarea > div').append(effect);
+	$('div.playarea div.effects').append(effect);
 }
 
 function effect_create(template) {
-	$('div.effects').hide();
+	$('div.effect_create').hide();
 
 	var src = $(template).prop('src');
 
@@ -894,9 +918,6 @@ function effect_create_final(effect_id, src, width, height) {
 	websocket_send(data);
 
 	$('div#' + effect_id).draggable({
-		create: function(event, ui) {
-			$(this).css('cursor', 'grab');
-		},
 		stop: function(event, ui) {
 			object_move($(this));
 		}
@@ -909,14 +930,14 @@ function effect_create_final(effect_id, src, width, height) {
 			'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
 			'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
 			'sep1': '-',
-			'marker': {name:'Marker', icon:'fa-map-marker'},
-			'distance': {name:'Distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'marker': {name:'Set marker', icon:'fa-map-marker'},
+			'distance': {name:'Measure distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'sep2': '-',
 			'effect_duplicate': {name:'Duplicate', icon:'fa-copy'},
 			'effect_delete': {name:'Delete', icon:'fa-trash'}
 		},
-		zIndex: DEFAULT_Z_INDEX + 4
+		zIndex: LAYER_MENU
 	});
 }
 
@@ -1128,7 +1149,9 @@ function door_show_closed(door) {
 	door.css('opacity', '1');
 	door.css('background-color', '');
 
-	if (fog_of_war && (my_character != null)) {
+	/* Fog of War
+	 */
+	if ((fow_type != FOW_OFF) && (my_character != null)) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1141,7 +1164,9 @@ function door_show_open(door) {
 	door.css('opacity', '0.6');
 	door.css('background-color', '#40c040');
 
-	if (fog_of_war && (my_character != null)) {
+	/* Fog of War
+	 */
+	if ((fow_type != FOW_OFF) && (my_character != null)) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1163,6 +1188,114 @@ function door_show_unlocked(door) {
 	}
 
 	door.attr('state', 'closed');
+}
+
+/* Light functions 
+ */
+function light_create_object(instance_id, pos_x, pos_y, radius) {
+	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;">';
+	if (dungeon_master) {
+		light += '<img src="/images/light_on.png" style="width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px" />';
+	}
+	light += '</div>';
+
+	$('div.playarea div.lights').append(light);
+
+	/* Fog of War
+	 */
+	fog_of_war_light($('div#light' + instance_id));
+
+	if (my_character != null) {
+		fog_of_war_update(my_character);
+	} else if (fow_obj != null) {
+		fog_of_war_update(fow_obj);
+	}
+}
+
+function light_create(pos_x, pos_y, radius) {
+	$.post('/object/create_light', {
+		map_id: map_id,
+		pos_x: pos_x / grid_cell_size,
+		pos_y: pos_y / grid_cell_size,
+		radius: radius
+	}).done(function(data) {
+		instance_id = $(data).find('instance_id').text();
+
+		light_create_object(instance_id, pos_x, pos_y, radius);
+
+		var data = {
+			action: 'light_create',
+			instance_id: instance_id,
+			pos_x: pos_x,
+			pos_y: pos_y,
+			radius: radius
+		};
+		websocket_send(data);
+
+		$('div#light' + instance_id).draggable({
+			stop: function(event, ui) {
+				object_move($(this));
+			}
+		});
+
+		$.contextMenu({
+			selector: 'div#light' + instance_id,
+			callback: context_menu_handler,
+			items: {
+				'light_toggle': {name:'Turn on / off', icon:'fa-toggle-on'},
+				'light_attach': {name:'Attach to character', icon:'fa-compress'},
+				'delete': {name:'Delete', icon:'fa-trash'}
+			},
+			zIndex: LAYER_MENU
+		});
+	}).fail(function(data) {
+		alert('Light create error');
+	});
+}
+
+function light_follow(character, pos_x = null, pos_y = null) {
+	var fow_update = false;
+
+	for (var [key, value] of Object.entries(fow_light_char)) {
+		if (character.prop('id') != value) {
+			continue;
+		}
+
+		if (pos_x == null) {
+			var pos = object_position(character);
+			pos_x = pos.left;
+			pos_y = pos.top;
+		}
+
+		var light = $('div#' + key);
+		light.css('left', pos_x + 'px');
+		light.css('top', pos_y + 'px');
+		object_move(light);
+
+		if (fow_obj != null) {
+			fow_update = true;
+			fog_of_war_light(light);
+		}
+	}
+
+	if (fow_update) {
+		fog_of_war_update(fow_obj);
+	}
+}
+
+function light_delete(obj) {
+	delete fow_light_char[obj.prop('id')];
+
+	obj.attr('state', 'delete');
+	fog_of_war_light(obj);
+
+	if (my_character != null) {
+		fog_of_war_update(my_character);
+	} else if (fow_obj != null) {
+		fog_of_war_update(fow_obj);
+	}
+
+	obj.remove();
 }
 
 /* Wall functions
@@ -1337,13 +1470,13 @@ function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, gro
 		}
 	}
 
-	var zone = $('<div id="' + id + '" class="zone" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:3;" />');
+	var zone = $('<div id="' + id + '" class="zone" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + ';" />');
 
 	if (group != '') {
 		zone.attr('group', group);
 	}
 
-	$('div.playarea > div').prepend(zone);
+	$('div.playarea div.zones').append(zone);
 
 	if (dungeon_master) {
 		$('div#' + id).append('<div class="script"></div>');
@@ -1366,9 +1499,6 @@ function zone_create(width, height, color, opacity, group) {
 		zone_create_object(instance_id, zone_x, zone_y, width, height, color, opacity, group);
 
 		$('div#zone' + instance_id).draggable({
-			create: function(event, ui) {
-				$(this).css('cursor', 'grab');
-			},
 			stop: function(event, ui) {
 				object_move($(this));
 			}
@@ -1391,7 +1521,7 @@ function zone_create(width, height, color, opacity, group) {
 			selector: 'div#zone' + instance_id,
 			callback: context_menu_handler,
 			items: zone_menu,
-			zIndex: DEFAULT_Z_INDEX + 4
+			zIndex: LAYER_MENU
 		});
 	}).fail(function(data) {
 		alert('Zone create error');
@@ -1435,13 +1565,13 @@ function zone_init_presence() {
 /* Marker functions
 */
 function marker_create(pos_x, pos_y, name = null) {
-	var marker = $('<div class="marker" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; z-index:' + (DEFAULT_Z_INDEX + 4) + '"><img src="/images/marker.png" style="width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" /></div>');
+	var marker = $('<div class="marker" style="position:absolute; z-index:' + LAYER_MARKER + '; left:' + pos_x + 'px; top:' + pos_y + 'px;"><img src="/images/marker.png" style="width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" /></div>');
 
 	if (name != null) {
 		marker.prepend('<span style="margin-bottom:3px">' + name + '</span>');
 	}
 
-	$('div.playarea > div').append(marker);
+	$('div.playarea div.markers').append(marker);
 	setTimeout(function() {
 		$('div.marker').first().remove();
 	}, 5000);
@@ -1980,7 +2110,7 @@ function context_menu_handler(key, options) {
 				alternate_id: alternate_id
 			});
 
-			if (fog_of_war && (my_character != null)) {
+			if ((fow_type != FOW_OFF) && (my_character != null)) {
 				fog_of_war_update(my_character);
 			}
 			break;
@@ -2125,8 +2255,8 @@ function context_menu_handler(key, options) {
 
 			var pos_x = coord_to_grid(mouse_x, false) + (grid_cell_size >> 1) - 12;
 			var pos_y = coord_to_grid(mouse_y, false) - (grid_cell_size >> 1) + 7;
-			var marker = '<img src="/images/pin.png" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; z-index:' + (DEFAULT_Z_INDEX + 4) + '" class="pin" />';
-			$('div.playarea > div').append(marker);
+			var marker = '<img src="/images/pin.png" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" class="pin" />';
+			$('div.playarea div.markers').append(marker);
 
 			$('div.playarea').mousemove(function(event) {
 				var from_x = coord_to_grid(mouse_x, false);
@@ -2164,7 +2294,7 @@ function context_menu_handler(key, options) {
 		case 'effect_create':
 			effect_x = coord_to_grid(mouse_x, false);
 			effect_y = coord_to_grid(mouse_y, false);
-			$('div.effects').show();
+			$('div.effect_create').show();
 			break;
 		case 'effect_duplicate':
 			var pos = object_position($(this));
@@ -2200,9 +2330,13 @@ function context_menu_handler(key, options) {
 				focus_obj = null;
 			}
 			break;
-		case 'fow':
+		case 'fow_show':
 			if (fow_obj == null) {
-				fog_of_war_init();
+				fog_of_war_init(LAYER_FOG_OF_WAR);
+				if (fow_type == FOW_NIGHT) {
+					var distance = fow_char_distances[obj.prop('id')];
+					fog_of_war_set_distance(distance);
+				}
 				fog_of_war_update(obj);
 				fow_obj = obj;
 			} else if (obj.is(fow_obj)) {
@@ -2212,6 +2346,35 @@ function context_menu_handler(key, options) {
 				fog_of_war_update(obj);
 				fow_obj = obj;
 			}
+			break;
+		case 'fow_distance':
+			var distance = fow_char_distances[obj.prop('id')];
+			if ((distance = window.prompt('Distance:', distance)) == undefined) {
+				return;
+			}
+
+			distance = parseInt(distance);
+			if (isNaN(distance)) {
+				write_sidebar('Invalid distance.');
+				break;
+			} else if (distance < 1) {
+				write_sidebar('Invalid distance.');
+				break;
+			}
+
+			fow_char_distances[obj.prop('id')] = distance;
+
+			if (obj.is(fow_obj)) {
+				fog_of_war_set_distance(distance);
+				fog_of_war_update(fow_obj);
+			}
+
+			var data = {
+				action: 'fow_distance',
+				instance_id: obj.prop('id'),
+				distance: distance
+			};
+			websocket_send(data);
 			break;
 		case 'handover':
 			object_handover(obj);
@@ -2233,9 +2396,117 @@ function context_menu_handler(key, options) {
 		case 'info':
 			object_info(obj);
 			break;
+		case 'light_create':
+			var pos_x = coord_to_grid(mouse_x, false);
+			var pos_y = coord_to_grid(mouse_y, false);
+			var radius = 3;
+
+			if ((radius = window.prompt('Radius:', radius)) == undefined) {
+				return;
+			}
+
+			radius = parseInt(radius);
+			if (isNaN(radius)) {
+				write_sidebar('Invalid radius.');
+				return;
+			} else if (radius < 0) {
+				write_sidebar('Invalid radius.');
+				return;
+			}
+
+			light_create(pos_x, pos_y, radius);
+			break;
+		case 'light_delete':
+			if (confirm('Delete light?')) {
+				$.post('/object/delete', {
+					instance_id: obj.prop('id'),
+				}).done(function() {
+					var data = {
+						action: 'light_delete',
+						instance_id: obj.prop('id')
+					};
+					websocket_send(data);
+
+					light_delete(obj);
+				});
+			}
+			break;
+		case 'light_attach':
+			if (focus_obj == null) {
+				write_sidebar('Focus on a character first.');
+				break;
+			}
+
+			if (focus_obj.hasClass('character') == false) {
+				write_sidebar('Focus on a character first.');
+				break;
+			}
+
+			var pos = object_position(focus_obj);
+			obj.css('left', pos.left + 'px');
+			obj.css('top', pos.top + 'px');
+			object_move(obj);
+
+			if (fow_obj != null) {
+				fog_of_war_light(obj);
+				fog_of_war_update(fow_obj);
+			}
+
+			fow_light_char[obj.prop('id')] = focus_obj.prop('id');
+			break;
+		case 'light_detach':
+			for (var [key, value] of Object.entries(fow_light_char)) {
+				if (obj.attr('id') == value) {
+					delete fow_light_char[key];
+				}
+			}
+			break;
+		case 'light_remove':
+			if (confirm('DELETE: Are you sure?') == false) {
+				break;
+			}
+
+			for (var [key, value] of Object.entries(fow_light_char)) {
+				if (obj.attr('id') == value) {
+					delete fow_light_char[key];
+
+					$.post('/object/delete', {
+						instance_id: key,
+					}).done(function() {
+						var data = {
+							action: 'light_delete',
+							instance_id: key
+						};
+						websocket_send(data);
+
+						var light = $('div#' + key);
+						light_delete(light);
+					});
+				}
+			}
+			break;
+		case 'light_toggle':
+			var toggle = { on:'off', off:'on' };
+			var state = toggle[obj.attr('state')];
+
+			obj.attr('state', state);
+			obj.find('img').attr('src', '/images/light_' + state + '.png');
+
+			var data = {
+				action: 'light_toggle',
+				light_id: obj.prop('id').substr(5),
+				state: state
+			};
+			websocket_send(data);
+
+			$.post('/object/light_state', {
+				light_id: obj.prop('id').substr(5),
+				state: state
+			});
+			break;
 		case 'lower':
-			obj.css('z-index', z_index);
 			z_index--;
+			obj.css('z-index', z_index);
 			var data = {
 				action: 'lower',
 				instance_id: obj.prop('id')
@@ -2409,7 +2680,8 @@ $(document).ready(function() {
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
 	my_name = $('div.playarea').attr('name');
 	dungeon_master = ($('div.playarea').attr('dm') == 'yes');
-	fog_of_war = ($('div.playarea').attr('fog_of_war') == 'yes');
+	fow_type = parseInt($('div.playarea').attr('fog_of_war'));
+	fow_default_distance = parseInt($('div.playarea').attr('fow_distance'));
 	var version = $('div.playarea').attr('version');
 
 	write_sidebar('<b>Welcome to TableTop v' + version + '</b>');
@@ -2539,6 +2811,21 @@ $(document).ready(function() {
 					zone_run_script(data.zone, data.character, data.zone_event, data.pos_x, data.pos_y);
 				}
 				break;
+			case 'fow_distance':
+				if (my_character == null) {
+					break;
+				} else if (my_character.prop('id') != data.instance_id) {
+					break;
+				}
+
+				var distance = parseInt(data.distance);
+				if (isNaN(distance)) {
+					break;
+				}
+
+				fog_of_war_set_distance(distance);
+				fog_of_war_update(my_character);
+				break;
 			case 'handover':
 				if (data.owner_id != my_character.prop('id')) {
 					return;
@@ -2551,9 +2838,6 @@ $(document).ready(function() {
 				}
 
 				$('div#' + data.instance_id).draggable({
-					create: function(event, ui) {
-						$(this).css('cursor', 'grab');
-					},
 					handle: handle,
 					stop: function(event, ui) {
 						object_move($(this));
@@ -2575,7 +2859,7 @@ $(document).ready(function() {
 					selector: 'div#' + data.instance_id + ' img',
 					callback: context_menu_handler,
 					items: {
-						'info': {name:'Info', icon:'fa-info-circle'},
+						'info': {name:'Get infomation', icon:'fa-info-circle'},
 						'stick': {name:'Stick to / unstick', icon:'fa-lock'},
 						'rotate': {name:'Rotate', icon:'fa-compass', items:{
 							'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
@@ -2593,8 +2877,10 @@ $(document).ready(function() {
 						'damage': {name:'Damage', icon:'fa-warning'},
 						'heal': {name:'Heal', icon:'fa-medkit'}
 					},
-					zIndex: DEFAULT_Z_INDEX + 4
+					zIndex: LAYER_MENU
 				});
+
+				$('div#' + data.instance_id).css('cursor', 'grab');
 				break;
 			case 'hide':
 				var obj = $('div#' + data.instance_id);
@@ -2604,9 +2890,26 @@ $(document).ready(function() {
 				journal_add_entry(data.name, data.content);
 				write_sidebar(data.name + ' added a journal entry.');
 				break;
+			case 'light_create':
+				light_create_object(data.instance_id, data.pos_x, data.pos_y, data.radius);
+				break;
+			case 'light_delete':
+				var obj = $('div#' + data.instance_id);
+				light_delete(obj);
+				break;
+			case 'light_toggle':
+				var light = $('div#light' + data.light_id);
+				light.attr('state', data.state);
+
+				fog_of_war_light(light);
+
+				if (my_character != null) {
+					fog_of_war_update(my_character);
+				}
+				break;
 			case 'lower':
-				$('div#' + data.instance_id).css('z-index', z_index);
 				z_index--;
+				$('div#' + data.instance_id).css('z-index', z_index);
 				break;
 			case 'marker':
 				marker_create(data.pos_x, data.pos_y, data.name);
@@ -2620,6 +2923,18 @@ $(document).ready(function() {
 				break;
 			case 'move':
 				var obj = $('div#' + data.instance_id);
+
+				if (obj.hasClass('light')) {
+					obj.css('left', data.pos_x + 'px');
+					obj.css('top', data.pos_y + 'px');
+
+					fog_of_war_light(obj);
+					if (my_character != null) {
+						fog_of_war_update(my_character);
+					}
+					break;
+				}
+
 				obj.stop(false, true);
 				obj.animate({
 					left: data.pos_x,
@@ -2644,14 +2959,28 @@ $(document).ready(function() {
 						}
 					}
 
-					if (obj.is(fow_obj) || (fog_of_war && obj.is(my_character))) {
-						fog_of_war_update(obj);
+					if (keep_centered && obj.is(my_character)) {
+						scroll_to_my_character(0);
 					}
 
 					if (data.instance_id == stick_to) {
 						object_move_to_sticked(obj);
 					}
+
+					/* Fog of War
+					 */
+					if (obj.is(fow_obj) || ((fow_type != FOW_OFF) && obj.is(my_character))) {
+						fog_of_war_update(obj);
+					}
+
 				});
+
+				if (obj.hasClass('character') && dungeon_master && (fow_type == FOW_NIGHT)) {
+					light_follow(obj, data.pos_x, data.pos_y);
+					if (obj.is(fow_obj)) {
+						fog_of_war_update(fow_obj);
+					}
+				}
 				break;
 			case 'ping':
 				var data = {
@@ -2693,7 +3022,7 @@ $(document).ready(function() {
 						'stick': {name:'Stick to / unstick', icon:'fa-lock'},
 						'attack': {name:'Attack', icon:'fa-shield'}
 					},
-					zIndex: DEFAULT_Z_INDEX + 4
+					zIndex: LAYER_MENU
 				});
 
 				if (data.instance_id == stick_to) {
@@ -2706,7 +3035,9 @@ $(document).ready(function() {
 				}
 				break;
 			case 'whisper':
-				if (data.to == my_character.prop('id')) {
+				if ((data.to == 'dm') && dungeon_master) {
+					message_to_sidebar(data.name, data.mesg);
+				} else if (data.to == my_character.prop('id')) {
 					message_to_sidebar(data.name, data.mesg);
 				}
 				break;
@@ -2724,7 +3055,7 @@ $(document).ready(function() {
 				}
 				break;
 			default:
-				alert('Unknown action: ' + data.action);
+				write_sidebar('Unknown action: ' + data.action);
 		}
 	};
 
@@ -2747,14 +3078,16 @@ $(document).ready(function() {
 
 		var cell = '<img src="/images/grid_cell.png" style="float:left; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; position:relative;" />';
 		for (var i = 0 ;i < count; i++) {
-			$('div.playarea > div').append(cell);
+			$('div.playarea div.grid').append(cell);
 		}
 	}
 
+	/* Windows
+	 */
+	$('div.windows > div').css('z-index', LAYER_MENU);
+
 	/* Zones
 	 */
-	$('div.zone').css('z-index', 3);
-
 	$('div.zone_create div.panel').draggable({
 		handle: 'div.panel-heading',
 		cursor: 'grab'
@@ -2804,8 +3137,6 @@ $(document).ready(function() {
 
 	/* Doors
 	 */
-	$('div.door').css('z-index', 3);
-
 	$('div.door').each(function() {
 		door_position($(this));
 	});
@@ -2824,18 +3155,24 @@ $(document).ready(function() {
 		selector: 'div.door',
 		callback: context_menu_handler,
 		items: items,
-		zIndex: DEFAULT_Z_INDEX + 4
+		zIndex: LAYER_MENU
 	});
 
 	/* Walls
 	 */
-	$('div.wall').css('z-index', 3);
-
 	$('div.wall[transparent="yes"]').addClass('window');
 
 	$('div.wall').each(function() {
 		wall_position($(this));
 	});
+
+	/* Lights
+	 */
+	if (fow_type == FOW_NIGHT) {
+		$('div.light').each(function() {
+			fog_of_war_light($(this));
+		});
+	}
 
 	/* Objects
 	 */
@@ -2860,7 +3197,7 @@ $(document).ready(function() {
 	});
 
 	$('div.token').each(function() {
-		$(this).css('z-index', DEFAULT_Z_INDEX + 1);
+		$(this).css('z-index', LAYER_TOKEN);
 		object_rotate($(this), $(this).attr('rotation'), false, 0);
 
 		if ($(this).attr('hitpoints') > 0) {
@@ -2871,7 +3208,7 @@ $(document).ready(function() {
 	});
 
 	$('div.character').each(function() {
-		$(this).css('z-index', DEFAULT_Z_INDEX + 2);
+		$(this).css('z-index', LAYER_CHARACTER);
 		object_rotate($(this), $(this).attr('rotation'), false, 0);
 	});
 
@@ -2879,9 +3216,6 @@ $(document).ready(function() {
 		/* Dungeon Master settings
 		 */
 		$('div.zone').draggable({
-			create: function(event, ui) {
-				$(this).css('cursor', 'grab');
-			},
 			stop: function(event, ui) {
 				object_move($(this));
 			}
@@ -2895,9 +3229,6 @@ $(document).ready(function() {
 		});
 
 		$('div.token').draggable({
-			create: function(event, ui) {
-				$(this).css('cursor', 'grab');
-			},
 			handle: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
@@ -2905,9 +3236,6 @@ $(document).ready(function() {
 		});
 
 		$('div.character').draggable({
-			create: function(event, ui) {
-				$(this).css('cursor', 'grab');
-			},
 			handle: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
@@ -2918,16 +3246,41 @@ $(document).ready(function() {
 			$(this).fadeTo(0, 0.5);
 		});
 
+		
+		$('div.light').each(function() {
+			var state = $(this).attr('state');
+			$(this).append('<img src="/images/light_' + state + '.png" class="light" style="width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" />');
+		});
+
+		$('div.light').draggable({
+			handler: 'img',
+			stop: function(event, ui) {
+				object_move($(this));
+			}
+		});
+
+		$.contextMenu({
+			selector: 'div.light',
+			callback: context_menu_handler,
+			items: {
+				'light_toggle': {name:'Turn on / off', icon:'fa-toggle-on'},
+				'light_attach': {name:'Attach to character', icon:'fa-compress'},
+				'light_delete': {name:'Delete', icon:'fa-trash'}
+			},
+			zIndex: LAYER_MENU
+		});
+
 		/* Menu zones
 		 */
 		zone_menu = {
-			'info': {name:'Info', icon:'fa-info-circle'},
-			'script': {name:'Event script', icon:'fa-edit'},
+			'info': {name:'Get information', icon:'fa-info-circle'},
+			'script': {name:'Set event script', icon:'fa-edit'},
 			'sep1': '-',
-			'marker': {name:'Marker', icon:'fa-map-marker'},
-			'distance': {name:'Distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Coordinates', icon:'fa-flag'},
-			'effect_create': {name:'Effect', icon:'fa-fire'},
+			'marker': {name:'Set marker', icon:'fa-map-marker'},
+			'distance': {name:'Measure distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Show coordinates', icon:'fa-flag'},
+			'effect_create': {name:'Create effect', icon:'fa-fire'},
+			'light_create': {name:'Create light', icon:'fa-lightbulb-o'},
 			'sep2': '-',
 			'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
 			'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
@@ -2939,13 +3292,13 @@ $(document).ready(function() {
 			selector: 'div.zone',
 			callback: context_menu_handler,
 			items: zone_menu,
-			zIndex: DEFAULT_Z_INDEX + 4
+			zIndex: LAYER_MENU
 		});
 
 		/* Menu tokens
 		 */
 		items = {
-			'info': {name:'Info', icon:'fa-info-circle'},
+			'info': {name:'Get information', icon:'fa-info-circle'},
 			'view': {name:'View', icon:'fa-search'},
 			'rotate': {name:'Rotate', icon:'fa-compass', items:{
 				'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
@@ -2957,16 +3310,16 @@ $(document).ready(function() {
 				'rotate_w':  {name:'West', icon:'fa-arrow-circle-left'},
 				'rotate_nw': {name:'North West'}
 			}},
-			'presence': {name:'Presence', icon:'fa-low-vision'},
+			'presence': {name:'Toggle presence', icon:'fa-low-vision'},
 			'lower': {name:'Lower', icon:'fa-arrow-down'},
 			'sep1': '-',
 			'focus': {name:'Focus', icon:'fa-binoculars'},
 			'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
 			'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
 			'sep2': '-',
-			'marker': {name:'Marker', icon:'fa-map-marker'},
-			'distance': {name:'Distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'marker': {name:'Set marker', icon:'fa-map-marker'},
+			'distance': {name:'Measure distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'zone_create': {name:'Zone', icon:'fa-square-o'},
 			'sep3': '-',
 			'attack': {name:'Attack', icon:'fa-shield'},
@@ -2983,13 +3336,13 @@ $(document).ready(function() {
 		});
 
 		items['sep2'] = '-';
-		items['conditions'] = {name:'Conditions', icon:'fa-heartbeat', items:conditions};
+		items['conditions'] = {name:'Set condition', icon:'fa-heartbeat', items:conditions};
 
 		$.contextMenu({
 			selector: 'div.token img',
 			callback: context_menu_handler,
 			items: items,
-			zIndex: DEFAULT_Z_INDEX + 4
+			zIndex: LAYER_MENU
 		});
 
 		/* Menu characters
@@ -3004,36 +3357,44 @@ $(document).ready(function() {
 		});
 
 		var items = {
-			'info': {name:'Info', icon:'fa-info-circle'},
+			'info': {name:'Get information', icon:'fa-info-circle'},
 			'view': {name:'View', icon:'fa-search'},
-			'presence': {name:'Presence', icon:'fa-low-vision'},
-			'sep1': '-',
+			'presence': {name:'Toggle presence', icon:'fa-low-vision'},
 			'focus': {name:'Focus', icon:'fa-binoculars'},
-			'fow': {name:'Fog of War', icon:'fa-cloud'},
-			'distance': {name:'Distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Coordinates', icon:'fa-flag'},
+			'sep1': '-',
+			'distance': {name:'Measure distance', icon:'fa-map-signs'},
+			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'sep2': '-',
+			'fow_show': {name:'Show its Fog of War', icon:'fa-cloud'},
+			'fow_distance': {name:'Set Fog of War distance', icon:'fa-cloud-upload'},
+			'light_detach': {name:'Detach light', icon:'fa-lightbulb-o'},
+			'light_remove': {name:'Remove light', icon:'fa-circle'},
+			'sep3': '-',
 			'attack': {name:'Attack', icon:'fa-shield'},
 			'damage': {name:'Damage', icon:'fa-warning'},
 			'heal': {name:'Heal', icon:'fa-medkit'},
-			'conditions': {name:'Conditions', icon:'fa-heartbeat', items:conditions},
-			'sep3': '-',
-			'zone_create': {name:'Zone', icon:'fa-square-o'}
+			'conditions': {name:'Set condition', icon:'fa-heartbeat', items:conditions},
+			'sep4': '-',
+			'zone_create': {name:'Create zone', icon:'fa-square-o'}
 		};
 
-		if (fog_of_war == false) {
-			delete items['fow'];
+		if (fow_type == FOW_OFF) {
+			delete items['fow_show'];
+			delete items['fow_distance'];
+			delete items['light_detach'];
+			delete items['light_remove'];
+			delete items['sep3'];
 		}
 
 		if (Object.keys(maps).length > 0) {
-			items['send'] = {name:'Send to', icon:'fa-compass', items:maps};
+			items['send'] = {name:'Send to map', icon:'fa-compass', items:maps};
 		}
 
 		$.contextMenu({
 			selector: 'div.character img',
 			callback: context_menu_handler,
 			items: items,
-			zIndex: DEFAULT_Z_INDEX + 4
+			zIndex: LAYER_MENU
 		});
 
 		/* Menu map
@@ -3042,15 +3403,30 @@ $(document).ready(function() {
 			selector: 'div.playarea > div',
 			callback: context_menu_handler,
 			items: {
-				'marker': {name:'Marker', icon:'fa-map-marker'},
-				'distance': {name:'Distance', icon:'fa-map-signs'},
-				'coordinates': {name:'Coordinates', icon:'fa-flag'},
+				'marker': {name:'Set marker', icon:'fa-map-marker'},
+				'distance': {name:'Measure distance', icon:'fa-map-signs'},
+				'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 				'sep1': '-',
-				'effect_create': {name:'Effect', icon:'fa-fire'},
-				'zone_create': {name:'Zone', icon:'fa-square-o'}
+				'effect_create': {name:'Create effect', icon:'fa-fire'},
+				'light_create': {name:'Create light', icon:'fa-lightbulb-o'},
+				'zone_create': {name:'Create zone', icon:'fa-square-o'}
 			},
-			zIndex: DEFAULT_Z_INDEX + 4
+			zIndex: LAYER_MENU
 		});
+
+		$('div.characters').css('cursor', 'grab');
+		$('div.effects').css('cursor', 'grab');
+		$('div.lights').css('cursor', 'grab');
+		$('div.tokens').css('cursor', 'grab');
+		$('div.zones').css('cursor', 'grab');
+
+		/* Fog of war
+		 */
+		if (fow_type != FOW_OFF) {
+			$('div.character').each(function() {
+				fow_char_distances[$(this).prop('id')] = fow_default_distance;
+			});
+		}
 	} else {
 		/* Player settings
 		 /*/
@@ -3060,31 +3436,29 @@ $(document).ready(function() {
 
 			if ($('div.playarea').attr('drag_character') == 'yes') {
 				my_character.draggable({
-					create: function(event, ui) {
-						$(this).css('cursor', 'grab');
-					},
 					handle: 'img',
 					stop: function(event, ui) {
 						stick_to = null;
 						object_move($(this));
 					}
 				});
+				my_character.css('cursor', 'grab');
 			}
 
-			my_character.css('z-index', DEFAULT_Z_INDEX + 3);
+			my_character.css('z-index', LAYER_CHARACTER_OWN);
 
 			/* Menu my character
 			 */
 			var items = {
-				'info': {name:'Info', icon:'fa-info-circle'},
+				'info': {name:'Get information', icon:'fa-info-circle'},
 				'view': {name:'View', icon:'fa-search'},
 				'sep1': '-',
 				'damage': {name:'Damage', icon:'fa-warning'},
 				'heal': {name:'Heal', icon:'fa-medkit'},
-				'temphp': {name:'Temporary hit points', icon:'fa-heart-o'},
+				'temphp': {name:'Set temporary hit points', icon:'fa-heart-o'},
 				'sep2': '-',
-				'maxhp': {name:'Maximum hit points', icon:'fa-heart'},
-				'armor': {name:'Armor class', icon:'fa-shield'},
+				'maxhp': {name:'Set maximum hit points', icon:'fa-heart'},
+				'armor': {name:'Set armor class', icon:'fa-shield'},
 				'sep3': '-',
 				'rotate': {name:'Rotate', icon:'fa-compass', items:{
 					'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
@@ -3106,7 +3480,7 @@ $(document).ready(function() {
 				conditions['condition_' + con_id] = {name: $(this).text()};
 			});
 
-			items['conditions'] = {name:'Conditions', icon:'fa-heartbeat', items:conditions};
+			items['conditions'] = {name:'Set condition', icon:'fa-heartbeat', items:conditions};
 
 			var alternates = $('div.alternates div');
 			if (alternates.length > 0) {
@@ -3119,14 +3493,14 @@ $(document).ready(function() {
 					icons['alternate_' + icon_id] = {name: $(this).text()};
 				});
 
-				items['alternates'] = {name:'Icons', icon:'fa-smile-o', items:icons};
+				items['alternates'] = {name:'Change icon', icon:'fa-smile-o', items:icons};
 			}
 
 			$.contextMenu({
 				selector: 'div#' + my_char + ' img',
 				callback: context_menu_handler,
 				items: items,
-				zIndex: DEFAULT_Z_INDEX + 4
+				zIndex: LAYER_MENU
 			});
 
 			/* Zone presence
@@ -3135,8 +3509,11 @@ $(document).ready(function() {
 
 			/* Fog of war
 			 */
-			if (fog_of_war) {
-				fog_of_war_init();
+			if (fow_type != FOW_OFF) {
+				fog_of_war_init(LAYER_FOG_OF_WAR);
+				if (fow_type == FOW_NIGHT) {
+					fog_of_war_set_distance(fow_default_distance);
+				}
 				fog_of_war_update(my_character);
 			}
 		}
@@ -3148,12 +3525,13 @@ $(document).ready(function() {
 			callback: context_menu_handler,
 			items: {
 				'view': {name:'View', icon:'fa-search'},
-				'marker': {name:'Marker', icon:'fa-map-marker'},
-				'distance': {name:'Distance', icon:'fa-map-signs'},
 				'stick': {name:'Stick to / unstick', icon:'fa-lock'},
-				'attack': {name:'Attack', icon:'fa-shield'}
+				'attack': {name:'Attack', icon:'fa-shield'},
+				'sep': '-',
+				'marker': {name:'Set marker', icon:'fa-map-marker'},
+				'distance': {name:'Measure distance', icon:'fa-map-signs'}
 			},
-			zIndex: DEFAULT_Z_INDEX + 4
+			zIndex: LAYER_MENU
 		});
 
 		/* Menu (other) characters
@@ -3162,12 +3540,13 @@ $(document).ready(function() {
 			selector: 'div.character img',
 			callback: context_menu_handler,
 			items: {
-				'info': {name:'Info', icon:'fa-info-circle'},
+				'info': {name:'Get information', icon:'fa-info-circle'},
 				'view': {name:'View', icon:'fa-search'},
-				'marker': {name:'Marker', icon:'fa-map-marker'},
-				'distance': {name:'Distance', icon:'fa-map-signs'},
+				'sep': '-',
+				'marker': {name:'Set marker', icon:'fa-map-marker'},
+				'distance': {name:'Measure distance', icon:'fa-map-signs'},
 			},
-			zIndex: DEFAULT_Z_INDEX + 4
+			zIndex: LAYER_MENU
 		});
 
 		/* Menu map
@@ -3176,10 +3555,10 @@ $(document).ready(function() {
 			selector: 'div.playarea > div',
 			callback: context_menu_handler,
 			items: {
-				'marker': {name:'Marker', icon:'fa-map-marker'},
-				'distance': {name:'Distance', icon:'fa-map-signs'}
+				'marker': {name:'Set marker', icon:'fa-map-marker'},
+				'distance': {name:'Measure distance', icon:'fa-map-signs'}
 			},
-			zIndex: DEFAULT_Z_INDEX + 4
+			zIndex: LAYER_MENU
 		});
 	}
 
@@ -3231,7 +3610,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$('div.effects div.panel').draggable({
+	$('div.effect_create div.panel').draggable({
 		handle: 'div.panel-heading',
 		cursor: 'grab'
 	});

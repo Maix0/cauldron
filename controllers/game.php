@@ -102,6 +102,11 @@
 					return;
 				}
 
+				if (($lights = $this->model->get_lights($game["active_map_id"])) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
 				if (($zones = $this->model->get_zones($game["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
@@ -143,7 +148,7 @@
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("game.js");
-				if (is_true($active_map["fog_of_war"])) {
+				if ($active_map["fog_of_war"] > 0) {
 					$this->view->add_javascript("includes/fog_of_war.js");
 				}
 
@@ -201,7 +206,6 @@
 
 				$active_map["show_grid"] = show_boolean($active_map["show_grid"]);
 				$active_map["drag_character"] = show_boolean($active_map["drag_character"]);
-				$active_map["fog_of_war"] = show_boolean($active_map["fog_of_war"]);
 
 				$this->view->record($active_map, "map");
 
@@ -219,6 +223,17 @@
 				foreach ($walls as $wall) {
 					$wall["transparent"] = show_boolean($wall["transparent"]);
 					$this->view->record($wall, "wall");
+				}
+				$this->view->close_tag();
+
+				/* Lights
+				 */
+				$this->view->open_tag("lights");
+				foreach ($lights as $light) {
+					$light["pos_x"] *= $grid_cell_size;
+					$light["pos_y"] *= $grid_cell_size;
+
+					$this->view->record($light, "light");
 				}
 				$this->view->close_tag();
 
