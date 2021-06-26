@@ -96,6 +96,6 @@ update the HEADER_CSP setting in settings/website.conf.
 Upgrading
 =========
 Before upgrading this website, run database/backup_database make a backup of
-your database to disk. Then make a backup of this directory.
+your database to disk. Then make a backup of the TableTop directory.
 Replace the source code with the new version. Open the website and add
 /setup to the URL. Follow the instructions on the screen.

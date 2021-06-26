@@ -15,7 +15,7 @@
 					"Organisations" => array("cms/organisation", "organisations.png"),
 					"Access"        => array("cms/access", "access.png"),
 					"User switch"   => array("cms/switch", "switch.png")),
-				"Games creation" => array(
+				"Game creation" => array(
 					"Files"         => array("cms/file", "file.png"),
 					"Conditions"    => array("cms/condition", "conditions.png"),
 					"Tokens"        => array("cms/token", "token.png"),

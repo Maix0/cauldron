@@ -1,0 +1,21 @@
+div.well li {
+	color:#337ab7;
+	cursor:pointer;
+}
+div.well li:hover {
+	text-decoration:underline;
+}
+
+h2 {
+	color: #5385c1;
+	padding-bottom:3px;
+	border-bottom:1px solid #ff7900;
+}
+
+div.row h3 {
+	margin-top:10px;
+}
+
+div.section {
+	display:none;
+}

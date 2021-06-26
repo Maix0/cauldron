@@ -1,5 +1,3 @@
-const WS_HOST = 'tabletop.leisink.net';
-const WS_PORT = '2000';
 const ROLL_NORMAL = 0;
 const ROLL_ADVANTAGE = 1;
 const ROLL_DISADVANTAGE = 2;
@@ -14,6 +12,7 @@ const LAYER_CHARACTER_OWN = DEFAULT_Z_INDEX + 2;
 const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 3;
 const LAYER_MARKER = DEFAULT_Z_INDEX + 4;
 const LAYER_MENU = DEFAULT_Z_INDEX + 5;
+const LAYER_VIEW = DEFAULT_Z_INDEX + 6;
 
 var websocket;
 var game_id = null;
@@ -49,6 +48,10 @@ var zone_y = 0;
 var zone_menu = null;
 
 function websocket_send(data) {
+	if (websocket == null) {
+		return;
+	}
+
 	data.game_id = game_id;
 	data.user_id = user_id;
 	data = JSON.stringify(data);
@@ -290,7 +293,7 @@ function show_help() {
 		'<b>/damage &lt;points&gt;</b>: Damage your character.<br />') +
 		(dungeon_master ?
 		'<b>/dmroll &lt;dice&gt;</b>: Privately roll dice.<br />' +
-		'<b>/done</b>: End the battle and remove conditions.<br />' : '') +
+		'<b>/done</b>: End the battle.<br />' : '') +
 		(dungeon_master ? '' :
 		'<b>/heal &lt;points&gt;</b>: Heal your character.<br />') +
 		(dungeon_master ?
@@ -304,7 +307,7 @@ function show_help() {
 		'<b>/remove &lt;name&gt;</b>: Remove one from battle.<br />' : '') +
 		'<b>/roll &lt;dice&gt;</b>: Roll dice.<br />' +
 		'<b>&lt;message&gt;</b>: Send text message.<br />' +
-		'<br />Right-click an icon or the map for more options. Steer a character via q, w, e and s and rotate via a and d.';
+		'<br />Right-click an icon or the map for a menu with options. Move a character via w, a, s and d and rotate via q and e.';
 
 	write_sidebar(help);
 }
@@ -459,7 +462,7 @@ function object_hide(obj, send = true) {
 function object_info(obj) {
 	var info = '';
 
-    if (obj.attr('id').substr(0, 4) != 'zone') {
+    if (obj.hasClass('zone') == false) {
 		var name = obj.find('span.name');
 		if (name.length > 0) {
 			info += 'Name: ' + name.text() + '<br />';
@@ -481,6 +484,10 @@ function object_info(obj) {
 
 		if (obj.is(my_character)) {
 			info += 'Temp, hit points: ' + temporary_hitpoints.toString() + '<br />';
+		}
+
+		if (obj.hasClass('character')) {
+			info += 'Initiative bonus: ' + obj.attr('initiative') + '<br />';
 		}
 	}
 
@@ -828,7 +835,7 @@ function object_view(obj, max_size = 300) {
 	}
 
 	var onclick = 'javascript:$(this).remove();';
-	var div_style = 'position:absolute; z-index:1; top:0; left:0; right:0; bottom:0; background-color:rgba(255, 255, 255, 0.8);';
+	var div_style = 'position:absolute; z-index:' + LAYER_VIEW + '; top:0; left:0; right:0; bottom:0; background-color:rgba(255, 255, 255, 0.8);';
 	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%)';
 	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px;';
 
@@ -838,7 +845,7 @@ function object_view(obj, max_size = 300) {
 	}
 
 	if (((obj.hasClass('token') == false) && (obj.hasClass('character') == false)) || (collectable_id != undefined)) {
-		img_style += 'border:1px solid #000000;';
+		img_style += ' border:1px solid #000000; background-color:#ffffff;';
 	}
 
 	var view = $('<div id="view" style="' + div_style + '" onClick="' + onclick +'"><span style="' + span_style + '"><img src="' + src + '" style="' + img_style + '" /></span></div>');
@@ -1658,11 +1665,6 @@ function battle_done() {
 		localStorage.removeItem('battle_order');
 	}
 
-/*
-	$('span.conditions').remove();
-	localStorage.removeItem('conditions');
-*/
-
 	temporary_hitpoints = 0;
 
 	write_sidebar('The battle is over!');
@@ -1822,8 +1824,9 @@ function handle_input(input) {
 			battle_order = [];
 
 			do {
-				var enemy = prompt('Enemy: <name>[, <initiative bonus=0>]\nUse empty input to start battle.');
+				var enemy = prompt('Enemy: <name>[, <initiative bonus=0>]\nUse empty input to the start battle.');
 				if (enemy == undefined) {
+					write_sidebar('Battle canceled.');
 					return;
 				}
 
@@ -1844,7 +1847,7 @@ function handle_input(input) {
 					var initiative = 0;
 					if (parts.length > 1) {
 						initiative = parseInt(parts[1]);
-						if (initiative == undefined) {
+						if (isNaN(initiative)) {
 							write_sidebar('Invalid initiative value.');
 							continue;
 						}
@@ -2188,7 +2191,6 @@ function context_menu_handler(key, options) {
 			} else {
 				message += 'miss';
 			}
-			message += (roll == 20) ? 'CRIT!' :
 
 			send_message(message, my_name);
 
@@ -2272,7 +2274,7 @@ function context_menu_handler(key, options) {
 
 				var distance = (diff_x > diff_y) ? diff_x : diff_y;
 
-				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft');
+				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft / ' + (diff_x + 1) + 'x' + (diff_y + 1));
 			});
 
 			$('div.playarea').on('click', function(event) {
@@ -2683,6 +2685,8 @@ $(document).ready(function() {
 	fow_type = parseInt($('div.playarea').attr('fog_of_war'));
 	fow_default_distance = parseInt($('div.playarea').attr('fow_distance'));
 	var version = $('div.playarea').attr('version');
+	var ws_host = $('div.playarea').attr('ws_host')
+	var ws_port = $('div.playarea').attr('ws_port')
 
 	write_sidebar('<b>Welcome to TableTop v' + version + '</b>');
 	write_sidebar('Type /help for command information.');
@@ -2690,17 +2694,19 @@ $(document).ready(function() {
 
 	/* Websocket
 	 */
-	websocket = new WebSocket('wss://' + WS_HOST + ':' + WS_PORT + '/');
+	websocket = new WebSocket('wss://' + ws_host + ':' + ws_port + '/');
 
 	websocket.onopen = function(event) {
 		write_sidebar('Connection established.');
 		send_message(my_name + ' entered the game.', null, false);
 
-		var data = {
-			action: 'effect_request',
-			map_id: map_id
-		};
-		websocket_send(data);
+		if (dungeon_master == false) {
+			var data = {
+				action: 'effect_request',
+				map_id: map_id
+			};
+			websocket_send(data);
+		}
 
 		var parts = window.location.pathname.split('/');
 		if (parts.length == 4) {
@@ -3060,7 +3066,7 @@ $(document).ready(function() {
 	};
 
 	websocket.onerror = function(event) {
-		write_sidebar('Connection error. Does your firewall allow outgoing traffic via port ' + WS_PORT + '?');
+		write_sidebar('Connection error. Does your firewall allow outgoing traffic via port ' + ws_port + '?');
 		websocket = null;
 	};
 
@@ -3274,7 +3280,7 @@ $(document).ready(function() {
 		 */
 		zone_menu = {
 			'info': {name:'Get information', icon:'fa-info-circle'},
-			'script': {name:'Set event script', icon:'fa-edit'},
+			'script': {name:'Edit event script', icon:'fa-edit'},
 			'sep1': '-',
 			'marker': {name:'Set marker', icon:'fa-map-marker'},
 			'distance': {name:'Measure distance', icon:'fa-map-signs'},

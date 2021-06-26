@@ -19,6 +19,7 @@ var wall_y = 0;
 var zone_presence = [];
 var zone_x = 0;
 var zone_y = 0;
+var ctrl_down = null;
 
 function filter_library() {
 	var filter = $('input#filter').val().toLowerCase();
@@ -56,9 +57,23 @@ function coord_to_grid(coord, edge = true) {
 	return coord;
 }
 
-function capture_mouse_position() {
+function capture_mouse_position(event) {
 	mouse_x = event.clientX + $('div.playarea').scrollLeft() - 16;
 	mouse_y = event.clientY + $('div.playarea').scrollTop() - 41;
+}
+
+function key_down(event) {
+	if (event.which == 17) {
+		ctrl_down = true;
+	} else if (event.which == 27) {
+		wall_stop();
+	}
+}
+
+function key_up(event) {
+	if (event.which == 17) {
+		ctrl_down = false;
+	}
 }
 
 /* Object functions
@@ -122,7 +137,7 @@ function object_create(icon, x, y) {
 	}).done(function(data) {
 		var instance_id = $(data).find('instance_id').text();
 
-		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px;" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
+		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
 		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px;" />' +
 		          '</div>';
 
@@ -557,7 +572,7 @@ function wall_create(pos_x, pos_y, length, direction, transparent) {
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
 
-		$('div.playarea div#new_wall').attr('id', 'wall' + instance_id);
+		$('div.playarea div#new_wall').first().attr('id', 'wall' + instance_id);
 
 		$.contextMenu({
 			selector: 'div#wall' + instance_id,
@@ -607,6 +622,8 @@ function wall_stop(remove = true) {
 	}
 	$('div.playarea').off('mousemove');
 	$('div.playarea').off('click');
+	$('body').off('keydown');
+	$('body').off('keyup');
 }
 
 /* Zone functions
@@ -666,7 +683,7 @@ function zone_create(width, height, color, opacity, group) {
 			zone.attr('group', group);
 		}
 
-		$('div.playarea > div').prepend(zone);
+		$('div.playarea div.zones').prepend(zone);
 
 		$('div#zone' + instance_id).draggable({
             stop: function(event, ui) {
@@ -820,7 +837,7 @@ function context_menu_handler(key, options) {
 
 				var distance = (diff_x > diff_y) ? diff_x : diff_y;
 
-				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft');
+				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft / ' + (diff_x + 1) + 'x' + (diff_y + 1));
 			});
 
 			$('div.playarea').on('click', function(event) {
@@ -842,7 +859,7 @@ function context_menu_handler(key, options) {
 			});
 
 			$('div.playarea').mousemove(function(event) {
-				capture_mouse_position();
+				capture_mouse_position(event);
 
 				var pos_x = door_x;
 				var pos_y = door_y;
@@ -1018,6 +1035,12 @@ function context_menu_handler(key, options) {
 			measuring_stop();
 			wall_stop();
 
+			if (key == 'wall_create') {
+				$('body').keydown(key_down);
+				$('body').keyup(key_up);
+			}
+			ctrl_down = false;
+
 			wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
 			wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
 
@@ -1029,7 +1052,7 @@ function context_menu_handler(key, options) {
 			});
 
 			$('div.playarea').mousemove(function(event) {
-				capture_mouse_position();
+				capture_mouse_position(event);
 
 				var pos_x = wall_x;
 				var pos_y = wall_y;
@@ -1053,7 +1076,7 @@ function context_menu_handler(key, options) {
 					var direction = 'vertical';
 				}
 
-				$('div.playarea div#new_wall').each(function() {
+				$('div.playarea div#new_wall').last().each(function() {
 					$(this).attr('pos_x', pos_x);
 					$(this).attr('pos_y', pos_y);
 					$(this).attr('length', length);
@@ -1063,7 +1086,9 @@ function context_menu_handler(key, options) {
 			});
 
 			$('div.playarea').on('click', function(event) {
-				wall_stop(false);
+				if (ctrl_down == false) {
+					wall_stop(false);
+				}
 
 				var pos_x = $('div.playarea div#new_wall').attr('pos_x');
 				var pos_y = $('div.playarea div#new_wall').attr('pos_y');
@@ -1071,8 +1096,18 @@ function context_menu_handler(key, options) {
 				var direction = $('div.playarea div#new_wall').attr('direction');
 
 				wall_create(pos_x, pos_y, length, direction, key == 'window_create');
-			});
 
+				if (ctrl_down) {
+					wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+					wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+					var wall = '<div id="new_wall" class="wall" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" />';
+					$('div.playarea div.walls').append(wall);
+					$('div#new_wall').each(function() {
+						wall_position($(this));
+					});
+				}
+			});
 			break;
 		case 'zone_create':
 			zone_x = coord_to_grid(mouse_x, false);
@@ -1093,6 +1128,8 @@ $(document).ready(function() {
 	game_id = parseInt($('div.playarea').attr('game_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
+
+	write_sidebar('Game ID: ' + game_id);
 
 	/* Show grid
 	 */
@@ -1231,7 +1268,7 @@ $(document).ready(function() {
 		callback: context_menu_handler,
 		items: {
 			'info': {name:'Get information', icon:'fa-info-circle'},
-			'script': {name:'Set event script', icon:'fa-edit'},
+			'script': {name:'Edit event script', icon:'fa-edit'},
 			'sep1': '-',
 			'distance': {name:'Measure distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
@@ -1390,7 +1427,7 @@ $(document).ready(function() {
 	 */
 	$('div.playarea').mousedown(function(event) {
 		if (event.which == 3) {
-			capture_mouse_position();
+			capture_mouse_position(event);
 		}
 	});
 

@@ -125,7 +125,7 @@
 </div>
 </div>
 <!-- Play area -->
-<div class="playarea" version="{/output/tabletop/version}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
+<div class="playarea" version="{/output/tabletop/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div>
@@ -207,7 +207,7 @@
 <div class="sidebar">
 </div>
 <div class="input">
-<input type="text" class="form-control" />
+<input type="text" class="form-control" placeholder="Enter command" />
 </div>
 </xsl:if>
 </xsl:template>

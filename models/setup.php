@@ -392,6 +392,15 @@
 				$this->settings->database_version = 13;
 			}
 
+			if ($this->settings->database_version == 13) {
+				$manual_html = file("../extra/manual.html");
+				$manual_css = file("../extra/manual.css");
+				$this->db_query("INSERT INTO pages VALUES (1,%s,%s,%s,1,%s,%s,%s,%s,%s,1,0,0,NULL,NULL,NULL)",
+				                "/manual", "en", "tabletop", $manual_css, "Manual", "", "", $manual_html);
+
+				$this->settings->database_version = 14;
+			}
+
 			return true;
 		}
 

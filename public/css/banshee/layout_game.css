@@ -68,6 +68,7 @@ div.script_editor div.panel-body {
 
 div.script_editor textarea {
 	height:200px;
+	resize:none;
 }
 
 div.script_editor div.game_id {

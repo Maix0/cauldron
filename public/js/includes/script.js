@@ -154,7 +154,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				break;
 			case 'move':
 				var parts = param.split(/ +/);
-				if (parts[0] == 'player') {
+				if (parts[0] == 'character') {
 					var target = character;
 				} else {
 					var target = $('div#' + parts[0]);
@@ -170,7 +170,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				var x = parseInt(coord[0]);
 				var y = parseInt(coord[1]);
 
-				if ((isNaN(x) || isNaN(y)) && (parts[0] == 'player') && (parts[3] == undefined)) {
+				if ((isNaN(x) || isNaN(y)) && (parts[0] == 'character') && (parts[3] == undefined)) {
 					var pos = object_position(character);
 
 					if (coord[0] == 'x') {
@@ -206,7 +206,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 					}
 				}
 
-				if ((parts[2] == 'player') || ((parts[0] == 'player') && (parts[2] == 'self'))) {
+				if ((parts[2] == 'character') || ((parts[0] == 'character') && (parts[2] == 'self'))) {
 					pos_x += x * grid_cell_size;
 					pos_y += y * grid_cell_size;
 				} else if (parts[2] != undefined) {
@@ -335,7 +335,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				write_sidebar(message);
 				break;
 			case 'write_all':
-				param = param.replace('PLAYER', name);
+				param = param.replace('character', name);
 				if (debug == false) {
 					send_message(param, speaker);
 				} else {
@@ -343,7 +343,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				}
 				break;
 			case 'write_dm':
-				param = param.replace('PLAYER', name);
+				param = param.replace('character', name);
 				write_sidebar('<b>Zone script message:</b><br />' + param);
 				break;
 			default:

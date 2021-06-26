@@ -7,14 +7,11 @@
 				return $text;
 			}
 
-			$text = strip_tags($text, "<b><i><u>");
+			$message = new \Banshee\message($text);
+			$message->unescaped_output();
+			$message->translate_bbcodes(false);
 
-			$replace = array("\r" => "", "\n\n" => "</p><p>", "\n" => "<br \>");
-			foreach ($replace as $key => $value) {
-				$text = str_replace($key, $value, $text);
-			}
-
-			return "<p>".$text."</p>";
+			return "<p>".$message->content."</p>";
 		}
 
 		private function show_games() {
@@ -139,7 +136,7 @@
 				$active_map["height"] = round($active_map["height"] * $factor);
 			}
 
-			$this->view->title = $game["title"];
+			$this->view->title = $active_map["title"]." - ".$game["title"];
 			$this->view->set_layout("game");
 
 			if ($active_map != null) {
@@ -164,6 +161,13 @@
 				"grid_cell_size" => $grid_cell_size);
 			$this->view->open_tag("game", $attr);
 			$this->view->record($game);
+
+			/* Websocket
+			 */
+			$this->view->open_tag("websocket");
+			$this->view->add_tag("host", $_SERVER["HTTP_HOST"]);
+			$this->view->add_tag("port", WEBSOCKET_PORT);
+			$this->view->close_tag();
 
 			/* Map selector
 			 */

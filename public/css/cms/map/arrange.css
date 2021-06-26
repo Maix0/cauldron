@@ -144,6 +144,7 @@ div.filter {
 }
 
 div.sidebar {
+	font-size:12px;
 	position:absolute;
 	height:150px;
 	right:0px;

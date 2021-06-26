@@ -24,7 +24,7 @@
 <xsl:for-each select="tokens/token">
 <div class="col-xs-12 col-sm-4 col-md-3 token">
 <div class="well well-sm" onClick="javascript:document.location='/{/output/page}/{@id}'">
-<img src="/files/tokens/{@id}.{extension}" class="icon" />
+<img src="/files/tokens/{@id}.{extension}" title="{name}" class="icon" />
 <div class="name"><xsl:value-of select="name" /></div>
 <div>Width: <xsl:value-of select="width" /></div>
 <div>Height: <xsl:value-of select="height" /></div>

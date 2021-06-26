@@ -78,7 +78,7 @@
 <!-- Characters -->
 <div class="characters">
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" hitpoints="{hitpoints}" damage="{damage}">
+<div id="character{instance_id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <img src="/files/characters/{@id}.{extension}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
@@ -95,7 +95,7 @@
 <div class="library">
 <xsl:for-each select="library/token">
 <div class="well well-sm">
-<img src="/files/tokens/{@id}.{extension}" style="max-width:{../../@grid_cell_size}px; max-height:{../../@grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" />
+<img src="/files/tokens/{@id}.{extension}" title="{name}" style="max-width:{../../@grid_cell_size}px; max-height:{../../@grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" />
 <div class="name"><xsl:value-of select="name" /></div>
 <div>Width: <xsl:value-of select="width" /></div>
 <div>Height: <xsl:value-of select="height" /></div>

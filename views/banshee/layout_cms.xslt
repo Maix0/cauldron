@@ -22,6 +22,9 @@
 <meta name="description" content="{description}" />
 <meta name="keywords" content="{keywords}" />
 <meta name="generator" content="Banshee PHP framework v{/output/banshee/version} (https://www.banshee-php.org/)" />
+<link rel="apple-touch-icon" href="/images/d20.png" />
+<link rel="icon" href="/images/d20.png" />
+<link rel="shortcut icon" href="/images/d20.png" />
 <xsl:if test="/output/banshee/session_timeout">
 <meta http-equiv="refresh" content="{/output/banshee/session_timeout}; url=/logout" />
 </xsl:if>

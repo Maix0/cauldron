@@ -29,6 +29,8 @@
 
 			$this->view->set_layout($page["layout"]);
 
+			$this->view->add_css("banshee/font-awesome.css");
+
 			/* Page content
 			 */
 			$this->view->open_tag("page");
