@@ -27,7 +27,7 @@
 			if ($db->connected == false) {
 				/* No database connection
 				 */
-				if ((DB_HOSTNAME == "localhost") && (DB_DATABASE == "banshee") && (DB_USERNAME == "banshee") && (DB_PASSWORD == "banshee")) {
+				if ((DB_HOSTNAME == "localhost") && (DB_DATABASE == "tabletop") && (DB_USERNAME == "tabletop") && (DB_PASSWORD == "tabletop")) {
 					return "db_settings";
 				} else if (strpos(DB_PASSWORD, "'") !== false) {
 					$this->view->add_system_message("A single quote is not allowed in the password!");
@@ -199,6 +199,7 @@
 
 			$this->db->query("update users set status=%d", USER_STATUS_CHANGEPWD);
 			$this->settings->secret_website_code = random_string(32);
+			$this->db->query("update organisations set files_key=%s", random_string(32));
 
 			return true;
 		}
@@ -401,6 +402,37 @@
 				$this->settings->database_version = 14;
 			}
 
+			if ($this->settings->database_version == 14) {
+				$this->db_query("ALTER TABLE organisations ADD files_key VARCHAR(32) NOT NULL AFTER name");
+				$this->db_query("ALTER TABLE tokens ADD organisation_id INT UNSIGNED NOT NULL AFTER id");
+				$this->db_query("UPDATE tokens SET organisation_id=%s", 1);
+				$this->db_query("ALTER TABLE tokens ADD FOREIGN KEY (organisation_id) REFERENCES organisations(id) ON DELETE RESTRICT ON UPDATE RESTRICT");
+
+				$files_key = random_string(32);
+				$this->db_query("UPDATE organisations SET files_key=%s", $files_key);
+
+				if (($organisation = $this->db->entry("organisations", 1)) == false) {
+					return false;
+				}
+
+				if ($organisation["files_key"] == $files_key) {
+					mkdir("files/".$files_key);
+
+					if (($dp = opendir("files")) != false) {
+						while (($file = readdir($dp)) != false) {
+							if (($file == ".") || ($file == "..") || ($file == $files_key)) {
+								continue;
+							}
+
+							rename("files/".$file, "files/".$files_key."/".$file);
+						}
+						closedir($dp);
+					}
+				}
+
+				$this->settings->database_version = 15;
+			}
+
 			return true;
 		}
 
@@ -440,8 +472,12 @@
 		/* Directories
 		 */
 		public function directories_exist() {
+			if (($organisation = $this->db->entry("organisations", 1)) == false) {
+				return false;
+			}
+
 			foreach ($this->directories as $directory) {
-				if (is_dir("files/".$directory) == false) {
+				if (is_dir("files/".$organisation["files_key"]."/".$directory) == false) {
 					return false;
 				}
 			}
@@ -450,8 +486,12 @@
 		}
 
 		public function create_directories() {
+			if (($organisation = $this->db->entry("organisations", 1)) == false) {
+				return false;
+			}
+
 			foreach ($this->directories as $directory) {
-				mkdir("files/".$directory, 0755);
+				mkdir("files/".$organisation["files_key"]."/".$directory, 0755);
 			}
 		}
 	}

@@ -43,8 +43,13 @@
 		}
 
 		public function get_local_maps() {
-			if (($maps = $this->get_files("files/maps")) !== false) {
+			if (($maps = $this->get_files("files/".$this->user->files_key."/maps")) !== false) {
 				sort($maps);
+			}
+
+			$len = strlen($this->user->files_key);
+			foreach ($maps as $m => $map) {
+				$maps[$m] = substr($map, 0, 6).substr($map, $len + 7);
 			}
 
 			return $maps;
@@ -64,6 +69,9 @@
 		public function get_image_dimensions($map) {
 			if (substr($map["url"], 0, 1) == "/") {
 				$image = substr($map["url"], 1);
+				if (substr($image, 0, 6) == "files/") {
+					$image = "files/".$this->user->files_key.substr($image, 5);
+				}
 			} else {
 				list(,, $hostname, $path) = explode("/", $map["url"], 4);
 				if (substr($map["url"], 0, 7) == "http://") {

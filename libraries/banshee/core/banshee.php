@@ -8,7 +8,9 @@
 
 	define("BANSHEE_VERSION", "7.2");
 	define("ADMIN_ROLE_ID", 1);
-	define("USER_ROLE_ID", 2);
+	define("PLAYER_ROLE_ID", 2);
+	define("DUNGEON_MASTER_ROLE_ID", 3);
+	define("USER_MAINTAINER_ROLE_ID", 4);
 	define("DEFAULT_ORGANISATION_ID", 1);
 	define("YES", 1);
 	define("NO", 0);
@@ -234,43 +236,6 @@
 
 		array_pop($_SESSION[$key]);
 		array_unshift($_SESSION[$key], $_GET["order"]);
-	}
-
-	/* Log event for analytics
-	 *
-	 * INPUT:  database object, HTTP status code / event code
-	 * OUTPUT: false
-	 * ERROR:  -
-	 */
-	function log_event($db, $error) {
-		switch ($error) {
-			case EVENT_FAILED_LOGIN:
-				header("X-Hiawatha-Monitor: failed_login");
-				break;
-			case EVENT_EXPLOIT_ATTEMPT:
-				header("X-Hiawatha-Monitor: exploit_attempt");
-				break;
-		}
-
-		if (library_exists("analytics") == false) {
-			return false;
-		}
-
-		$today = date("Y-m-d");
-
-		$query = "update log_visits set count=count+1 where date=%s and error=%d";
-		if (($result = $db->execute($query, $today, $error)) === false) {
-			return;
-		} else if ($result > 0) {
-			return;
-		}
-
-		$data = array(
-			"id"    => null,
-			"date"  => $today,
-			"count" => 1,
-			"error" => $error);
-		return $db->insert("log_visits", $data) !== false;
 	}
 
 	/* Log debug information

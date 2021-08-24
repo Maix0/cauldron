@@ -1,3 +1,11 @@
+tabletop (1.5) stable; urgency=low
+
+  * Separate files directory for each group (organisation).
+  * Small improvements.
+  * Bugfix: characters were able to walk through walls in some browsers.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 24 Aug 2021 14:05:11 +0200
+
 tabletop (1.4) stable; urgency=low
 
   * Added manual.

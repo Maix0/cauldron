@@ -39,9 +39,9 @@ function change_setting {
 }
 
 change_setting DB_HOSTNAME localhost
-change_setting DB_DATABASE banshee
-change_setting DB_USERNAME banshee
-change_setting DB_PASSWORD banshee
+change_setting DB_DATABASE tabletop
+change_setting DB_USERNAME tabletop
+change_setting DB_PASSWORD tabletop
 change_setting DEBUG_MODE yes
 
 # Remove files

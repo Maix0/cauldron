@@ -202,8 +202,6 @@
 			$logfile = new \Banshee\logfile("actions");
 			$logfile->user_id = $user_id;
 			$logfile->add_entry("session hijack attempt");
-
-			log_event($this->db, EVENT_EXPLOIT_ATTEMPT);
 		}
 
 		/* Update user_id in session record

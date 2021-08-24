@@ -107,6 +107,17 @@ CREATE TABLE `conditions` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `conditions`
+--
+-- ORDER BY:  `id`
+
+LOCK TABLES `conditions` WRITE;
+/*!40000 ALTER TABLE `conditions` DISABLE KEYS */;
+INSERT INTO `conditions` VALUES (1,'Blinded'),(2,'Charmed'),(3,'Deafened'),(4,'Exhausted'),(5,'Frightened'),(6,'Grappled'),(7,'Incapacitated'),(8,'Paralyzed'),(9,'Invisible'),(10,'Petrified'),(11,'Poisoned'),(12,'Prone'),(13,'Restrained'),(14,'Stunned'),(15,'Unconscious');
+/*!40000 ALTER TABLE `conditions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `doors`
 --
 
@@ -329,6 +340,7 @@ DROP TABLE IF EXISTS `organisations`;
 CREATE TABLE `organisations` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
+  `files_key` varchar(32) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_2` (`name`)
@@ -342,7 +354,7 @@ CREATE TABLE `organisations` (
 
 LOCK TABLES `organisations` WRITE;
 /*!40000 ALTER TABLE `organisations` DISABLE KEYS */;
-INSERT INTO `organisations` VALUES (1,'TableTop');
+INSERT INTO `organisations` VALUES (1,'TableTop','');
 /*!40000 ALTER TABLE `organisations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -479,7 +491,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
-INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0),(3,'Dungeon Master',1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,1);
+INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0),(3,'Dungeon Master',1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,1),(4,'User maintainer',1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0);
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -531,7 +543,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','14'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string','ovIEN5r3TSbl7mNYsJ1BDacwaVOkzOdg'),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','hugo@leisink.net'),(36,'screen_grid_size','integer','50');
+INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','15'),(3,'default_language','string','en'),(8,'head_description','string','Online Tabletop Platform'),(9,'head_keywords','string','tabletop, game, roleplaying'),(10,'head_title','string','TableTop'),(11,'hiawatha_cache_default_time','integer','3600'),(12,'hiawatha_cache_enabled','boolean','false'),(27,'secret_website_code','string','ovIEN5r3TSbl7mNYsJ1BDacwaVOkzOdg'),(28,'session_persistent','boolean','true'),(29,'session_timeout','integer','15552000'),(30,'start_page','string','game'),(33,'webmaster_email','string','hugo@leisink.net'),(36,'screen_grid_size','integer','50');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -544,11 +556,14 @@ DROP TABLE IF EXISTS `tokens`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tokens` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `organisation_id` int(10) unsigned NOT NULL,
   `name` varchar(50) NOT NULL,
   `width` tinyint(3) unsigned NOT NULL,
   `height` tinyint(3) unsigned NOT NULL,
   `extension` varchar(3) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `organisation_id` (`organisation_id`),
+  CONSTRAINT `tokens_ibfk_1` FOREIGN KEY (`organisation_id`) REFERENCES `organisations` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -671,4 +686,4 @@ CREATE TABLE `zones` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-06-26 10:05:45
+-- Dump completed on 2021-08-24 11:20:47

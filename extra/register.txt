@@ -1,0 +1,7 @@
+<html>
+<body>
+<p>Dear [FULLNAME],</p>
+<p>You've just requested an account at the [HOSTNAME] website. To confirm this request, follow <a href="[PROTOCOL]://[HOSTNAME]/register?confirmation=[LINK]">this link</a>.</p>
+<p>Kind regards,<br>the webmaster</p>
+</body>
+</html>

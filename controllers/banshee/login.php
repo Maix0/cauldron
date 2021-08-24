@@ -39,8 +39,6 @@
 					if (strpos($_POST["username"], "'") !== false) {
 						$this->view->add_message("Sorry, this application does not support SQL injection.");
 						$this->user->log_action("SQL injection attempt");
-
-						log_event($this->db, EVENT_EXPLOIT_ATTEMPT);
 					} else {
 						$this->view->add_message("Login incorrect");
 					}

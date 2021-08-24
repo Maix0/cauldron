@@ -24,7 +24,7 @@
 <xsl:for-each select="tokens/token">
 <div class="col-xs-12 col-sm-4 col-md-3 token">
 <div class="well well-sm" onClick="javascript:document.location='/{/output/page}/{@id}'">
-<img src="/files/tokens/{@id}.{extension}" title="{name}" class="icon" />
+<img src="/files/{/output/tabletop/files_key}/tokens/{@id}.{extension}" title="{name}" class="icon" />
 <div class="name"><xsl:value-of select="name" /></div>
 <div>Width: <xsl:value-of select="width" /></div>
 <div>Height: <xsl:value-of select="height" /></div>
@@ -44,7 +44,7 @@
 <form action="/{/output/page}" method="post" enctype="multipart/form-data">
 <xsl:if test="token/@id">
 <input type="hidden" name="id" value="{token/@id}" />
-<img src="/files/tokens/{token/@id}.{token/extension}" class="token" />
+<img src="/files/{/output/tabletop/files_key}/tokens/{token/@id}.{token/extension}" class="token" />
 </xsl:if>
 
 <label for="name">Name:</label>

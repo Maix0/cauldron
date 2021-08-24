@@ -48,11 +48,26 @@
 		}
 
 		public function create_organisation($organisation) {
-			$keys = array("id", "name");
+			$keys = array("id", "name", "files_key");
+
+			$files_key = random_string(32);
 
 			$organisation["id"] = null;
+			$organisation["files_key"] = $files_key;
 
-			return $this->db->insert("organisations", $organisation, $keys);
+			if (($this->db->insert("organisations", $organisation, $keys)) === false) {
+				return false;
+			}
+
+			mkdir("files/".$files_key, 0755);
+			mkdir("files/".$files_key."/audio", 0755);
+			mkdir("files/".$files_key."/characters", 0755);
+			mkdir("files/".$files_key."/collectables", 0755);
+			mkdir("files/".$files_key."/effects", 0755);
+			mkdir("files/".$files_key."/maps", 0755);
+			mkdir("files/".$files_key."/tokens", 0755);
+
+			return true;
 		}
 
 		public function update_organisation($organisation) {
@@ -77,8 +92,43 @@
 			return true;
 		}
 
+		private function remove_directory($directory) {
+			if (($dp = opendir($directory)) == false) {
+				return false;
+			}
+
+			while (($file = readdir($dp)) != false) {
+				if (($file == ".") || ($file == "..")) {
+					continue;
+				}
+
+				$path = $directory."/".$file;
+				if (is_dir($path)) {
+					$this->remove_directory($path);
+				} else {
+					unlink($path);
+				}
+			}
+
+			closedir($dp);
+
+			return rmdir($directory);
+		}
+
 		public function delete_organisation($organisation_id) {
-			return $this->db->delete("organisations", $organisation_id);
+			if (($organisation = $this->db->entry("organisations", $organisation_id)) == false) {
+				return false;
+			}
+
+			if ($this->db->delete("organisations", $organisation_id) == false) {
+				return false;
+			}
+
+			if ($organisation["files_key"] != "") {
+				$this->remove_directory("files/".$organisation["files_key"]);
+			}
+
+			return true;
 		}
 	}
 ?>

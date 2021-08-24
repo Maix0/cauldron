@@ -78,7 +78,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 
 		switch (command) {
 			case 'audio':
-				var filename = '/files/audio/' + game_id + '/' + param;
+				var filename = '/files/' + files_key + '/audio/' + game_id + '/' + param;
 
 				if (debug == false) {
 					var data = {
@@ -372,7 +372,7 @@ function script_save(zone) {
 		}
 
 		if (copy_script) {
-			$('div.zone[group=' + zone_group + '] div.script').text(script);
+			$('div.zone[group="' + zone_group + '"] div.script').text(script);
 		} else {
 			$('div#' + zone_id + ' div.script').text(script);
 		}

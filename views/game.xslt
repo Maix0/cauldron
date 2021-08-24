@@ -118,14 +118,14 @@
 <div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.effect_create').hide()"></span></div>
 <div class="panel-body">
 <xsl:for-each select="effects/effect">
-<img src="/files/effects/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" onClick="javascript:effect_create($(this))" /><xsl:text>
+<img src="/files/{/output/tabletop/files_key}/effects/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" onClick="javascript:effect_create($(this))" /><xsl:text>
 </xsl:text></xsl:for-each>
 </div>
 </div>
 </div>
 </div>
 <!-- Play area -->
-<div class="playarea" version="{/output/tabletop/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
+<div class="playarea" version="{/output/tabletop/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" files_key="{/output/tabletop/files_key}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div>
@@ -174,7 +174,7 @@
 <xsl:if test="perc">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 </xsl:if>
-<img src="/files/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" />
+<img src="/files/{/output/tabletop/files_key}/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" />
 <xsl:if test="name!=''">
 <span><xsl:value-of select="name" /></span>
 </xsl:if>
@@ -186,7 +186,7 @@
 <xsl:for-each select="characters/character">
 <div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-<img src="/files/characters/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
+<img src="/files/{/output/tabletop/files_key}/characters/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>

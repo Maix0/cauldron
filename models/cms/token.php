@@ -3,9 +3,9 @@
 		private $columns = array();
 
 		public function get_tokens() {
-			$query = "select * from tokens order by name";
+			$query = "select * from tokens where organisation_id=%d order by name";
 
-			return $this->db->execute($query, $this->user->id);
+			return $this->db->execute($query, $this->user->organisation_id);
 		}
 
 		public function get_token($token_id) {
@@ -13,6 +13,10 @@
 
 			if (isset($tokens[$token_id]) == false) {
 				if (($token = $this->db->entry("tokens", $token_id)) === false) {
+					return false;
+				}
+
+				if ($token["organisation_id"] != $this->user->organisation_id) {
 					return false;
 				}
 
@@ -67,13 +71,14 @@
 			$token->rotate(180);
 			$token->save($image["tmp_name"]);
 
-			return copy($image["tmp_name"], "files/tokens/".$id.".".$image["extension"]);
+			return copy($image["tmp_name"], "files/".$this->user->files_key."/tokens/".$id.".".$image["extension"]);
 		}
 
 		public function create_token($token, $image) {
-			$keys = array("id", "name", "width", "height");
+			$keys = array("id", "organisation_id", "name", "width", "height");
 
 			$token["id"] = null;
+			$token["organisation_id"] = $this->user->organisation_id;
 
 			if ($this->db->insert("tokens", $token, $keys) === false) {
 				return false;
@@ -94,6 +99,10 @@
 		public function update_token($token, $image) {
 			$keys = array("name", "width", "height");
 
+			if (($current = $this->get_token($token["id"])) == false) {
+				return false;
+			}
+
 			if ($image["error"] == 0) {
 				if ($this->save_image($image, $token["id"])) {
 					array_push($keys, "extension");
@@ -111,7 +120,7 @@
 
 			if (($current = $this->get_token($token["id"])) == false) {
 				$this->view->add_message("Token not found.");
-				$result = false;
+				return false;
 			}
 
 			$query = "select count(*) as count from map_token where token_id=%d";
@@ -135,7 +144,7 @@
 				return false;
 			}
 
-			unlink("files/tokens/".$token_id.".".$current["extension"]);
+			unlink("files/".$this->user->files_key."/tokens/".$token_id.".".$current["extension"]);
 
 			return true;
 		}

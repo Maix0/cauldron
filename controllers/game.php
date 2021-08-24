@@ -24,6 +24,10 @@
 
 			$this->view->open_tag("games");
 			foreach ($games as $game) {
+				if (substr($game["image"], 0, 7) == "/files/") {
+					$game["image"] = "/files/".$this->user->files_key.substr($game["image"], 6);
+				}
+
 				$game["story"] = $this->format_text($game["story"]);
 				$game["player_access"] = show_boolean($game["player_access"]);
 
@@ -210,6 +214,10 @@
 
 				$active_map["show_grid"] = show_boolean($active_map["show_grid"]);
 				$active_map["drag_character"] = show_boolean($active_map["drag_character"]);
+
+				if (substr($active_map["url"], 0, 7) == "/files/") {
+					$active_map["url"] = "/files/".$this->user->files_key.substr($active_map["url"], 6);
+				}
 
 				$this->view->record($active_map, "map");
 

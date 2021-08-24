@@ -94,7 +94,7 @@
 		}
 
 		public function get_effects() {
-			if (($dp = opendir('files/effects')) === false) {
+			if (($dp = opendir("files/".$this->user->files_key."/effects")) === false) {
 				return false;
 			}
 

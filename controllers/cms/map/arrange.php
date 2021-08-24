@@ -68,10 +68,14 @@
 
 			$attr = array(
 				"id"             => $game["id"],
+				"files_key"      => $this->user->files_key,
 				"grid_cell_size" => $grid_cell_size);
 			$this->view->open_tag("game", $attr);
 			$this->view->record($game);
 
+			if (substr($map["url"], 0, 7) == "/files/") {
+				$map["url"] = "/files/".$this->user->files_key.substr($map["url"], 6);
+			}
 			$map["show_grid"] = show_boolean($map["show_grid"]);
 			$map["start_x"] *= $grid_cell_size;
 			$map["start_y"] *= $grid_cell_size;

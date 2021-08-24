@@ -87,7 +87,7 @@
 				/* Edit token
 				 */
 				if (($token = $this->model->get_token($this->page->parameters[0])) == false) {
-					$this->view->add_tag("result", "token not found.");
+					$this->view->add_tag("result", "Token not found.");
 				} else {
 					$this->show_token_form($token);
 				}

@@ -640,7 +640,7 @@
 				return false;
 			}
 
-			$directory = "files/audio/".$game_id;
+			$directory = "files/".$this->user->files_key."/audio/".$game_id;
 
 			if (file_exists($directory) == false) {
 				return false;

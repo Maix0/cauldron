@@ -54,8 +54,12 @@
 			return $result;
 		}
 
-		private function save_image($image, $id) {
-			return copy($image["tmp_name"], "files/collectables/".$id."_".$image["name"]);
+		private function make_filename($id, $name) {
+			return $id."_".str_replace(" ", "_", strtolower($name));
+		}
+
+		private function save_image($image, $filename) {
+			return copy($image["tmp_name"], "files/".$this->user->files_key."/collectables/".$filename);
 		}
 
 		public function create_collectable($collectable, $image) {
@@ -63,7 +67,7 @@
 
 			$collectable["id"] = null;
 			$collectable["game_id"] = $_SESSION["edit_game_id"];
-			$collectable["image"] = $image["name"];
+			$collectable["image"] = "";
 			$collectable["found"] = is_true($collectable["found"]) ? YES : NO;
 			$collectable["hide"] = is_true($collectable["hide"]) ? YES : NO;
 
@@ -72,8 +76,9 @@
 			}
 			$collectable_id = $this->db->last_insert_id;
 
-			if ($this->save_image($image, $collectable_id)) {
-				$data = array("image" => $collectable_id."_".$image["name"]);
+			$filename = $this->make_filename($collectable_id, $image["name"]);
+			if ($this->save_image($image, $filename)) {
+				$data = array("image" => $filename);
 				$this->db->update("collectables", $collectable_id, $data);
 			} else {
 				$this->delete_collectable($collectable_id);
@@ -91,14 +96,14 @@
 					return false;
 				}
 
-				if ($this->save_image($image, $collectable["id"])) {
+				unlink("files/".$this->user->files_key."/collectables/".$current["image"]);
+
+				$collectable["image"] = $this->make_filename($collectable["id"], $image["name"]);
+				if ($this->save_image($image, $collectable["image"])) {
 					array_push($keys, "image");
-					$collectable["image"] = $collectable["id"]."_".$image["name"];
 				} else {
 					return false;
 				}
-
-				unlink("files/collectables/".$current["image"]);
 			}
 
 			$collectable["found"] = is_true($collectable["found"]) ? YES : NO;
@@ -127,7 +132,7 @@
 				return false;
 			}
 
-			unlink("files/collectables/".$current["image"]);
+			unlink("files/".$this->user->files_key."/collectables/".$current["image"]);
 
 			return true;
 		}

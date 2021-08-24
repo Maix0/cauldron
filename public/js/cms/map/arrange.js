@@ -7,6 +7,7 @@ const LAYER_MENU = DEFAULT_Z_INDEX + 4;
 
 var game_id = null;
 var map_id = null;
+var files_key = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
 var fow_obj = null;
@@ -46,6 +47,15 @@ function write_sidebar(message) {
 	sidebar.prop('scrollTop', sidebar.prop('scrollHeight'));
 }
 
+function screen_scroll() {
+	var scr = {};
+
+	scr.left = Math.round($('div.playarea').scrollLeft());
+	scr.top = Math.round($('div.playarea').scrollTop());
+
+	return scr;
+}
+
 function coord_to_grid(coord, edge = true) {
 	var delta = coord % grid_cell_size;
 	coord -= delta;
@@ -58,8 +68,9 @@ function coord_to_grid(coord, edge = true) {
 }
 
 function capture_mouse_position(event) {
-	mouse_x = event.clientX + $('div.playarea').scrollLeft() - 16;
-	mouse_y = event.clientY + $('div.playarea').scrollTop() - 41;
+	var scr = screen_scroll();
+	mouse_x = event.clientX + scr.left - 16;
+	mouse_y = event.clientY + scr.top - 41;
 }
 
 function key_down(event) {
@@ -111,8 +122,9 @@ function object_create(icon, x, y) {
 		var rotation = 180;
 		var hidden = 'no';
 
-		x += $('div.playarea').scrollLeft() - 30;
-		y += $('div.playarea').scrollTop() - 40;
+		var scr = screen_scroll();
+		x += scr.left - 30;
+		y += scr.top - 40;
 	} else {
 		// Duplicated token
 		var token_id = $(icon).parent().attr('token_id');
@@ -392,8 +404,12 @@ function object_name(obj) {
 
 function object_position(obj) {
 	var pos = obj.position();
-	pos.left += $('div.playarea').scrollLeft();
-	pos.top += $('div.playarea').scrollTop();
+	pos.left = Math.round(pos.left);
+	pos.top = Math.round(pos.top);
+
+	var scr = screen_scroll();
+	pos.left += scr.left;
+	pos.top += scr.top;
 
 	return pos;
 }
@@ -717,7 +733,7 @@ function zone_group_highlight() {
 		return;
 	}
 
-	$('div.zone[group=' + group + ']').css('border', '3px double #ff8000');
+	$('div.zone[group="' + group + '"]').css('border', '3px double #ff8000');
 }
 
 function zone_group_unhighlight() {
@@ -802,7 +818,7 @@ function context_menu_handler(key, options) {
 				var group = obj.attr('group');
 				if (group != undefined) {
 					if (confirm('Delete all zones in group ' + group + '?')) {
-						$('div.zone[group=' + group +']').each(function() {
+						$('div.zone[group="' + group +'"]').each(function() {
 							object_delete($(this));
 						});
 					} else {
@@ -827,9 +843,11 @@ function context_menu_handler(key, options) {
 				var from_x = coord_to_grid(mouse_x, false);
 				var from_y = coord_to_grid(mouse_y, false);
 
-				var to_x = event.clientX + $('div.playarea').scrollLeft() - 16;
+				var scr = screen_scroll();
+
+				var to_x = event.clientX + scr.left - 16;
 				to_x = coord_to_grid(to_x, false);
-				var to_y = event.clientY + $('div.playarea').scrollTop() - 41;
+				var to_y = event.clientY + scr.top - 41;
 				to_y = coord_to_grid(to_y, false);
 
 				var diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
@@ -1127,6 +1145,7 @@ function context_menu_handler(key, options) {
 $(document).ready(function() {
 	game_id = parseInt($('div.playarea').attr('game_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
+	files_key = parseInt($('div.playarea').attr('files_key'));
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
 
 	write_sidebar('Game ID: ' + game_id);

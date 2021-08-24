@@ -85,7 +85,7 @@
 			$token->rotate(180);
 			$token->save($icon["tmp_name"]);
 
-			return copy($icon["tmp_name"], "files/characters/".$id.".".$icon["extension"]);
+			return copy($icon["tmp_name"], "files/".$this->user->files_key."/characters/".$id.".".$icon["extension"]);
 		}
 
 		public function create_character($character, $icon) {
@@ -119,7 +119,7 @@
 					$this->view->add_message("Character not found.");
 					$result = false;
 				}
-				unlink("files/characters/".$current["id"].".".$current["extension"]);
+				unlink("files/".$this->user->files_key."/characters/".$current["id"].".".$current["extension"]);
 
 				if ($this->save_icon($icon, $character["id"])) {
 					array_push($keys, "extension");
@@ -166,10 +166,10 @@
 			}
 
 			foreach ($alternates as $alternate) {
-				unlink("files/characters/".$character_id."_".$alternate["id"].".".$alternate["extension"]);
+				unlink("files/".$this->user->files_key."/characters/".$character_id."_".$alternate["id"].".".$alternate["extension"]);
 			}
 
-			unlink("files/characters/".$character_id.".".$current["extension"]);
+			unlink("files/".$this->user->files_key."/characters/".$character_id.".".$current["extension"]);
 
 			$queries = array(
 				array("delete from character_icons where character_id=%d", $character_id),
@@ -230,7 +230,7 @@
 			$token->rotate(180);
 			$token->save($icon["tmp_name"]);
 
-			if (copy($icon["tmp_name"], "files/characters/".$info["char_id"]."_".$id.".".$parts["extension"]) == false) {
+			if (copy($icon["tmp_name"], "files/".$this->user->files_key."/characters/".$info["char_id"]."_".$id.".".$parts["extension"]) == false) {
 				$this->db->delete("character_icons", $id);
 			}
 
@@ -253,7 +253,7 @@
 				return false;
 			}
 
-			unlink("files/characters/".$current["character_id"]."_".$icon_id.".".$current["extension"]);
+			unlink("files/".$this->user->files_key."/characters/".$current["character_id"]."_".$icon_id.".".$current["extension"]);
 
 			return $current["character_id"];
 		}

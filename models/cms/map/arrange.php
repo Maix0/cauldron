@@ -15,9 +15,9 @@
 		}
 
 		public function get_available_tokens() {
-			$query = "select * from tokens order by name";
+			$query = "select * from tokens where organisation_id=%d order by name";
 
-			return $this->db->execute($query);
+			return $this->db->execute($query, $this->user->organisation_id);
 		}
 
 		public function get_tokens($map_id) {

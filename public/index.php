@@ -22,13 +22,6 @@
 	$_page     = new Core\page($_database, $_settings, $_user);
 	$_view     = new Core\view($_database, $_settings, $_user, $_page);
 
-	/* Web Analytics
-	 */
-	if (library_exists("analytics") && ($_user->is_admin == false)) {
-		$analytics = new analytics($_database, $_page);
-		$analytics->execute();
-	}
-
 	/* User switch warning
 	 */
 	if (isset($_SESSION["user_switch"])) {
@@ -67,6 +60,7 @@
 
 		$_view->open_tag("tabletop");
 		$_view->add_tag("version", TABLETOP_VERSION);
+		$_view->add_tag("files_key", $_user->files_key);
 		$_view->close_tag();
 
 		/* Page information

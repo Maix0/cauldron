@@ -95,7 +95,7 @@
 			}
 
 			foreach ($collectables as $collectable) {
-				unlink("files/collectables/".$collectable["image"]);
+				unlink("files/".$this->user->files_key."/collectables/".$collectable["image"]);
 			}
 
 			return true;

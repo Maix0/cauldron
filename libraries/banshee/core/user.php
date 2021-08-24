@@ -15,6 +15,7 @@
 		private $record = array();
 		private $logged_in = false;
 		private $is_admin = false;
+		private $files_key = "";
 
 		/* Constructor
 		 *
@@ -60,6 +61,7 @@
 				case "is_admin": return $this->is_admin;
 				case "do_not_track": return $_SERVER["HTTP_DNT"] == 1;
 				case "session": return $this->session;
+				case "files_key": return $this->files_key;
 				default:
 					if (isset($this->record[$key])) {
 						return $this->record[$key];
@@ -93,6 +95,11 @@
 						}
 					}
 				}
+
+				$query = "select files_key from organisations where id=%d";
+				if (($organisations = $this->db->execute($query, $this->record["organisation_id"])) != false) {
+					$this->files_key = $organisations[0]["files_key"];
+				}
 			}
 		}
 
@@ -117,7 +124,6 @@
 		public function login_password($username, $password, $code = null) {
 			$query = "select * from users where username=%s and status!=%d limit 1";
 			if (($data = $this->db->execute($query, $username, USER_STATUS_DISABLED)) == false) {
-				log_event($this->db, EVENT_FAILED_LOGIN);
 				sleep(1);
 
 				return false;
@@ -140,7 +146,6 @@
 			}
 
 			if ($this->logged_in == false) {
-				log_event($this->db, EVENT_FAILED_LOGIN);
 				sleep(1);
 			}
 
@@ -173,7 +178,6 @@
 			}
 
 			if ($this->logged_in == false) {
-				log_event($this->db, EVENT_FAILED_LOGIN);
 				sleep(1);
 			}
 

@@ -18,7 +18,7 @@
 <a href="{/output/page}/{@id}" title="Edit character"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
 </div>
 <div class="panel-body">
-<img src="/files/characters/{@id}.{extension}" class="icon" />
+<img src="/files/{/output/tabletop/files_key}/characters/{@id}.{extension}" class="icon" />
 <div>Hit points: <xsl:value-of select="hitpoints" /></div>
 <div>Armor class: <xsl:value-of select="armor_class" /></div>
 <div>Initiative bonus: <xsl:value-of select="initiative" /></div>
@@ -45,7 +45,7 @@
 <xsl:if test="character/@id">
 <input type="hidden" name="id" value="{character/@id}" />
 <input type="hidden" name="extension" value="{character/extension}" />
-<img src="/files/characters/{character/@id}.{character/extension}" class="icon" />
+<img src="/files/{/output/tabletop/files_key}/characters/{character/@id}.{character/extension}" class="icon" />
 </xsl:if>
 
 <label for="name">Name:</label>
@@ -108,7 +108,7 @@
 
 <div class="row">
 <xsl:for-each select="alternate">
-<div class="col-md-3 col-sm-4 col-xs-6"><div class="alternate"><img src="/files/characters/{character_id}_{@id}.{extension}" class="icon" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="icon_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
+<div class="col-md-3 col-sm-4 col-xs-6"><div class="alternate"><img src="/files/{/output/tabletop/files_key}/characters/{character_id}_{@id}.{extension}" class="icon" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="icon_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
 </xsl:for-each>
 </div>
 

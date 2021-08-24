@@ -184,7 +184,7 @@
 				 */
 				$user = array(
 					"organisation_id" => $this->user->organisation_id,
-					"roles"           => array(USER_ROLE_ID),
+					"roles"           => array(PLAYER_ROLE_ID),
 					"status"          => USER_STATUS_CHANGEPWD);
 				$this->show_user_form($user);
 			} else if (($this->page->parameters[0] == "authenticator") && $this->page->ajax_request) {

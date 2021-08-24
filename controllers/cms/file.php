@@ -8,7 +8,7 @@
 
 	class cms_file_controller extends Banshee\controller {
 		public function execute() {
-			$base_dir = FILES_PATH;
+			$base_dir = FILES_PATH."/".$this->user->files_key;
 			if (($sub_dir = implode("/", $this->page->parameters)) != "") {
 				$sub_dir = "/".$sub_dir;
 				if ($this->model->valid_path($sub_dir) == false) {
