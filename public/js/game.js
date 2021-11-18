@@ -15,10 +15,11 @@ const LAYER_MENU = DEFAULT_Z_INDEX + 5;
 const LAYER_VIEW = DEFAULT_Z_INDEX + 6;
 
 var websocket;
+var group_key = null;
 var game_id = null;
 var map_id = null;
 var user_id = null;
-var files_key = null;
+var resources_key = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
 var dungeon_master = null;
@@ -33,7 +34,7 @@ var fow_obj = null;
 var fow_default_distance = null;
 var fow_char_distances = {};
 var fow_light_char = {};
-var input_history = [];
+var input_history = null;
 var input_index = -1;
 var mouse_x = 0;
 var mouse_y = 0;
@@ -47,6 +48,51 @@ var zone_presence = [];
 var zone_x = 0;
 var zone_y = 0;
 var zone_menu = null;
+var zoom_level = 1;
+
+/* Zoom functoins
+ */
+function zoom_playarea(level) {
+	if (level < 0.5) {
+		level = 0.5;
+	} else if (level > 2) {
+		level = 2;
+	}
+
+	var playarea = $('div.playarea');
+
+	playarea.css('transform', 'scale(1)');
+	playarea.css('width', '');
+	playarea.css('height', '');
+	playarea.css('right', '215px');
+	playarea.css('bottom', '15px');
+
+	var width = parseInt(playarea.css('width'));
+	var height = parseInt(playarea.css('height'));
+
+	playarea.css('transform', 'scale(' + level + ')');
+	playarea.css('width', Math.round(width / level) + 'px');
+	playarea.css('height', Math.round(height / level) + 'px');
+
+	zoom_level = level;
+}
+
+function zoom_in() {
+	zoom_playarea(zoom_level + 0.1);
+}
+
+function zoom_out() {
+	zoom_playarea(zoom_level - 0.1);
+}
+
+function zoom_drag(evt, ui) {
+	return;
+
+	var scr = screen_scroll();
+
+	ui.position.top = Math.round((ui.position.top / zoom_level) + (scr.top * (1 - (1 / zoom_level))));
+	ui.position.left = Math.round((ui.position.left / zoom_level) + (scr.left * (1 - (1 / zoom_level))));
+}
 
 function websocket_send(data) {
 	if (websocket == null) {
@@ -54,7 +100,7 @@ function websocket_send(data) {
 	}
 
 	data.game_id = game_id;
-	data.user_id = user_id;
+	data.from_user_id = user_id;
 	data = JSON.stringify(data);
 
 	websocket.send(data);
@@ -117,9 +163,10 @@ function write_sidebar(message) {
 }
 
 function show_image(img) {
-	var image = '<div class="overlay" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); max-width:80%; max-height:80%;" /></div>';
+	var image = '<div class="overlay image" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); max-width:80%; max-height:80%;" /></div>';
 
-	$('body').append(image);
+	$('body div.windows').append(image);
+	$('body div.windows div.image').show();
 }
 
 function message_to_sidebar(name, message) {
@@ -129,7 +176,7 @@ function message_to_sidebar(name, message) {
 		var images = ['gif', 'jpg', 'jpeg', 'png'];
 
 		if (images.includes(extension)) {
-			message = '<img src="' + message + '" style="width:160px; cursor:pointer;" onClick="javascript:show_image(this)" />';
+			message = '<img src="' + message + '" style="cursor:pointer;" onClick="javascript:show_image(this)" />';
 		} else {
 			message = '<a href="' + message + '" target="_blank">' + message + '</a>';
 		}
@@ -163,7 +210,7 @@ function roll_dice(dice, send_to_others = true) {
 	dice = dice_str.replace(/\+-/g, '-');
 	dice = dice.replace(/-/g, '+-');
 
-	var dices = [4, 6, 8, 10, 12, 20];
+	var dices = [2, 4, 6, 8, 10, 12, 20, 100];
 	var parts = dice.split('+');
 	var output = '';
 	var result = 0;
@@ -308,6 +355,7 @@ function show_help() {
 		'<b>/heal &lt;points&gt;</b>: Heal your character.<br />') +
 		(dungeon_master ?
 		'<b>/init</b>: Roll for initiative.<br />' : '') +
+		'<b>/labels [hide|show]</b>: Manage character name labels and health bars visibility.<br />' +
 		'<b>/log &lt;message&gt;</b>: Add message to journal.<br />' +
 		(dungeon_master ?
 		'<b>/next [&lt;name&gt;]</b>: Next turn in battle.<br />' +
@@ -316,6 +364,8 @@ function show_help() {
 		'<b>/reload</b>: Reload current page.<br />' +
 		'<b>/remove &lt;name&gt;</b>: Remove one from battle.<br />' : '') +
 		'<b>/roll &lt;dice&gt;</b>: Roll dice.<br />' +
+		(dungeon_master ?
+		'<b>/walls [hide|show]</b>: Manage walls and windows visibility.<br />' : '') +
 		'<b>&lt;message&gt;</b>: Send text message.<br />' +
 		'<br />Right-click an icon or the map for a menu with options. Move a character via w, a, s and d and rotate via q and e.';
 
@@ -582,8 +632,8 @@ function object_move_to_sticked(obj) {
 
 function object_position(obj) {
 	var pos = obj.position();
-	pos.left = Math.round(pos.left);
-	pos.top = Math.round(pos.top);
+	pos.left = Math.round(pos.left / zoom_level);
+	pos.top = Math.round(pos.top / zoom_level);
 
 	var scr = screen_scroll();
 	pos.left += scr.left;
@@ -846,7 +896,7 @@ function object_view(obj, max_size = 300) {
 	if (collectable_id == undefined) {
 		var src = obj.find('img').prop('src');
 	} else {
-		var src = '/files/' + files_key + '/collectables/' + obj.attr('c_src');
+		var src = '/resources/' + resources_key + '/collectables/' + obj.attr('c_src');
 	}
 
 	var onclick = 'javascript:$(this).remove();';
@@ -942,7 +992,8 @@ function effect_create_final(effect_id, src, width, height) {
 	$('div#' + effect_id).draggable({
 		stop: function(event, ui) {
 			object_move($(this));
-		}
+		},
+		drag: zoom_drag
 	});
 
 	$.contextMenu({
@@ -1227,7 +1278,7 @@ function light_create_object(instance_id, pos_x, pos_y, radius) {
 	 */
 	fog_of_war_light($('div#light' + instance_id));
 
-	if (my_character != null) {
+	if ((fow_type != FOW_OFF) && my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1257,7 +1308,8 @@ function light_create(pos_x, pos_y, radius) {
 		$('div#light' + instance_id).draggable({
 			stop: function(event, ui) {
 				object_move($(this));
-			}
+			},
+			drag: zoom_drag
 		});
 
 		$.contextMenu({
@@ -1311,7 +1363,7 @@ function light_delete(obj) {
 	obj.attr('state', 'delete');
 	fog_of_war_light(obj);
 
-	if (my_character != null) {
+	if ((fow_type != FOW_OFF) && (my_character != null)) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1479,7 +1531,7 @@ function zone_covers_position(zone, pos) {
 	return true;
 }
 
-function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, group) {
+function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, group, altitude) {
 	var id = 'zone' + id.toString();
 	width *= grid_cell_size;
 	height *= grid_cell_size;
@@ -1492,7 +1544,7 @@ function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, gro
 		}
 	}
 
-	var zone = $('<div id="' + id + '" class="zone" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + ';" />');
+	var zone = $('<div id="' + id + '" class="zone" altitude="' + altitude + '" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + ';" />');
 
 	if (group != '') {
 		zone.attr('group', group);
@@ -1503,9 +1555,17 @@ function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, gro
 	if (dungeon_master) {
 		$('div#' + id).append('<div class="script"></div>');
 	}
+
+	if (altitude > 0) {
+		if ((fow_type != FOW_OFF) && (my_character != null)) {
+			fog_of_war_update(my_character);
+		} else if (fow_obj != null) {
+			fog_of_war_update(fow_obj);
+		}
+	}
 }
 
-function zone_create(width, height, color, opacity, group) {
+function zone_create(width, height, color, opacity, group, altitude) {
 	$.post('/object/create_zone', {
 		map_id: map_id,
 		pos_x: zone_x / grid_cell_size,
@@ -1514,16 +1574,18 @@ function zone_create(width, height, color, opacity, group) {
 		height: height,
 		color: color,
 		opacity: opacity,
-		group: group
+		group: group,
+		altitude: altitude
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
 
-		zone_create_object(instance_id, zone_x, zone_y, width, height, color, opacity, group);
+		zone_create_object(instance_id, zone_x, zone_y, width, height, color, opacity, group, altitude);
 
 		$('div#zone' + instance_id).draggable({
 			stop: function(event, ui) {
 				object_move($(this));
-			}
+			},
+			drag: zoom_drag
 		});
 
 		var data = {
@@ -1535,7 +1597,8 @@ function zone_create(width, height, color, opacity, group) {
 			height: height,
 			color: color,
 			opacity: opacity,
-			group: group
+			group: group,
+			altitude: altitude
 		};
 		websocket_send(data);
 
@@ -1617,7 +1680,7 @@ function collectables_show() {
 
 			$(data).find('collectable').each(function() {
 				var image = $(this).find('image').text();
-				var collectable = '<div class="col-sm-4" style="width:115px; height:115px;" onClick="javascript:object_view($(this), 600);"><img src="/files/' + files_key + '/collectables/' + image + '" style="max-width:100px; max-height:100px; cursor:pointer;" /></div>';
+				var collectable = '<div class="col-sm-4" style="width:115px; height:115px;" onClick="javascript:object_view($(this), 600);"><img src="/resources/' + resources_key + '/collectables/' + image + '" style="max-width:100px; max-height:100px; cursor:pointer;" /></div>';
 				row.append(collectable);
 			});
 		}
@@ -1687,7 +1750,7 @@ function battle_done() {
 
 /* Condition functions
  */
-function save_condition(obj, condition) {
+function save_conditions(obj, condition) {
 	var conditions = localStorage.getItem('conditions');
 	if (conditions == undefined) {
 		conditions = {};
@@ -1705,12 +1768,49 @@ function save_condition(obj, condition) {
 	localStorage.setItem('conditions', JSON.stringify(conditions));
 }
 
-function set_condition(obj, condition) {
+function set_conditions(obj, conditions) {
 	obj.find('span.conditions').remove();
 
-	if (condition != '') {
-		obj.append('<span class="conditions">' + condition + '</span>');
+	if (conditions != '') {
+		obj.append('<span class="conditions">' + conditions + '</span>');
 	}
+}
+
+function set_condition(obj, condition, only_set = false) {
+	var key = obj.prop('id');
+
+	if (condition != null) {
+		var conditions = $('div#' + key).find('span.conditions').text();
+		if (conditions == '') {
+			conditions = [];
+		} else {
+			conditions = conditions.replace('<br />', '');
+			conditions = conditions.split(',');
+		}
+
+		if (conditions.includes(condition)) {
+			if (only_set) {
+				return;
+			}
+			conditions = array_remove(conditions, condition);
+		} else {
+			conditions.push(condition);
+			conditions.sort();
+		}
+	} else {
+		var conditions = [];
+	}
+
+	conditions = conditions.join(',<br />');
+	set_conditions(obj, conditions);
+	save_conditions(obj, conditions);
+
+	var data = {
+		action: 'condition',
+		object_id: key,
+		condition: conditions
+	};
+	websocket_send(data);
 }
 
 /* Input functions
@@ -1762,6 +1862,9 @@ function handle_input(input) {
 			battle_order.unshift(item);
 
 			show_battle_order();
+			break;
+		case 'cauldron':
+			write_sidebar('<img src="/images/cauldron.png" />');
 			break;
 		case 'clear':
 			$('div.sidebar').empty();
@@ -1831,8 +1934,20 @@ function handle_input(input) {
 		case 'help':
 			show_help();
 			break;
+		case 'history':
+			var history = 'Input history:<br />\n';
+			input_history.forEach(function(value) {
+				history += value + '<br />\n';
+			});
+			write_sidebar(history);
+			break;
 		case 'init':
 			if (dungeon_master == false) {
+				break;
+			}
+
+			if ($('div.character').length == 0) {
+				write_sidebar('This map has no characters.');
 				break;
 			}
 
@@ -1910,6 +2025,25 @@ function handle_input(input) {
 			});
 
 			localStorage.setItem('battle_order', JSON.stringify(battle_order));
+			break;
+		case 'labels':
+			if ((param == 'off') || (param == 'hide')) {
+				$('div.character div.hitpoints').css('display', 'none');
+				$('div.character span').css('display', 'none');
+
+				$('div.character').hover(function() {
+					$(this).find('div.hitpoints').css('display', 'block');
+					$(this).find('span').css('display', 'block');
+				}, function() {
+					$(this).find('div.hitpoints').css('display', 'none');
+					$(this).find('span').css('display', 'none');
+				});
+			} else if ((param == 'on') || (param == 'show')) {
+				$('div.character div.hitpoints').css('display', 'block');
+				$('div.character span').css('display', 'block');
+
+				$('div.character').off('mouseenter mouseleave');
+			}
 			break;
 		case 'log':
 			if (param != '') {
@@ -2004,7 +2138,7 @@ function handle_input(input) {
 					var file = $(data).find('audio file').eq(param - 1).text();
 					write_sidebar('Playing ' + file + '.');
 
-					var filename = '/files/' + files_key + '/audio/' + game_id + '/' + file;
+					var filename = '/resources/' + resources_key + '/audio/' + game_id + '/' + file;
 
 					var data = {
 						action: 'audio',
@@ -2070,6 +2204,21 @@ function handle_input(input) {
 				$('div.input input').val(input);
 			}
 			break;
+		case 'version':
+			var version = $('div.playarea').attr('version');
+			write_sidebar('Cauldron v' + version + '.');
+			break;
+		case 'walls':
+			if (dungeon_master == false) {
+				return;
+			}
+
+			if ((param == 'off') || (param == 'hide')) {
+				$('div.wall').css('display', 'none');
+			} else if ((param == 'on') || (param == 'show')) {
+				$('div.wall').css('display', 'block');
+			}
+			break;
 		default:
 			write_sidebar('Unknown command.');
 			$('div.input input').val(input);
@@ -2084,15 +2233,18 @@ function context_menu_handler(key, options) {
 
 	var parts = key.split('_');
 	var travel_map_id = 0;
-	if (parts[0] == 'condition') {
-		key = parts[0];
-		var condition_id = parts[1];
-	} else if (parts[0] == 'alternate') {
+	if (parts[0] == 'alternate') {
 		key = parts[0];
 		var alternate_id = parts[1];
+	} else if (parts[0] == 'condition') {
+		key = parts[0];
+		var condition_id = parts[1];
 	} else if (parts[0] == 'rotate') {
 		key = parts[0];
 		var direction = parts[1];
+	} else if (parts[0] == 'shape') {
+		key = parts[0];
+		var shape_change_id = parts[1];
 	} else if (parts[0] == 'travel') {
 		key = parts[0];
 		var travel_map_id = parts[1];
@@ -2104,13 +2256,14 @@ function context_menu_handler(key, options) {
 				var filename = my_character.find('img').attr('orig_src');
 				var size = 1;
 			} else {
-				var filename = $('div.alternates div[icon_id=' + alternate_id + ']').attr('filename');
-				var size = $('div.alternates div[icon_id=' + alternate_id + ']').attr('size');
+				var alternate = $('div.alternates div[icon_id=' + alternate_id + ']');
+				var filename = 'characters/' + alternate.attr('filename');
+				var size = alternate.attr('size');
 			}
 
 			var img_size = size * grid_cell_size;
 
-			my_character.find('img').attr('src', '/files/' + files_key + '/characters/' + filename);
+			my_character.find('img').attr('src', '/resources/' + resources_key + '/' + filename);
 			my_character.find('img').css('width', img_size + 'px');
 			my_character.find('img').css('height', img_size + 'px');
 
@@ -2214,39 +2367,12 @@ function context_menu_handler(key, options) {
 			}
 			break;
 		case 'condition':
-			var key = obj.prop('id');
-
 			if (condition_id > 0) {
 				var condition = $('div.conditions div[con_id=' + condition_id + ']').text();
-
-				var conditions = $('div#' + key).find('span.conditions').text();
-				if (conditions == '') {
-					conditions = [];
-				} else {
-					conditions = conditions.replace('<br />', '');
-					conditions = conditions.split(',');
-				}
-
-				if (conditions.includes(condition)) {
-					conditions = array_remove(conditions, condition);
-				} else {
-					conditions.push(condition);
-					conditions.sort();
-				}
+				set_condition(obj, condition);
 			} else {
-				var conditions = [];
+				set_condition(obj, null);
 			}
-
-			conditions = conditions.join(',<br />');
-			set_condition(obj, conditions);
-			save_condition(obj, conditions);
-
-			var data = {
-				action: 'condition',
-				object_id: key,
-				condition: conditions
-			};
-			websocket_send(data);
 			break;
 		case 'coordinates':
 			var pos_x = coord_to_grid(mouse_x, false) / grid_cell_size;
@@ -2272,7 +2398,8 @@ function context_menu_handler(key, options) {
 
 			var pos_x = coord_to_grid(mouse_x, false) + (grid_cell_size >> 1) - 12;
 			var pos_y = coord_to_grid(mouse_y, false) - (grid_cell_size >> 1) + 7;
-			var marker = '<img src="/images/pin.png" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" class="pin" />';
+			var marker = '<img src="/images/pin.png" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y +
+			             'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" class="pin" />';
 			$('div.playarea div.markers').append(marker);
 
 			$('div.playarea').mousemove(function(event) {
@@ -2281,9 +2408,9 @@ function context_menu_handler(key, options) {
 
 				var scr = screen_scroll();
 
-				var to_x = event.clientX + scr.left - 16;
+				var to_x = (event.clientX / zoom_level) + scr.left - 16;
 				to_x = coord_to_grid(to_x, false);
-	            var to_y = event.clientY + scr.top - 41;
+	            var to_y = (event.clientY / zoom_level) + scr.top - 41;
 				to_y = coord_to_grid(to_y, false);
 
 				var diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
@@ -2481,7 +2608,7 @@ function context_menu_handler(key, options) {
 			}
 			break;
 		case 'light_remove':
-			if (confirm('DELETE: Are you sure?') == false) {
+			if (confirm('Remove light?') == false) {
 				break;
 			}
 
@@ -2597,6 +2724,31 @@ function context_menu_handler(key, options) {
 			$('div.script_editor').show();
 			$('div.script_editor textarea').focus();
 			break;
+		case 'shape':
+			if (shape_change_id == 0) {
+				var filename = obj.find('img').attr('orig_src');
+			} else {
+				var shape = $('div.shape_change div[shape_id=' + shape_change_id + ']');
+				var filename = 'tokens/' + shape_change_id.toString() + '.' + shape.attr('extension');
+			}
+
+			obj.find('img').attr('src', '/resources/' + resources_key + '/' + filename);
+			obj.find('img').css('width', grid_cell_size + 'px');
+			obj.find('img').css('height', grid_cell_size + 'px');
+
+			var data = {
+				action: 'shape',
+				char_id: obj.attr('id'),
+				src: filename
+			};
+			websocket_send(data);
+
+			$.post('/object/shape', {
+				game_id: game_id,
+				char_id: obj.attr('char_id'),
+				token_id: shape_change_id
+			});
+			break;
 		case 'stick':
 			var obj_pos = object_position(obj);
 			var obj_x = Math.floor(obj_pos.left / grid_cell_size);
@@ -2668,6 +2820,7 @@ function context_menu_handler(key, options) {
 			$('div.zone_create input#width').val(3);
 			$('div.zone_create input#height').val(3);
 			$('div.zone_create').show();
+			$('div.zone_create div.panel-body').prop('scrollTop', 0);
 			break;
 		case 'zone_delete':
 			if (confirm('Delete zone?')) {
@@ -2693,28 +2846,34 @@ function context_menu_handler(key, options) {
 /* Main
  */
 $(document).ready(function() {
+	group_key = $('div.playarea').attr('group_key');
 	game_id = parseInt($('div.playarea').attr('game_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
 	user_id = parseInt($('div.playarea').attr('user_id'));
-	files_key = $('div.playarea').attr('files_key');
+	resources_key = $('div.playarea').attr('resources_key');
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
 	my_name = $('div.playarea').attr('name');
-	dungeon_master = ($('div.playarea').attr('dm') == 'yes');
+	dungeon_master = ($('div.playarea').attr('is_dm') == 'yes');
 	fow_type = parseInt($('div.playarea').attr('fog_of_war'));
 	fow_default_distance = parseInt($('div.playarea').attr('fow_distance'));
 	var version = $('div.playarea').attr('version');
 	var ws_host = $('div.playarea').attr('ws_host')
 	var ws_port = $('div.playarea').attr('ws_port')
 
-	write_sidebar('<b>Welcome to TableTop v' + version + '</b>');
+	write_sidebar('<b>Welcome to Cauldron v' + version + '</b>');
 	write_sidebar('Type /help for command information.');
 	write_sidebar('You are ' + my_name + '.');
 
 	/* Websocket
 	 */
-	websocket = new WebSocket('wss://' + ws_host + ':' + ws_port + '/');
+	websocket = new WebSocket('wss://' + ws_host + ':' + ws_port + '/websocket');
 
 	websocket.onopen = function(event) {
+		var data = {
+			group_key: group_key
+		};
+		websocket_send(data);
+
 		write_sidebar('Connection established.');
 		send_message(my_name + ' entered the game.', null, false);
 
@@ -2733,6 +2892,14 @@ $(document).ready(function() {
 				object_damage($('div#' + my_char_id), 0);
 			}
 		}
+
+		/* Unhide character
+		 */
+		if (my_character != null) {
+			if (my_character.attr('is_hidden') == 'yes') {
+				object_show(my_character, true);
+			}
+		}
 	}
 
 	websocket.onmessage = function(event) {
@@ -2744,17 +2911,27 @@ $(document).ready(function() {
 
 		if (data.game_id != game_id) {
 			return;
-		} else if (data.user_id == user_id) {
+		} else if (data.from_user_id == user_id) {
 			return;
 		}
 
+		if (typeof data.recipient !== 'undefined') {
+			if (dungeon_master && (data.recipient != 0)) {
+				return;
+			} else if (my_character != null) {
+				if (data.recipient != my_character.prop('id')) {
+					return;
+				}
+			}
+		}
+
 		delete data.game_id;
-		delete data.user_id;
+		delete data.from_user_id;
 
 		switch (data.action) {
 			case 'alternate':
 				var img_size = data.size * grid_cell_size;
-				$('div#' + data.char_id).find('img').attr('src', '/files/' + files_key + '/characters/' + data.src);
+				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/characters/' + data.src);
 				$('div#' + data.char_id).find('img').css('width', img_size + 'px');
 				$('div#' + data.char_id).find('img').css('height', img_size + 'px');
 				break;
@@ -2771,8 +2948,8 @@ $(document).ready(function() {
 				break;
 			case 'condition':
 				var obj = $('div#' + data.object_id);
-				set_condition(obj, data.condition);
-				save_condition(obj, data.condition);
+				set_conditions(obj, data.condition);
+				save_conditions(obj, data.condition);
 				break;
 			case 'damage':
 				var obj = $('div#' + data.instance_id);
@@ -2868,7 +3045,8 @@ $(document).ready(function() {
 						if ($(this).prop('id') == stick_to) {
 							object_move_to_sticked($(this));
 						}
-					}
+					},
+					drag: zoom_drag
 				});
 
 				if (data.instance_id.substr(0, 4) == 'zone') {
@@ -3028,6 +3206,11 @@ $(document).ready(function() {
 			case 'say':
 				message_to_sidebar(data.name, data.mesg);
 				break;
+			case 'shape':
+				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/tokens/' + data.src);
+				$('div#' + data.char_id).find('img').css('width', grid_cell_size + 'px');
+				$('div#' + data.char_id).find('img').css('height', grid_cell_size + 'px');
+				break;
 			case 'show':
 				var obj = $('div#' + data.instance_id);
 				object_show(obj, false);
@@ -3058,18 +3241,26 @@ $(document).ready(function() {
 					document.location = '/game/' + game_id + '/' + data.map_id;
 				}
 				break;
-			case 'whisper':
-				if ((data.to == 'dm') && dungeon_master) {
-					message_to_sidebar(data.name, data.mesg);
-				} else if (data.to == my_character.prop('id')) {
-					message_to_sidebar(data.name, data.mesg);
-				}
-				break;
 			case 'zone_create':
-				zone_create_object(data.instance_id, data.pos_x, data.pos_y, data.width, data.height, data.color, data.opacity, data.group);
+				zone_create_object(data.instance_id, data.pos_x, data.pos_y, data.width, data.height,
+				                   data.color, data.opacity, data.group, data.altitude);
+				break;
+			case 'zone_opacity':
+				var zone = $('div#' + data.instance_id);
+				zone.css('opacity', data.opacity);
 				break;
 			case 'zone_delete':
-				$('div#' + data.instance_id).remove();
+				var zone = $('div#' + data.instance_id);
+				var altitude = parseInt(zone.attr('altitude'));
+				zone.remove();
+
+				if (altitude > 0) {
+					if ((fow_type != FOW_OFF) && (my_character != null)) {
+						fog_of_war_update(my_character);
+					} else if (fow_obj != null) {
+						fog_of_war_update(fow_obj);
+					}
+				}
 				break;
 			case 'zone_group':
 				if (data.zone_group != '') {
@@ -3102,7 +3293,7 @@ $(document).ready(function() {
 
 		var cell = '<img src="/images/grid_cell.png" style="float:left; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; position:relative;" />';
 		for (var i = 0 ;i < count; i++) {
-			$('div.playarea div.grid').append(cell);
+			$('div.playarea div.grid').prepend(cell);
 		}
 	}
 
@@ -3123,6 +3314,7 @@ $(document).ready(function() {
 		var color = $('input#color').val();
 		var opacity = parseFloat($('input#opacity').val());
 		var group = $('input#group').val();
+		var altitude = parseInt($('input#altitude').val());
 
 		if (isNaN(width)) {
 			write_sidebar('Invalid width.');
@@ -3144,7 +3336,7 @@ $(document).ready(function() {
 		zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
 		zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
 
-		zone_create(width, height, color, opacity, group);
+		zone_create(width, height, color, opacity, group, altitude);
 
 		$('div.zone_create').hide();
 	});
@@ -3242,7 +3434,8 @@ $(document).ready(function() {
 		$('div.zone').draggable({
 			stop: function(event, ui) {
 				object_move($(this));
-			}
+			},
+			drag: zoom_drag
 		});
 		$('div.zone').filter(function() {
 			return $(this).css('background-color') == 'rgb(0, 0, 0)';
@@ -3256,14 +3449,16 @@ $(document).ready(function() {
 			handle: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
-			}
+			},
+			drag: zoom_drag
 		});
 
 		$('div.character').draggable({
 			handle: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
-			}
+			},
+			drag: zoom_drag
 		});
 
 		$('div.token[is_hidden=yes]').each(function() {
@@ -3280,7 +3475,8 @@ $(document).ready(function() {
 			handler: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
-			}
+			},
+			drag: zoom_drag
 		});
 
 		$.contextMenu({
@@ -3398,9 +3594,22 @@ $(document).ready(function() {
 			'damage': {name:'Damage', icon:'fa-warning'},
 			'heal': {name:'Heal', icon:'fa-medkit'},
 			'conditions': {name:'Set condition', icon:'fa-heartbeat', items:conditions},
-			'sep4': '-',
-			'zone_create': {name:'Create zone', icon:'fa-square-o'}
 		};
+
+		var shapes = {};
+		shapes['shape_0'] = {name: 'Default'};
+		shapes['sep0'] = '-';
+		$('div.shape_change div').each(function() {
+			var shape_id = $(this).attr('shape_id');
+			shapes['shape_' + shape_id] = {name: $(this).text()};
+		});
+
+		if (Object.keys(shapes).length > 2) {
+			items['shapes'] = {name:'Set shape', icon:'fa-user-circle', items:shapes};
+		}
+
+		items['sep4'] = '-';
+		items['zone_create'] = {name:'Create zone', icon:'fa-square-o'};
 
 		if (fow_type == FOW_OFF) {
 			delete items['fow_show'];
@@ -3458,13 +3667,16 @@ $(document).ready(function() {
 		if (my_char != undefined) {
 			my_character = $('div#' + my_char);
 
+			my_character.addClass('mine');
+
 			if ($('div.playarea').attr('drag_character') == 'yes') {
 				my_character.draggable({
 					handle: 'img',
 					stop: function(event, ui) {
 						stick_to = null;
 						object_move($(this));
-					}
+					},
+					drag: zoom_drag
 				});
 				my_character.css('cursor', 'grab');
 			}
@@ -3517,7 +3729,7 @@ $(document).ready(function() {
 					icons['alternate_' + icon_id] = {name: $(this).text()};
 				});
 
-				items['alternates'] = {name:'Change icon', icon:'fa-smile-o', items:icons};
+				items['alternates'] = {name:'Change icon', icon:'fa-user-circle', items:icons};
 			}
 
 			$.contextMenu({
@@ -3608,6 +3820,8 @@ $(document).ready(function() {
 
 			input_history.unshift(input);
 			input_index = -1;
+
+			localStorage.setItem('input_history', JSON.stringify(input_history));
 		}
 
 		if ((e.key === 'ArrowUp') || (e.keyCode === 38)) {
@@ -3630,8 +3844,8 @@ $(document).ready(function() {
 	$('div.playarea').mousedown(function(event) {
 		if (event.which == 3) {
 			var scr = screen_scroll();
-			mouse_x = event.clientX + scr.left - 16;
-			mouse_y = event.clientY + scr.top - 41;
+			mouse_x = (event.clientX / zoom_level) + scr.left - 16;
+			mouse_y = (event.clientY / zoom_level) + scr.top - 41;
 		}
 	});
 
@@ -3671,7 +3885,7 @@ $(document).ready(function() {
 	if (conditions != undefined) {
 		conditions = JSON.parse(conditions);
 		for (var [key, value] of Object.entries(conditions)) {
-			set_condition($('div#' + key), value);
+			set_conditions($('div#' + key), value);
 		}
 	}
 
@@ -3682,8 +3896,21 @@ $(document).ready(function() {
 		audio.play();
 	}
 
+	input_history = localStorage.getItem('input_history');
+	if (input_history != undefined) {
+		input_history = JSON.parse(input_history);
+	} else {
+		input_history = [];
+	}
+
 	$('body').keyup(object_steer);
-//	$('div.input input').focus();
 
 	scroll_to_my_character();
+
+/*
+	$(window).resize(function() {
+		zoom_playarea(zoom_level);
+	});
+	zoom_playarea(1);
+*/
 });

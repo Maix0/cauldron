@@ -14,6 +14,19 @@
 			return "<p>".$message->content."</p>";
 		}
 
+		private function resource_path($path) {
+			if (substr($path, 0, 11) != "/resources/") {
+				return $path;
+			}
+
+			$len = strlen($this->user->resources_key);
+			if (substr($path, 11, $len) == $this->user->resources_key) {
+				return $path;
+			}
+
+			return "/resources/".$this->user->resources_key.substr($path, 10);
+		}
+
 		private function show_games() {
 			if (($games = $this->model->get_games()) === false) {
 				$this->view->add_tag("result", "Database error.");
@@ -21,15 +34,13 @@
 			}
 
 			$this->view->add_javascript("games.js");
+			$is_dm = show_boolean($this->user->has_role("Dungeon Master"));
 
-			$this->view->open_tag("games");
+			$this->view->open_tag("games", array("is_dm" => $is_dm));
 			foreach ($games as $game) {
-				if (substr($game["image"], 0, 7) == "/files/") {
-					$game["image"] = "/files/".$this->user->files_key.substr($game["image"], 6);
-				}
-
+				$game["image"] = $this->resource_path($game["image"]);
 				$game["story"] = $this->format_text($game["story"]);
-				$game["player_access"] = show_boolean($game["player_access"]);
+				$game["access"] = show_boolean($game["access"] >= GAME_ACCESS_PLAYERS);
 
 				$this->view->record($game, "game");
 			}
@@ -43,7 +54,7 @@
 			}
 			$user_is_dungeon_master = ($game["dm_id"] == $this->user->id);
 
-			if (is_false($game["player_access"]) && ($user_is_dungeon_master == false)) {
+			if (($game["access"] == GAME_ACCESS_DM_ONLY) && ($user_is_dungeon_master == false)) {
 				$this->view->add_tag("result", "This game is not accessible at the moment.");
 				return;
 			}
@@ -79,6 +90,11 @@
 				}
 
 				if (($tokens = $this->model->get_tokens($game["active_map_id"])) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
+				if (($shape_change_tokens = $this->model->get_tokens_for_shape_change()) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -142,6 +158,7 @@
 
 			$this->view->title = $active_map["title"]." - ".$game["title"];
 			$this->view->set_layout("game");
+			$this->view->run_javascript("$('div.loading').remove()");
 
 			if ($active_map != null) {
 				$this->view->add_javascript("webui/jquery-ui.js");
@@ -159,9 +176,13 @@
 				$this->view->add_javascript("game_no_map.js");
 			}
 
+			$group_key = hash_hmac("sha256", $game["title"], $this->settings->secret_website_code);
+			$group_key = substr($group_key, 0, 12);
+
 			$attr = array(
 				"id"             => $game["id"],
-				"dm"             => show_boolean($user_is_dungeon_master),
+				"group_key"      => $group_key,
+				"is_dm"          => show_boolean($user_is_dungeon_master),
 				"grid_cell_size" => $grid_cell_size);
 			$this->view->open_tag("game", $attr);
 			$this->view->record($game);
@@ -198,8 +219,8 @@
 			if ($effects != null) {
 				$this->view->open_tag("effects");
 				foreach ($effects as $effect) {
-					list($name) = explode(".", $effect, 2);
-					$name = str_replace("_", " ", $name);
+					$parts = pathinfo($effect);
+					$name = str_replace("_", " ", $parts["filename"]);
 					$this->view->add_tag("effect", $effect, array("name" => $name));
 				}
 				$this->view->close_tag();
@@ -214,10 +235,7 @@
 
 				$active_map["show_grid"] = show_boolean($active_map["show_grid"]);
 				$active_map["drag_character"] = show_boolean($active_map["drag_character"]);
-
-				if (substr($active_map["url"], 0, 7) == "/files/") {
-					$active_map["url"] = "/files/".$this->user->files_key.substr($active_map["url"], 6);
-				}
+				$active_map["url"] = $this->resource_path($active_map["url"]);
 
 				$this->view->record($active_map, "map");
 
@@ -291,6 +309,12 @@
 				}
 				$this->view->close_tag();
 
+				$this->view->open_tag("shape_change");
+				foreach ($shape_change_tokens as $token) {
+					$this->view->record($token, "token");
+				}
+				$this->view->close_tag();
+
 				/* Characters
 				 */
 				$attr = array("name" => $my_name);
@@ -305,9 +329,11 @@
 					$character["height"] = $grid_cell_size;
 					$character["hidden"] = show_boolean($character["hidden"]);
 					$character["perc"] = round(100 * $character["damage"] / $character["hitpoints"]);
-					$character["orig_src"] = $character["id"].".".$character["extension"];
-					if ($character["alternate_id"] != null) {
-						$character["src"] = $character["id"]."_".$character["alternate_id"].".".$character["extension"];
+					$character["orig_src"] = "characters/".$character["id"].".".$character["extension"];
+					if ($character["token_id"] != null) {
+						$character["src"] = "tokens/".$character["token_id"].".".$character["extension"];
+					} else if ($character["alternate_id"] != null) {
+						$character["src"] = "characters/".$character["id"]."_".$character["alternate_id"].".".$character["extension"];
 						$character["width"] *= $character["alternate_size"];
 						$character["height"] *= $character["alternate_size"];
 					} else {

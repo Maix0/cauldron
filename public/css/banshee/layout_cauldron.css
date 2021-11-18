@@ -91,7 +91,6 @@ img.title_icon {
  */
 div.header {
 	height:150px;
-	background-image:url(/images/layout/tabletop_header_valley.jpg);
 	background-position:center;
 	background-size:cover;
 	border-top:5px solid #5385c1;

@@ -101,6 +101,10 @@
 				$checked = in_array($role["id"], $user["roles"]);
 				$enabled = ($this->user->id != $user["id"]) || ($role["id"] != ADMIN_ROLE_ID); /* Don't disable yourself */
 
+				if (($this->user->id == $user["id"]) && ($role["id"] == USER_MAINTAINER_ROLE_ID)) {
+					$enabled = false;
+				}
+
 				$this->view->add_tag("role", $role["name"], array(
 					"id"      => $role["id"],
 					"checked" => show_boolean($checked),

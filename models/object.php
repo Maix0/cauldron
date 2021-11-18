@@ -466,15 +466,16 @@
 			}
 
 			$data = array(
-				"id"      => null,
-				"map_id"  => (int)$zone["map_id"],
-				"pos_x"   => (int)$zone["pos_x"],
-				"pos_y"   => (int)$zone["pos_y"],
-				"width"   => (int)$zone["width"],
-				"height"  => (int)$zone["height"],
-				"color"   => $zone["color"],
-				"opacity" => $zone["opacity"],
-				"group"   => $zone["group"]);
+				"id"       => null,
+				"map_id"   => (int)$zone["map_id"],
+				"pos_x"    => (int)$zone["pos_x"],
+				"pos_y"    => (int)$zone["pos_y"],
+				"width"    => (int)$zone["width"],
+				"height"   => (int)$zone["height"],
+				"color"    => $zone["color"],
+				"opacity"  => $zone["opacity"],
+				"group"    => $zone["group"],
+				"altitude" => (int)$zone["altitude"]);
 
 			if ($this->db->insert("zones", $data) === false) {
 				return false;
@@ -614,7 +615,6 @@
 		public function set_alternate($game_id, $character_id, $alternate_id) {
 			$query = "select * from game_character g, characters c ".
 			         "where g.game_id=%d and g.character_id=c.id and c.id=%d and c.user_id=%d";
-
 			if (($character = $this->db->execute($query, $game_id, $character_id, $this->user->id)) == false) {
 				return false;
 			}
@@ -627,7 +627,30 @@
 				$query .= "%d";
 				array_push($params, $alternate_id);
 			}
-			$query .= " where game_id=%d and character_id=%d";
+			$query .= ", token_id=null where game_id=%d and character_id=%d";
+			array_push($params, $game_id, $character_id);
+
+			return $this->db->query($query, $params) !== false;
+		}
+
+		/* Shape functions
+		 */
+		public function set_shape($game_id, $character_id, $token_id) {
+			$query = "select * from game_character c, games g ".
+			         "where c.game_id=g.id and g.id=%d and c.character_id=%d and g.dm_id=%d";
+			if (($character = $this->db->execute($query, $game_id, $character_id, $this->user->id)) == false) {
+				return false;
+			}
+
+			$params = array();
+			$query = "update game_character set token_id=";
+			if ($token_id == 0) {
+			 	$query .= "null";
+			} else {
+				$query .= "%d";
+				array_push($params, $token_id);
+			}
+			$query .= ", alternate_icon_id=null where game_id=%d and character_id=%d";
 			array_push($params, $game_id, $character_id);
 
 			return $this->db->query($query, $params) !== false;
@@ -640,7 +663,7 @@
 				return false;
 			}
 
-			$directory = "files/".$this->user->files_key."/audio/".$game_id;
+			$directory = "resources/".$this->user->resources_key."/audio/".$game_id;
 
 			if (file_exists($directory) == false) {
 				return false;

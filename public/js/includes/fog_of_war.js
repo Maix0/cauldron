@@ -113,7 +113,7 @@ function check_vision(char_pos, construct, fog_of_war_spots) {
 	return fog_of_war_spots;
 }
 
-function check_lightning(pos, light_pos, construct, fog_of_war_spot) {
+function check_lighting(pos, light_pos, construct, fog_of_war_spot) {
 	var cons_x = parseInt(construct.attr('pos_x'));
 	var cons_y = parseInt(construct.attr('pos_y'));
 
@@ -176,6 +176,8 @@ function enlightened(x, y) {
 		}
 		var radius = light[2] * grid_cell_size;
 
+		var light_altitude = 0;
+
 		if (distance(light_pos, x, y) > radius) {
 			continue;
 		}
@@ -185,7 +187,7 @@ function enlightened(x, y) {
 				return;
 			}
 
-			light_spot = check_lightning(pos, light_pos, $(this), light_spot);
+			light_spot = check_lighting(pos, light_pos, $(this), light_spot);
 
 			if (light_spot == 0) {
 				return false;
@@ -198,7 +200,7 @@ function enlightened(x, y) {
 					return;
 				}
 
-				light_spot = check_lightning(pos, light_pos, $(this), light_spot);
+				light_spot = check_lighting(pos, light_pos, $(this), light_spot);
 
 				if (light_spot == 0) {
 					return false;
@@ -279,6 +281,16 @@ function fog_of_war_update(obj) {
 
 	var pos = object_position(obj);
 
+	var my_altitude = 0;
+	$('div.zone').each(function() {
+		if (zone_covers_position($(this), pos)) {
+			var zone_altitude = parseInt($(this).attr('altitude'));
+			if (zone_altitude > my_altitude) {
+				my_altitude = zone_altitude;
+			}
+		}
+	});
+
 	var char_pos = {
 		left: pos.left + (obj.width() / 2),
 		top: pos.top + (obj.width() / 2)
@@ -314,6 +326,31 @@ function fog_of_war_update(obj) {
 		}
 
 		fog_of_war_spots = check_vision(char_pos, $(this), fog_of_war_spots);
+	});
+
+	$('div.zone').each(function() {
+		var zone_altitude = $(this).attr('altitude');
+		if (zone_altitude <= my_altitude) {
+			return true;
+		}
+
+		var zone_pos = object_position($(this));
+		var pos_x = zone_pos.left / grid_cell_size;
+		var pos_y = zone_pos.top / grid_cell_size;
+		var width = $(this).width() / grid_cell_size;
+		var height = $(this).height() / grid_cell_size;
+
+		var zone = $('<div pos_x="' + pos_x + '" pos_y="' + pos_y + '" length="' + width + '" direction="horizontal" />');
+		fog_of_war_spots = check_vision(char_pos, zone, fog_of_war_spots);
+
+		var zone = $('<div pos_x="' + pos_x + '" pos_y="' + (pos_y + height) + '" length="' + width + '" direction="horizontal" />');
+		fog_of_war_spots = check_vision(char_pos, zone, fog_of_war_spots);
+
+		var zone = $('<div pos_x="' + pos_x + '" pos_y="' + pos_y + '" length="' + height + '" direction="vertical" />');
+		fog_of_war_spots = check_vision(char_pos, zone, fog_of_war_spots);
+
+		var zone = $('<div pos_x="' + (pos_x + width) + '" pos_y="' + pos_y + '" length="' + height + '" direction="vertical" />');
+		fog_of_war_spots = check_vision(char_pos, zone, fog_of_war_spots);
 	});
 
 	for (var y = 0; y < fog_of_war_map_height; y++) {

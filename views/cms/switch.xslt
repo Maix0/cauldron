@@ -17,7 +17,7 @@
 //
 //-->
 <xsl:template match="users">
-<table class="table table-striped table-hover table-condensed">
+<table class="table table-striped table-condensed">
 <thead>
 <tr><th class="username">Username</th><th class="name">Name</th><th class="email">E-mail address</th><th class="switch">Switch</th></tr>
 </thead>

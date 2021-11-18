@@ -100,7 +100,7 @@
 <xsl:template match="create_dirs">
 <xsl:call-template name="show_messages" />
 
-<p>Some directores in public/files are missing. Create them to continue.</p>
+<p>Some directores in public/resources are missing. Make sure that public/resources is writable for the webserver. Create the missing directories to continue.</p>
 <form action="/{/output/page}" method="post">
 <input type="submit" name="submit_button" value="Create directories" class="btn btn-default" />
 </form>
@@ -159,7 +159,7 @@
 //
 //-->
 <xsl:template match="content">
-<h1>Banshee setup</h1>
+<h1>Cauldron VTT setup</h1>
 <xsl:apply-templates />
 </xsl:template>
 

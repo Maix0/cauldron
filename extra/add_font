@@ -11,7 +11,7 @@
 
 	error_reporting(E_ALL & ~E_NOTICE);
 	chdir(__DIR__."/../public");
-	require "../libraries/core/banshee.php";
+	require "../libraries/banshee/core/banshee.php";
 
 	if (count($argv) <= 1) {
 		printf("Usage: %s <font name>\n", $argv[0]);

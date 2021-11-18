@@ -8,9 +8,11 @@
 
 			$this->view->open_tag("overview");
 
+			$game_access_levels = array("DM", "Players", "Spectators");
+
 			$this->view->open_tag("games");
 			foreach ($games as $game) {
-				$game["player_access"] = show_boolean($game["player_access"]);
+				$game["access"] = $game_access_levels[$game["access"]];
 				$this->view->record($game, "game");
 			}
 			$this->view->close_tag();
@@ -21,7 +23,13 @@
 		private function show_game_form($game) {
 			$this->view->open_tag("edit");
 
-			$game["player_access"] = show_boolean($game["player_access"]);
+			$game_access_levels = array("Dungeon Master only", "Dungeon Master and players", "Dungeon Master, players and spectators");
+			$this->view->open_tag("access");
+			foreach ($game_access_levels as $level => $label) {
+				$this->view->add_tag("level", $label, array("value" => $level));
+			}
+			$this->view->close_tag();
+
 			$this->view->record($game, "game");
 
 			$this->view->close_tag();
@@ -41,8 +49,13 @@
 							$this->view->add_message("Error creating game.");
 							$this->show_game_form($_POST);
 						} else {
-							$this->user->log_action("game %d created", $this->db->last_insert_id);
-							$this->show_overview();
+							$new_game_id = $this->db->last_insert_id;
+							$_SESSION["edit_game_id"] = $new_game_id;
+
+							$this->user->log_action("game %d created", $new_game_id);
+
+							$this->view->add_tag("result", "Game created.");
+							header("Location: /cms/map/new?first");
 						}
 					} else {
 						/* Update game
@@ -66,6 +79,9 @@
 					} else {
 						$this->user->log_action("game %d deleted", $_POST["id"]);
 						$this->show_overview();
+						if ($_POST["id"] == $_SESSION["edit_game_id"]) {
+							unset($_SESSION["edit_game_id"]);
+						}
 					}
 				} else {
 					$this->show_overview();
@@ -79,7 +95,7 @@
 				/* Edit game
 				 */
 				if (($game = $this->model->get_game($this->page->parameters[0])) == false) {
-					$this->view->add_tag("result", "game not found.");
+					$this->view->add_tag("result", "Game not found.");
 				} else {
 					$this->show_game_form($game);
 				}

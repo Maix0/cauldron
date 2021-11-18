@@ -43,6 +43,11 @@
 					$this->view->add_message("Invalid icon.");
 					$result = false;
 				}
+
+				if (filesize($icon["tmp_name"]) > 300 * 1024) {
+					$this->view->add_message("Icon size too big.");
+					$result = false;
+				}
 			}
 
 			return $result;
@@ -64,10 +69,18 @@
 			}
 
 			if (is_numeric($character["hitpoints"]) == false) {
-				$this->view->add_message("Invalid hitpoints.");
+				$this->view->add_message("Invalid hit points.");
 				$result = false;
 			} else if ($character["hitpoints"] < 1) {
-				$this->view->add_message("Hitpoints too low.");
+				$this->view->add_message("Hit points too low.");
+				$result = false;
+			}
+
+			if (is_numeric($character["armor_class"]) == false) {
+				$this->view->add_message("Invalid armor class.");
+				$result = false;
+			} else if ($character["armor_class"] < 1) {
+				$this->view->add_message("Armor class too low.");
 				$result = false;
 			}
 
@@ -85,7 +98,7 @@
 			$token->rotate(180);
 			$token->save($icon["tmp_name"]);
 
-			return copy($icon["tmp_name"], "files/".$this->user->files_key."/characters/".$id.".".$icon["extension"]);
+			return copy($icon["tmp_name"], "resources/".$this->user->resources_key."/characters/".$id.".".$icon["extension"]);
 		}
 
 		public function create_character($character, $icon) {
@@ -119,7 +132,7 @@
 					$this->view->add_message("Character not found.");
 					$result = false;
 				}
-				unlink("files/".$this->user->files_key."/characters/".$current["id"].".".$current["extension"]);
+				unlink("resources/".$this->user->resources_key."/characters/".$current["id"].".".$current["extension"]);
 
 				if ($this->save_icon($icon, $character["id"])) {
 					array_push($keys, "extension");
@@ -165,17 +178,21 @@
 				return false;
 			}
 
-			foreach ($alternates as $alternate) {
-				unlink("files/".$this->user->files_key."/characters/".$character_id."_".$alternate["id"].".".$alternate["extension"]);
-			}
-
-			unlink("files/".$this->user->files_key."/characters/".$character_id.".".$current["extension"]);
-
 			$queries = array(
 				array("delete from character_icons where character_id=%d", $character_id),
 				array("delete from characters where id=%d", $character_id));
 
-			return $this->db->transaction($queries);
+			if ($this->db->transaction($queries) === false) {
+				return false;
+			}
+
+			foreach ($alternates as $alternate) {
+				unlink("resources/".$this->user->resources_key."/characters/".$character_id."_".$alternate["id"].".".$alternate["extension"]);
+			}
+
+			unlink("resources/".$this->user->resources_key."/characters/".$character_id.".".$current["extension"]);
+
+			return true;
 		}
 
 		/* Alternate functions
@@ -230,7 +247,7 @@
 			$token->rotate(180);
 			$token->save($icon["tmp_name"]);
 
-			if (copy($icon["tmp_name"], "files/".$this->user->files_key."/characters/".$info["char_id"]."_".$id.".".$parts["extension"]) == false) {
+			if (copy($icon["tmp_name"], "resources/".$this->user->resources_key."/characters/".$info["char_id"]."_".$id.".".$parts["extension"]) == false) {
 				$this->db->delete("character_icons", $id);
 			}
 
@@ -253,7 +270,7 @@
 				return false;
 			}
 
-			unlink("files/".$this->user->files_key."/characters/".$current["character_id"]."_".$icon_id.".".$current["extension"]);
+			unlink("resources/".$this->user->resources_key."/characters/".$current["character_id"]."_".$icon_id.".".$current["extension"]);
 
 			return $current["character_id"];
 		}

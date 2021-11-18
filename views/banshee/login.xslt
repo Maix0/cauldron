@@ -18,7 +18,6 @@
 //-->
 <xsl:template match="login">
 <xsl:call-template name="show_messages" />
-<img src="/images/d20.png" class="logo" />
 <form id="login" action="{url}" method="post" autocomplete="off">
 <label for="username">Username:</label>
 <input type="text" autocapitalize="off" autocorrect="off" id="username" name="username" value="{username}" class="form-control" />

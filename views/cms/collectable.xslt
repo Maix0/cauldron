@@ -49,7 +49,7 @@
 <form action="/{/output/page}" method="post" enctype="multipart/form-data">
 <xsl:if test="collectable/@id">
 <input type="hidden" name="id" value="{collectable/@id}" />
-<img src="/files/{/output/tabletop/files_key}/collectables/{collectable/image}" class="collectable" />
+<img src="/resources/{/output/cauldron/resources_key}/collectables/{collectable/image}" class="collectable" />
 </xsl:if>
 
 <label for="name">Name:</label>

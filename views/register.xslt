@@ -17,7 +17,8 @@
 //
 //-->
 <xsl:template match="form">
-<p>Use this from to create an account for this website.</p>
+<div class="row">
+<div class="col-sm-6">
 <xsl:call-template name="show_messages" />
 <form action="/{/output/page}" method="post">
 <label for="fullname">Full name:</label>
@@ -36,6 +37,13 @@
 <a href="/{@previous}" class="btn btn-default">Cancel</a>
 </div>
 </form>
+</div>
+<div class="col-sm-6">
+<p>Use this from to create a Cauldron VTT account. Only do so when you plan to be a Dungeon Master for your group. When creating an account, you gain the rights to create accounts for your players. Don't let your players create their own account via this form, otherwise they will create a new group for their own. Only people within the same group will be able to play together.</p>
+<p>The group name is not used during games. You can use it as a reference when you contact the administrator of this website in case of an issue with this website or a question about this website.</p>
+<p>When your account is created, it will contain a few free tokens by <a href="https://immortalnights.com/">Devin Night</a> to get you started.</p>
+</div>
+</div>
 </xsl:template>
 
 <!--

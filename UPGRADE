@@ -1,12 +1,12 @@
 UPGRADING
 =========
-Go to the directory of your current TableTop website and run the script
-database/backup_database. Make a backup of your current TableTop website.
+Go to the directory of your current Cauldron website and run the script
+database/backup_database. Make a backup of your current Cauldron website.
 
-Replace the entire directory of your current TableTop website with this new
+Replace the entire directory of your current Cauldron website with this new
 version. Copy the files and directories in public/files from the backup
-of your now previous TableTop website to the new version. Change the database
+of your now previous Cauldron website to the new version. Change the database
 settings in settings/website.conf.
 
-Open https://<your_tabletop_hostname>/setup in your browser and follow the
+Open https://<your_cauldron_hostname>/setup in your browser and follow the
 instructions in your browser to update the database.

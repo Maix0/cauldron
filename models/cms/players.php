@@ -9,7 +9,7 @@
 
 		public function get_game($game_id) {
 			$query = "select id, title, (select count(*) from game_character where game_id=g.id) as players ".
-			         "from games g where id=%d and dm_id=%d having players=0";
+			         "from games g where id=%d and dm_id=%d";
 
 			if (($games = $this->db->execute($query, $game_id, $this->user->id)) == false) {
 				return false;
@@ -18,13 +18,14 @@
 			return $games[0];
 		}
 
-		public function get_characters() {
+		public function get_characters($game_id) {
 			$query = "select c.*, u.fullname, ".
-			         "(select count(*) from game_character where character_id=c.id) as involved ".
+			         "(select count(*) from game_character where character_id=c.id) as busy, ".
+			         "(select count(*) from game_character where character_id=c.id and game_id=%d) as enrolled ".
 			         "from characters c, users u where c.user_id=u.id and u.organisation_id=%d ".
-			         "and u.id!=%d having involved=%d order by u.fullname, c.name";
+			         "and u.id!=%d having busy=%d or enrolled=%d order by u.fullname, c.name";
 
-			if (($characters = $this->db->execute($query, $this->user->organisation_id, $this->user->id, 0)) === false) {
+			if (($characters = $this->db->execute($query, $game_id, $this->user->organisation_id, $this->user->id, 0, 1)) === false) {
 				return false;
 			}
 
@@ -35,8 +36,9 @@
 				}
 
 				array_push($result[$character["fullname"]], array(
-					"id"   => $character["id"],
-					"name" => $character["name"]));
+					"id"       => $character["id"],
+					"name"     => $character["name"],
+					"enrolled" => $character["enrolled"]));
 			}
 
 			return $result;
@@ -50,13 +52,7 @@
 				$result = false;
 			}
 
-			if (is_array($invite["characters"]) == false) {
-				$this->view->add_message("Select at least one character.");
-				$result = false;
-			} else if (count($invite["characters"]) == 0) {
-				$this->view->add_message("Select at least one character.");
-				$result = false;
-			} else {
+			if (is_array($invite["characters"])) {
 				$format = implode(", ", array_fill(1, count($invite["characters"]), "%d"));
 				$query = "select count(*) as count from characters where user_id=%d and id in (".$format.")";
 				if (($result = $this->db->execute($query, $this->user->id, $invite["characters"])) == false) {
@@ -75,12 +71,29 @@
 				return false;
 			}
 
-			$data = array("game_id" => $invite["game_id"]);
-			foreach ($invite["characters"] as $character_id) {
-				$data["character_id"] = $character_id;
-				if ($this->db->insert("game_character", $data) === false) {
-					$this->db->query("rollback");
-					return false;
+			if ($this->db->query("delete from game_character where game_id=%d", $invite["game_id"]) === false) {
+				$this->db->query("rollback");
+				return false;
+			}
+
+			if (is_array($invite["characters"])) {
+				$data = array("game_id" => $invite["game_id"]);
+				$query = "select * from game_character where character_id=%d";
+				foreach ($invite["characters"] as $character_id) {
+					if (($enrolled = $this->db->execute($query, $character_id)) === false) {
+						$this->db->query("rollback");
+						return false;
+					}
+					if (count($enrolled) > 0) {
+						$this->db->query("rollback");
+						return false;
+					}
+
+					$data["character_id"] = $character_id;
+					if ($this->db->insert("game_character", $data) === false) {
+						$this->db->query("rollback");
+						return false;
+					}
 				}
 			}
 
@@ -90,6 +103,11 @@
 			}
 
 			foreach ($maps as $map) {
+				if ($this->db->query("delete from map_character where map_id=%d", $map["id"]) === false) {
+					$this->db->query("rollback");
+					return false;
+				}
+
 				if ($this->borrow("cms/map")->place_characters($invite["game_id"], $map["id"], $map["start_x"], $map["start_y"]) == false) {
 					$this->db->query("rollback");
 					return false;

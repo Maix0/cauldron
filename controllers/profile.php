@@ -90,7 +90,9 @@
 						unset($_SESSION["profile_next"]);
 					}
 				} else if ($_POST["submit_button"] == "Delete profile") {
-					if ($this->model->delete_account() == false) {
+					if ($this->model->delete_oke() == false) {
+						$this->show_profile_form();
+					} else if ($this->model->delete_account() == false) {
 						$this->view->add_message("Something went wrong while deleting this account.");
 						$this->show_profile_form();
 					} else {

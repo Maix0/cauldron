@@ -50,13 +50,13 @@ convert the rewriting rules to your webserver's configuration.
 
 File access rights
 ------------------
-Make sure the directory public/files and the subdirectories it contains, are
-writable for the webserver.
+Make sure the directories public/files and public/resources and all the
+subdirectories they contain, are writable for the webserver.
 
 
 Configure PHP
 -------------
-TableTop requires at least PHP v7.2 and needs PHP's JSON, MySQLi, GD and
+Cauldron requires at least PHP v7.2 and needs PHP's JSON, MySQLi, GD and
 XML/XSL module. Enable them in your PHP configuration. Also, make sure that
 the date.timezone setting has been set correctly.
 
@@ -96,6 +96,6 @@ update the HEADER_CSP setting in settings/website.conf.
 Upgrading
 =========
 Before upgrading this website, run database/backup_database make a backup of
-your database to disk. Then make a backup of the TableTop directory.
+your database to disk. Then make a backup of the Cauldron directory.
 Replace the source code with the new version. Open the website and add
 /setup to the URL. Follow the instructions on the screen.

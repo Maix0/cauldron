@@ -298,8 +298,14 @@
 				array_push($keys, "status");
 			} else if (($current = $this->get_user($user["id"])) == false) {
 				return false;
-			} else if (in_array(ADMIN_ROLE_ID, $current["roles"]) && (in_array(ADMIN_ROLE_ID, $user["roles"]) == false)) {
-				array_unshift($user["roles"], ADMIN_ROLE_ID);
+			} else {
+				if (in_array(ADMIN_ROLE_ID, $current["roles"]) && (in_array(ADMIN_ROLE_ID, $user["roles"]) == false)) {
+					array_unshift($user["roles"], ADMIN_ROLE_ID);
+				}
+
+				if (in_array(USER_MAINTAINER_ROLE_ID, $current["roles"]) && (in_array(USER_MAINTAINER_ROLE_ID, $user["roles"]) == false)) {
+					array_unshift($user["roles"], USER_MAINTAINER_ROLE_ID);
+				}
 			}
 
 			if ($user["cert_serial"] == "") {
@@ -344,15 +350,6 @@
 				$result = false;
 			}
 
-			$query = "select count(*) as count from characters where user_id=%d";
-			if (($chars = $this->db->execute($query, $user_id)) == false) {
-				$this->view->add_message("Database error.");
-				$result = false;
-			} else if ($chars[0]["count"] > 0) {
-				$this->view->add_message("This account contains characters.");
-				$result = false;
-			}
-
 			$query = "select count(*) as count from games where dm_id=%d";
 			if (($chars = $this->db->execute($query, $user_id)) == false) {
 				$this->view->add_message("Database error.");
@@ -379,14 +376,52 @@
 		}
 
 		public function delete_user($user_id) {
+			$query = "select resources_key from organisations o, users u ".
+			         "where o.id=u.organisation_id and u.id=%d";
+			if (($result = $this->db->execute($query, $user_id)) == false) {
+				return false;
+			}
+			$resources_key = $result[0]["resources_key"];
+
 			$queries = array();
+
+			$query = "select id, extension from characters where user_id=%d";
+			if (($characters = $this->db->execute($query, $user_id)) === false) {
+				$this->view->add_message("Database error.");
+				return false;
+			}
+
+			$query = "select i.* from character_icons i, characters c ".
+			         "where i.character_id=c.id and c.user_id=%d";
+			if (($alternates = $this->db->execute($query, $user_id)) === false) {
+				return false;
+			}
+
+			foreach ($characters as $character) {
+				array_push($queries, array("delete from map_character where character_id=%d", $character["id"]));
+				array_push($queries, array("delete from game_character where character_id=%d", $character["id"]));
+				array_push($queries, array("delete from character_icons where character_id=%d", $character["id"]));
+				array_push($queries, array("delete from characters where id=%d", $character["id"]));
+			}
 
 			array_push($queries,
 				array("delete from sessions where user_id=%d", $user_id),
 				array("delete from user_role where user_id=%d", $user_id),
 				array("delete from users where id=%d", $user_id));
 
-			return $this->db->transaction($queries) !== false;
+			if ($this->db->transaction($queries) === false) {
+				return false;
+			}
+
+			foreach ($characters as $character) {
+				unlink("resources/".$resources_key."/characters/".$character["id"].".".$character["extension"]);
+			}
+
+            foreach ($alternates as $alternate) {
+                unlink("resources/".$resources_key."/characters/".$alternate["character_id"]."_".$alternate["id"].".".$alternate["extension"]);
+            }
+
+			return true;
 		}
 
 		public function send_notification($user) {

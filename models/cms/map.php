@@ -43,13 +43,13 @@
 		}
 
 		public function get_local_maps() {
-			if (($maps = $this->get_files("files/".$this->user->files_key."/maps")) !== false) {
+			if (($maps = $this->get_files("resources/".$this->user->resources_key."/maps")) !== false) {
 				sort($maps);
 			}
 
-			$len = strlen($this->user->files_key);
+			$len = strlen($this->user->resources_key);
 			foreach ($maps as $m => $map) {
-				$maps[$m] = substr($map, 0, 6).substr($map, $len + 7);
+				$maps[$m] = substr($map, 0, 10).substr($map, $len + 11);
 			}
 
 			return $maps;
@@ -69,8 +69,8 @@
 		public function get_image_dimensions($map) {
 			if (substr($map["url"], 0, 1) == "/") {
 				$image = substr($map["url"], 1);
-				if (substr($image, 0, 6) == "files/") {
-					$image = "files/".$this->user->files_key.substr($image, 5);
+				if (substr($image, 0, 10) == "resources/") {
+					$image = "resources/".$this->user->resources_key.substr($image, 9);
 				}
 			} else {
 				list(,, $hostname, $path) = explode("/", $map["url"], 4);
@@ -99,6 +99,27 @@
 			return $map;
 		}
 
+		public function get_video_dimensions($map) {
+			if (substr($map["url"], 0, 1) == "/") {
+				$video = substr($map["url"], 1);
+				if (substr($video, 0, 10) == "resources/") {
+					$video = "resources/".$this->user->resources_key.substr($video, 9);
+				}
+			} else {
+				$this->view->add_system_warning("AUtomatic dimension detection can only be done for local videos.");
+				return false;
+			}
+
+			require "../libraries/getid3/getid3.php";
+			$getID3 = new getID3;
+			$info = $getID3->analyze($video);
+
+			$map["width"] = $info["video"]["resolution_x"];
+			$map["height"] = $info["video"]["resolution_y"];
+
+			return $map;
+		}
+
 		public function save_oke($map) {
 			$result = true;
 
@@ -117,17 +138,20 @@
 			if (trim($map["url"]) == "") {
 				$this->view->add_message("Empty URL is not allowed.");
 				$result = false;
+			} else {
+				list($url) = explode("?", $map["url"], 2);
+				$info = pathinfo($url);
+				$extensions = config_array(MAP_BACKGROUND_EXTENSIONS);
+				if (in_array($info["extension"], $extensions) == false) {
+					$this->view->add_message("Unsupported file extension in image/video URL.");
+					$result = false;
+				}
 			}
 
 			$min_size = 2 * $this->settings->screen_grid_size;
 
 			if (((int)$map["width"] < $min_size) || ((int)$map["height"] < $min_size)) {
 				$this->view->add_message("The map must be at least %sx%s pixels.", $min_size, $min_size);
-				$result = false;
-			}
-
-			if ($map["grid_size"] < 10) {
-				$this->view->add_message("Invalid grid size.");
 				$result = false;
 			}
 
@@ -191,7 +215,8 @@
 			$map["id"] = null;
 			$map["game_id"] = $_SESSION["edit_game_id"];
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
-			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
+			$map["grid_size"] = 50;
+			$map["show_grid"] = NO;
 			$map["drag_character"] = is_true($map["drag_character"]) ? YES : NO;
 			$map["start_x"] = 2;
 			$map["start_y"] = 2;
@@ -200,18 +225,29 @@
 				return false;
 			}
 
-			if ($this->db->insert("maps", $map, $keys) == false) {
+			if ($this->db->insert("maps", $map, $keys) === false) {
 				$this->db->query("rollback");
 				return false;
 			}
 			$map_id = $this->db->last_insert_id;
 
-			if ($this->place_characters($_SESSION["edit_game_id"], $map_id, $map["start_x"], $map["start_y"]) == false) {
+			if ($this->place_characters($_SESSION["edit_game_id"], $map_id, $map["start_x"], $map["start_y"]) === false) {
 				$this->db->query("rollback");
 				return false;
 			}
 
-			return $this->db->query("commit") !== false;
+			if ($this->db->query("commit") === false) {
+				return false;
+			}
+
+			if (($game = $this->db->entry("games", $_SESSION["edit_game_id"])) != false) {
+				if ($game["active_map_id"] == null) {
+					$data = array("active_map_id" => $map_id);
+					$this->db->update("games", $game["id"], $data);
+				}
+			}
+
+			return $map_id;
 		}
 
 		public function update_map($map) {
@@ -220,12 +256,24 @@
 				return false;
 			}
 
-			$keys = array("title", "url", "audio", "type", "width", "height", "grid_size",
-			              "show_grid", "drag_character", "fog_of_war", "fow_distance", "dm_notes");
+			$keys = array("title", "url", "audio", "type", "width", "height",
+			              "drag_character", "fog_of_war", "fow_distance", "dm_notes");
 
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
-			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
 			$map["drag_character"] = is_true($map["drag_character"]) ? YES : NO;
+
+			return $this->db->update("maps", $map["id"], $map, $keys);
+		}
+
+		public function set_grid($map) {
+			if ($this->get_map($map["id"]) == false) {
+				$this->view->add_message("Map not found.");
+				return false;
+			}
+
+			$keys = array("grid_size", "show_grid");
+
+			$map["show_grid"] = is_true($map["show_grid"]) ? YES : NO;
 
 			return $this->db->update("maps", $map["id"], $map, $keys);
 		}

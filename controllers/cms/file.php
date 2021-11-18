@@ -7,8 +7,15 @@
 	 */
 
 	class cms_file_controller extends Banshee\controller {
+		protected $root = "files";
+
+		protected function get_base_dir() {
+			return FILES_PATH;
+		}
+
 		public function execute() {
-			$base_dir = FILES_PATH."/".$this->user->files_key;
+			$base_dir = $this->get_base_dir();
+
 			if (($sub_dir = implode("/", $this->page->parameters)) != "") {
 				$sub_dir = "/".$sub_dir;
 				if ($this->model->valid_path($sub_dir) == false) {
@@ -24,7 +31,7 @@
 						$this->view->add_tag("result", "Error renaming file.");
 						$this->page->set_http_code(403);
 					} else {
-						$this->user->log_action("file / directory '%s' renamed to '%s'", $_POST["filename_current"], $_POST["filename_new"]);
+						$this->user->log_action("file or directory '%s' renamed to '%s'", $_POST["filename_current"], $_POST["filename_new"]);
 					}
 				} else if ($_POST["submit_button"] == "Delete") {
 					if (is_dir($directory."/".$_POST["filename"])) {
@@ -84,7 +91,7 @@
 				 */
 				$this->view->open_tag("current");
 				$path = "";
-				$this->view->add_tag("path", "", array("label" => "files"));
+				$this->view->add_tag("path", "", array("label" => $this->root));
 				foreach ($this->page->parameters as $dir) {
 					$path .= "/".$dir;
 					$this->view->add_tag("path", $path, array("label" => $dir));

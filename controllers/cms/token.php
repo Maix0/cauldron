@@ -20,6 +20,8 @@
 		}
 
 		private function show_token_form($token) {
+			$token["shape_change"] = show_boolean($token["shape_change"]);
+
 			$this->view->open_tag("edit");
 			$this->view->record($token, "token");
 			$this->view->close_tag();
@@ -81,7 +83,11 @@
 			} else if ($this->page->parameters[0] === "new") {
 				/* New token
 				 */
-				$token = array("width" => 1, "height" => 1);
+				$token = array(
+					"width"       => 1,
+					"height"      => 1,
+					"armor_class" => 10,
+					"hitpoints"   => 0);
 				$this->show_token_form($token);
 			} else if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
 				/* Edit token

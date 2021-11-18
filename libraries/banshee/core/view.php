@@ -418,7 +418,7 @@
 					}
 					$this->close_tag();
 
-					$this->run_javascript("$('div.alert-info').delay(3000).slideUp('slow')");
+					$this->run_javascript("$('div.alert-info').delay(5000).slideUp('slow')");
 				}
 
 				/* System warnings

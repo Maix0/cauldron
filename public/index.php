@@ -12,6 +12,7 @@
 	require "../libraries/banshee/core/error.php";
 	require "../libraries/banshee/core/banshee.php";
 	require "../libraries/banshee/core/security.php";
+	require "../libraries/cauldron.php";
 
 	/* Create core objects
 	 */
@@ -58,9 +59,10 @@
 		$_view->close_tag();
 		$_view->add_tag("website_url", $_SERVER["SERVER_NAME"]);
 
-		$_view->open_tag("tabletop");
-		$_view->add_tag("version", TABLETOP_VERSION);
-		$_view->add_tag("files_key", $_user->files_key);
+		$_view->open_tag("cauldron");
+		$_view->add_tag("version", CAULDRON_VERSION);
+		$_view->add_tag("background", HEADER_BACKGROUND);
+		$_view->add_tag("resources_key", $_user->resources_key);
 		$_view->close_tag();
 
 		/* Page information
@@ -103,6 +105,7 @@
 				$_view->open_tag("menu");
 				$_view->record(array("link" => "/", "text" => "Homepage"), "item");
 				if (($_user->logged_in) && ($_page->page != LOGOUT_MODULE)) {
+					$_view->record(array("link" => "/manual", "text" => "Manual"), "item");
 					$_view->record(array("link" => "/cms", "text" => "CMS"), "item");
 					$_view->record(array("link" => "/".LOGOUT_MODULE, "text" => "Logout"), "item");
 				}
@@ -111,7 +114,12 @@
 				/* Normal menu
 				 */
 				$menu = new menu($_database, $_view);
-				if (is_true(MENU_PERSONALIZED)) {
+				if ($_user->logged_in == false) {
+					$menu->set_start_point("public");
+				} else {
+					$menu->set_start_point("private");
+				}
+				if (is_true(MENU_PERSONALIZED) && $_user->logged_in) {
 					$menu->set_user($_user);
 				}
 				$menu->add_to_view();

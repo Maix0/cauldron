@@ -7,7 +7,7 @@ const LAYER_MENU = DEFAULT_Z_INDEX + 4;
 
 var game_id = null;
 var map_id = null;
-var files_key = null;
+var resources_key = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
 var fow_obj = null;
@@ -21,6 +21,18 @@ var zone_presence = [];
 var zone_x = 0;
 var zone_y = 0;
 var ctrl_down = null;
+
+function websocket_send(data) {
+	switch (data.action) {
+		case 'zone_opacity':
+			if (data.opacity == 0) {
+				write_sidebar('Zone made transparent.');
+			} else {
+				write_sidebar('Zone made solid.');
+			}
+			break;
+	}
+}
 
 function filter_library() {
 	var filter = $('input#filter').val().toLowerCase();
@@ -87,6 +99,10 @@ function key_up(event) {
 	}
 }
 
+function set_condition(obj, condition) {
+	write_sidebar(obj.find('span').text() + ' is now ' + condition + '.');
+}
+
 /* Object functions
  */
 function object_armor_class(obj) {
@@ -116,8 +132,8 @@ function object_create(icon, x, y) {
 		var width = parseInt($(icon).attr('obj_width')) * grid_cell_size;
 		var height = parseInt($(icon).attr('obj_height')) * grid_cell_size;
 		var url = $(icon).attr('src');
-		var armor_class = 10;
-		var hitpoints = 0;
+		var armor_class = $(icon).attr('armor_class');
+		var hitpoints = $(icon).attr('hitpoints');
 		var type = $(icon).parent().find('div.name').text();
 		var rotation = 180;
 		var hidden = 'no';
@@ -212,6 +228,10 @@ function object_delete(obj) {
 		instance_id: obj.prop('id'),
 	}).done(function() {
 		obj.remove();
+
+		if ((fow_obj != null) && (obj.hasClass('wall') || obj.hasClass('door'))) {
+			fog_of_war_update(fow_obj);
+		}
 	});
 }
 
@@ -490,6 +510,10 @@ function door_create(pos_x, pos_y, length, direction, state) {
 			},
 			zIndex: LAYER_MENU
 		});
+
+		if (fow_obj != null) {
+			fog_of_war_update(fow_obj);
+		}
 	}).fail(function(data) {
 		$('div.playarea div#new_door').remove();
 		alert('Door create error');
@@ -598,6 +622,10 @@ function wall_create(pos_x, pos_y, length, direction, transparent) {
 			},
 			zIndex: LAYER_MENU
 		});
+
+		if (fow_obj != null) {
+			fog_of_war_update(fow_obj);
+		}
 	}).fail(function(data) {
 		$('div.playarea div#new_wall').remove();
 		alert('Wall create error');
@@ -671,7 +699,7 @@ function zone_init_presence() {
 	});
 }
 
-function zone_create(width, height, color, opacity, group) {
+function zone_create(width, height, color, opacity, group, altitude) {
 	$.post('/object/create_zone', {
 		map_id: map_id,
 		pos_x: zone_x / grid_cell_size,
@@ -680,7 +708,8 @@ function zone_create(width, height, color, opacity, group) {
 		height: height,
 		color: color,
 		opacity: opacity,
-		group: group
+		group: group,
+		altitude: altitude
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
 
@@ -693,7 +722,7 @@ function zone_create(width, height, color, opacity, group) {
 			opacity = 0.8;
 		}
 
-		var zone = $('<div id="zone' + instance_id + '" class="zone" style="position:absolute; left:' + zone_x + 'px; top:' + zone_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + ';"><div class="script"></div></div>');
+		var zone = $('<div id="zone' + instance_id + '" class="zone" altitude="' + altitude + '" style="position:absolute; left:' + zone_x + 'px; top:' + zone_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + ';"><div class="script"></div></div>');
 
 		if (group != '') {
 			zone.attr('group', group);
@@ -1134,6 +1163,7 @@ function context_menu_handler(key, options) {
 			$('div.zone_create input#width').val(3);
 			$('div.zone_create input#height').val(3);
 			$('div.zone_create').show();
+			$('div.zone_create div.panel-body').prop('scrollTop', 0);
 			break;
 		default:
 			write_sidebar('Unknown menu option: ' + key);
@@ -1145,7 +1175,7 @@ function context_menu_handler(key, options) {
 $(document).ready(function() {
 	game_id = parseInt($('div.playarea').attr('game_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
-	files_key = parseInt($('div.playarea').attr('files_key'));
+	resources_key = parseInt($('div.playarea').attr('resources_key'));
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
 
 	write_sidebar('Game ID: ' + game_id);
@@ -1256,6 +1286,7 @@ $(document).ready(function() {
 		var color = $('input#color').val();
 		var opacity = parseFloat($('input#opacity').val());
 		var group = $('input#group').val();
+		var altitude = parseInt($('input#altitude').val());
 
 		if (isNaN(width)) {
 			write_sidebar('Invalid width.');
@@ -1277,7 +1308,7 @@ $(document).ready(function() {
 		zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
 		zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
 
-		zone_create(width, height, color, opacity, group);
+		zone_create(width, height, color, opacity, group, altitude);
 
 		$('div.zone_create').hide();
 	});

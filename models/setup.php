@@ -27,7 +27,7 @@
 			if ($db->connected == false) {
 				/* No database connection
 				 */
-				if ((DB_HOSTNAME == "localhost") && (DB_DATABASE == "tabletop") && (DB_USERNAME == "tabletop") && (DB_PASSWORD == "tabletop")) {
+				if ((DB_HOSTNAME == "localhost") && (DB_DATABASE == "cauldron") && (DB_USERNAME == "cauldron") && (DB_PASSWORD == "cauldron")) {
 					return "db_settings";
 				} else if (strpos(DB_PASSWORD, "'") !== false) {
 					$this->view->add_system_message("A single quote is not allowed in the password!");
@@ -199,7 +199,7 @@
 
 			$this->db->query("update users set status=%d", USER_STATUS_CHANGEPWD);
 			$this->settings->secret_website_code = random_string(32);
-			$this->db->query("update organisations set files_key=%s", random_string(32));
+			$this->db->query("update organisations set resources_key=%s", random_string(32));
 
 			return true;
 		}
@@ -397,40 +397,57 @@
 				$manual_html = file("../extra/manual.html");
 				$manual_css = file("../extra/manual.css");
 				$this->db_query("INSERT INTO pages VALUES (1,%s,%s,%s,1,%s,%s,%s,%s,%s,1,0,0,NULL,NULL,NULL)",
-				                "/manual", "en", "tabletop", $manual_css, "Manual", "", "", $manual_html);
+				                "/manual", "en", "cauldron", $manual_css, "Manual", "", "", $manual_html);
 
 				$this->settings->database_version = 14;
 			}
 
 			if ($this->settings->database_version == 14) {
-				$this->db_query("ALTER TABLE organisations ADD files_key VARCHAR(32) NOT NULL AFTER name");
+				$this->db_query("ALTER TABLE organisations ADD resources_key VARCHAR(32) NOT NULL AFTER name");
 				$this->db_query("ALTER TABLE tokens ADD organisation_id INT UNSIGNED NOT NULL AFTER id");
 				$this->db_query("UPDATE tokens SET organisation_id=%s", 1);
 				$this->db_query("ALTER TABLE tokens ADD FOREIGN KEY (organisation_id) REFERENCES organisations(id) ON DELETE RESTRICT ON UPDATE RESTRICT");
 
-				$files_key = random_string(32);
-				$this->db_query("UPDATE organisations SET files_key=%s", $files_key);
+				$resources_key = random_string(32);
+				$this->db_query("UPDATE organisations SET resources_key=%s", $resources_key);
 
 				if (($organisation = $this->db->entry("organisations", 1)) == false) {
 					return false;
 				}
 
-				if ($organisation["files_key"] == $files_key) {
-					mkdir("files/".$files_key);
+				if ($organisation["resources_key"] == $resources_key) {
+					mkdir("resources/".$resources_key);
 
 					if (($dp = opendir("files")) != false) {
 						while (($file = readdir($dp)) != false) {
-							if (($file == ".") || ($file == "..") || ($file == $files_key)) {
+							if (($file == ".") || ($file == "..") || ($file == $resources_key)) {
 								continue;
 							}
 
-							rename("files/".$file, "files/".$files_key."/".$file);
+							rename("files/".$file, "resources/".$resources_key."/".$file);
 						}
 						closedir($dp);
 					}
 				}
 
 				$this->settings->database_version = 15;
+			}
+
+			if ($this->settings->database_version == 15) {
+				$this->db_query("ALTER TABLE games CHANGE player_access access TINYINT(1) UNSIGNED NOT NULL");
+				$this->db_query("ALTER TABLE game_character ADD token_id INT UNSIGNED NULL AFTER alternate_icon_id");
+				$this->db_query("ALTER TABLE game_character ADD FOREIGN KEY (token_id) REFERENCES tokens(id) ON DELETE RESTRICT ON UPDATE RESTRICT");
+				$this->db_query("ALTER TABLE organisations CHANGE files_key resources_key VARCHAR(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL");
+				$this->db_query("ALTER TABLE organisations ADD max_resources INT UNSIGNED NOT NULL AFTER resources_key, ".
+				                "ADD last_login TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER max_resources");
+				$this->db_query("ALTER TABLE tokens ADD armor_class TINYINT UNSIGNED NOT NULL AFTER extension, ".
+				                "ADD hitpoints SMALLINT UNSIGNED NOT NULL AFTER armor_class, ".
+				                "ADD shape_change BOOLEAN NOT NULL AFTER hitpoints");
+				$this->db_query("ALTER TABLE zones ADD altitude TINYINT NOT NULL AFTER group");
+
+				$this->settings->head_title = "Cauldron VTT";
+
+				$this->settings->database_version = 20;
 			}
 
 			return true;
@@ -477,7 +494,7 @@
 			}
 
 			foreach ($this->directories as $directory) {
-				if (is_dir("files/".$organisation["files_key"]."/".$directory) == false) {
+				if (is_dir("resources/".$organisation["resources_key"]."/".$directory) == false) {
 					return false;
 				}
 			}
@@ -490,8 +507,9 @@
 				return false;
 			}
 
+			mkdir("resources/".$organisation["resources_key"], 0755);
 			foreach ($this->directories as $directory) {
-				mkdir("files/".$organisation["files_key"]."/".$directory, 0755);
+				mkdir("resources/".$organisation["resources_key"]."/".$directory, 0755);
 			}
 		}
 	}

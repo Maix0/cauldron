@@ -90,7 +90,11 @@
 				$path = rtrim($path, "/");
 
 				if ($path == "") {
-					$page = $this->settings->start_page;
+					if ($this->user->logged_in == false) {
+						$page = $this->settings->start_page;
+					} else {
+						$page = $this->settings->page_after_login;
+					}
 				} else if (valid_input($path, VALIDATE_URL, VALIDATE_NONEMPTY)) {
 					$page = $path;
 				} else {

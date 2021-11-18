@@ -24,7 +24,7 @@
 <xsl:for-each select="tokens/token">
 <div class="col-xs-12 col-sm-4 col-md-3 token">
 <div class="well well-sm" onClick="javascript:document.location='/{/output/page}/{@id}'">
-<img src="/files/{/output/tabletop/files_key}/tokens/{@id}.{extension}" title="{name}" class="icon" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" class="icon" />
 <div class="name"><xsl:value-of select="name" /></div>
 <div>Width: <xsl:value-of select="width" /></div>
 <div>Height: <xsl:value-of select="height" /></div>
@@ -44,7 +44,7 @@
 <form action="/{/output/page}" method="post" enctype="multipart/form-data">
 <xsl:if test="token/@id">
 <input type="hidden" name="id" value="{token/@id}" />
-<img src="/files/{/output/tabletop/files_key}/tokens/{token/@id}.{token/extension}" class="token" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{token/@id}.{token/extension}" class="token" />
 </xsl:if>
 
 <label for="name">Name:</label>
@@ -59,6 +59,11 @@
 <input type="file" name="image" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name)" />Browse</label></span>
 <input type="text" id="upload-file-info" readonly="readonly" class="form-control" />
 </div>
+<label for="armor_class">Default armor class:</label>
+<input type="text" id="armor_class" name="armor_class" value="{token/armor_class}" class="form-control" />
+<label for="hitpoints">Default hit points:</label>
+<input type="text" id="hitpoints" name="hitpoints" value="{token/hitpoints}" class="form-control" />
+<div><b>Available for shape change:</b><input type="checkbox" name="shape_change"><xsl:if test="token/shape_change='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save token" class="btn btn-default" />

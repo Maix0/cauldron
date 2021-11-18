@@ -11,7 +11,7 @@
 <xsl:template match="overview">
 <table class="table table-condensed table-striped table-hover">
 <thead>
-<tr><th>ID</th><th>Title</th><th>Players</th><th>Accessible</th></tr>
+<tr><th>ID</th><th>Title</th><th>Players</th><th>Access</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="games/game">
@@ -19,7 +19,7 @@
 <td><xsl:value-of select="@id" /></td>
 <td><xsl:value-of select="title" /></td>
 <td><xsl:value-of select="players" /></td>
-<td><xsl:value-of select="player_access" /></td>
+<td><xsl:value-of select="access" /></td>
 </tr>
 </xsl:for-each>
 </tbody>
@@ -45,11 +45,16 @@
 
 <label for="title">Title:</label>
 <input type="text" id="title" name="title" value="{game/title}" class="form-control" />
-<label for="image">Background image URL:</label>
+<label for="image">Background image URL (optional):</label>
 <input type="text" id="image" name="image" value="{game/image}" class="form-control" />
-<label for="story">Introduction story:</label>
+<label for="story">Introduction story (optional):</label>
 <textarea id="story" name="story" class="form-control"><xsl:value-of select="game/story" /></textarea>
-<div>Accessible for players: <input type="checkbox" name="player_access"><xsl:if test="game/player_access='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
+<label for="story">Access:</label>
+<select id="access" name="access" class="form-control">
+<xsl:for-each select="access/level">
+<option value="{@value}"><xsl:if test="@value=../../game/access"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
+</xsl:for-each>
+</select>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save game" class="btn btn-default" />

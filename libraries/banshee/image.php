@@ -28,7 +28,7 @@
 				$this->set_image_format("gif");
 				$this->load($image);
 				return;
-			} else if (substr($image, -4) == ".jpg") {
+			} else if ((substr($image, -4) == ".jpg") || (substr($image, -5) == ".jpeg")) {
 				$this->set_image_format("jpeg");
 				$this->load($image);
 				return;

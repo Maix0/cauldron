@@ -5,9 +5,36 @@
 			         "left join game_character i on g.id=i.game_id ".
 			         "left join characters c on i.character_id=c.id ".
 			         "where g.dm_id=u.id and (g.dm_id=%d or c.user_id=%d) ".
-			         "order by g.timestamp desc";
+			         "order by timestamp desc";
 
-			return $this->db->execute($query, $this->user->id, $this->user->id);
+			if (($games = $this->db->execute($query, $this->user->id, $this->user->id, GAME_ACCESS_PLAYERS_SPECTATORS)) === false) {
+				return false;
+			}
+
+			$result = array();
+			foreach ($games as $game) {
+				$game["type"] = "play";
+				$result[$game["id"]] = $game;
+			}
+
+			$query = "select k.*, u.fullname as dm from games k, users u ".
+                     "where k.dm_id=u.id and u.organisation_id=%d and access>=%d ".
+			         "order by timestamp desc";
+
+			if (($games = $this->db->execute($query, $this->user->organisation_id, GAME_ACCESS_PLAYERS_SPECTATORS)) === false) {
+				return false;
+			}
+
+			foreach ($games as $game) {
+				if (isset($result[$game["id"]])) {
+					continue;
+				}
+
+				$game["type"] = "spectate";
+				$result[$game["id"]] = $game;
+			}
+
+			return $result;
 		}
 
 		public function get_game($game_id) {
@@ -45,11 +72,20 @@
 			return $this->db->execute($query, $map_id);
 		}
 
+		public function get_tokens_for_shape_change() {
+			$query = "select id, name, width as size, extension from tokens ".
+			         "where organisation_id=%d and shape_change=%d order by name";
+
+			return $this->db->execute($query, $this->user->organisation_id, YES);
+		}
+
 		public function get_characters($map_id) {
 			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.rotation, i.hidden, ".
-			         "a.id as alternate_id, a.extension as alternate_extension, a.size as alternate_size ".
+			         "a.id as alternate_id, a.extension as alternate_extension, a.size as alternate_size, ".
+					 "t.id as token_id, t.extension as token_extension ".
 			         "from characters c, map_character i, maps m, game_character g ".
 			         "left join character_icons a on g.alternate_icon_id=a.id ".
+			         "left join tokens t on g.token_id=t.id ".
 			         "where c.id=i.character_id and i.map_id=%d and m.id=i.map_id ".
 			         "and g.game_id=m.game_id and g.character_id=c.id ".
 			         "order by id desc";
@@ -94,20 +130,24 @@
 		}
 
 		public function get_effects() {
-			if (($dp = opendir("files/".$this->user->files_key."/effects")) === false) {
-				return false;
-			}
-
 			$effects = array();
-			while (($file = readdir($dp)) != false) {
-				if (substr($file, 0, 1) == ".") {
+
+			$directories = array("files/effects", "resources/".$this->user->resources_key."/effects");
+			foreach ($directories as $directory) {
+				if (($dp = opendir($directory)) === false) {
 					continue;
 				}
 
-				array_push($effects, $file);
-			}
+				while (($file = readdir($dp)) != false) {
+					if (substr($file, 0, 1) == ".") {
+						continue;
+					}
 
-			closedir($dp);
+					array_push($effects, $directory."/".$file);
+				}
+
+				closedir($dp);
+			}
 
 			sort($effects);
 

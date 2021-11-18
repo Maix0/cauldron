@@ -110,7 +110,7 @@
 				/* Edit collectable
 				 */
 				if (($collectable = $this->model->get_collectable($this->page->parameters[0])) == false) {
-					$this->view->add_tag("result", "collectable not found.");
+					$this->view->add_tag("result", "Collectable not found.");
 				} else {
 					$this->show_collectable_form($collectable);
 				}

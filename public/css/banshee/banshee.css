@@ -35,7 +35,7 @@ img.title_icon {
 }
 
 @media (min-width:768px) {
-	input.form-control, textarea.form-control, select.form-control {
+	div.input-group, input.form-control, textarea.form-control, select.form-control {
 		max-width:500px;
 	}
 

@@ -11,15 +11,11 @@
 <xsl:template match="overview">
 <table class="table table-condensed table-striped">
 <thead>
-<tr><th>Title</th><th>Players</th></tr>
+<tr><th>Game</th><th>Players</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="games/game">
-<tr>
-<xsl:if test="players=0">
-<xsl:attribute name="class">click</xsl:attribute>
-<xsl:attribute name="onClick">javascript:document.location='/<xsl:value-of select="/output/page" />/<xsl:value-of select="@id" />'</xsl:attribute>
-</xsl:if>
+<tr class="click" onClick="javascript:document.location='/{/output/page}/{@id}'">
 <td><xsl:value-of select="title" /></td>
 <td><xsl:value-of select="players" /></td>
 </tr>
@@ -41,10 +37,6 @@
 <xsl:call-template name="show_messages" />
 <form action="/{/output/page}" method="post">
 <input type="hidden" name="game_id" value="{game/@id}" />
-
-<p>Make sure this invite contains all required characters, as it can only be done once per game!</p>
-
-<label for="title">Characters:</label>
 <div class="row">
 <xsl:for-each select="characters/user">
 <div class="col-xs-12 col-sm-6 col-md-4">
@@ -61,7 +53,7 @@
 </div>
 
 <div class="btn-group">
-<input type="submit" name="submit_button" value="Invite players" class="btn btn-default" />
+<input type="submit" name="submit_button" value="Select players" class="btn btn-default" />
 <a href="/{/output/page}" class="btn btn-default">Cancel</a>
 <xsl:if test="game/@id">
 </xsl:if>
@@ -76,7 +68,7 @@
 //-->
 <xsl:template match="content">
 <img src="/images/icons/players.png" class="title_icon" />
-<h1>Invite players</h1>
+<h1>Player selection</h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="result" />

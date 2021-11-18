@@ -31,6 +31,7 @@
 			$open_len = strlen(self::OPEN);
 			$close_len = strlen(self::CLOSE);
 
+			$number = 0;
 			$begin = 0;
 			while (($begin = strpos($content, self::OPEN, $begin)) !== false) {
 				if (($end = strpos($content, self::CLOSE, $begin)) !== false) {
@@ -48,7 +49,8 @@
 						"length"   => $end + $close_len - $begin,
 						"required" => $required);
 
-					array_push($this->elements, $element);
+					$this->elements["input_".$number] = $element;
+					$number++;
 				}
 
 				$begin += ($end - $begin) + $close_len;
@@ -148,12 +150,13 @@
 
 		/* Handle POST
 		 *
-		 * INPUT:  array POST data, string page title, string recipient e-mail address
+		 * INPUT:  array POST data, string page title, string recipient e-mail address, object user
 		 * OUTPUT: true
 		 * ERROR:  false
 		 */
-		public function handle_post($post, $page_title, $email_address) {
-			$sender = $this->settings->webmaster_email;
+		public function handle_post($post, $page_title, $email_address, $user) {
+			$sender_email = $this->settings->webmaster_email;
+			$sender_name = null;
 			$valid_post = true;
 
 			foreach ($this->elements as $elem_id => $element) {
@@ -182,10 +185,6 @@
 							}
 						case "text":
 							$message = new message($post[$elem_id]);
-							if ($message->is_spam) {
-								$this->view->add_message("The content of field '%s' is seen as spam.", $element["label"]);
-								$valid_post = false;
-							}
 					}
 				} else if ($element["required"]) {
 					$this->view->add_message("The field '%s' cannot be empty.", $element["label"]);
@@ -198,6 +197,13 @@
 			}
 
 			$result = "<table>\n";
+			if ($user->logged_in) {
+				$result .= "<tr><td>Name:</td><td>".$user->fullname."</td></tr>\n";
+				$result .= "<tr><td>Group:</td><td>".$user->organisation."</td></tr>\n";
+				$result .= "<tr><td>E-mail:</td><td>".$user->email."</td></tr>\n";
+				$sender_email = $user->email;
+				$sender_name = $user->fullname;
+			}
 			foreach ($this->elements as $elem_id => $element) {
 				if ($element["type"] == "choice") {
 					list($element["label"], $answers) = explode(":", $element["label"], 2);
@@ -211,7 +217,7 @@
 			$result .= "</table>\n";
 
 			$subject = sprintf("Submit at %s form at %s website", $page_title, $this->settings->head_title);
-			$mail = new Protocol\email($subject, $sender);
+			$mail = new Protocol\email($subject, $sender_email, $sender_name);
 			$message = file_get_contents("../extra/form_submit.txt");
 			$mail->set_message_fields(array(
 				"RESULT"  => $result,

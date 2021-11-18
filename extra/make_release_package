@@ -17,7 +17,7 @@ if [ -d ${target}-${version} ]; then
 	exit
 fi
 
-rsync -avq ${target}/ ${target}-${version} --exclude 'files/maps/*'
+rsync -avq ${target}/ ${target}-${version} --exclude 'resources/*' --exclude 'files/default_maps/*' --exclude 'files/default_tokes/*'
 cd ${target}-${version}
 
 # Empty logfiles
@@ -39,20 +39,13 @@ function change_setting {
 }
 
 change_setting DB_HOSTNAME localhost
-change_setting DB_DATABASE tabletop
-change_setting DB_USERNAME tabletop
-change_setting DB_PASSWORD tabletop
+change_setting DB_DATABASE cauldron
+change_setting DB_USERNAME cauldron
+change_setting DB_PASSWORD cauldron
 change_setting DEBUG_MODE yes
 
 # Remove files
 rm -f database/*.gz
-rm -f public/files/*.*
-rm -rf public/files/audio/*
-rm -f public/files/characters/*
-rm -f public/files/collectables/*
-rm -f public/files/maps/*
-rm -f public/files/portraits/*
-rm -f public/files/tokens/*
 rm -f ws_server module layout
 rm -rf templates
 

@@ -14,15 +14,16 @@
 					"Roles"         => array("cms/role", "roles.png"),
 					"Organisations" => array("cms/organisation", "organisations.png"),
 					"Access"        => array("cms/access", "access.png"),
-					"User switch"   => array("cms/switch", "switch.png")),
+					"User switch"   => array("cms/switch", "switch.png"),
+					"Files"         => array("cms/file", "file.png")),
 				"Game creation" => array(
-					"Files"         => array("cms/file", "file.png"),
-					"Conditions"    => array("cms/condition", "conditions.png"),
 					"Tokens"        => array("cms/token", "token.png"),
+					"Resources"     => array("cms/resources", "resources.png"),
 					"Games"         => array("cms/game", "game.png"),
 					"Maps"          => array("cms/map", "map.png"),
 					"Collectables"  => array("cms/collectable", "collectables.png"),
-					"Players"       => array("cms/players", "players.png")),
+					"Players"       => array("cms/players", "players.png"),
+					"Conditions"    => array("cms/condition", "conditions.png")),
 				"System" => array(
 					"Menu"          => array("cms/menu", "menu.png"),
 					"Pages"         => array("cms/page", "page.png"),
@@ -30,6 +31,8 @@
 					"Settings"      => array("cms/settings", "settings.png"),
 					"Reroute"       => array("cms/reroute", "reroute.png"),
 					"API test"      => array("cms/apitest", "apitest.png")));
+
+			$this->model->reset_idle();
 
 			/* Show warnings
 			 */
@@ -76,17 +79,7 @@
 
 				$element_count = count($elements);
 				if ($element_count > 0) {
-					if ($element_count <= 3) {
-						$class = "col-xs-12 col-sm-6";
-					} else if ($element_count <= 4) {
-						$class = "col-xs-12 col-sm-12 col-md-6";
-					} else {
-						$class = "col-xs-12";
-					}
-
-					$this->view->open_tag("section", array(
-						"title" => $title,
-						"class" => $class));
+					$this->view->open_tag("section", array("title" => $title));
 
 					foreach ($elements as $element) {
 						$this->view->add_tag("entry", $element["module"], array(

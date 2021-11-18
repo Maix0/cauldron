@@ -23,7 +23,7 @@
 				return;
 			}
 
-			if (($characters = $this->model->get_characters()) === false) {
+			if (($characters = $this->model->get_characters($invite["game_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
@@ -41,11 +41,18 @@
 
 			$this->view->record($game, "game");
 
+			$active_game = false;
+
 			if (is_array($characters)) {
 				$this->view->open_tag("characters");
 				foreach ($characters as $user => $chars) {
 					$this->view->open_tag("user", array("name" => $user));
 					foreach ($chars as $char) {
+						if (is_true($char["enrolled"])) {
+							array_push($invite["characters"], $char["id"]);
+							$active_game = true;
+						}
+
 						$attr = array(
 							"id"      => $char["id"],
 							"checked" => show_boolean(in_array($char["id"], $invite["characters"])));
@@ -54,6 +61,10 @@
 					$this->view->close_tag();
 				}
 				$this->view->close_tag();
+			}
+
+			if ($active_game) {
+				$this->view->add_message("Changing characters in an active game, will move all characters to the 'Player start' location on each map.");
 			}
 
 			$this->view->close_tag();

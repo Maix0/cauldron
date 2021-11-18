@@ -78,19 +78,33 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 
 		switch (command) {
 			case 'audio':
-				var filename = '/files/' + files_key + '/audio/' + game_id + '/' + param;
+				var filename = '/resources/' + resources_key + '/audio/' + game_id + '/' + param;
 
 				if (debug == false) {
 					var data = {
-						game_id: game_id,
 						action: 'audio',
 						filename: filename
 					};
-					websocket.send(JSON.stringify(data));
+					websocket_send(data);
 				}
 
 				var audio = new Audio(filename);
 				audio.play();
+				break;
+			case 'condition':
+				var conditions = $('div.conditions div');
+				var param_lower = param.toLowerCase()
+				var condition_set = false;
+				conditions.each(function() {
+					if ($(this).text().toLowerCase() == param_lower) {
+						set_condition(character, $(this).text(), true);
+						condition_set = true;
+					}
+				});
+
+				if ((condition_set == false) && debug) {
+					write_sidebar('Invalid condition: ' + param);
+				}
 				break;
 			case 'damage':
 				var points = parseInt(param);
@@ -314,16 +328,33 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 					script_error('Invalid token id: ' + param);
 				}
 				break;
+			case 'solid':
+				var data = {
+					action: 'zone_opacity',
+					instance_id: zone_id,
+					recipient: char_id,
+					opacity: 1
+				};
+				websocket_send(data);
+				break;
+			case 'transparent':
+				var data = {
+					action: 'zone_opacity',
+					instance_id: zone_id,
+					recipient: char_id,
+					opacity: 0
+				};
+				websocket_send(data);
+				break;
 			case 'write':
 				if (debug == false) {
 					var data = {
-						game_id: game_id,
-						action: 'whisper',
+						action: 'say',
+						recipient: char_id,
 						name: speaker,
-						to: char_id,
 						mesg: param
 					};
-					websocket.send(JSON.stringify(data));
+					websocket_send(data);
 				}
 
 				message = '<b>Sent to ' + name + ':</b>';

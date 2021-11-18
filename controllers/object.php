@@ -183,10 +183,16 @@
 			}
 		}
 
-		/* Alternates
+		/* Alternate icon
 		 */
 		public function post_alternate() {
 			$this->model->set_alternate($_POST["game_id"], $_POST["char_id"], $_POST["alternate_id"]);
+		}
+
+		/* Change shape
+		 */
+		public function post_shape() {
+			$this->model->set_shape($_POST["game_id"], $_POST["char_id"], $_POST["token_id"]);
 		}
 
 		/* Doors

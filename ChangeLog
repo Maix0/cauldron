@@ -1,3 +1,15 @@
+cauldron (2.0) stable; urgency=low
+
+  * Renamed project to Cauldron VTT.
+  * Improved map properties editing.
+  * Default armor class and hitpoints for tokens.
+  * Improved websocket server. Messages stay within group.
+  * System-wide effect icons.
+  * Zone height for Fog of War.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 18 Nov 2021 10:44:21 +0100
+
 tabletop (1.5) stable; urgency=low
 
   * Separate files directory for each group (organisation).

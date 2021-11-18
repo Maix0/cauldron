@@ -17,6 +17,7 @@
 
 			$this->view->open_tag("organisations");
 			foreach ($organisations as $organisation) {
+				$organisation["idle"] = floor((time() - strtotime($organisation["last_login"])) / DAY);
 				$this->view->record($organisation, "organisation");
 			}
 			$this->view->close_tag();
@@ -74,9 +75,7 @@
 				} else if ($_POST["submit_button"] == "Delete organisation") {
 					/* Delete organisation
 					 */
-					if ($this->model->delete_oke($_POST) == false) {
-						$this->show_organisation_form($_POST);
-					} else if ($this->model->delete_organisation($_POST["id"]) === false) {
+					if ($this->model->delete_organisation($_POST["id"]) === false) {
 						$this->view->add_message("Error deleting organisation.");
 						$this->show_organisation_form($_POST);
 					} else {
@@ -94,7 +93,7 @@
 			} else if ($this->page->parameters[0] === "new") {
 				/* New organisation
 				 */
-				$organisation = array();
+				$organisation = array("max_resources" => $this->settings->default_max_resources);
 				$this->show_organisation_form($organisation);
 			} else if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
 				/* Edit organisation

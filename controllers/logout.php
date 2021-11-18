@@ -18,6 +18,7 @@
 					$this->user->log_action("switched back to self");
 					$this->user->session->set_user_id($_SESSION["user_switch"]);
 					unset($_SESSION["user_switch"]);
+					unset($_SESSION["edit_game_id"]);
 					$url = "cms/switch";
 				}
 

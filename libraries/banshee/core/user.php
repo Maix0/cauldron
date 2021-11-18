@@ -15,7 +15,7 @@
 		private $record = array();
 		private $logged_in = false;
 		private $is_admin = false;
-		private $files_key = "";
+		private $resources_key = "";
 
 		/* Constructor
 		 *
@@ -61,7 +61,12 @@
 				case "is_admin": return $this->is_admin;
 				case "do_not_track": return $_SERVER["HTTP_DNT"] == 1;
 				case "session": return $this->session;
-				case "files_key": return $this->files_key;
+				case "resources_key": return $this->resources_key;
+				case "organisation":
+					if (($organisation = $this->db->entry("organisations", $this->record["organisation_id"])) !== false) {
+						return $organisation["name"];
+					}
+					break;
 				default:
 					if (isset($this->record[$key])) {
 						return $this->record[$key];
@@ -96,9 +101,10 @@
 					}
 				}
 
-				$query = "select files_key from organisations where id=%d";
+				$query = "select resources_key, max_resources from organisations where id=%d";
 				if (($organisations = $this->db->execute($query, $this->record["organisation_id"])) != false) {
-					$this->files_key = $organisations[0]["files_key"];
+					$this->resources_key = $organisations[0]["resources_key"];
+					$this->max_resources = $organisations[0]["max_resources"];
 				}
 			}
 		}
@@ -113,6 +119,9 @@
 			$this->session->set_user_id($user_id);
 			$this->load_user_record($user_id);
 			$this->log_action("user logged-in");
+
+			$query = "update organisations set last_login=%s where id=%d";
+			$this->db->query($query, date("Y-m-d H:i:s"), $this->record["organisation_id"]);
 		}
 
 		/* Verify user credentials

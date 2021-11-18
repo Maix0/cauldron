@@ -2,6 +2,19 @@
 	class cms_map_arrange_controller extends Banshee\controller {
 		protected $prevent_repost = false;
 
+		private function resource_path($path) {
+			if (substr($path, 0, 11) != "/resources/") {
+				return $path;
+			}
+
+			$len = strlen($this->user->resources_key);
+			if (substr($path, 11, $len) == $this->user->resources_key) {
+				return $path;
+			}
+
+			return "/resources/".$this->user->resources_key.substr($path, 10);
+		}
+
 		private function arrange_map($map_id) {
 			if (($map = $this->model->get_map($map_id)) == false) {
 				$this->view->add_tag("result", "Database error.", array("url" => "cms/map"));
@@ -20,6 +33,11 @@
 
 			if (($tokens = $this->model->get_tokens($map_id)) === false) {
 				$this->view->add_tag("result", "Database error.", array("url" => "cms/map"));
+				return;
+			}
+
+			if (($conditions = $this->model->get_conditions()) === false) {
+				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
@@ -68,18 +86,24 @@
 
 			$attr = array(
 				"id"             => $game["id"],
-				"files_key"      => $this->user->files_key,
+				"resources_key"      => $this->user->resources_key,
 				"grid_cell_size" => $grid_cell_size);
 			$this->view->open_tag("game", $attr);
 			$this->view->record($game);
 
-			if (substr($map["url"], 0, 7) == "/files/") {
-				$map["url"] = "/files/".$this->user->files_key.substr($map["url"], 6);
-			}
+			$map["url"] = $this->resource_path($map["url"]);
 			$map["show_grid"] = show_boolean($map["show_grid"]);
 			$map["start_x"] *= $grid_cell_size;
 			$map["start_y"] *= $grid_cell_size;
 			$this->view->record($map, "map");
+
+			/* Conditions
+			 */
+			$this->view->open_tag("conditions");
+			foreach ($conditions as $condition) {
+				$this->view->add_tag("condition", $condition["name"], array("id" => $condition["id"]));
+			}
+			$this->view->close_tag();
 
 			/* Library
 			 */

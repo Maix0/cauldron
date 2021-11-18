@@ -11,7 +11,11 @@
 		}
 
 		public function get_organisations($offset, $limit) {
-			$query = "select * from organisations limit %d,%d";
+			$query = "select *, (select count(*) from users where organisation_id=o.id) as users, ".
+			         "(select count(*) from games g, users u where g.dm_id=u.id and u.organisation_id=o.id) as games, ".
+			         "(select count(*) from tokens t where t.organisation_id=o.id) as tokens, ".
+			         "(select count(*) from maps m, games g, users u where m.game_id=g.id and g.dm_id=u.id and u.organisation_id=o.id) as maps ".
+			         "from organisations o order by name limit %d,%d";
 
 			return $this->db->execute($query, $offset, $limit);
 		}
@@ -48,48 +52,32 @@
 		}
 
 		public function create_organisation($organisation) {
-			$keys = array("id", "name", "files_key");
+			$keys = array("id", "name", "resources_key", "max_resources");
 
-			$files_key = random_string(32);
+			$resources_key = random_string(32);
 
 			$organisation["id"] = null;
-			$organisation["files_key"] = $files_key;
+			$organisation["resources_key"] = $resources_key;
 
 			if (($this->db->insert("organisations", $organisation, $keys)) === false) {
 				return false;
 			}
 
-			mkdir("files/".$files_key, 0755);
-			mkdir("files/".$files_key."/audio", 0755);
-			mkdir("files/".$files_key."/characters", 0755);
-			mkdir("files/".$files_key."/collectables", 0755);
-			mkdir("files/".$files_key."/effects", 0755);
-			mkdir("files/".$files_key."/maps", 0755);
-			mkdir("files/".$files_key."/tokens", 0755);
+			mkdir("resources/".$resources_key, 0755);
+			mkdir("resources/".$resources_key."/audio", 0755);
+			mkdir("resources/".$resources_key."/characters", 0755);
+			mkdir("resources/".$resources_key."/collectables", 0755);
+			mkdir("resources/".$resources_key."/effects", 0755);
+			mkdir("resources/".$resources_key."/maps", 0755);
+			mkdir("resources/".$resources_key."/tokens", 0755);
 
 			return true;
 		}
 
 		public function update_organisation($organisation) {
-			$keys = array("name");
+			$keys = array("name", "max_resources");
 
 			return $this->db->update("organisations", $organisation["id"], $organisation, $keys);
-		}
-
-		public function delete_oke($organisation_id) {
-			$query = "select count(*) as count from users where organisation_id=%d";
-
-			if (($result = $this->db->execute($query, $organisation_id)) === false) {
-				$this->view->add_system_warming("Database error.");
-				return false;
-			}
-
-			if ((int)$result[0]["count"] > 0) {
-				$this->view->add_message("Organisation in use.");
-				return false;
-			}
-
-			return true;
 		}
 
 		private function remove_directory($directory) {
@@ -116,16 +104,48 @@
 		}
 
 		public function delete_organisation($organisation_id) {
+			/* Delete games
+			 */
+			$query = "select g.id from games g, users u where g.dm_id=u.id and u.organisation_id=%d";
+			if (($games = $this->db->execute($query, $organisation_id)) === false) {
+				return false;
+			}
+
+			foreach ($games as $game) {
+				if ($this->borrow("cms/game")->delete_game($game["id"]) === false) {
+					return false;
+				}
+			}
+
+			/* Delete users
+			 */
+			$query = "select id from users where organisation_id=%d";
+			if (($users = $this->db->execute($query, $organisation_id)) === false) {
+				return false;
+			}
+
+			foreach ($users as $user) {
+				if ($this->borrow("cms/user")->delete_user($user["id"]) === false) {
+					return false;
+				}
+			}
+
+			/* Delete organsattion
+			 */
 			if (($organisation = $this->db->entry("organisations", $organisation_id)) == false) {
 				return false;
 			}
 
-			if ($this->db->delete("organisations", $organisation_id) == false) {
+			$queries = array(
+				array("delete from tokens where organisation_id=%d", $organisation_id),
+				array("delete from organisations where id=%d", $organisation_id));
+
+			if ($this->db->transaction($queries) === false) {
 				return false;
 			}
 
-			if ($organisation["files_key"] != "") {
-				$this->remove_directory("files/".$organisation["files_key"]);
+			if ($organisation["resources_key"] != "") {
+				$this->remove_directory("resources/".$organisation["resources_key"]);
 			}
 
 			return true;

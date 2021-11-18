@@ -7,6 +7,8 @@
 	 */
 
 	class cms_file_model extends Banshee\model {
+        protected $max_capacity = false;
+
 		private function filename_oke($file) {
 			if (trim($file) == "") {
 				return false;
@@ -63,13 +65,38 @@
 				return false;
 			}
 
-			if ($size > 1048576) {
-				return sprintf("%.2f MB", $size / 1048576);
+			if ($size > MB) {
+				return sprintf("%.2f MB", $size / MB);
 			} else if ($size > 1024) {
 				return sprintf("%.2f kB", $size / 1024);
 			}
 
 			return $size." byte";
+		}
+
+		public function get_directory_size($directory) {
+			if (($dp = opendir($directory)) == false) {
+				return false;
+			}
+
+			$result = 0;
+
+			while (($file = readdir($dp)) != false) {
+				if (($file == ".") || ($file == "..")) {
+					continue;
+				}
+
+				$path = $directory."/".$file;
+				if (is_dir($path)) {
+					$result += $this->get_directory_size($path);
+				} else if (($size = filesize($path)) !== false) {
+					$result += $size;
+				}
+			}
+
+			closedir($dp);
+
+			return $result;
 		}
 
 		public function upload_oke($file, $directory) {
@@ -82,17 +109,33 @@
 				$this->view->add_message("Invalid filename.");
 				return false;
 			}
+
 			if (($ext = strrchr($file["name"], ".")) === false) {
 				$this->view->add_message("File has no extension.");
 				return false;
 			}
-			if (in_array(substr($ext, 1), config_array(ALLOWED_UPLOADS)) == false) {
+
+			$allowed_extensions = array_merge(
+				config_array(ALLOWED_UPLOADS),
+				config_array(MAP_BACKGROUND_EXTENSIONS));
+			if (in_array(substr(strtolower($ext), 1), $allowed_extensions) == false) {
 				$this->view->add_message("Invalid file extension.");
 				return false;
 			}
+
 			if (file_exists($directory."/".$file["name"])) {
 				$this->view->add_message("File already exists.");
 				return false;
+			}
+
+			if ($this->max_capacity && ($this->user->max_resources > 0)) {
+				$max_capacity = $this->user->max_resources * MB;
+				$capacity = $this->get_directory_size("resources/".$this->user->resources_key);
+
+				if ($capacity + filesize($file["tmp_name"]) > $max_capacity) {
+					$this->view->add_message("This file is too big for your maximum capacity (%s MB).", $this->user->max_resources);
+					return false;
+				}
 			}
 
 			return true;

@@ -12,13 +12,19 @@
 <table class="table table-condensed table-striped table-hover">
 <thead>
 <tr>
-<th>Name</th>
+<th>Name</th><th>Users</th><th>Tokens</th><th>Games</th><th>Maps</th><th>Max resources (MB)</th><th>Days idle</th>
 </tr>
 </thead>
 <tbody>
 <xsl:for-each select="organisations/organisation">
 <tr class="click" onClick="javascript:document.location='/{/output/page}/{@id}'">
 <td><xsl:value-of select="name" /></td>
+<td><xsl:value-of select="users" /></td>
+<td><xsl:value-of select="tokens" /></td>
+<td><xsl:value-of select="games" /></td>
+<td><xsl:value-of select="maps" /></td>
+<td><xsl:value-of select="max_resources" /></td>
+<td><xsl:value-of select="idle" /></td>
 </tr>
 </xsl:for-each>
 </tbody>
@@ -48,6 +54,13 @@
 
 <label for="name">Name:</label>
 <input type="text" id="name" name="name" value="{organisation/name}" class="form-control" />
+<label for="max_resources">Max resource capacity:</label>
+<div class="input-group">
+	<input type="text" id="max_resources" name="max_resources" value="{organisation/max_resources}" class="form-control" />
+	<span class="input-group-addon">MB</span>
+</div>
+<label for="name">Resources key:</label>
+<input type="text" id="resources_key" readonly="readonly" value="{organisation/resources_key}" class="form-control" />
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save organisation" class="btn btn-default" />

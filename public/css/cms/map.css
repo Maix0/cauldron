@@ -10,7 +10,7 @@
 }
 
 table.table th:last-child {
-	width:70px;
+	width:115px;
 }
 
 div.input-group {
@@ -48,4 +48,43 @@ div.overlay div.panel-body li:hover {
 
 div.overlay ul.maps {
 	padding-left:15px;
+}
+
+/* Grid
+ */
+div.playarea {
+	border:1px solid #000000;
+	overflow:scroll;
+	max-width:890px;
+	max-height:700px;
+	margin-top:25px;
+}
+
+div.map {
+	position:relative;
+}
+
+div.map img.map,
+div.map video.map {
+	display:block;
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+div#slider {
+	margin-bottom:15px;
+}
+
+#grid-handle {
+	width: 3em;
+	height: 1.6em;
+	top: 50%;
+	margin-top: -.8em;
+	text-align: center;
+	line-height: 1.6em;
+}
+
+span.sizes {
+	margin-left:5px;
 }

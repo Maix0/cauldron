@@ -150,7 +150,9 @@
 				return false;
 			}
 
-			$organisation = array("name" => $data["organisation"]);
+			$organisation = array(
+				"name"          => $data["organisation"],
+				"max_resources" => $this->settings->default_max_resources);
 			if ($this->borrow("cms/organisation")->create_organisation($organisation) == false) {
 				$this->db->query("rollback");
 				return false;
@@ -178,6 +180,10 @@
 				}
 			}
 
+			if ($this->db->query("commit") === false) {
+				return false;
+			}
+
 			$email = new \Banshee\Protocol\email("New account registered at ".$_SERVER["SERVER_NAME"], $this->settings->webmaster_email);
 			$email->set_message_fields(array(
 				"FULLNAME" => $data["fullname"],
@@ -188,7 +194,7 @@
 			$email->message(file_get_contents("../extra/account_registered.txt"));
 			$email->send($this->settings->webmaster_email);
 
-			return $this->db->query("commit") !== false;
+			return true;
 		}
 	}
 ?>

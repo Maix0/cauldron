@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-<xsl:template match="layout[@name='tabletop']">
+<xsl:template match="layout[@name='cauldron']">
 <html lang="{language}">
 
 <head>
@@ -13,17 +13,17 @@
 <meta name="description" content="{description}" />
 <meta name="keywords" content="{keywords}" />
 <meta name="generator" content="Banshee PHP framework v{/output/banshee/version} (https://www.banshee-php.org/)" />
-<meta property="og:title" content="{title/@page}" />
+<meta property="og:title" content="{title}" />
 <meta property="og:description" content="{description}" />
-<meta property="og:image" content="/images/d20.png" />
-<meta property="og:url" content="https://{/output/website_url}/" />
+<meta property="og:image" content="https://{/output/website_url}/images/cauldron.png" />
+<meta property="og:url" content="https://{/output/website_url}/images/cauldron.png" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="{title/@page}" />
+<meta name="twitter:title" content="{title}" />
 <meta name="twitter:description" content="{description}" />
-<meta name="twitter:image" content="/images/d20.png" />
-<link rel="apple-touch-icon" href="/images/d20.png" />
-<link rel="icon" href="/images/d20.png" />
-<link rel="shortcut icon" href="/images/d20.png" />
+<meta name="twitter:image" content="https://{/output/website_url}/images/cauldron.png" />
+<link rel="apple-touch-icon" href="/images/favicon.png" />
+<link rel="icon" href="/images/favicon.png" />
+<link rel="shortcut icon" href="/images/favicon.png" />
 <title><xsl:if test="title/@page!='' and title/@page!=title"><xsl:value-of select="title/@page" /> - </xsl:if><xsl:value-of select="title" /></title>
 <xsl:for-each select="alternates/alternate">
 <link rel="alternate" title="{.}" type="{@type}" href="{@url}" />
@@ -31,11 +31,12 @@
 <xsl:for-each select="styles/style">
 <link rel="stylesheet" type="text/css" href="{.}" />
 </xsl:for-each>
-<xsl:if test="inline_css">
 <style type="text/css">
+div.header {
+	background-image:url(/images/layout/cauldron_header_<xsl:value-of select="/output/cauldron/background" />.jpg);
+}
 <xsl:value-of select="inline_css" />
 </style>
-</xsl:if>
 <xsl:for-each select="javascripts/javascript">
 <script type="text/javascript" src="{.}"></script><xsl:text>
 </xsl:text></xsl:for-each>
@@ -97,7 +98,7 @@
 
 	<div class="footer">
 		<div class="container">
-			<span>TableTop v<xsl:value-of select="/output/tabletop/version" /></span>
+			<span>Cauldron v<xsl:value-of select="/output/cauldron/version" /></span>
 			<xsl:if test="/output/user">
 			<span>Logged in as <a href="/profile"><xsl:value-of select="/output/user" /></a></span>
 			<span><a href="/session">Session manager</a></span>

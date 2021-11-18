@@ -46,7 +46,7 @@
 			if (is_true($page["form"])) {
 				$page_form = new \Banshee\form_script($this->view, $this->settings, $page["content"]);
 				if ($_SERVER["REQUEST_METHOD"] == "POST") {
-					if ($page_form->handle_post($_POST, $page["title"], $page["form_email"]) == false) {
+					if ($page_form->handle_post($_POST, $page["title"], $page["form_email"], $this->user) == false) {
 						$page["content"] = $page_form->generate_form($_POST);
 					} else {
 						$page["content"] = $page["form_done"];

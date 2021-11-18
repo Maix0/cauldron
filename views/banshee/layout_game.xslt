@@ -15,15 +15,15 @@
 <meta name="generator" content="Banshee PHP framework v{/output/banshee/version} (https://www.banshee-php.org/)" />
 <meta property="og:title" content="{title/@page}" />
 <meta property="og:description" content="{description}" />
-<meta property="og:image" content="/images/d20.png" />
-<meta property="og:url" content="https://{/output/website_url}/" />
+<meta property="og:image" content="/images/cauldron.png" />
+<meta property="og:url" content="https://{/output/website_url}/images/cauldron.png" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="{title/@page}" />
 <meta name="twitter:description" content="{description}" />
-<meta name="twitter:image" content="/images/d20.png" />
-<link rel="apple-touch-icon" href="/images/d20.png" />
-<link rel="icon" href="/images/d20.png" />
-<link rel="shortcut icon" href="/images/d20.png" />
+<meta name="twitter:image" content="https://{/output/website_url}/images/cauldron.png" />
+<link rel="apple-touch-icon" href="/images/cauldron.png" />
+<link rel="icon" href="/images/cauldron.png" />
+<link rel="shortcut icon" href="/images/cauldron.png" />
 <title><xsl:if test="title/@page!='' and title/@page!=title"><xsl:value-of select="title/@page" /> - </xsl:if><xsl:value-of select="title" /></title>
 <xsl:for-each select="alternates/alternate">
 <link rel="alternate" title="{.}" type="{@type}" href="{@url}" />

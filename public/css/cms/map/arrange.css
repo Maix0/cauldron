@@ -101,6 +101,10 @@ div.playarea video {
 	top:0;
 }
 
+div.playarea div.conditions {
+	display:none;
+}
+
 /* Library
  */
 div.library {
@@ -152,4 +156,13 @@ div.sidebar {
 	width:200px;
 	overflow-y:scroll;
 	overflow-x:hidden;
+}
+
+/* Manual
+ */
+div.script_manual div.conditions span:after {
+	content:', ';
+}
+div.script_manual div.conditions span:last-child:after {
+	content:'.';
 }

@@ -41,20 +41,17 @@
 		}
 
 		public function create_game($game) {
-			$keys = array("id", "title", "image", "story", "dm_id", "player_access");
+			$keys = array("id", "title", "image", "story", "dm_id", "access");
 
 			$game["id"] = null;
 			$game["dm_id"] = $this->user->id;
 			$game["active_map_id"] = null;
-			$game["player_access"] = is_true($game["player_access"]) ? YES : NO;
 
 			return $this->db->insert("games", $game, $keys) !== false;
 		}
 
 		public function update_game($game) {
-			$keys = array("title", "image", "story", "player_access");
-
-			$game["player_access"] = is_true($game["player_access"]) ? YES : NO;
+			$keys = array("title", "image", "story", "access");
 
 			return $this->db->update("games", $game["id"], $game, $keys) !== false;
 		}
@@ -71,6 +68,13 @@
 		}
 
 		public function delete_game($game_id) {
+			$query = "select resources_key from organisations o, users u, games g ".
+			         "where o.id=u.organisation_id and u.id=g.dm_id and g.id=%d";
+			if (($result = $this->db->execute($query, $game_id)) == false) {
+				return false;
+			}
+			$resources_key = $result[0]["resources_key"];
+
 			$query = "select image from collectables where game_id=%d";
 			if (($collectables = $this->db->execute($query, $game_id)) === false) {
 				return false;
@@ -95,7 +99,7 @@
 			}
 
 			foreach ($collectables as $collectable) {
-				unlink("files/".$this->user->files_key."/collectables/".$collectable["image"]);
+				unlink("resources/".$resources_key."/collectables/".$collectable["image"]);
 			}
 
 			return true;

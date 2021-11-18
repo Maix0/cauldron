@@ -14,6 +14,12 @@
 			return $this->db->entry("maps", $map_id);
 		}
 
+		public function get_conditions() {
+			$query = "select * from conditions order by name";
+
+			return $this->db->execute($query);
+		}
+
 		public function get_available_tokens() {
 			$query = "select * from tokens where organisation_id=%d order by name";
 

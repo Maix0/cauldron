@@ -48,6 +48,14 @@
 				if ($image["error"] != 0) {
 					$this->view->add_message("Upload an image.");
 					$result = false;
+				} else if ($this->user->max_resources > 0) {
+					$max_capacity = $this->user->max_resources * MB;
+					$capacity = $this->borrow("cms/file")->get_directory_size("resources/".$this->user->resources_key);
+
+					if ($capacity + filesize($file["tmp_name"]) > $max_capacity) {
+						$this->view->add_message("This file is too big for your maximum resource capacity (%s MB).", $this->user->max_resources);
+						return false;
+					}
 				}
 			}
 
@@ -59,7 +67,7 @@
 		}
 
 		private function save_image($image, $filename) {
-			return copy($image["tmp_name"], "files/".$this->user->files_key."/collectables/".$filename);
+			return copy($image["tmp_name"], "resources/".$this->user->resources_key."/collectables/".$filename);
 		}
 
 		public function create_collectable($collectable, $image) {
@@ -96,7 +104,7 @@
 					return false;
 				}
 
-				unlink("files/".$this->user->files_key."/collectables/".$current["image"]);
+				unlink("resources/".$this->user->resources_key."/collectables/".$current["image"]);
 
 				$collectable["image"] = $this->make_filename($collectable["id"], $image["name"]);
 				if ($this->save_image($image, $collectable["image"])) {
@@ -132,7 +140,7 @@
 				return false;
 			}
 
-			unlink("files/".$this->user->files_key."/collectables/".$current["image"]);
+			unlink("resources/".$this->user->resources_key."/collectables/".$current["image"]);
 
 			return true;
 		}

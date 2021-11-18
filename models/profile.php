@@ -132,8 +132,21 @@
 			return $this->db->update("users", $this->user->id, $profile, $keys) !== false;
 		}
 
+		public function delete_oke() {
+			if ($this->user->has_role("User maintainer")) {
+				$this->view->add_message("As a User maintainer, you are not allowed to delete your own account.");
+				return false;
+			}
+
+			return true;
+		}
+
 		public function delete_account() {
 			if ($this->user->is_admin) {
+				return false;
+			}
+
+			if ($this->borrow("cms/user")->delete_oke($this->user->id) == false) {
 				return false;
 			}
 

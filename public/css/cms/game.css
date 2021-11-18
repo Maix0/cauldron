@@ -2,8 +2,12 @@ table.table th:first-child {
 	width:50px;
 }
 
-table.table th:nth-child(n+3) {
+table.table th:nth-child(3) {
 	width:80px;
+}
+
+table.table th:nth-child(4) {
+	width:100px;
 }
 
 textarea.form-control {

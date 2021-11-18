@@ -13,9 +13,7 @@
 
 <xsl:template match="content">
 <h1>Website administration</h1>
-<div class="row">
 <xsl:for-each select="menu/section">
-	<div class="{@class}">
 	<div class="panel panel-default">
 		<div class="panel-heading"><xsl:value-of select="@title" /></div>
 		<ul class="panel-body">
@@ -24,9 +22,7 @@
 		</xsl:for-each>
 		</ul>
 	</div>
-	</div>
 </xsl:for-each>
-</div>
 </xsl:template>
 
 </xsl:stylesheet>

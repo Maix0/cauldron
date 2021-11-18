@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:import href="banshee/main.xslt" />
-<xsl:import href="includes/tabletop.xslt" />
+<xsl:import href="includes/cauldron.xslt" />
 
 <!--
 //
@@ -9,7 +9,14 @@
 //
 //-->
 <xsl:template match="games">
-<xsl:if test="count(game)=0">No games available yet.</xsl:if>
+<xsl:if test="count(game)=0">
+<p>No games available yet.</p>
+<xsl:if test="@is_dm='yes'">
+<p>If this is your first time using Cauldron, read the <a href="/manual">online manual</a> first.</p>
+<p>Create a game by clicking the <a href="/cms">CMS</a> link in the top menu bar and then the Games icon.</p>
+<p>Add maps to your game via the Maps icon.</p>
+</xsl:if>
+</xsl:if>
 <div class="row">
 <xsl:for-each select="game">
 <div class="col-sm-6">
@@ -18,7 +25,8 @@
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
 <div class="btn-group">
 <xsl:if test="story!=''"><button class="btn btn-primary btn-sm" onClick="javascript:show_story({@id})">Introduction</button></xsl:if>
-<xsl:if test="player_access='yes' or dm_id=/output/user/@id"><a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Start game</a></xsl:if>
+<xsl:if test="(access='yes' or dm_id=/output/user/@id) and type='play'"><a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Start game</a></xsl:if>
+<xsl:if test="type='spectate'"><a href="/spectate/{@id}" class="btn btn-success btn-sm">Spectate game</a></xsl:if>
 </div>
 </div>
 </div>
@@ -27,7 +35,7 @@
 
 <div class="overlay stories" onClick="javascript:close_story()">
 <xsl:for-each select="game">
-<div id="story{@id}" class="panel panel-default story" onClick="javascript:event.stopPropagation()">
+<div id="story{@id}" class="panel panel-primary story" onClick="javascript:event.stopPropagation()">
 <div class="panel-heading"><xsl:value-of select="title" /><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:close_story()"></span></div>
 <div class="panel-body"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
 </div>
@@ -41,6 +49,7 @@
 //
 //-->
 <xsl:template match="game">
+<div class="loading"><span>Loading...</span></div>
 <!-- Menu -->
 <div class="menu">
 <span id="infobar"></span>
@@ -50,6 +59,13 @@
 <xsl:for-each select="maps/map"><option value="{@id}"><xsl:if test="@current='yes'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option></xsl:for-each>
 </select>
 </xsl:if>
+<!--
+<div class="btn-group zoom">
+<button class="btn btn-default btn-xs" onClick="javascript:zoom_in()">+</button>
+<button class="btn btn-default btn-xs" onClick="javascript:zoom_playarea(1)">o</button>
+<button class="btn btn-default btn-xs" onClick="javascript:zoom_out()">-</button>
+</div>
+//-->
 <div class="btn-group">
 <button class="btn btn-default btn-xs" onClick="javascript:journal_show()">Journal</button>
 <xsl:if test="map/dm_notes!=''">
@@ -58,16 +74,17 @@
 <button class="btn btn-default btn-xs" onClick="javascript:collectables_show()">Inventory</button>
 <button class="btn btn-default btn-xs" onClick="javascript:center_character(this)">Center character</button>
 <xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
-<a href="/game" class="btn btn-default btn-xs">Back</a>
+<a href="/{/output/page}" class="btn btn-default btn-xs">Back</a>
 </div>
 </div>
 <xsl:if test="not(map)">
 <input id="game_id" type="hidden" name="game_id" value="{@id}" />
-<p class="nomap">No map has been selected yet.</p>
+<p class="nomap">This game has no maps yet. <xsl:if test="@is_dm='yes' and not(maps)">Add maps to your game via the <a href="/cms/map">CMS Map Administration</a> page.</xsl:if></p>
 </xsl:if>
-<!-- Journal -->
+<!-- Windows -->
 <xsl:if test="map">
 <div class="windows">
+<!-- Journal -->
 <div class="journal overlay" onClick="javascript:$(this).hide()">
 <div class="panel panel-info" onClick="javascript:event.stopPropagation()">
 <div class="panel-heading">Journal<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.journal').hide()"></span></div>
@@ -118,27 +135,27 @@
 <div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.effect_create').hide()"></span></div>
 <div class="panel-body">
 <xsl:for-each select="effects/effect">
-<img src="/files/{/output/tabletop/files_key}/effects/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" onClick="javascript:effect_create($(this))" /><xsl:text>
+<img src="/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" onClick="javascript:effect_create($(this))" /><xsl:text>
 </xsl:text></xsl:for-each>
 </div>
 </div>
 </div>
 </div>
 <!-- Play area -->
-<div class="playarea" version="{/output/tabletop/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" files_key="{/output/tabletop/files_key}" dm="{@dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
+<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div>
 <xsl:if test="map/type='image'"><xsl:attribute name="style">background-image:url(<xsl:value-of select="map/url" />); background-size:<xsl:value-of select="map/width" />px <xsl:value-of select="map/height" />px; width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute></xsl:if>
 <xsl:if test="map/type='video'"><xsl:attribute name="style">width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute>
-<video width="{map/width}" height="{map/height}" autoplay="true" loop="true" source="{map/url}" /><xsl:text>
+<video width="{map/width}" height="{map/height}" autoplay="true" loop="true"><source src="{map/url}" /></video><xsl:text>
 </xsl:text></xsl:if>
 <!-- Grid -->
-<div class="grid"></div>
+<div class="grid"><div class="glass" style="width:{map/width}px; height:{map/height}px" /></div>
 <!-- Zones -->
 <div class="zones">
 <xsl:for-each select="zones/zone">
-<div id="zone{@id}" class="zone" style="left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};"><xsl:if test="group!=''"><xsl:attribute name="group"><xsl:value-of select="group" /></xsl:attribute></xsl:if><xsl:if test="script!=''"><div class="script"><xsl:value-of select="script" /></div></xsl:if></div>
+<div id="zone{@id}" class="zone" altitude="{altitude}" style="left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};"><xsl:if test="group!=''"><xsl:attribute name="group"><xsl:value-of select="group" /></xsl:attribute></xsl:if><xsl:if test="script!=''"><div class="script"><xsl:value-of select="script" /></div></xsl:if></div>
 </xsl:for-each>
 </div>
 <!-- Walls -->
@@ -174,11 +191,17 @@
 <xsl:if test="perc">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 </xsl:if>
-<img src="/files/{/output/tabletop/files_key}/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" />
 <xsl:if test="name!=''">
 <span><xsl:value-of select="name" /></span>
 </xsl:if>
 </div>
+</xsl:for-each>
+</div>
+<!-- Shape change -->
+<div class="shape_change">
+<xsl:for-each select="shape_change/token">
+<div shape_id="{@id}" size="{size}" extension="{extension}" ><xsl:value-of select="name" /></div>
 </xsl:for-each>
 </div>
 <!-- Characters -->
@@ -186,7 +209,7 @@
 <xsl:for-each select="characters/character">
 <div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-<img src="/files/{/output/tabletop/files_key}/characters/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
+<img src="/resources/{/output/cauldron/resources_key}/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>

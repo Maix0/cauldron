@@ -39,6 +39,26 @@ div.stories div.panel {
 
 /* Run a game
  */
+div.loading {
+	position:absolute;
+	top:0;
+	right:0;
+	bottom:0;
+	left:0;
+	background-color:#ffffff;
+	z-index:100000;
+	text-align:center;
+}
+
+div.loading span {
+	font-size:40px;
+	position:absolute;
+	top:50%;
+	transform:translateY(-50%);
+	left:0;
+	right:0;
+}
+
 div.menu {
 	position:absolute;
 	top:5px;
@@ -71,6 +91,11 @@ div.menu select.map-selector {
 	position:relative;
 	top:1px;
 	font-size:12px;
+}
+
+div.menu div.zoom button {
+	font-family:sans-serif;
+	padding:0 10px;
 }
 
 table.table th:last-child {
@@ -190,6 +215,7 @@ div.playarea {
 	border:1px solid #000000;
 	overflow:auto;
 	z-index:1;
+	transform-origin:top left;
 }
 
 div.playarea video {
@@ -207,6 +233,10 @@ div.sidebar {
 	width:200px;
 	overflow-y:scroll;
 	overflow-x:hidden;
+}
+
+div.sidebar img {
+	max-width:100%;
 }
 
 div.sidebar b {
@@ -230,6 +260,12 @@ div.conditions {
 /* Alternates
  */
 div.alternates {
+	display:none;
+}
+
+/* Shapes
+ */
+div.shape_change {
 	display:none;
 }
 
@@ -268,12 +304,25 @@ div.marker span {
 	border:1px solid #808080;
 	padding:1px 3px;
 }
+div.mine span {
+	border-color:#404040;
+	background-color:#c0c0ff;
+}
 
 div.token span.conditions,
 div.character span.conditions {
 	background-color:#ffa0a0;
 }
 
+/* Grid
+ */
+div.grid div.glass {
+	position:absolute;
+	border:1px dashed #0000ff;
+}
+
+/* Zone
+ */
 div.zone {
 	position:absolute;
 }

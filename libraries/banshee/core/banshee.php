@@ -24,6 +24,7 @@
 	define("EURO", html_entity_decode("&euro;"));
 	define("HOUR", 3600);
 	define("DAY", 86400);
+	define("MB", 1048576);
 	define("ANALYTICS_DAYS", 60);
 	define("EVENT_FAILED_LOGIN", 1);
 	define("EVENT_EXPLOIT_ATTEMPT", 2);
@@ -363,6 +364,10 @@
 	 * ERROR:  -
 	 */
 	function config_array($line, $key_value = true) {
+		if (trim($line) == "") {
+			return array();
+		}
+
 		$items = explode("|", $line);
 
 		if ($key_value == false) {
@@ -371,11 +376,11 @@
 
 		$result = array();
 		foreach ($items as $item) {
-			list($key, $value) = explode(":", $item, 2);
-			if ($value === null) {
-				array_push($result, $key);
+			$parts = explode(":", $item, 2);
+			if (count($parts) == 1) {
+				array_push($result, $item);
 			} else {
-				$result[$key] = $value;
+				$result[$parts[0]] = $parts[1];
 			}
 		}
 
@@ -415,9 +420,12 @@
 		define(trim($key), trim($value));
 	}
 
-	foreach (config_file("tabletop") as $line) {
-		list($key, $value) = explode("=", chop($line), 2);
-		define(trim($key), trim($value));
+	$extra_config = config_array(EXTRA_SETTINGS);
+	foreach ($extra_config as $config_file) {
+		foreach (config_file($config_file) as $line) {
+			list($key, $value) = explode("=", chop($line), 2);
+			define(trim($key), trim($value));
+		}
 	}
 
 	/* Autoloaders
