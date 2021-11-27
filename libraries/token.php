@@ -91,7 +91,7 @@
 
 			$queries = array(
 				array("update game_character set token_id=null where token_id=%d", $token_id),
-				array("delete from tokens where token_id=%d", $token_id));
+				array("delete from tokens where id=%d", $token_id));
 			if ($this->db->transaction($queries) === false) {
 				return false;
 			}
