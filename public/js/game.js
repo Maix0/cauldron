@@ -3207,7 +3207,7 @@ $(document).ready(function() {
 				message_to_sidebar(data.name, data.mesg);
 				break;
 			case 'shape':
-				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/tokens/' + data.src);
+				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/' + data.src);
 				$('div#' + data.char_id).find('img').css('width', grid_cell_size + 'px');
 				$('div#' + data.char_id).find('img').css('height', grid_cell_size + 'px');
 				break;
