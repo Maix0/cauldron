@@ -20,7 +20,7 @@
 <xsl:call-template name="show_messages" />
 <form id="login" action="{url}" method="post" autocomplete="off">
 <label for="username">Username:</label>
-<input type="text" autocapitalize="off" autocorrect="off" id="username" name="username" value="{username}" class="form-control" />
+<input type="text" autocapitalize="off" autocorrect="off" id="username" name="username" value="{username}" class="form-control" style="text-transform:lowercase" />
 <label for="password">Password:</label>
 <input type="password" id="password" name="password" class="form-control" />
 <xsl:if test="@authenticator='yes'">

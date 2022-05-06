@@ -55,6 +55,21 @@
 			return $maps;
 		}
 
+		public function get_map_type($url) {
+			$parts = explode(".", $url);
+			$extension = array_pop($parts);
+
+			if (in_array($extension, config_array(MAP_IMAGE_EXTENSIONS))) {
+				return "image";
+			}
+
+			if (in_array($extension, config_array(MAP_VIDEO_EXTENSIONS))) {
+				return "video";
+			}
+
+			return false;
+		}
+
 		public function get_map($map_id) {
 			$query = "select m.* from maps m, games g ".
 			         "where m.game_id=g.id and m.id=%d and g.dm_id=%d";
@@ -62,8 +77,11 @@
 			if (($maps = $this->db->execute($query, $map_id, $this->user->id)) == false) {
 				return false;
 			}
+			$map = $maps[0];
 
-			return $maps[0];
+			$map["type"] = $this->get_map_type($map["url"]);
+
+			return $map;
 		}
 
 		public function get_image_dimensions($map) {
@@ -73,10 +91,10 @@
 					$image = "resources/".$this->user->resources_key.substr($image, 9);
 				}
 			} else {
-				list(,, $hostname, $path) = explode("/", $map["url"], 4);
-				if (substr($map["url"], 0, 7) == "http://") {
+				list($protocol,, $hostname, $path) = explode("/", $map["url"], 4);
+				if ($protocol == "http:") {
 					$website = new \Banshee\Protocol\HTTPS($hostname);
-				} else if (substr($map["url"], 0, 8) == "https://") {
+				} else if ($protocol == "https:") {
 					$website = new \Banshee\Protocol\HTTPS($hostname);
 				} else {
 					return false;
@@ -141,7 +159,9 @@
 			} else {
 				list($url) = explode("?", $map["url"], 2);
 				$info = pathinfo($url);
-				$extensions = config_array(MAP_BACKGROUND_EXTENSIONS);
+				$extensions = array_merge(
+					config_array(MAP_IMAGE_EXTENSIONS),
+					config_array(MAP_VIDEO_EXTENSIONS));
 				if (in_array($info["extension"], $extensions) == false) {
 					$this->view->add_message("Unsupported file extension in image/video URL.");
 					$result = false;
@@ -151,7 +171,7 @@
 			$min_size = 2 * $this->settings->screen_grid_size;
 
 			if (((int)$map["width"] < $min_size) || ((int)$map["height"] < $min_size)) {
-				$this->view->add_message("The map must be at least %sx%s pixels.", $min_size, $min_size);
+				$this->view->add_message("The map must be at least %sx%s pixels. Does the map file exists?", $min_size, $min_size);
 				$result = false;
 			}
 
@@ -188,9 +208,10 @@
 				"hidden"   => NO);
 
 			$positions = array(
-				array( 0, -1), array( 1,  1), array(-1,  1), array(-1, -1),
-				array( 0, -1), array( 2,  0), array( 0,  2), array(-2,  0),
-				array( 1, -1));
+				array( 0, -1), array( 1,  1), array(-1,  1), array(-1, -1), // cross
+				array( 0, -1), array( 2,  0), array( 0,  2), array(-2,  0), // corners
+				array( 0,  1), array( 1,  0), array( 1,  0),
+				array(-2,  1), array( 1,  0), array( 1,  0));
 
 			foreach ($characters as $character) {
 				$data["character_id"] = $character["character_id"];
@@ -208,7 +229,7 @@
 		}
 
 		public function create_map($map) {
-			$keys = array("id", "game_id", "title", "url", "audio", "type", "width", "height",
+			$keys = array("id", "game_id", "title", "url", "audio", "width", "height",
 			              "grid_size", "show_grid", "drag_character", "fog_of_war",
 			              "fow_distance", "start_x", "start_y", "dm_notes");
 
@@ -256,7 +277,7 @@
 				return false;
 			}
 
-			$keys = array("title", "url", "audio", "type", "width", "height",
+			$keys = array("title", "url", "audio", "width", "height",
 			              "drag_character", "fog_of_war", "fow_distance", "dm_notes");
 
 			$map["url"] = str_replace(" ", "%20", $map["url"]);

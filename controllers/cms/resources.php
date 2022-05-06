@@ -19,7 +19,7 @@
 			parent::execute();
 
 			if ($this->user->max_resources > 0) {
-				$resources = $this->model->get_directory_size("resources/".$this->user->resources_key);
+				$resources = $this->model->get_directory_size($this->get_base_dir());
 				$capacity = round($resources / MB * 100 / $this->user->max_resources);
 				$this->view->add_tag("capacity", $capacity, array("max" => $this->user->max_resources));
 			}

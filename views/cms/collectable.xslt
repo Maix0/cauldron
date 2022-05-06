@@ -60,6 +60,10 @@
 <input type="file" name="image" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name)" />Browse</label></span>
 <input type="text" id="upload-file-info" readonly="readonly" class="form-control" />
 </div>
+<xsl:if test="collectable/location!=''">
+<label>Location:</label>
+<input readonly="readonly" value="{collectable/location}" class="form-control" />
+</xsl:if>
 <div>Collectable has been found: <input type="checkbox" name="found"><xsl:if test="collectable/found='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
 <div>Hide containing token when found: <input type="checkbox" name="hide"><xsl:if test="collectable/hide='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
 

@@ -27,16 +27,6 @@ div.well div.btn-group {
 	right:15px;
 }
 
-/* Stories
- */
-div.stories > div {
-	display:none;
-}
-
-div.stories div.panel {
-	max-width:600px;
-}
-
 /* Run a game
  */
 div.loading {
@@ -124,23 +114,78 @@ div.window {
 	border:1px solid #0000ff;
 }
 
+/* Fog of war
+ */
+canvas.fow {
+	position:absolute;
+	top:0;
+	left:0;
+	pointer-events:none;
+}
+
+div.fow_covered {
+	pointer-events:none;
+}
+
 /* Lights
  */
 div.light {
 	position:absolute;
 }
 
+/* Blinders
+ */
+div.blinder {
+	position:absolute;
+	background-color:#e080e0;
+	border:1px solid #e000e0;
+	transform-origin:0px 2px;
+}
+
+/* Collectables
+ */
+div.image_overlay {
+	display:none;
+	position:fixed;
+	top:0;
+	bottom:0;
+	left:0;
+	right:0;
+	background:rgba(64, 64, 64, 0.7);
+	z-index:20000;
+}
+
+/* DM notes
+ */
+div.notes div.panel-body {
+	white-space:pre-wrap;
+	padding:0 15px;
+}
+
+/* Effects
+ */
+span.effect_size { 
+	display:inline-block;
+	padding:0 15px;
+	width:50%;
+}
+
+span.effect_size:first-child {
+	text-align:right;
+}
+
+span.effect_size input {
+	border:none;
+	width:40px;
+}
+
+div.effect_create img.effect {
+	margin:15px;
+	cursor:pointer;
+}
+
 /* Journal
  */
-div.journal div.panel {
-	max-width:800px;
-}
-
-div.journal div.panel-body {
-	max-height:400px;
-	height:400px;
-}
-
 div.journal div.session {
 	text-align:center;
 	font-weight:bold;
@@ -165,43 +210,6 @@ div.journal span.writer {
 div.journal span.writer:after {
 	content:":";
 	margin-right:5px;
-}
-
-/* Collectables
- */
-div.collectables div.panel {
-	max-width:490px;
-}
-
-/* Effects
- */
-div.effect_create div.panel-heading span.size {
-	margin-left:70px;
-}
-
-div.effect_create div.panel-heading span.size input {
-	border:none;
-	width:40px;
-}
-
-div.effect_create div.panel-heading span.size input:first-child {
-	margin-right:10px;
-}
-
-div.effect_create img.effect {
-	margin:15px;
-	cursor:pointer;
-}
-
-/* DM notes
- */
-div.notes div.panel {
-	max-width:600px;
-}
-
-div.notes div.panel-body {
-	white-space:pre-wrap;
-	padding:0 15px;
 }
 
 /* Screen elements
@@ -318,7 +326,6 @@ div.character span.conditions {
  */
 div.grid div.glass {
 	position:absolute;
-	border:1px dashed #0000ff;
 }
 
 /* Zone

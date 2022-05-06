@@ -117,7 +117,8 @@
 
 			$allowed_extensions = array_merge(
 				config_array(ALLOWED_UPLOADS),
-				config_array(MAP_BACKGROUND_EXTENSIONS));
+				config_array(MAP_IMAGE_EXTENSIONS),
+				config_array(MAP_VIDEO_EXTENSIONS));
 			if (in_array(substr(strtolower($ext), 1), $allowed_extensions) == false) {
 				$this->view->add_message("Invalid file extension.");
 				return false;

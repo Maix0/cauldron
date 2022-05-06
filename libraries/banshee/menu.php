@@ -11,7 +11,7 @@
 	class menu {
 		private $db = null;
 		private $view = null;
-		private $parent_id = 0;
+		private $parent_id = null;
 		private $depth = 1;
 		private $user = null;
 
@@ -38,7 +38,7 @@
 				return false;
 			}
 
-			$this->parent_id = (int)$menu[0]["id"];
+			$this->parent_id = $menu[0]["id"];
 
 			return true;
 		}
@@ -72,8 +72,18 @@
 		 * ERROR:  false
 		 */
 		private function get_menu($id, $depth = 1, $current_url = null) {
-			$query = "select * from menu where parent_id=%d order by %S";
-			if (($menu = $this->db->execute($query, $id, "id")) === false) {
+			$args = array();
+			$query = "select * from menu where parent_id";
+			if ($id == null) {
+				$query .= " is null";
+			} else {
+				$query .= "=%d";
+				array_push($args, $id);
+			}
+			$query .= " order by %S";
+			array_push($args, "id");
+
+			if (($menu = $this->db->execute($query, $args)) === false) {
 				return false;
 			}
 
@@ -87,7 +97,7 @@
 				if (($this->user !== null) && ($item["link"][0] == "/")) {
 					if (($module = ltrim($item["link"], "/")) != "") {
 						list($module) = explode("?", $module, 2);
-                        $module = trim($module, "/");
+						$module = trim($module, "/");
 						if ($this->user->access_allowed($module) == false) {
 							continue;
 						}
@@ -102,6 +112,10 @@
 				$element["link"] = $item["link"];
 				if ($depth > 1) {
 					$element["submenu"] = $this->get_menu($item["id"], $depth - 1, $current_url);
+
+					if (($element["link"] == "#") && (count($element["submenu"]["items"]) == 0)) {
+						continue;
+					}
 				}
 
 				array_push($result["items"], $element);

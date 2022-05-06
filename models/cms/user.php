@@ -236,14 +236,14 @@
 			return true;
 		}
 
-		public function create_user($user) {
+		public function create_user($user, $register = false) {
 			$keys = array("id", "organisation_id", "username", "password", "one_time_key", "cert_serial", "status", "authenticator_secret", "fullname", "email");
 
 			$user["id"] = null;
 			$user["password"] = password_hash($user["password"], PASSWORD_ALGORITHM);
 			$user["one_time_key"] = null;
 
-			if ($this->user->is_admin == false) {
+			if (($this->user->is_admin == false) && ($register == false)) {
 				$user["organisation_id"] = $this->user->organisation_id;
 			}
 

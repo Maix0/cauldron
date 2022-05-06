@@ -7,7 +7,7 @@
 	 */
 
 	class cms_menu_model extends Banshee\model {
-		private function structure_menu($menuitems, $parent_id) {
+		private function structure_menu($menuitems, $parent_id = null) {
 			$menu = array();
 
 			foreach ($menuitems as $item) {
@@ -32,10 +32,10 @@
 				return false;
 			}
 
-			return $this->structure_menu($menuitems, 0);
+			return $this->structure_menu($menuitems);
 		}
 
-		public function menu_oke($menu) {
+		public function menu_okay($menu) {
 			$result = true;
 
 			if (is_array($menu) == false) {
@@ -47,7 +47,7 @@
 				}
 
 				if (isset($item["submenu"])) {
-					if ($this->menu_oke($item["submenu"]) == false) {
+					if ($this->menu_okay($item["submenu"]) == false) {
 						$result = false;
 					}
 				}
@@ -56,7 +56,7 @@
 			return $result;
 		}
 
-		private function save_menu($menu, $parent_id) {
+		private function save_menu($menu, $parent_id = null) {
 			foreach ($menu as $item) {
 				$new = array(
 					"id"        => null,
@@ -80,13 +80,15 @@
 		public function update_menu($menu) {
 			$this->db->query("begin");
 
-			if ($this->db->execute("truncate table %S", "menu") === false) {
+			$this->db->query("set foreign_key_checks=0");
+			if ($this->db->query("truncate table menu") === false) {
 				$this->db->query("rollback");
 				return false;
 			}
+			$this->db->query("set foreign_key_checks=1");
 
 			if (is_array($menu)) {
-				if ($this->save_menu($menu, 0) == false) {
+				if ($this->save_menu($menu) == false) {
 					$this->db->query("rollback");
 					return false;
 				}

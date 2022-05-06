@@ -13,18 +13,13 @@
 <div class="menu">
 <span id="infobar"></span>
 <div class="btn-group">
+<a href="/cms/map/{map/@id}" class="btn btn-primary btn-xs">Edit settings</a>
+<button class="btn btn-default btn-xs" onClick="javascript:toggle_constructs()">Toggle constructs</button>
 <xsl:if test="map/type='video'"><button onClick="javascript:$('video').get(0).play()" class="btn btn-default btn-xs">Play</button></xsl:if>
 <a href="/cms/map" class="btn btn-default btn-xs">Back</a>
 </div>
 </div>
 <div class="windows">
-<!-- Collectables -->
-<div class="collectables overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-default" onClick="javascript:event.stopPropagation();">
-<div class="panel-heading">Collectables<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.collectables').hide()"></span></div>
-<div class="panel-body"></div>
-</div>
-</div>
 <!-- Script -->
 <xsl:call-template name="script_editor" />
 <xsl:call-template name="script_manual" />
@@ -64,6 +59,12 @@
 <img id="light{@id}" src="/images/light_{state}.png" class="light" radius="{radius}" state="{state}" style="position:absolute; left:{pos_x}px; top:{pos_y}px; width:{width}px; height:{height}px" />
 </xsl:for-each>
 </div>
+<!-- Blinders -->
+<div class="blinders">
+<xsl:for-each select="blinders/blinder">
+<div id="blinder{@id}" class="blinder" pos1_x="{pos1_x}" pos1_y="{pos1_y}" pos2_x="{pos2_x}" pos2_y="{pos2_y}" />
+</xsl:for-each>
+</div>
 <!-- Conditions -->
 <div class="conditions">
 <xsl:for-each select="conditions/condition">
@@ -86,9 +87,7 @@
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>
-<xsl:if test="not(characters/character)">
 <div id="start" style="position:absolute; left:{map/start_x}px; top:{map/start_y}px;"><img src="/images/player_start.png" style="width:{@grid_cell_size}px; height:{@grid_cell_size}px;" /></div>
-</xsl:if>
 </div>
 <!-- Fog of war -->
 <div class="fog_of_war"></div>
@@ -118,7 +117,7 @@
 //
 //-->
 <xsl:template match="content">
-<h1><xsl:value-of select="/output/layout/title/@page" /></h1>
+<h1><xsl:value-of select="/output/layout/title/@page" /> - <xsl:value-of select="game/map/title" /></h1>
 <xsl:apply-templates select="game" />
 <xsl:apply-templates select="result" />
 </xsl:template>

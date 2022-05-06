@@ -11,7 +11,6 @@
 	class XML {
 		const XML_HEADER = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
 
-		private $secure_data = null;
 		private $xml_data = "";
 		private $xslt_parameters = array();
 		private $open_tags = array();
@@ -23,18 +22,16 @@
 
 		/* Constructor
 		 *
-		 * INPUT:  [object database][, bool secure XML data]
+		 * INPUT:  [object database]
 		 * OUTPUT: -
 		 * ERROR:  -
 		 */
-		public function __construct($db = null, $secure_data = false) {
+		public function __construct($db = null) {
 			libxml_disable_entity_loader(false);
 
 			if ($db !== null) {
 				$this->cache = new cache($db, "banshee_xml");
 			}
-
-			$this->secure_data = $secure_data;
 		}
 
 		/* Magic method get
@@ -72,35 +69,7 @@
 		 * ERROR:  -
 		 */
 		private function xmlspecialchars($str) {
-			$from = array("&", "\"", "'", "<", ">");
-			$to   = array("&amp;", "&quot;", "&apos;", "&lt;", "&gt;");
-
-			return str_replace($from, $to, $str);
-		}
-
-		/* Remove unprintable characters from string
-		 *
-		 * INPUT:  string text[, string replacement character]
-		 * OUTPUT: string text
-		 * ERROR:  -
-		 */
-		public function secure_string($str, $replace = " ") {
-			$result = "";
-
-			$str = (string)$str;
-			$len = strlen($str);
-			for ($i = 0; $i < $len; $i++) {
-				$value = ord($str[$i]);
-				if (($value == 0x9) || ($value == 0xA) || ($value == 0xD) ||
-				   (($value >= 0x20) && ($value <= 0xD7FF)) || (($value >= 0xE000) && ($value <= 0xFFFD)) ||
-				   (($value >= 0x10000) && ($value <= 0x10FFFF))) {
-					$result .= $str[$i];
-				} else {
-					$result .= $replace;
-				}
-			}
-
-			return $result;
+			return htmlspecialchars($str, ENT_XML1 | ENT_COMPAT, "UTF-8");
 		}
 
 		/* Add string to buffer
@@ -158,9 +127,6 @@
 
 			$this->open_tag($name, $attributes);
 			if ($data !== null) {
-				if ($this->secure_data) {
-					$data = $this->secure_string($data);
-				}
 				$this->add_to_buffer($this->xmlspecialchars($data));
 			}
 			$this->close_tag();

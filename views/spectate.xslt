@@ -19,7 +19,7 @@
 <h2><xsl:value-of select="title" /></h2>
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
 <div class="btn-group">
-<xsl:if test="story!=''"><button class="btn btn-primary btn-sm" onClick="javascript:show_story({@id})">Introduction</button></xsl:if>
+<xsl:if test="story!=''"><button class="btn btn-primary btn-sm show_story{@id}">Introduction</button></xsl:if>
 <a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Spectate game</a>
 </div>
 </div>
@@ -27,14 +27,9 @@
 </xsl:for-each>
 </div>
 
-<div class="overlay stories" onClick="javascript:close_story()">
 <xsl:for-each select="game">
-<div id="story{@id}" class="panel panel-primary story" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading"><xsl:value-of select="title" /><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:close_story()"></span></div>
-<div class="panel-body"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
-</div>
+<div class="story" id="story{@id}" title="{title}" style="display:none"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
 </xsl:for-each>
-</div>
 </xsl:template>
 
 <!--
@@ -52,8 +47,8 @@
 </select>
 </xsl:if>
 <div class="btn-group">
-<button class="btn btn-default btn-xs" onClick="javascript:journal_show()">Journal</button>
-<button class="btn btn-default btn-xs" onClick="javascript:collectables_show()">Inventory</button>
+<button class="btn btn-default btn-xs show_journal">Journal</button>
+<button class="btn btn-default btn-xs show_collectables">Inventory</button>
 <xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
 <a href="/game" class="btn btn-default btn-xs">Back</a>
 </div>
@@ -64,32 +59,12 @@
 </xsl:if>
 <!-- Windows -->
 <xsl:if test="map">
-<div class="windows">
 <!-- Journal -->
-<div class="journal overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-info" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">Journal<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.journal').hide()"></span></div>
-<div class="panel-body">
-<div class="entries">
+<div class="journal" style="display:none">
 <xsl:for-each select="journal/entry">
 <xsl:if test="session"><div class="session"><xsl:value-of select="session" /></div></xsl:if>
 <xsl:if test="content"><div class="entry"><span class="writer"><xsl:value-of select="writer" /></span><span class="content"><xsl:value-of select="content" /></span></div></xsl:if>
 </xsl:for-each>
-</div>
-<div class="row">
-<div class="col-xs-10"><textarea class="form-control"></textarea></div>
-<div class="col-xs-2"><button onClick="javascript:journal_write()" class="btn btn-default">Add</button></div>
-</div>
-</div>
-</div>
-</div>
-<!-- Collectables -->
-<div class="collectables overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-success" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">Inventory<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.collectables').hide()"></span></div>
-<div class="panel-body"></div>
-</div>
-</div>
 </div>
 <!-- Play area -->
 <div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">

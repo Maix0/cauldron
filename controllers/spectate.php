@@ -33,6 +33,7 @@
 				return;
 			}
 
+			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("games.js");
 
 			$this->view->open_tag("games");
@@ -126,15 +127,21 @@
 			$active_map["width"] = round($active_map["width"] * $factor);
 			$active_map["height"] = round($active_map["height"] * $factor);
 
-			$this->view->title = $active_map["title"]." - ".$game["title"];
+			$this->view->title = $game["title"];
 			$this->view->set_layout("game");
 
 			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("banshee/jquery.contextMenu.js");
+			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("includes/library.js");
 			$this->view->add_javascript("spectate.js");
 			if ($active_map["fog_of_war"] > 0) {
-				$this->view->add_javascript("includes/fog_of_war.js");
+				if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
+					$type = "real";
+				} else {
+					$type = "cell";
+				}
+				$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 			}
 
 			$this->view->add_css("banshee/context-menu.css");

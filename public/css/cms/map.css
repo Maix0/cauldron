@@ -9,6 +9,10 @@
 	}
 }
 
+table.table th:nth-child(2) {
+	width:95px;
+}
+
 table.table th:last-child {
 	width:115px;
 }

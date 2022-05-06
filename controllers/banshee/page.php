@@ -37,10 +37,6 @@
 
 			$this->view->add_tag("title", $page["title"]);
 
-			if (is_true(SECURE_XML_DATA)) {
-				$page["content"] = $this->view->secure_string($page["content"]);
-			}
-
 			/* Page form
 			 */
 			if (is_true($page["form"])) {

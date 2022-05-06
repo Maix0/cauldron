@@ -102,10 +102,14 @@
 		}
 
 		public function create_character($character, $icon) {
-			$keys = array("id", "user_id", "name", "initiative", "armor_class", "hitpoints");
+			$keys = array("id", "user_id", "name", "initiative", "armor_class", "hitpoints", "damage", "extension");
 
 			$character["id"] = null;
 			$character["user_id"] = $this->user->id;
+			$character["initiative"] = (int)$character["initiative"];
+			$character["hitpoints"] = (int)$character["hitpoints"];
+			$character["damage"] = 0;
+			$character["extension"] = "";
 
 			if ($this->db->insert("characters", $character, $keys) === false) {
 				return false;

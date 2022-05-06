@@ -14,7 +14,7 @@
 <xsl:if test="@is_dm='yes'">
 <p>If this is your first time using Cauldron, read the <a href="/manual">online manual</a> first.</p>
 <p>Create a game by clicking the <a href="/cms">CMS</a> link in the top menu bar and then the Games icon.</p>
-<p>Add maps to your game via the Maps icon.</p>
+<p>Add maps to your game via the Maps icon in the CMS.</p>
 </xsl:if>
 </xsl:if>
 <div class="row">
@@ -24,7 +24,7 @@
 <h2><xsl:value-of select="title" /></h2>
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
 <div class="btn-group">
-<xsl:if test="story!=''"><button class="btn btn-primary btn-sm" onClick="javascript:show_story({@id})">Introduction</button></xsl:if>
+<xsl:if test="story!=''"><button class="btn btn-primary btn-sm show_story{@id}">Introduction</button></xsl:if>
 <xsl:if test="(access='yes' or dm_id=/output/user/@id) and type='play'"><a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Start game</a></xsl:if>
 <xsl:if test="type='spectate'"><a href="/spectate/{@id}" class="btn btn-success btn-sm">Spectate game</a></xsl:if>
 </div>
@@ -33,14 +33,9 @@
 </xsl:for-each>
 </div>
 
-<div class="overlay stories" onClick="javascript:close_story()">
 <xsl:for-each select="game">
-<div id="story{@id}" class="panel panel-primary story" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading"><xsl:value-of select="title" /><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:close_story()"></span></div>
-<div class="panel-body"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
-</div>
+<div class="story" id="story{@id}" title="{title}" style="display:none"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
 </xsl:for-each>
-</div>
 </xsl:template>
 
 <!--
@@ -67,11 +62,11 @@
 </div>
 //-->
 <div class="btn-group">
-<button class="btn btn-default btn-xs" onClick="javascript:journal_show()">Journal</button>
+<button class="btn btn-default btn-xs show_journal">Journal</button>
 <xsl:if test="map/dm_notes!=''">
-<button class="btn btn-default btn-xs" onClick="javascript:$('div.notes').show()">DM notes</button>
+<button class="btn btn-default btn-xs show_dm_notes">DM notes</button>
 </xsl:if>
-<button class="btn btn-default btn-xs" onClick="javascript:collectables_show()">Inventory</button>
+<button class="btn btn-default btn-xs show_collectables">Inventory</button>
 <button class="btn btn-default btn-xs" onClick="javascript:center_character(this)">Center character</button>
 <xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
 <a href="/{/output/page}" class="btn btn-default btn-xs">Back</a>
@@ -83,12 +78,8 @@
 </xsl:if>
 <!-- Windows -->
 <xsl:if test="map">
-<div class="windows">
 <!-- Journal -->
-<div class="journal overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-info" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">Journal<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.journal').hide()"></span></div>
-<div class="panel-body">
+<div class="journal" style="display:none">
 <div class="entries">
 <xsl:for-each select="journal/entry">
 <xsl:if test="session"><div class="session"><xsl:value-of select="session" /></div></xsl:if>
@@ -99,29 +90,15 @@
 <div class="col-xs-10"><textarea class="form-control"></textarea></div>
 <div class="col-xs-2"><button onClick="javascript:journal_write()" class="btn btn-default">Add</button></div>
 </div>
-</div>
-</div>
-</div>
 <!-- DM notes -->
 <xsl:if test="map/dm_notes!=''">
-<div class="notes overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-danger" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">DM notes<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.notes').hide()"></span></div>
-<div class="panel-body"><xsl:value-of disable-output-escaping="yes" select="map/dm_notes" /></div>
-</div>
-</div>
+<div class="dm_notes"><xsl:value-of disable-output-escaping="yes" select="map/dm_notes" /></div>
 </xsl:if>
 <!-- Conditions -->
 <div class="conditions">
 <xsl:for-each select="conditions/condition">
 <div con_id="{@id}"><xsl:value-of select="." /></div>
 </xsl:for-each>
-</div>
-<!-- Collectables -->
-<div class="collectables overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-success" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">Inventory<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.collectables').hide()"></span></div>
-<div class="panel-body"></div>
 </div>
 </div>
 <!-- Script -->
@@ -130,16 +107,10 @@
 <!-- Zone create -->
 <xsl:call-template name="zone_create" />
 <!-- Effects -->
-<div class="effect_create overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-default" onClick="javascript:event.stopPropagation();">
-<div class="panel-heading">Effects<span class="size">width: <input id="effect_width" type="number" value="1" /> height: <input id="effect_height" type="number" value="1" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.effect_create').hide()"></span></div>
-<div class="panel-body">
+<div class="effect_create" style="display:none">
 <xsl:for-each select="effects/effect">
 <img src="/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" onClick="javascript:effect_create($(this))" /><xsl:text>
 </xsl:text></xsl:for-each>
-</div>
-</div>
-</div>
 </div>
 <!-- Play area -->
 <div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
@@ -176,8 +147,12 @@
 <div id="light{@id}" class="light" radius="{radius}" state="{state}" style="left:{pos_x}px; top:{pos_y}px; width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
 </xsl:for-each>
 </div>
-<!-- Effects -->
-<div class="effects"></div>
+<!-- Blinders -->
+<div class="blinders">
+<xsl:for-each select="blinders/blinder">
+<div id="blinder{@id}" class="blinder" pos1_x="{pos1_x}" pos1_y="{pos1_y}" pos2_x="{pos2_x}" pos2_y="{pos2_y}" />
+</xsl:for-each>
+</div>
 <!-- Tokens -->
 <div class="tokens">
 <xsl:for-each select="tokens/token">
@@ -193,11 +168,13 @@
 </xsl:if>
 <img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" />
 <xsl:if test="name!=''">
-<span><xsl:value-of select="name" /></span>
+<span class="name"><xsl:value-of select="name" /></span>
 </xsl:if>
 </div>
 </xsl:for-each>
 </div>
+<!-- Effects -->
+<div class="effects"></div>
 <!-- Shape change -->
 <div class="shape_change">
 <xsl:for-each select="shape_change/token">

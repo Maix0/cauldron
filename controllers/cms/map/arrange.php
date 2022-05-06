@@ -31,8 +31,8 @@
 				return;
 			}
 
-			if (($tokens = $this->model->get_tokens($map_id)) === false) {
-				$this->view->add_tag("result", "Database error.", array("url" => "cms/map"));
+			if (($blinders = $this->model->get_blinders($map_id)) === false) {
+				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
@@ -56,6 +56,11 @@
 				return;
 			}
 
+			if (($tokens = $this->model->get_tokens($map_id)) === false) {
+				$this->view->add_tag("result", "Database error.", array("url" => "cms/map"));
+				return;
+			}
+
 			if (($walls = $this->model->get_walls($map_id)) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
@@ -76,17 +81,24 @@
 
 			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("banshee/jquery.contextMenu.js");
+			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("includes/library.js");
 			$this->view->add_javascript("includes/script.js");
 			$this->view->add_javascript("cms/map/arrange.js");
-			$this->view->add_javascript("includes/fog_of_war.js");
+
+			if (($map["fog_of_war"] == FOW_DAY_REAL) || ($map["fog_of_war"] == FOW_NIGHT_REAL)) {
+				$type = "real";
+			} else {
+				$type = "cell";
+			}
+			$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 
 		   	$this->view->add_css("banshee/context-menu.css");
 			$this->view->add_css("banshee/font-awesome.css");
 
 			$attr = array(
 				"id"             => $game["id"],
-				"resources_key"      => $this->user->resources_key,
+				"resources_key"  => $this->user->resources_key,
 				"grid_cell_size" => $grid_cell_size);
 			$this->view->open_tag("game", $attr);
 			$this->view->record($game);
@@ -96,6 +108,18 @@
 			$map["start_x"] *= $grid_cell_size;
 			$map["start_y"] *= $grid_cell_size;
 			$this->view->record($map, "map");
+
+			/* Blinders
+			 */
+			$this->view->open_tag("blinders");
+			foreach ($blinders as $blinder) {
+				$fields = array("pos1_x", "pos1_y", "pos2_x", "pos2_y");
+				foreach ($fields as $field) {
+					$blinder[$field] = $blinder[$field] * $grid_cell_size / $map["grid_size"];
+				}
+				$this->view->record($blinder, "blinder");
+			}
+			$this->view->close_tag();
 
 			/* Conditions
 			 */

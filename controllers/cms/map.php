@@ -60,14 +60,9 @@
 
 			$this->view->add_javascript("cms/map.js");
 
-			$fog_of_war = array("Off", "On, day / illuminated", "On, night / dark");
+			$fog_of_war = array("Off", "On, day / illuminated (cell)", "On, day / illuminated (real)", "On, night / dark (cell)", "On, night / dark (real)");
 
 			$this->view->open_tag("edit");
-
-			$this->view->open_tag("map_types");
-			$this->view->add_tag("type", "image");
-			$this->view->add_tag("type", "video");
-			$this->view->close_tag();
 
 			$this->view->open_tag("fog_of_war");
 			foreach ($fog_of_war as $value => $label) {
@@ -91,6 +86,7 @@
 			$this->view->add_css("webui/jquery-ui.css");
 
 			$map["show_grid"] = show_boolean($map["show_grid"]);
+			$map["type"] = $this->model->get_map_type($map["url"]);
 			$map["url"] = $this->resource_path($map["url"]);
 
 			$this->view->record($map, "grid");
@@ -121,11 +117,14 @@
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save map") {
 					if (($_POST["width"] == "") && ($_POST["height"] == "")) {
-						if ($_POST["type"] == "image") {
+						$parts = explode(".", $_POST["url"]);
+						$extension = array_pop($parts);
+
+						if (in_array($extension, config_array(MAP_IMAGE_EXTENSIONS))) {
 							if (($result = $this->model->get_image_dimensions($_POST)) !== false) {
 								$_POST = $result;
 							}
-						} else if ($_POST["type"] == "video") {
+						} else if (in_array($extension, config_array(MAP_VIDEO_EXTENSIONS))) {
 							if (($result = $this->model->get_video_dimensions($_POST)) !== false) {
 								$_POST = $result;
 							}
@@ -163,10 +162,10 @@
 					 */
 					if ($this->model->set_grid($_POST) === false) {
 						$this->show_grid_form($_POST);
-					} else if ($_POST["mode"] == "new") {
-						header("Location: /cms/map/arrange/".$_POST["id"]);
+					#} else if ($_POST["mode"] != "new") {
+					#	$this->show_overview();
 					} else {
-						$this->show_overview();
+						header("Location: /cms/map/arrange/".$_POST["id"]);
 					}
 				} else if ($_POST["submit_button"] == "Delete map") {
 					/* Delete map

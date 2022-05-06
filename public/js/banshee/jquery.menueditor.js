@@ -1,6 +1,4 @@
-/* js/banshee/jquery.menueditor.js
- *
- * Copyright (C) by Hugo Leisink <hugo@leisink.net>
+/* Copyright (C) by Hugo Leisink <hugo@leisink.net>
  * This file is part of the Banshee PHP framework
  * https://www.banshee-php.org/
  *
@@ -8,20 +6,19 @@
  */
 
 (function($) {
-	var pluginName = "menuEditor";
+	var pluginName = 'menuEditor';
 	var element;
 	var settings;
 	var defaults = {
 		max_depth: 3
 	};
 
-	var l_text =        '<span class="label">Text:</span>';
-	var l_link =        '<span class="link label">Link:</span>';
-	var new_node =      '<li>' + l_text + '<input type="text" placeholder="Text" class="form-control">' + l_link + '<input type="text" placeholder="Link" class="form-control"></li>';
 	var h_insert_node = '<input type="button" value="Insert" class="insert btn btn-default">';
-	var h_add_node =    '<input type="button" value="+" class="btn btn-default btn-xs add_node">';
-	var h_delete_node = '<input type="button" value="-" class="btn btn-default btn-xs delete_node">';
-	var h_add_branch =  '<input type="button" value="&gt;" class="btn btn-default btn-xs add_branch">';
+	var h_new_node =    '<li><input type="text" placeholder="Text" class="form-control"><input type="text" placeholder="Link" class="form-control"></li>';
+	var h_new_buttons = '<input type="button" value="+" title="Add node" class="btn btn-default btn-xs add_node">' +
+	                    '<input type="button" value="&rdsh;" title="Add branch" class="btn btn-default btn-xs add_branch">' +
+	                    '<input type="button" value="&sc;" title="Make branch" class="btn btn-default btn-xs make_branch">' +
+	                    '<input type="button" value="&Cross;" title="Delete node" class="btn btn-default btn-xs delete_node">';
 
 	/* Constructor
 	 */
@@ -29,35 +26,56 @@
 		element = $(el);
 		settings = $.extend({}, defaults, options);
 
-		if (element.prop("tagName") != "UL") {
+		if (element.prop('tagName') != 'UL') {
 			return null;
 		}
 
-		element.find("li").each(function() {
-			if ($(this).find("ul").length == 0) {
-				$(this).find("input:nth-child(2)").first().after(all_buttons());
-			} else {
-				$(this).find("input:nth-child(2)").first().after(node_buttons());
-			}
+		element.find('li').each(function() {
+			$(this).find('input:nth-child(2)').first().after(new_buttons());
 		});
 
-		element.find("li > input:nth-child(2)").before(l_link);
-		element.find("li > input:first-child").before(l_text);
-
 		var b_insert_node = $(h_insert_node);
-		b_insert_node.bind("click", function(e) { insert_node(); });
+		b_insert_node.bind('click', function(e) { insert_node(); });
 		element.before(b_insert_node);
 
-		element.addClass("menu-editor");
+		element.addClass('menu-editor');
 
-		element.addClass("sortable");
-		element.find("ul").addClass("sortable");
+		element.addClass('sortable');
+		element.find('ul').addClass('sortable');
 		make_editor_sortable();
 
-		element.parent("form").bind("submit", function(e) { menu_submit() });
+		element.parent('form').bind('submit', function(e) { menu_submit() });
 
-		return this;
+		show_hide_buttons();
+
+		return $(this);
 	};
+
+	/* Show or hide buttons
+	 */
+	var show_hide_buttons = function(start = element, depth = 0) {
+		if (depth == 0) {
+			$(start).find('input.btn').prop('disabled', false);
+		}
+
+		$(start).children('li').each(function() {
+			var buttons = $(this).find('span.buttons');
+
+			if ($(this).prev().prop('tagName') != 'LI') {
+				$(this).children('span').find('input.make_branch').prop('disabled', true);
+			}
+
+			if (depth >= settings.max_depth) {
+				$(this).children('span').find('input.add_branch').prop('disabled', true);
+				$(this).children('span').find('input.make_branch').prop('disabled', true);
+			}
+
+			$(this).children('ul').each(function() {
+				$(this).parent().children('span').find('input.add_branch').prop('disabled', true);
+				show_hide_buttons($(this), depth + 1);
+			});
+		});
+	}
 
 	/* Calculate depth
 	 */
@@ -65,7 +83,7 @@
 		var depth = 0;
 
 		var node = $(item).parent().parent().parent();
-		while (node.prop("tagName") == "UL") {
+		while (node.prop('tagName') == 'UL') {
 			node = node.parent().parent();
 			depth++;
 		}
@@ -73,22 +91,14 @@
 		return depth;
 	}
 
-	/* Return node buttons
+	/* Return all buttons
 	 */
-	var node_buttons = function() {
-		var buttons = $('<span class="buttons">' + h_add_node + h_delete_node + "</span>");
-		buttons.find("input.add_node").bind("click", function(e) { add_node(this); });
-		buttons.find("input.delete_node").bind("click", function(e) { delete_node(this); });
-
-		return buttons;
-	};
-
-	/* Return all three buttons
-	 */
-	var all_buttons = function() {
-		var buttons = node_buttons();
-		buttons.find("input").last().after(h_add_branch);
-		buttons.find("input.add_branch").bind("click", function(e) { add_branch(this); });
+	var new_buttons = function() {
+		var buttons = $('<span class="buttons">' + h_new_buttons + '</span>');
+		buttons.find('input.add_node').bind('click', function(e) { add_node(this); });
+		buttons.find('input.delete_node').bind('click', function(e) { delete_node(this); });
+		buttons.find('input.add_branch').bind('click', function(e) { add_branch(this); });
+		buttons.find('input.make_branch').bind('click', function(e) { make_branch(this); });
 
 		return buttons;
 	};
@@ -96,17 +106,21 @@
 	/* Insert node at top
 	 */
 	var insert_node = function() {
-		var node = $(new_node);
-		node.append(all_buttons());
+		var node = $(h_new_node);
+		node.append(new_buttons());
 		element.prepend(node);
+		show_hide_buttons();
 	};
 
 	/* Add node
 	 */
 	var add_node = function(item) {
-		var node = $(new_node);
-		node.append(all_buttons());
+		var node = $(h_new_node);
+		node.append(new_buttons());
 		$(item).parent().parent().after(node);
+
+		show_hide_buttons();
+		make_editor_sortable();
 	};
 
 	/* Delete node
@@ -115,74 +129,80 @@
 		li = $(item).parent().parent();
 		ul = li.parent();
 
-		if (li.find("ul").length > 0) {
-			if (confirm("Delete branch?") == false) {
+		if (li.find('ul').length > 0) {
+			if (confirm('Delete branch?') == false) {
 				return;
 			}
 		}
 		li.remove();
 
-		if (ul.parent().prop("tagName") == "LI") {
-			if (ul.find("li").length == 0) {
-				var b_add_branch = $(h_add_branch);
-				b_add_branch.bind("click", function(e) { add_branch(this); });
-				ul.parent().find("span.buttons").append(b_add_branch);
-
-				ul.remove();
-			}
-		}
+		remove_empty_ul();
+		show_hide_buttons();
 	};
 
 	/* Add branch
 	 */
 	var add_branch = function(item) {
-		var depth = node_depth(item);
 		var li = $(item).parent().parent();
-
-		li.find("input.add_branch").first().remove();
-
-		var branch = $('<ul class="sortable">' + new_node + "</ul>");
-		if (depth >= settings.max_depth) {
-			branch.find("li").append(node_buttons());
-		} else {
-			branch.find("li").append(all_buttons());
-		}
+		var branch = $('<ul class="sortable">' + h_new_node + '</ul>');
+		branch.find('li').append(new_buttons());
 		li.append(branch);
 
+		show_hide_buttons();
 		make_editor_sortable();
 	};
 
-	/* Check for empty branches after sorting
+	/* Add branch
 	 */
-	var sorting_done = function(event, ui) {
-		element.find("ul").each(function() {
-			if ($(this).find("li").length == 0) {
-				var b_add_branch = $(h_add_branch);
-				b_add_branch.bind("click", function(e) { add_branch(this); });
-				$(this).parent().find("span.buttons").append(b_add_branch);
+	var make_branch = function(item) {
+		var prev = $(item).parent().parent().prev();
+		var branch = $(item).parent().parent().detach();
 
+		if ($(prev).find('ul').length == 0) {
+			var ul = $('<ul class="sortable"></ul>').append(branch);
+			$(prev).append(ul);
+		} else {
+			$(prev).find('ul').first().append(branch);
+		}
+
+		sorting_done();
+		make_editor_sortable();
+	}
+
+	/* Remove empty branches
+	 */
+	var remove_empty_ul = function() {
+		element.find('ul').each(function() {
+			if ($(this).find('li').length == 0) {
 				$(this).remove();
 			}
 		});
 	}
 
+	/* Sorting done
+	 */
+	var sorting_done = function(event, ui) {
+		remove_empty_ul();
+		show_hide_buttons();
+	}
+
 	/* Make menu editor sortable
 	 */
 	var make_editor_sortable = function() {
-		element.sortable({ connectWith:"ul.sortable", axis:"y", update:sorting_done });
-		element.find("ul.sortable").sortable({ connectWith:"ul.sortable", axis:"y", update:sorting_done });
+		element.sortable({ connectWith:'ul.sortable', axis:'y', update:sorting_done });
+		element.find('ul.sortable').sortable({ connectWith:'ul.sortable', axis:'y', update:sorting_done });
 	};
 
 	/* Give name to elements
 	 */
 	var give_name = function(elems, current) {
 		var i = 0;
-		elems.children("li").each(function() {
-			var pos = "[" + i + "]";
-			$(this).find("input:nth-child(2)").prop("name", "menu" + current + pos + "[text]");
-			$(this).find("input:nth-child(4)").prop("name", "menu" + current + pos + "[link]");
-			$(this).children("ul").each(function() {
-				give_name($(this), current + pos + "[submenu]");
+		elems.children('li').each(function() {
+			var pos = '[' + i + ']';
+			$(this).find('input[type=text]:nth-child(1)').prop('name', 'menu' + current + pos + '[text]');
+			$(this).find('input[type=text]:nth-child(2)').prop('name', 'menu' + current + pos + '[link]');
+			$(this).children('ul').each(function() {
+				give_name($(this), current + pos + '[submenu]');
 			});
 			i++;
 		});
@@ -191,7 +211,7 @@
 	/* Menu submit handler
 	 */
 	var menu_submit = function() {
-		give_name(element, "");
+		give_name(element, '');
 	};
 
 	/* JQuery prototype
@@ -201,5 +221,4 @@
 			(new plugin(this, options));
 		}); // this.each
 	};
-
 }(jQuery));

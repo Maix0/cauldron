@@ -11,7 +11,7 @@
 	define("PLAYER_ROLE_ID", 2);
 	define("DUNGEON_MASTER_ROLE_ID", 3);
 	define("USER_MAINTAINER_ROLE_ID", 4);
-	define("DEFAULT_ORGANISATION_ID", 1);
+	define("DEFAULT_ORGANISATION_ID", 0);
 	define("YES", 1);
 	define("NO", 0);
 	define("USER_STATUS_DISABLED", 0);
@@ -412,7 +412,7 @@
 	if (isset($_ENV["banshee_config_file"])) {
 		$config_file = $_ENV["banshee_config_file"];
 	} else {
-		$config_file = "website";
+		$config_file = "banshee";
 	}
 
 	foreach (config_file($config_file) as $line) {

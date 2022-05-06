@@ -20,13 +20,12 @@
 
 <table class="table table-condensed table-striped table-hover">
 <thead>
-<tr><th>Title</th><th></th></tr>
+<tr><th>Title</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="maps/map">
 <tr class="click">
 <td onClick="javascript:document.location='/{/output/page}/arrange/{@id}'"><xsl:value-of select="title" /></td>
-<td><button class="btn btn-primary btn-xs" onClick="javscript:document.location='/{/output/page}/{@id}'">Edit settings</button></td>
 </tr>
 </xsl:for-each>
 </tbody>
@@ -60,12 +59,6 @@
 <input type="text" id="url" name="url" value="{map/url}" class="form-control" onKeyDown="javascript:reset_dimension()" />
 <span class="input-group-btn"><input type="button" value="Local maps" class="btn btn-default" onClick="javascript:browse_local()" /></span>
 </div>
-<label for="url">Map type:</label>
-<select name="type" class="form-control">
-<xsl:for-each select="map_types/type">
-<option><xsl:if test=".=../../map/type"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
-</xsl:for-each>
-</select>
 <label for="audio">Background audio URL (optional):</label>
 <input type="text" id="audio" name="audio" value="{map/audio}" class="form-control" />
 <label for="width">Width:</label>
@@ -79,14 +72,19 @@
 <option value="{@value}"><xsl:if test="@value=../../map/fog_of_war"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
 </xsl:for-each>
 </select>
-<label for="fow_distance">Default Fog of War distance:</label>
+<label for="fow_distance">Default nightly Fog of War distance:</label>
 <input type="text" id="fow_distance" name="fow_distance" value="{map/fow_distance}" class="form-control" />
 <label for="dm_notes">Dungeon Master notes:</label>
 <textarea id="dm_notes" name="dm_notes" class="form-control"><xsl:value-of select="map/dm_notes" /></textarea>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save map" class="btn btn-default" />
+<xsl:if test="not(map/@id)">
 <a href="/{/output/page}" class="btn btn-default">Cancel</a>
+</xsl:if>
+<xsl:if test="map/@id">
+<a href="/{/output/page}/arrange/{map/@id}" class="btn btn-default">Cancel</a>
+</xsl:if>
 <xsl:if test="map/@id">
 <input type="submit" name="submit_button" value="Delete map" class="btn btn-default" onClick="javascript:return confirm('DELETE: Are you sure?')" />
 </xsl:if>
@@ -113,7 +111,7 @@
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Set grid size" class="btn btn-default" />
-<a href="/{/output/page}" class="btn btn-default">Cancel</a>
+<a href="/{/output/page}/arrange/{@id}" class="btn btn-default">Cancel</a>
 </div>
 <xsl:if test="type='video'">
 <div class="btn-group right">

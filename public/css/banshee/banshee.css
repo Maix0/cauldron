@@ -134,27 +134,3 @@ div.btn-group {
 		border-bottom-right-radius:4px;
 	}
 }
-
-/* Faded overlay dialog
- */
-div.overlay {
-	display:none;
-	position:fixed;
-	top:0;
-	bottom:0;
-	left:0;
-	right:0;
-	background:rgba(64, 64, 64, 0.7);
-	z-index:2;
-}
-
-div.overlay div.panel {
-	max-width:450px;
-	margin:0 auto;
-	margin-top:200px;
-}
-
-div.overlay div.panel-body {
-	max-height:315px;
-	overflow-y:auto;
-}

@@ -11,28 +11,26 @@
 		}
 
 		public function get_map($map_id) {
-			return $this->db->entry("maps", $map_id);
+			if (($map = $this->db->entry("maps", $map_id)) == false) {
+				return false;
+			}
+
+			$parts = explode(".", $map["url"]);
+			$extension = array_pop($parts);
+
+			if (in_array($extension, config_array(MAP_VIDEO_EXTENSIONS))) {
+				$map["type"] = "video";
+			} else {
+				$map["type"] = "image";
+			}
+
+			return $map;
 		}
 
 		public function get_conditions() {
 			$query = "select * from conditions order by name";
 
 			return $this->db->execute($query);
-		}
-
-		public function get_available_tokens() {
-			$query = "select * from tokens where organisation_id=%d order by name";
-
-			return $this->db->execute($query, $this->user->organisation_id);
-		}
-
-		public function get_tokens($map_id) {
-			$query = "select t.id, t.name as type, t.width, t.height, t.extension, ".
-			         "i.id as instance_id, i.name, i.pos_x, i.pos_y, i.rotation, i.hidden, i.armor_class, i.hitpoints, i.damage ".
-			         "from tokens t, map_token i ".
-			         "where t.id=i.token_id and i.map_id=%d order by i.id";
-
-			return $this->db->execute($query, $map_id);
 		}
 
 		private function place_characters($game_id, $map_id) {
@@ -61,6 +59,18 @@
 			return true;
 		}
 
+		public function get_available_tokens() {
+			$query = "select * from tokens where organisation_id=%d order by name";
+
+			return $this->db->execute($query, $this->user->organisation_id);
+		}
+
+		public function get_blinders($map_id) {
+			$query = "select * from blinders where map_id=%d";
+
+			return $this->db->execute($query, $map_id);
+		}
+
 		public function get_characters($map_id) {
 			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.hidden, i.rotation ".
 			         "from characters c, map_character i ".
@@ -77,6 +87,15 @@
 
 		public function get_lights($map_id) {
 			$query = "select * from lights where map_id=%d";
+
+			return $this->db->execute($query, $map_id);
+		}
+
+		public function get_tokens($map_id) {
+			$query = "select t.id, t.name as type, t.width, t.height, t.extension, ".
+			         "i.id as instance_id, i.name, i.pos_x, i.pos_y, i.rotation, i.hidden, i.armor_class, i.hitpoints, i.damage ".
+			         "from tokens t, map_token i ".
+			         "where t.id=i.token_id and i.map_id=%d order by i.id";
 
 			return $this->db->execute($query, $map_id);
 		}

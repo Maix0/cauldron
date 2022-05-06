@@ -26,8 +26,21 @@
 				return false;
 			}
 
-			return $collectables[0];
+			$collectable = $collectables[0];
+
+			if ($collectable["map_token_id"] != null) {
+			$query = "select t.name, m.title from map_token h, tokens t, maps m ".
+			         "where h.id=%d and h.token_id=t.id and h.map_id=m.id";
+
+				if (($result = $this->db->execute($query, $collectable["map_token_id"])) != false) {
+					$collectable["location"] = "Placed in token ".$result[0]["name"]." in map ".$result[0]["title"].".";
+				}
+			}
+
+
+			return $collectable;
 		}
+
 
 		public function save_oke($collectable, $image) {
 			$result = true;

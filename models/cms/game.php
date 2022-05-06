@@ -84,6 +84,7 @@
 				array("delete from journal where game_id=%d", $game_id),
 				array("delete from collectables where game_id=%d", $game_id),
 				array("delete from lights where map_id in (select id from maps where game_id=%d)", $game_id),
+				array("delete from blinders where map_id in (select id from maps where game_id=%d)", $game_id),
 				array("delete from doors where map_id in (select id from maps where game_id=%d)", $game_id),
 				array("delete from walls where map_id in (select id from maps where game_id=%d)", $game_id),
 				array("delete from zones where map_id in (select id from maps where game_id=%d)", $game_id),

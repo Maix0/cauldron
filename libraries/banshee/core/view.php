@@ -39,7 +39,7 @@
 		 * ERROR:  -
 		 */
 		public function __construct($db, $settings, $user, $page) {
-			parent::__construct($db, is_true(SECURE_XML_DATA));
+			parent::__construct($db);
 			$this->settings = $settings;
 			$this->user = $user;
 			$this->page = $page;

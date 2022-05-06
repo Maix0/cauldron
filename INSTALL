@@ -78,24 +78,30 @@ Configure Banshee
 Go to the Settings administration page in Banshee's CMS and replace the present
 e-mail addresses with your own. Before going live, remove or comment the setup
 module in the file settings/public_modules.conf and set DEBUG_MODE in the file
-settings/website.conf to 'no'.
+settings/banshee.conf to 'no'.
 
 
 Websocket Server
 ----------------
-This application requires a websocket server. Unpack extra/ws_server.tar.gz and
+This application requires a websocket server. Unpack extra/cauldrond.tar.gz and
 follow the instructions in the INSTALL file.
 
 
 Content from other websites
 ---------------------------
 If you plan to use maps (images or videos) from other websites, make sure you
-update the HEADER_CSP setting in settings/website.conf.
+update the HEADER_CSP setting in settings/banshee.conf.
 
 
 Upgrading
 =========
-Before upgrading this website, run database/backup_database make a backup of
-your database to disk. Then make a backup of the Cauldron directory.
-Replace the source code with the new version. Open the website and add
-/setup to the URL. Follow the instructions on the screen.
+Go to the directory of your current Cauldron website and run the script
+database/backup_database. Make a backup of your current Cauldron website.
+
+Replace the entire directory of your current Cauldron website with this new
+version. Copy the files and directories in public/files from the backup
+of your now previous Cauldron website to the new version. Change the database
+settings in settings/banshee.conf.
+
+Open https://<your_cauldron_hostname>/setup in your browser and follow the
+instructions in your browser to update the database.

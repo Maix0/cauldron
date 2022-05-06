@@ -45,11 +45,11 @@
 
 <label for="title">Title:</label>
 <input type="text" id="title" name="title" value="{game/title}" class="form-control" />
-<label for="image">Background image URL (optional):</label>
+<label for="image">Title background image URL (optional):</label>
 <input type="text" id="image" name="image" value="{game/image}" class="form-control" />
 <label for="story">Introduction story (optional):</label>
 <textarea id="story" name="story" class="form-control"><xsl:value-of select="game/story" /></textarea>
-<label for="story">Access:</label>
+<label for="story">Access rights:</label>
 <select id="access" name="access" class="form-control">
 <xsl:for-each select="access/level">
 <option value="{@value}"><xsl:if test="@value=../../game/access"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>

@@ -41,21 +41,19 @@
 		}
 
 		public function create_token($token, $image) {
-			$keys = array("id", "organisation_id", "name", "width", "height", "armor_class", "hitpoints", "shape_change");
+			$keys = array("id", "organisation_id", "name", "width", "height", "extension", "armor_class", "hitpoints", "shape_change");
 
 			$token["id"] = null;
 			$token["organisation_id"] = $this->organisation_id;
 			$token["shape_change"] = is_true($token["shape_change"]) ? YES : NO;
+			$token["extension"] = $image["extension"];
 
 			if ($this->db->insert("tokens", $token, $keys) === false) {
 				return false;
 			}
 			$token_id = $this->db->last_insert_id;
 
-			if ($this->save_image($image, $token_id)) {
-				$data = array("extension" => $image["extension"]);
-				$this->db->update("tokens", $token_id, $data);
-			} else {
+			if ($this->save_image($image, $token_id) == false) {
 				$this->db->delete("tokens", $token_id);
 				return false;
 			}

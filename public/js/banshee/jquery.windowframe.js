@@ -1,0 +1,309 @@
+/* Copyright (C) by Hugo Leisink <hugo@leisink.net>
+ * This file is part of the Banshee PHP framework
+ * https://www.banshee-php.org/
+ *
+ * Licensed under The MIT License
+ */
+
+(function($) {
+	const WINDOWFRAME_Z_INDEX = 11000;
+	const MARGIN_BOTTOM = 30;
+
+	var pluginName = 'windowframe';
+	var defaults = {
+		activator: undefined,
+		top: undefined,
+		width: 600,
+		height: undefined,
+		style: 'primary',
+		header: 'Window Frame',
+		footer: '',
+		buttons: {},
+		open: undefined,
+		close: undefined
+	};
+
+	var mouse_offset_x;
+	var mouse_offset_y
+
+	/* Constructor
+	 */
+	var plugin = function(el, options) {
+		var element = $(el);
+		var settings = $.extend({}, defaults, options);
+		var id = $('div.windowframe_overlay div.panel').length;
+
+		element.data('windowframe_id', id);
+		element.data('settings', settings);
+
+		if ($('div.windowframe_overlay').length == 0) {
+			/* Gray overlay
+			 */
+			var overlay = '<div class="windowframe_overlay"></div>';
+			$('body').append(overlay);
+			$('div.windowframe_overlay').mousedown(windowframe_close);
+			$('div.windowframe_overlay').css({
+				display: 'none', position: 'fixed',
+				zIndex: WINDOWFRAME_Z_INDEX,
+				top: 0, right: 0, bottom: 0, left: 0,
+				backgroundColor: 'rgba(0, 0, 0, 0.6)',
+			});
+		}
+
+		var close_button = '<span class="glyphicon glyphicon-remove close" aria-hidden="true"></span>';
+		var windowframe = '<div id="windowframe' + id + '" class="panel panel-' + settings.style + '" onMouseDown="javascript:event.stopPropagation()">' +
+		             '<div class="panel-heading">' + settings.header + close_button + '</div>' +
+		             '<div class="panel-body"></div>' +
+					 (settings.footer != '' ? '<div class="panel-footer">' + settings.footer + '</div>' : '') +
+		             '</div>';
+		$('div.windowframe_overlay').append(windowframe);
+
+		windowframe = $('div.windowframe_overlay div#windowframe' + id);
+
+		/* Add body
+		 */
+		var body = element.detach();
+		windowframe.find('div.panel-body').append(body.show());
+
+		/* Add buttons
+		 */
+		if (Object.keys(settings.buttons).length > 0) {
+			var buttons = $('<div class="btn-group"></div>');
+			for ([label, action] of Object.entries(settings.buttons)) {
+				var button = '<button class="btn btn-default">' + label + '</button>';
+				buttons.append($(button).click(action));
+			}
+			windowframe.find('div.panel-body').append(buttons);
+		}
+
+		/* Style
+		 */
+		windowframe.find('span.close').click(windowframe_close);
+		windowframe.css({
+			display: 'none', position: 'absolute',
+			boxShadow: '10px 10px 20px #303030',
+			maxWidth: settings.width + 'px',
+			width: '100%', zIndex: 1
+		});
+		if (settings.height != undefined) {
+			windowframe.find('div.panel-body').css({
+				maxHeight: settings.height + 'px',
+				overflowY: 'auto'
+			});
+		}
+
+		/* Drag windowframe
+		 */
+		windowframe.find('div.panel-heading').mousedown(function() {
+			windowframe_to_top(windowframe);
+
+			var pos = windowframe.position();
+			mouse_offset_x = event.pageX - pos.left;
+			mouse_offset_y = event.pageY - pos.top;
+
+			$('div.windowframe_overlay').mousemove(function() {	
+				/* Check horizontal boundaries
+				 */
+				var pos_x = event.pageX - mouse_offset_x;
+				if (pos_x + settings.width > window.innerWidth) {
+					pos_x = window.innerWidth - settings.width;
+				}
+				if (pos_x < 0) {
+					pos_x = 0;
+				}
+				windowframe.css('left', pos_x + 'px');
+
+				/* Check vertical boundaries
+				 */
+				var pos_y = event.pageY - mouse_offset_y;
+				var height = windowframe.outerHeight(false);
+				if (pos_y + height > window.innerHeight) {
+					pos_y = window.innerHeight - height;
+				} 
+				if (pos_y < 0) {
+					pos_y = 0;
+				}
+				windowframe.css('top', pos_y + 'px');
+
+				unselect_text();
+			});
+
+			$('body').css('cursor', 'grab');
+
+			$('body').mouseup(function() {
+				$('div.windowframe_overlay').off('mousemove');
+				$(this).css('cursor', '');
+				$(this).off('mouseup');
+			});
+		});
+
+		if (settings.activator != undefined) {
+			$(settings.activator).attr('id', 'windowframe' + id);
+			$(settings.activator).click(function() {
+				element.open();
+			});
+		}
+	};
+
+	var windowframe_to_top = function(windowframe) {
+		$('div.windowframe_overlay').append(windowframe);
+	}
+
+	var unselect_text = function() {
+		if (window.getSelection || document.getSelection) {
+			window.getSelection().removeAllRanges();
+		} else {
+			document.selection.empty();
+		}
+	}
+
+	var windowframe_open = function() {
+		var windowframe_id = $(this).data('windowframe_id');
+		var settings = $(this).data('settings');
+		var windowframe = $('div.windowframe_overlay div#windowframe' + windowframe_id);
+
+		windowframe_to_top(windowframe);
+
+		windowframe.fadeIn(500);
+		$('div.windowframe_overlay').show();
+
+		/* Center windowframe
+		 */
+		var left = Math.round((window.innerWidth / 2) - (settings.width / 2));
+		if (left < 0) {
+			left = 0;
+		}
+		windowframe.css('left', left + 'px');
+
+		var height = windowframe.outerHeight(false);
+		if (settings.top == undefined) {
+			var top = Math.round((window.innerHeight / 2.5) - (height / 2));
+			if (top < 0) {
+				top = 0;
+			}
+			windowframe.css('top', top + 'px');
+		} else {
+			windowframe.css('top', settings.top);
+		}
+
+		var pos = windowframe.position();
+		var bottom = pos.top + height;
+		if (bottom > window.innerHeight - MARGIN_BOTTOM) {
+			windowframe.find('div.panel-body').css({
+				maxHeight: (height - (bottom - window.innerHeight) - 45 - MARGIN_BOTTOM) + 'px',
+				overflowY: 'auto'
+			});
+		}
+
+		if (settings.open != undefined) {
+			settings.open();
+		}
+	};
+
+	var windowframe_hide = function(windowframe) {
+		windowframe.hide();
+
+		var body = windowframe.find('div.panel-body').children().first();
+		var settings = body.data('settings');
+
+		if (settings.height != undefined) {
+			windowframe.find('div.panel-body').css({
+				maxHeight: settings.height + 'px'
+			});
+		} else {
+			windowframe.find('div.panel-body').css({
+				maxHeight: ''
+			});
+		}
+
+		if (settings.close != undefined) {
+			settings.close();
+		}
+	}
+
+	var windowframe_close = function() {
+		// close via javascript?
+		var windowframe_id = $(this).attr('id');
+		if (windowframe_id == undefined) {
+			// close via panel header close button?
+			windowframe_id = $(this).parent().parent().attr('id');
+			if (windowframe_id == undefined) {
+				// close via panel body button?
+				windowframe_id = $(this).parent().parent().parent().attr('id');
+			}
+		}
+		// else close via overlay click
+
+		if (windowframe_id == undefined) {
+			$('div.windowframe_overlay div.panel:visible').each(function() {
+				windowframe_hide($(this));
+			});
+			$('div.windowframe_overlay').hide();
+		} else {
+			windowframe_hide($('div.windowframe_overlay div#' + windowframe_id));
+			if ($('div.windowframe_overlay div.panel:visible').length == 0) {
+				$('div.windowframe_overlay').hide();
+			}
+		}
+	};
+
+	var windowframe_reset = function() {
+		var windowframe_id = $(this).parent().parent().parent().attr('id');
+
+		var form = $('div.windowframe_overlay div#windowframe' + windowframe_id + ' form');
+		if (form.length > 0) {
+			form.trigger('reset');
+			return;
+		}
+
+		/* Clear form manually
+		 */
+		$('div.windowframe_overlay div#' + windowframe_id + ' input[type=text]').each(function() {
+			$(this).val('');
+		});
+
+		$('div.windowframe_overlay div#' + windowframe_id + ' input[type=checkbox]').each(function() {
+			$(this).prop('checked', false);
+		});
+
+		$('div.windowframe_overlay div#' + windowframe_id + ' input[type=radio]').each(function() {
+			$(this).prop('checked', false);
+		});
+
+		$('div.windowframe_overlay div#' + windowframe_id + ' textarea').each(function() {
+			$(this).val('');
+		});
+
+		$('div.windowframe_overlay div#' + windowframe_id + ' select').each(function() {
+			$(this).val($(this).find("option:first").val());
+		});
+	}
+
+	var get_body = function() {
+		var windowframe_id = $(this).data('windowframe_id');
+		return $('div.windowframe_overlay div#windowframe' + windowframe_id + ' div.panel-body').children().first();
+	}
+
+	var destroy = function() {
+		var windowframe_id = $(this).data('windowframe_id');
+		$('div.windowframe_overlay div#windowframe' + windowframe_id).remove();
+
+		delete $(this);
+	}
+
+	/* JQuery prototype
+	 */
+	$.fn[pluginName] = function(options) {
+		return this.each(function() {
+			(new plugin(this, options));
+		});
+	};
+
+	$.fn.extend({
+		open: windowframe_open,
+		close: windowframe_close,
+		reset: windowframe_reset,
+		body: get_body,
+		destroy: destroy
+	});
+})(jQuery);

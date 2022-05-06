@@ -22,7 +22,7 @@
 		public function __construct($database, $settings, $user, $page, $view, $language = null) {
 			$this->system_view = $view;
 
-			$xml = new Core\xml($db, is_true(SECURE_XML_DATA));
+			$xml = new Core\xml($db);
 			$arguments = array($database, $settings, $user, $page, $xml, $language);
 			call_user_func_array(array("parent", "__construct"), $arguments);
 

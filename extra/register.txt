@@ -1,7 +1,7 @@
 <html>
 <body>
-<p>Dear [FULLNAME],</p>
-<p>You've just requested an account at [HOSTNAME]. To confirm this request, follow <a href="[PROTOCOL]://[HOSTNAME]/register?confirmation=[LINK]">this link</a>.</p>
-<p>Kind regards,<br>the Cauldron VTT webmaster</p>
+<p>Hello,</p>
+<p>You are in the process of requesting an account at the [WEBSITE] website. You need the following code to proceed: [CODE]</p>
+<p>Kind regards,<br>the webmaster</p>
 </body>
 </html>

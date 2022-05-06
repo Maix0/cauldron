@@ -156,7 +156,7 @@
 				"user_id"    => null,
 				"ip_address" => $_SERVER["REMOTE_ADDR"],
 				"bind_to_ip" => false,
-				"name"       => $_SERVER["HTTP_USER_AGENT"]);
+				"name"       => substr($_SERVER["HTTP_USER_AGENT"], 0, 250));
 
 			do {
 				if ($attempts-- == 0) {

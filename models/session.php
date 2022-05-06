@@ -36,6 +36,11 @@
 				}
 			}
 
+			if (strlen($session["name"]) > 250) {
+				$this->view->add_message("Session name is too long.");
+				$result = false;
+			}
+
 			return $result;
 		}
 

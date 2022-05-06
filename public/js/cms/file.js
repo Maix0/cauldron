@@ -29,11 +29,7 @@ function delete_file(filename) {
             submit_button: 'Delete',
             filename: filename,
         }).done(function() {
-            $.each($('table.files tr td:nth-child(2) a'), function() {
-                if ($(this).text() == filename) {
-                    $(this).parent().parent().remove();
-                }
-            });
+			document.location = document.location;
         }).fail(function(data) {
             alert($(data.responseXML).find('result').text());
         });

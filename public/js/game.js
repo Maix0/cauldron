@@ -2,17 +2,20 @@ const ROLL_NORMAL = 0;
 const ROLL_ADVANTAGE = 1;
 const ROLL_DISADVANTAGE = 2;
 const FOW_OFF = 0;
-const FOW_DAY = 1;
-const FOW_NIGHT = 2;
+const FOW_DAY_CELL = 1;
+const FOW_DAY_REAL = 2;
+const FOW_NIGHT_CELL = 3;
+const FOW_NIGHT_REAL = 4;
 
 const DEFAULT_Z_INDEX = 10000;
 const LAYER_TOKEN = DEFAULT_Z_INDEX;
-const LAYER_CHARACTER = DEFAULT_Z_INDEX + 1;
-const LAYER_CHARACTER_OWN = DEFAULT_Z_INDEX + 2;
-const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 3;
-const LAYER_MARKER = DEFAULT_Z_INDEX + 4;
-const LAYER_MENU = DEFAULT_Z_INDEX + 5;
-const LAYER_VIEW = DEFAULT_Z_INDEX + 6;
+const LAYER_EFFECT = DEFAULT_Z_INDEX + 1;
+const LAYER_CHARACTER = DEFAULT_Z_INDEX + 2;
+const LAYER_CHARACTER_OWN = DEFAULT_Z_INDEX + 3;
+const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 4;
+const LAYER_MARKER = DEFAULT_Z_INDEX + 5;
+const LAYER_MENU = DEFAULT_Z_INDEX + 6;
+const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
 
 var websocket;
 var group_key = null;
@@ -25,6 +28,11 @@ var z_index = DEFAULT_Z_INDEX;
 var dungeon_master = null;
 var my_name = null;
 var my_character = null;
+var wf_collectables = null;
+var wf_effect_create = null;
+var wf_script_editor = null;
+var wf_script_manual = null;
+var wf_zone_create = null;
 var temporary_hitpoints = 0;
 var battle_order = [];
 var keep_centered = false;
@@ -94,6 +102,8 @@ function zoom_drag(evt, ui) {
 	ui.position.left = Math.round((ui.position.left / zoom_level) + (scr.left * (1 - (1 / zoom_level))));
 }
 
+/* Websocket
+ */
 function websocket_send(data) {
 	if (websocket == null) {
 		return;
@@ -163,10 +173,10 @@ function write_sidebar(message) {
 }
 
 function show_image(img) {
-	var image = '<div class="overlay image" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); max-width:80%; max-height:80%;" /></div>';
+	var image = '<div class="image_overlay" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); border:1px solid #000000; max-width:80%; max-height:80%; cursor:pointer" /></div>';
 
-	$('body div.windows').append(image);
-	$('body div.windows div.image').show();
+	$('body').append(image);
+	$('body div.image_overlay').show();
 }
 
 function message_to_sidebar(name, message) {
@@ -608,7 +618,7 @@ function object_move(obj, speed = 200) {
 		fog_of_war_update(obj);
 	}
 
-	if (fow_type == FOW_NIGHT) {
+	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
 		if (obj.hasClass('character')) {
 			light_follow(obj);
 		} else if (obj.hasClass('light')) {
@@ -940,13 +950,13 @@ function effect_create_object(effect_id, src, pos_x, pos_y, width, height) {
 	width *= grid_cell_size;
 	height *= grid_cell_size;
 
-	var effect = $('<div id="' + effect_id +'" class="effect" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + width + 'px; height:' + height + 'px;"><img src="' + src + '" style="width:100%; height:100%;" /></div>');
+	var effect = $('<div id="' + effect_id +'" class="effect" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + width + 'px; height:' + height + 'px; z-index:' + LAYER_EFFECT + ';"><img src="' + src + '" style="width:100%; height:100%;" /></div>');
 
 	$('div.playarea div.effects').append(effect);
 }
 
 function effect_create(template) {
-	$('div.effect_create').hide();
+	wf_effect_create.close();
 
 	var src = $(template).prop('src');
 
@@ -990,6 +1000,7 @@ function effect_create_final(effect_id, src, width, height) {
 	websocket_send(data);
 
 	$('div#' + effect_id).draggable({
+		containment: 'div.playarea > div',
 		stop: function(event, ui) {
 			object_move($(this));
 		},
@@ -1306,6 +1317,7 @@ function light_create(pos_x, pos_y, radius) {
 		websocket_send(data);
 
 		$('div#light' + instance_id).draggable({
+			containment: 'div.playarea > div',
 			stop: function(event, ui) {
 				object_move($(this));
 			},
@@ -1433,6 +1445,46 @@ function wall_collision(x1, y1, x2, y2) {
 	});
 
 	return result;
+}
+
+/* Blinder functions
+ */
+function points_angle(pos1_x, pos1_y, pos2_x, pos2_y) {
+	var dx = pos2_x - pos1_x;
+	var dy = pos2_y - pos1_y;
+
+	var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+	if (angle < 0) {
+		angle += 360;
+	}
+
+	return angle;
+}
+
+function points_distance(pos1_x, pos1_y, pos2_x, pos2_y) {
+	var dx = pos2_x - pos1_x;
+	var dy = pos2_y - pos1_y;
+
+	return Math.sqrt(dx * dx + dy * dy);
+}
+
+function blinder_position(blinder) {
+	var pos1_x = parseInt(blinder.attr('pos1_x'));
+	var pos1_y = parseInt(blinder.attr('pos1_y'));
+	var pos2_x = parseInt(blinder.attr('pos2_x'));
+	var pos2_y = parseInt(blinder.attr('pos2_y'));
+	var angle = points_angle(pos1_x, pos1_y, pos2_x, pos2_y);
+	var distance = points_distance(pos1_x, pos1_y, pos2_x, pos2_y);
+
+	if (dungeon_master == false) {
+		blinder.css('display', 'none');
+	}
+
+	blinder.css('left', pos1_x + 'px');
+	blinder.css('top', pos1_y + 'px');
+	blinder.css('width', distance + 'px');
+	blinder.css('height', '4px');
+	blinder.css('transform', 'rotate(' + angle + 'deg)');
 }
 
 /* Zone functions
@@ -1582,6 +1634,7 @@ function zone_create(width, height, color, opacity, group, altitude) {
 		zone_create_object(instance_id, zone_x, zone_y, width, height, color, opacity, group, altitude);
 
 		$('div#zone' + instance_id).draggable({
+			containment: 'div.playarea > div',
 			stop: function(event, ui) {
 				object_move($(this));
 			},
@@ -1668,7 +1721,7 @@ function collectables_show() {
 	$.post('/object/collectables/found', {
 		game_id: game_id,
 	}).done(function(data) {
-		var body = $('div.collectables div.panel-body');
+		var body = wf_collectables.body();
 		body.empty();
 
 		if ($(data).find('collectable').length == 0) {
@@ -1684,8 +1737,6 @@ function collectables_show() {
 				row.append(collectable);
 			});
 		}
-
-		$('div.collectables').show();
 	});
 }
 
@@ -1695,7 +1746,7 @@ function journal_add_entry(name, content) {
 	var entry = '<div class="entry"><span class="writer">' + name + '</span><span class="content">' + content + '</span></div>';
 	$('div.journal div.entries').append(entry);
 
-	var panel = $('div.journal div.panel-body');
+	var panel = $('div.journal').parent();
 	panel.prop('scrollTop', panel.prop('scrollHeight'));
 }
 
@@ -1716,9 +1767,7 @@ function journal_save_entry(name, content) {
 function journal_show() {
 	object_unfocus();
 
-	$('div.journal').show()
-
-	var panel = $('div.journal div.panel-body');
+	var panel = $('div.journal').parent();
 	panel.prop('scrollTop', panel.prop('scrollHeight'));
 }
 
@@ -2215,8 +2264,10 @@ function handle_input(input) {
 
 			if ((param == 'off') || (param == 'hide')) {
 				$('div.wall').css('display', 'none');
+				$('div.blinder').css('display', 'none');
 			} else if ((param == 'on') || (param == 'show')) {
 				$('div.wall').css('display', 'block');
+				$('div.blinder').css('display', 'block');
 			}
 			break;
 		default:
@@ -2440,7 +2491,7 @@ function context_menu_handler(key, options) {
 		case 'effect_create':
 			effect_x = coord_to_grid(mouse_x, false);
 			effect_y = coord_to_grid(mouse_y, false);
-			$('div.effect_create').show();
+			wf_effect_create.open();
 			break;
 		case 'effect_duplicate':
 			var pos = object_position($(this));
@@ -2479,7 +2530,7 @@ function context_menu_handler(key, options) {
 		case 'fow_show':
 			if (fow_obj == null) {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
-				if (fow_type == FOW_NIGHT) {
+				if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
 					var distance = fow_char_distances[obj.prop('id')];
 					fog_of_war_set_distance(distance);
 				}
@@ -2718,10 +2769,10 @@ function context_menu_handler(key, options) {
 			break;
 		case 'script':
 			$('div.script_editor input#zone_id').val($(this).prop('id'));
-			$('div.script_editor input#zone_group').val($(this).attr('group'));
+			$('input#zone_group').val($(this).attr('group'));
 			$('div.script_editor textarea').val($(this).find('div.script').text());
 			zone_group_change(true);
-			$('div.script_editor').show();
+			wf_script_editor.open();
 			$('div.script_editor textarea').focus();
 			break;
 		case 'shape':
@@ -2819,7 +2870,7 @@ function context_menu_handler(key, options) {
 
 			$('div.zone_create input#width').val(3);
 			$('div.zone_create input#height').val(3);
-			$('div.zone_create').show();
+			wf_zone_create.open();
 			$('div.zone_create div.panel-body').prop('scrollTop', 0);
 			break;
 		case 'zone_delete':
@@ -2857,8 +2908,8 @@ $(document).ready(function() {
 	fow_type = parseInt($('div.playarea').attr('fog_of_war'));
 	fow_default_distance = parseInt($('div.playarea').attr('fow_distance'));
 	var version = $('div.playarea').attr('version');
-	var ws_host = $('div.playarea').attr('ws_host')
-	var ws_port = $('div.playarea').attr('ws_port')
+	var ws_host = $('div.playarea').attr('ws_host');
+	var ws_port = $('div.playarea').attr('ws_port');
 
 	write_sidebar('<b>Welcome to Cauldron v' + version + '</b>');
 	write_sidebar('Type /help for command information.');
@@ -3039,6 +3090,7 @@ $(document).ready(function() {
 				}
 
 				$('div#' + data.instance_id).draggable({
+					containment: 'div.playarea > div',
 					handle: handle,
 					stop: function(event, ui) {
 						object_move($(this));
@@ -3177,7 +3229,7 @@ $(document).ready(function() {
 
 				});
 
-				if (obj.hasClass('character') && dungeon_master && (fow_type == FOW_NIGHT)) {
+				if (obj.hasClass('character') && dungeon_master && ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL))) {
 					light_follow(obj, data.pos_x, data.pos_y);
 					if (obj.is(fow_obj)) {
 						fog_of_war_update(fow_obj);
@@ -3297,60 +3349,6 @@ $(document).ready(function() {
 		}
 	}
 
-	/* Windows
-	 */
-	$('div.windows > div').css('z-index', LAYER_MENU);
-
-	/* Zones
-	 */
-	$('div.zone_create div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
-	});
-
-	$('div.zone_create button').on('click', function() {
-		var width = parseInt($('input#width').val());
-		var height = parseInt($('input#height').val());
-		var color = $('input#color').val();
-		var opacity = parseFloat($('input#opacity').val());
-		var group = $('input#group').val();
-		var altitude = parseInt($('input#altitude').val());
-
-		if (isNaN(width)) {
-			write_sidebar('Invalid width.');
-			return;
-		} else if (isNaN(height)) {
-			write_sidebar('Invalid height.');
-			return;
-		} else if (isNaN(opacity)) {
-			write_sidebar('Invalid opacity.');
-			return;
-		}
-
-		if (opacity < 0) {
-			opacity = 0;
-		} else if (opacity > 1) {
-			opacity = 1;
-		}
-
-		zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
-		zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
-
-		zone_create(width, height, color, opacity, group, altitude);
-
-		$('div.zone_create').hide();
-	});
-
-	$('div.script_editor div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
-	});
-
-	$('div.script_manual div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
-	});
-
 	/* Doors
 	 */
 	$('div.door').each(function() {
@@ -3384,11 +3382,17 @@ $(document).ready(function() {
 
 	/* Lights
 	 */
-	if (fow_type == FOW_NIGHT) {
+	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
 		$('div.light').each(function() {
 			fog_of_war_light($(this));
 		});
 	}
+
+	/* Blinders
+	 */
+	$('div.blinder').each(function() {
+		blinder_position($(this));
+	});
 
 	/* Objects
 	 */
@@ -3432,6 +3436,7 @@ $(document).ready(function() {
 		/* Dungeon Master settings
 		 */
 		$('div.zone').draggable({
+			containment: 'div.playarea > div',
 			stop: function(event, ui) {
 				object_move($(this));
 			},
@@ -3446,6 +3451,7 @@ $(document).ready(function() {
 		});
 
 		$('div.token').draggable({
+			containment: 'div.playarea > div',
 			handle: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
@@ -3454,6 +3460,7 @@ $(document).ready(function() {
 		});
 
 		$('div.character').draggable({
+			containment: 'div.playarea > div',
 			handle: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
@@ -3472,6 +3479,7 @@ $(document).ready(function() {
 		});
 
 		$('div.light').draggable({
+			containment: 'div.playarea > div',
 			handler: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
@@ -3671,6 +3679,7 @@ $(document).ready(function() {
 
 			if ($('div.playarea').attr('drag_character') == 'yes') {
 				my_character.draggable({
+					containment: 'div.playarea > div',
 					handle: 'img',
 					stop: function(event, ui) {
 						stick_to = null;
@@ -3688,6 +3697,7 @@ $(document).ready(function() {
 			var items = {
 				'info': {name:'Get information', icon:'fa-info-circle'},
 				'view': {name:'View', icon:'fa-search'},
+				'distance': {name:'Measure distance', icon:'fa-map-signs'},
 				'sep1': '-',
 				'damage': {name:'Damage', icon:'fa-warning'},
 				'heal': {name:'Heal', icon:'fa-medkit'},
@@ -3747,7 +3757,7 @@ $(document).ready(function() {
 			 */
 			if (fow_type != FOW_OFF) {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
-				if (fow_type == FOW_NIGHT) {
+				if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
 					fog_of_war_set_distance(fow_default_distance);
 				}
 				fog_of_war_update(my_character);
@@ -3849,24 +3859,97 @@ $(document).ready(function() {
 		}
 	});
 
-	$('div.effect_create div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
+	wf_effect_create = $('div.effect_create').windowframe({
+		width: 530,
+		style: 'default',
+		header: 'Create effect',
+		footer: '<span class="effect_size">width: <input id="effect_width" type="number" value="1" min="1" /></span>' + 
+		        '<span class="effect_size">height: <input id="effect_height" type="number" value="1" min="1" /></span>'
 	});
 
-	$('div.collectables div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
+	wf_collectables = $('<div class="collectables"></div>').windowframe({
+		activator: 'button.show_collectables',
+		width: 500,
+		style: 'success',
+		header: 'Inventory',
+		open: collectables_show()
 	});
 
-	$('div.notes div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
+	$('div.dm_notes').windowframe({
+		activator: 'button.show_dm_notes',
+		style: 'danger',
+		header: 'DM notes'
 	});
 
-	$('div.journal div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
+	$('div.journal').windowframe({
+		activator: 'button.show_journal',
+		width: 800,
+		height: 400,
+		style: 'info',
+		header: 'Journal',
+		open: journal_show
+	});
+
+	wf_script_editor = $('div.script_editor').windowframe({
+		width: 500,
+		header: 'Event script',
+		buttons: {
+			'Save': function() {
+				script_save();
+				$(this).close();
+			},
+			'Cancel': function() {
+				$(this).close();
+			},
+			'Help': function() {
+				wf_script_manual.open();
+			}
+		}
+	});
+
+	wf_script_manual = $('div.script_manual').windowframe({
+		width: 1000,
+		height: 1000,
+		header: 'Script manual'
+	});
+
+	wf_zone_create = $('div.zone_create').windowframe({
+		width: 450,
+		header: 'Create zone',
+		buttons: {
+			'Create zone': function() {
+				var width = parseInt($('input#width').val());
+				var height = parseInt($('input#height').val());
+				var color = $('input#color').val();
+				var opacity = parseFloat($('input#opacity').val());
+				var group = $('input#group').val();
+				var altitude = parseInt($('input#altitude').val());
+
+				if (isNaN(width)) {
+					write_sidebar('Invalid width.');
+					return;
+				} else if (isNaN(height)) {
+					write_sidebar('Invalid height.');
+					return;
+				} else if (isNaN(opacity)) {
+					write_sidebar('Invalid opacity.');
+					return;
+				}
+
+				if (opacity < 0) {
+					opacity = 0;
+				} else if (opacity > 1) {
+					opacity = 1;
+				}
+
+				zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
+				zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
+
+				zone_create(width, height, color, opacity, group, altitude);
+
+				$(this).close();
+			}
+		}
 	});
 
 	$('select.map-selector').click(function(event) {

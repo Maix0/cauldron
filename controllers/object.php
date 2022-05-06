@@ -14,6 +14,15 @@
 			$this->model->change_map($_POST["game_id"], $_POST["map_id"]);
 		}
 
+		public function post_create_blinder() {
+			if (($instance_id = $this->model->blinder_create($_POST)) !== false) {
+				$this->view->add_tag("instance_id", $instance_id);
+			} else {
+				debug_log($_POST);
+				return false;
+			}
+		}
+
 		public function post_create_door() {
 			if (($instance_id = $this->model->door_create($_POST)) !== false) {
 				$this->view->add_tag("instance_id", $instance_id);
@@ -70,7 +79,10 @@
 		}
 
 		public function post_delete() {
-			if (substr($_POST["instance_id"], 0, 4) == "door") {
+			if (substr($_POST["instance_id"], 0, 7) == "blinder") {
+				$instance_id = substr($_POST["instance_id"], 7);
+				$this->model->blinder_delete($instance_id);
+			} else if (substr($_POST["instance_id"], 0, 4) == "door") {
 				$instance_id = substr($_POST["instance_id"], 4);
 				$this->model->door_delete($instance_id);
 			} else if (substr($_POST["instance_id"], 0, 5) == "light") {

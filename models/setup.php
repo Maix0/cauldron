@@ -149,7 +149,7 @@
 				$login_test = new \Banshee\Database\MySQLi_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
 				if ($login_test->connected == false) {
 					$db->query("rollback");
-					$this->view->add_message("Invalid credentials in settings/website.conf.");
+					$this->view->add_message("Invalid credentials in settings/banshee.conf.");
 					return false;
 				}
 			}
@@ -448,6 +448,16 @@
 				$this->settings->head_title = "Cauldron VTT";
 
 				$this->settings->database_version = 20;
+			}
+
+			if ($this->settings->database_version == 20) {
+				$this->db_query("CREATE TABLE blinders (id int(10) unsigned NOT NULL AUTO_INCREMENT, map_id int(10) unsigned NOT NULL, ".
+				                "pos1_x int(10) unsigned NOT NULL, pos1_y int(10) unsigned NOT NULL, pos2_x int(10) unsigned NOT NULL, pos2_y int(10) unsigned NOT NULL, ".
+				                "PRIMARY KEY (id), KEY map_id (map_id), CONSTRAINT blinders_ibfk_1 FOREIGN KEY (map_id) REFERENCES maps (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8");
+				$this->db_query("ALTER TABLE maps DROP %S", "type");
+
+				$this->settings->database_version = 21;
 			}
 
 			return true;

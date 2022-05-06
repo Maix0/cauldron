@@ -12,7 +12,7 @@ const LAYER_CHARACTER_OWN = DEFAULT_Z_INDEX + 2;
 const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 3;
 const LAYER_MARKER = DEFAULT_Z_INDEX + 4;
 const LAYER_MENU = DEFAULT_Z_INDEX + 5;
-const LAYER_VIEW = DEFAULT_Z_INDEX + 6;
+const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
 
 var websocket;
 var group_key = null;
@@ -62,9 +62,10 @@ function write_sidebar(message) {
 }
 
 function show_image(img) {
-	var image = '<div class="overlay" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); max-width:80%; max-height:80%;" /></div>';
+	var image = '<div class="image_overlay" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); border:1px solid #000000; max-width:80%; max-height:80%; cursor:pointer" /></div>';
 
 	$('body').append(image);
+	$('body div.image_overlay').show();
 }
 
 function message_to_sidebar(name, message) {
@@ -543,7 +544,7 @@ function collectables_show() {
 	$.post('/object/collectables/found', {
 		game_id: game_id,
 	}).done(function(data) {
-		var body = $('div.collectables div.panel-body');
+		var body = wf_collectables.body();
 		body.empty();
 
 		if ($(data).find('collectable').length == 0) {
@@ -559,8 +560,6 @@ function collectables_show() {
 				row.append(collectable);
 			});
 		}
-
-		$('div.collectables').show();
 	});
 }
 
@@ -568,18 +567,14 @@ function collectables_show() {
  */
 function journal_add_entry(name, content) {
 	var entry = '<div class="entry"><span class="writer">' + name + '</span><span class="content">' + content + '</span></div>';
-	$('div.journal div.entries').append(entry);
+	$('div.journal').append(entry);
 
-	var panel = $('div.journal div.panel-body');
+	var panel = $('div.journal').parent();
 	panel.prop('scrollTop', panel.prop('scrollHeight'));
 }
 
 function journal_show() {
-	object_unfocus();
-
-	$('div.journal').show()
-
-	var panel = $('div.journal div.panel-body');
+	var panel = $('div.journal').parent();
 	panel.prop('scrollTop', panel.prop('scrollHeight'));
 }
 
@@ -872,10 +867,6 @@ $(document).ready(function() {
 		}
 	}
 
-	/* Windows
-	 */
-	$('div.windows > div').css('z-index', LAYER_MENU);
-
 	/* Zones
 	 */
 	$('div.zone_create div.panel').draggable({
@@ -966,14 +957,21 @@ $(document).ready(function() {
 		zIndex: LAYER_MENU
 	});
 
-	$('div.collectables div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
+	wf_collectables = $('<div class="collectables"></div>').windowframe({
+		activator: 'button.show_collectables',
+		width: 500,
+		style: 'success',
+		header: 'Inventory',
+		open: collectables_show()
 	});
 
-	$('div.journal div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
+	$('div.journal').windowframe({
+		activator: 'button.show_journal',
+		width: 800,
+		height: 400,
+		style: 'info',
+		header: 'Journal',
+		open: journal_show
 	});
 
 	$('select.map-selector').click(function(event) {

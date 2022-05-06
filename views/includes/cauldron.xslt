@@ -7,21 +7,18 @@
 //
 //-->
 <xsl:template name="script_editor">
-<div class="script_editor overlay" onclick="javascript:$(this).hide()">
-<div class="panel panel-primary" onclick="javascript:event.stopPropagation()">
-<div class="panel-heading">Event script<span class="zone_group">Zone group: <input id="zone_group" maxlength="10" onKeyUp="javascript:zone_group_change()" /></span><span class="glyphicon glyphicon-remove close" aria-hidden="true" onclick="javascript:$('div.script_editor').hide()"></span></div>
-<div class="panel-body">
+<div class="script_editor" style="display:none">
 <input id="zone_id" type="hidden" value="" />
-<textarea class="form-control" />
+<textarea class="form-control"></textarea>
+<div class="row">
+<div class="col-xs-6">
+Zone group: <input id="zone_group" type="text" maxlength="10" onKeyUp="javascript:zone_group_change()" />
+</div>
+<div class="col-xs-6">
 <div class="copy_script">Copy script to entire group: <input type="checkbox" id="copy_script" name="copy_script" /></div>
+</div>
+</div>
 <div class="game_id">Game ID: <xsl:value-of select="@id" /></div>
-<div class="btn-group">
-<button class="btn btn-default" onclick="javascript:script_save()">Save</button>
-<button class="btn btn-default" onclick="javascript:$('div.script_editor').hide()">Cancel</button>
-<button class="btn btn-default" onclick="javascript:$('div.script_manual').show()">Help</button>
-</div>
-</div>
-</div>
 </div>
 </xsl:template>
 
@@ -31,10 +28,7 @@
 //
 //-->
 <xsl:template name="script_manual">
-<div class="script_manual overlay" onclick="javascript:$(this).hide()">
-<div class="panel panel-primary" onclick="javascript:event.stopPropagation()">
-<div class="panel-heading">Script manual<span class="glyphicon glyphicon-remove close" aria-hidden="true" onclick="javascript:$('div.script_manual').hide()"></span></div>
-<div class="panel-body">
+<div class="script_manual" style="display:none">
 <p>A script consists of one or more lines, each containing a single command. A script can only be triggered by a character when it enters, moves inside, leaves the zone or is inside the zone on its combat turn. An object's ID can be obtained by selecting 'Get information' after a right click on that object. The following commands are available:</p>
 <ul>
 <li><b>audio &lt;file&gt;:</b> Play the audio file '/resources/audio/&lt;game id&gt;/&lt;file&gt;'. Upload audio files via the File administration page in the CMS.</li>
@@ -58,8 +52,6 @@
 <p>You can add comments to your script. A comment line starts with a hash (#).</p>
 <p>The zone group is an identifier that defines to what group a zone belongs. If a character leaves a zone and at the same time enters another zone that belongs to the same group, the leave and enter events are replaced with a single move event for the zone that the chararacter enters.</p>
 </div>
-</div>
-</div>
 </xsl:template>
 
 <!--
@@ -68,10 +60,7 @@
 //
 //-->
 <xsl:template name="zone_create">
-<div class="zone_create overlay" onClick="javascript:$(this).hide()">
-<div class="panel panel-primary" onClick="javascript:event.stopPropagation()">
-<div class="panel-heading">Create zone<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$('div.zone_create').hide()"></span></div>
-<div class="panel-body" style="max-height:400px">
+<div class="zone_create" style="display:none">
 <label for="width">Width:</label>
 <input type="text" id="width" value="3" class="form-control" />
 <label for="height">Height:</label>
@@ -84,9 +73,6 @@
 <input type="text" id="altitude" value="0" class="form-control" />
 <label for="group">Group:</label>
 <input type="text" id="group" maxlength="10" class="form-control" />
-<div class="btn-group"><button class="btn btn-default create">Create zone</button></div>
-</div>
-</div>
 </div>
 </xsl:template>
 

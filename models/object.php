@@ -177,6 +177,58 @@
 			return $this->db->update("map_token", $instance_id, $data) !== false;
 		}
 
+		/* Blinder functions
+		 */
+		private function valid_blinder_id($blinder_id) {
+			$query = "select count(*) as count from blinders w, maps m, games g ".
+			         "where w.id=%d and w.map_id=m.id and m.game_id=g.id and g.dm_id=%d";
+
+			if (($result = $this->db->execute($query, $blinder_id, $this->user->id)) === false) {
+				return false;
+			}
+
+			return $result[0]["count"] > 0;
+		}
+
+		public function blinder_create($blinder) {
+			if ($this->valid_map_id($blinder["map_id"]) == false) {
+				return false;
+			}
+
+			$query = "select * from maps where id=%d";
+			if (($maps = $this->db->execute($query, $blinder["map_id"])) == false) {
+				return false;
+			}
+			$grid_size = (int)$maps[0]["grid_size"];
+
+			$fields = array("pos1_x", "pos1_y", "pos2_x", "pos2_y");
+			foreach ($fields as $field) {
+				$blinder[$field] = $blinder[$field] * $grid_size / $this->settings->screen_grid_size;
+			}
+
+			$data = array(
+				"id"     => null,
+				"map_id" => (int)$blinder["map_id"],
+				"pos1_x" => $blinder["pos1_x"],
+				"pos1_y" => $blinder["pos1_y"],
+				"pos2_x" => $blinder["pos2_x"],
+				"pos2_y" => $blinder["pos2_y"]);
+
+			if ($this->db->insert("blinders", $data) === false) {
+				return false;
+			}
+
+			return $this->db->last_insert_id;
+		}
+
+		public function blinder_delete($blinder_id) {
+			if ($this->valid_blinder_id($blinder_id) == false) {
+				return false;
+			}
+
+			return $this->db->delete("blinders", $blinder_id) !== false;
+		}
+
 		/* Character functions
 		 */
 		private function valid_character_instance_id($instance_id) {
@@ -474,6 +526,7 @@
 				"height"   => (int)$zone["height"],
 				"color"    => $zone["color"],
 				"opacity"  => $zone["opacity"],
+				"script"   => "",
 				"group"    => $zone["group"],
 				"altitude" => (int)$zone["altitude"]);
 

@@ -62,13 +62,10 @@ a {
 
 /* Script
  */
-div.script_editor div.panel-body {
-	height:315px;
-}
-
 div.script_editor textarea {
 	height:200px;
 	resize:none;
+	max-width:none;
 }
 
 div.script_editor div.game_id {
@@ -83,19 +80,17 @@ div.script_editor span.zone_group {
 }
 
 div.script_editor input#zone_group {
-	border:0;
-	border-radius:5px;
-	padding:0 5px;
 	width:125px;
-	color:#000000;
+	border:1px solid #cccccc;
+	border-radius:4px;
+	padding:0 3px;
 }
 
-div.script_manual div.panel {
-	max-width:600px;
-	width:100%;
+div.script_editor div.row div.col-xs-6:last-child {
+	text-align:right;
 }
 
-div.script_manual div.panel-body {
+div.script_manual {
 	font-family:sans-serif;
 }
 

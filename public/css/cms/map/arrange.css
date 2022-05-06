@@ -1,3 +1,7 @@
+div.windowframe_overlay {
+	z-index:9000;
+}
+
 div.token,
 div.character {
 	position:absolute;
@@ -50,6 +54,15 @@ div.menu div.btn-group {
 	display:inline-block;
 }
 
+/* Blinders
+ */
+div.blinder {
+	position:absolute;
+	background-color:#e080e0;
+	border:1px solid #e000e0;
+	transform-origin:0px 2px;
+}
+
 /* Doors
  */
 div.door {
@@ -70,6 +83,15 @@ div.window {
 	position:absolute;
 	background:#0080ff;
 	border:1px solid #0000ff;
+}
+
+/* Fog of war
+ */
+canvas.fow {
+	position:absolute;
+	top:0;
+	left:0;
+	pointer-events:none;
 }
 
 /* Zones

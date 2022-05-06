@@ -1,32 +1,54 @@
 ul.menu-editor {
+	list-style:none;
+	padding:0;
 	cursor:pointer;
 }
 
-ul.menu-editor span.label {
-	margin-right:2px;
-}
-
-ul.menu-editor span.link {
-	margin-left:10px;
-}
-
-form > ul.menu-editor {
-	list-style:none;
-	padding:0;
-}
-
-ul.menu-editor ul.sortable {
+ul.menu-editor ul {
 	list-style:none;
 	padding:0 0 0 30px;
 }
 
 ul.menu-editor li {
 	margin-top:2px;
+	padding:3px 0 3px 3px;
+	cursor:ns-resize;
 }
 
-input.add_node, input.delete_node, input.add_branch {
+ul.menu-editor > li {
+	background-color:#f0f0f0;
+}
+
+ul.menu-editor li input[type=text] {
+	margin-right:15px;
+}
+
+ul.menu-editor input.form-control {
+	width:200px;
+	display:inline-block;
+	margin:0;
+	height:22px;
+	padding:0 5px;
+}
+
+ul.menu-editor span.buttons {
+	float:right;
+	margin-right:3px;
+}
+
+ul.menu-editor input.btn {
 	padding:0 7px;
 	margin-left:2px;
 	position:relative;
 	top:-1px;
+}
+
+@media (max-width:767px) {
+	ul.menu-editor input[type=text]:first-child {
+		width:100%;
+	}
+
+	ul.menu-editor input[type=text]:nth-child(2) {
+		width:180px;
+	}
 }

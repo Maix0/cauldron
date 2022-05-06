@@ -6,25 +6,49 @@
 	 * Licensed under The MIT License
 	 */
 
-	class register_model extends Banshee\model {
+	class register_model extends Banshee\splitform_model {
 		const MINIMUM_USERNAME_LENGTH = 4;
 		const MINIMUM_FULLNAME_LENGTH = 4;
 
-		public function count_organisations() {
-			$query = "select count(*) as count from organisations";
+		protected $forms = array(
+			"email"   => array("email"),
+			"code"    => array("code"),
+			"account" => array("fullname", "username", "password", "organisation"));
 
-			if (($result = $this->db->execute($query)) === false) {
-				return false;
+		public function reset_form_progress() {
+			unset($_SESSION["register_email"]);
+			unset($_SESSION["register_code"]);
+
+			parent::reset_form_progress();
+		}
+
+		public function validate_email($data) {
+			$result = true;
+
+			if (valid_email($data["email"]) == false) {
+				$this->view->add_message("Invalid e-mail address.");
+				$result = false;
 			}
 
-			return (int)$result[0]["count"];
+			$query = "select * from users where email=%s";
+			if ($this->db->execute($query, $data["email"]) != false) {
+				$this->view->add_message("The e-mail address has already been used to register an account.");
+				$result = false;
+			}
+
+			return $result;
 		}
 
-		private function create_signature($data) {
-			return hash_hmac("sha256", json_encode($data), $this->settings->secret_website_code);
+		public function validate_code($data) {
+			if ($data["code"] != $_SESSION["register_code"]) {
+				$this->view->add_message("Invalid verification code.");
+				return false;
+			}
+			
+			return true;
 		}
 
-		public function valid_signup($data) {
+		public function validate_account($data) {
 			$result = true;
 
 			if ((strlen($data["username"]) < self::MINIMUM_USERNAME_LENGTH) || (valid_input($data["username"], VALIDATE_NONCAPITALS, VALIDATE_NONEMPTY) == false)) {
@@ -32,18 +56,10 @@
 				$result = false;
 			}
 
-			if (valid_email($data["email"]) == false) {
-				$this->view->add_message("Invalid e-mail address.");
+			$query = "select * from users where username=%s";
+			if ($this->db->execute($query, $data["username"]) != false) {
+				$this->view->add_message("The username is already taken.");
 				$result = false;
-			}
-
-			if (trim($data["organisation"]) == "") {
-				$this->view->add_message("Specify a group name.");
-				$result = false;
-			}
-
-			if ($result == false) {
-				return false;
 			}
 
 			if (is_secure_password($data["password"], $this->view) == false) {
@@ -55,21 +71,14 @@
 				$result = false;
 			}
 
-			$query = "select * from users where username=%s or email=%s";
-			if (($users = $this->db->execute($query, $data["username"], $data["email"])) === false) {
-				$this->view->add_message("Error while validating sign up.");
-				return false;
-			}
-
-			foreach ($users as $user) {
-				if ($user["username"] == $data["username"]) {
-					$this->view->add_message("The username is already taken.");
+			if (DEFAULT_ORGANISATION_ID == 0) {
+				if (trim($data["organisation"] == "")) {
+					$this->view->add_message("Fill in the group name.");
 					$result = false;
-				}
-
-				if ($data["email"] != "") {
-					if ($user["email"] == $data["email"]) {
-						$this->view->add_message("The e-mail address has already been used to register an account.");
+				} else {
+					$query = "select * from organisations where name=%s";
+					if ($this->db->execute($query, $data["organisation"]) != false) {
+						$this->view->add_message("The group name is already taken.");
 						$result = false;
 					}
 				}
@@ -78,118 +87,48 @@
 			return $result;
 		}
 
-		public function send_link($data) {
-			$data = array(
-				"username"     => $data["username"],
-				"password"     => $data["password"],
-				"email"        => strtolower($data["email"]),
-				"fullname"     => $data["fullname"],
-				"organisation" => $data["organisation"],
-				"timestamp"    => time());
-			$data["signature"] = $this->create_signature($data);
+		public function process_form_data($data) {
+			if (DEFAULT_ORGANISATION_ID == 0) {
+				$organisation = array(
+					"name"          => $data["organisation"],
+					"max_resources" => $this->settings->default_max_resources);
 
-			$link = json_encode($data);
+				if ($this->borrow("cms/organisation")->create_organisation($organisation) == false) {
+					$this->db->query("rollback");
+					return false;
+				}
 
-			$aes = new \Banshee\Protocol\AES256($this->settings->secret_website_code);
-			if (($link = $aes->encrypt($link)) === false) {
-				return false;
-			}
-
-			$email = new \Banshee\Protocol\email("Confirm account creation at ".$_SERVER["SERVER_NAME"], $this->settings->webmaster_email);
-			$email->set_message_fields(array(
-				"FULLNAME" => $data["fullname"],
-				"HOSTNAME" => $_SERVER["SERVER_NAME"],
-				"PROTOCOL" => $_SERVER["HTTP_SCHEME"],
-				"LINK"     => $link));
-			$email->message(file_get_contents("../extra/register.txt"));
-
-			if ($email->send($data["email"], $data["fullname"]) == false) {
-				return false;
-			}
-
-			return true;
-		}
-
-		public function sign_up($data) {
-			$aes = new \Banshee\Protocol\AES256($this->settings->secret_website_code);
-			if (($data = $aes->decrypt($data)) === false) {
-				return false;
-			}
-
-			if (($data = json_decode($data, true)) === false) {
-				return false;
-			}
-
-			if ($data["timestamp"] + HOUR < time()) {
-				return false;
-			}
-
-			$signature = $data["signature"];
-			unset($data["signature"]);
-			if ($this->create_signature($data) != $signature) {
-				return false;
-			}
-
-			if ($this->valid_signup($data) == false) {
-				return false;
+				$organisation_id = $this->db->last_insert_id;
+			} else {
+				$organisation_id = DEFAULT_ORGANISATION_ID;
 			}
 
 			$user = array(
-				"id"                   => null,
-				"organisation_id"      => DEFAULT_ORGANISATION_ID,
-				"username"             => $data["username"],
-				"password"             => password_hash($data["password"], PASSWORD_ALGORITHM),
-				"one_time_key"         => null,
-				"cert_serial"          => 0,
-			    "status"               => USER_STATUS_ACTIVE,
-				"authenticator_secret" => null,
-				"fullname"             => $data["fullname"],
-				"email"                => $data["email"]);
+				"organisation_id" => $organisation_id,
+				"username"        => $data["username"],
+				"password"        => $data["password"],
+			    "status"          => USER_STATUS_ACTIVE,
+				"fullname"        => $data["fullname"],
+				"email"           => $data["email"],
+				"roles"           => array(USER_MAINTAINER_ROLE_ID, PLAYER_ROLE_ID, DUNGEON_MASTER_ROLE_ID));
 
-			if ($this->db->query("begin") == false) {
+			if ($this->borrow("cms/user")->create_user($user, true) == false) {
+				$this->db->query("delete from organisations where id=%d", $organisation_id);
 				return false;
-			}
-
-			$organisation = array(
-				"name"          => $data["organisation"],
-				"max_resources" => $this->settings->default_max_resources);
-			if ($this->borrow("cms/organisation")->create_organisation($organisation) == false) {
-				$this->db->query("rollback");
-				return false;
-			}
-			$user["organisation_id"] = $this->db->last_insert_id;
-
-			if ($this->db->insert("users", $user) == false) {
-				$this->db->query("rollback");
-				return false;
-			}
-			$user_id = $this->db->last_insert_id;
-
-			if (module_exists("forum")) {
-				$data = array("user_id" => $user_id, "forum_topic_id" => null);
-				$this->db->insert("forum_last_view", $data);
 			}
 
 			$this->user->log_action("user %s registered", $data["username"]);
 
-			$roles = array(USER_MAINTAINER_ROLE_ID, PLAYER_ROLE_ID, DUNGEON_MASTER_ROLE_ID);
-			foreach ($roles as $role_id) {
-				if ($this->db->query("insert into user_role values (%d, %d)", $user_id, $role_id) == false) {
-					$this->db->query("rollback");
-					return false;
-				}
-			}
-
-			if ($this->db->query("commit") === false) {
-				return false;
-			}
+			unset($_SESSION["register_email"]);
+			unset($_SESSION["register_code"]);
 
 			$email = new \Banshee\Protocol\email("New account registered at ".$_SERVER["SERVER_NAME"], $this->settings->webmaster_email);
 			$email->set_message_fields(array(
 				"FULLNAME" => $data["fullname"],
 				"EMAIL"    => $data["email"],
 				"USERNAME" => $data["username"],
-				"HOSTNAME" => $_SERVER["SERVER_NAME"],
+				"GROUP"    => $data["organisation"],
+				"WEBSITE"  => $this->settings->head_title,
 				"IP_ADDR"  => $_SERVER["REMOTE_ADDR"]));
 			$email->message(file_get_contents("../extra/account_registered.txt"));
 			$email->send($this->settings->webmaster_email);

@@ -33,6 +33,7 @@
 				return;
 			}
 
+			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("games.js");
 			$is_dm = show_boolean($this->user->has_role("Dungeon Master"));
 
@@ -89,12 +90,7 @@
 					return;
 				}
 
-				if (($tokens = $this->model->get_tokens($game["active_map_id"])) === false) {
-					$this->view->add_tag("result", "Database error.");
-					return;
-				}
-
-				if (($shape_change_tokens = $this->model->get_tokens_for_shape_change()) === false) {
+				if (($blinders = $this->model->get_blinders($game["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -114,7 +110,7 @@
 					return;
 				}
 
-				if (($walls = $this->model->get_walls($game["active_map_id"])) === false) {
+				if (($journal = $this->model->get_journal($game_id)) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -124,12 +120,22 @@
 					return;
 				}
 
-				if (($zones = $this->model->get_zones($game["active_map_id"])) === false) {
+				if (($tokens = $this->model->get_tokens($game["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
 
-				if (($journal = $this->model->get_journal($game_id)) === false) {
+				if (($shape_change_tokens = $this->model->get_tokens_for_shape_change()) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
+				if (($walls = $this->model->get_walls($game["active_map_id"])) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
+				if (($zones = $this->model->get_zones($game["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -156,18 +162,27 @@
 				$active_map["height"] = round($active_map["height"] * $factor);
 			}
 
-			$this->view->title = $active_map["title"]." - ".$game["title"];
+			$this->view->title = $game["title"];
+			if ($user_is_dungeon_master) {
+				$this->view->title .= " - ".$active_map["title"];
+			}
 			$this->view->set_layout("game");
 			$this->view->run_javascript("$('div.loading').remove()");
 
 			if ($active_map != null) {
 				$this->view->add_javascript("webui/jquery-ui.js");
 				$this->view->add_javascript("banshee/jquery.contextMenu.js");
+				$this->view->add_javascript("banshee/jquery.windowframe.js");
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("game.js");
 				if ($active_map["fog_of_war"] > 0) {
-					$this->view->add_javascript("includes/fog_of_war.js");
+					if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
+						$type = "real";
+					} else {
+						$type = "cell";
+					}
+					$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 				}
 
 				$this->view->add_css("banshee/context-menu.css");
@@ -264,6 +279,18 @@
 					$light["pos_y"] *= $grid_cell_size;
 
 					$this->view->record($light, "light");
+				}
+				$this->view->close_tag();
+
+				/* Blinders
+				 */
+				$this->view->open_tag("blinders");
+				foreach ($blinders as $blinder) {
+					$fields = array("pos1_x", "pos1_y", "pos2_x", "pos2_y");
+					foreach ($fields as $field) {
+						$blinder[$field] = $blinder[$field] * $grid_cell_size / $active_map["grid_size"];
+					}
+					$this->view->record($blinder, "blinder");
 				}
 				$this->view->close_tag();
 

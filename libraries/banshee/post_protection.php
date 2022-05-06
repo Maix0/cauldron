@@ -167,7 +167,7 @@
 				$this->block_repost();
 			}
 
-			if ($this->user->logged_in) {
+			if ($this->user->logged_in || ($this->page->module == LOGIN_MODULE)) {
 				$this->prevent_CSRF();
 			}
 		}

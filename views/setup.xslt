@@ -34,7 +34,7 @@
 //
 //-->
 <xsl:template match="db_settings">
-<p>Enter your database settings in the file settings/website.conf and refresh this page.</p>
+<p>Enter your database settings in the file settings/banshee.conf and refresh this page.</p>
 <p>If the specified database and database user do not exist, this setup will create them for you.</p>
 
 <div class="btn-group">
@@ -50,7 +50,7 @@
 <xsl:template match="create_db">
 <xsl:call-template name="show_messages" />
 
-<p>Enter the MySQL root credentials to create a database and a database user for your website as specified in settings/website.conf.</p>
+<p>Enter the MySQL root credentials to create a database and a database user for your website as specified in settings/banshee.conf.</p>
 <form action="/{/output/page}" method="post">
 <label for="username">Username:</label>
 <input type="text" id="username" name="username" value="{username}" class="form-control" autofocus="autofocus" />

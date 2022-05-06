@@ -387,7 +387,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 
 function script_save(zone) {
 	var zone_id = $('div.script_editor input#zone_id').val();
-	var zone_group = $('div.script_editor input#zone_group').val();
+	var zone_group = $('input#zone_group').val();
 	var copy_script = $('div.script_editor input#copy_script').prop('checked');
 	var script = $('div.script_editor textarea').val();
 
@@ -419,8 +419,6 @@ function script_save(zone) {
 		if (typeof zone_announce_group_id == 'function') {
 			zone_announce_group_id(zone_id, zone_group);
 		}
-
-		$('div.script_editor').hide();
 	}).fail(function(data) {
 		alert('Script save error');
 	});

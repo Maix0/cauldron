@@ -1,3 +1,13 @@
+cauldron (2.1) stable; urgency=low
+
+  * Added a realistic looking Fog of War.
+  * Added blinders.
+  * Turned websocket server into a daemon.
+  * All dialog windows via WindowFrame jQuery plugin.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri,  6 May 2022 13:26:53 +0200
+
 cauldron (2.0) stable; urgency=low
 
   * Renamed project to Cauldron VTT.

@@ -34,7 +34,7 @@
 	/* Activate new layout
 	 */
 	function activate_layout($name) {
-		$filename = __DIR__."/../../settings/website.conf";
+		$filename = __DIR__."/../../settings/banshee.conf";
 
 		if (($file = file($filename)) === false) {
 			return false;

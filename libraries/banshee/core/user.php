@@ -16,6 +16,7 @@
 		private $logged_in = false;
 		private $is_admin = false;
 		private $resources_key = "";
+		private $max_resources = 0;
 
 		/* Constructor
 		 *
@@ -61,6 +62,7 @@
 				case "is_admin": return $this->is_admin;
 				case "do_not_track": return $_SERVER["HTTP_DNT"] == 1;
 				case "session": return $this->session;
+				case "max_resources": return $this->max_resources;
 				case "resources_key": return $this->resources_key;
 				case "organisation":
 					if (($organisation = $this->db->entry("organisations", $this->record["organisation_id"])) !== false) {

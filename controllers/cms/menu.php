@@ -41,7 +41,7 @@
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				/* Update menu
 				 */
-				if ($this->model->menu_oke($_POST["menu"]) == false) {
+				if ($this->model->menu_okay($_POST["menu"]) == false) {
 					$this->show_menu_form($_POST["menu"]);
 				} else if ($this->model->update_menu($_POST["menu"]) == false) {
 					$this->view->add_system_warning("Error while updating menu.");

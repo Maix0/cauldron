@@ -10,9 +10,16 @@ var map_id = null;
 var resources_key = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
+var constructs_visible = true;
+var wf_script_editor = null;
+var wf_script_manual = null;
+var wf_zone_create = null;
 var fow_obj = null;
 var mouse_x = 0;
 var mouse_y = 0;
+var measuring = false;
+var measure_diff_x = 0;
+var measure_diff_y = 0;
 var door_x = 0;
 var door_y = 0;
 var wall_x = 0;
@@ -68,6 +75,20 @@ function screen_scroll() {
 	return scr;
 }
 
+function toggle_constructs() {
+	if (constructs_visible) {
+		$('div.blinder').hide();
+		$('div.door').hide();
+		$('div.wall').hide();
+	} else {
+		$('div.blinder').show();
+		$('div.door').show();
+		$('div.wall').show();
+	}
+
+	constructs_visible = constructs_visible == false;
+}
+
 function coord_to_grid(coord, edge = true) {
 	var delta = coord % grid_cell_size;
 	coord -= delta;
@@ -89,6 +110,8 @@ function key_down(event) {
 	if (event.which == 17) {
 		ctrl_down = true;
 	} else if (event.which == 27) {
+		blinder_stop();
+		door_stop();
 		wall_stop();
 	}
 }
@@ -482,6 +505,85 @@ function measuring_stop() {
 	$('div.playarea').off('mousemove');
 	$('img.pin').remove();
 	$('span#infobar').text('');
+
+	measuring = false;
+}
+
+/* Blinder functions
+ */
+function blinder_create(pos1_x, pos1_y, pos2_x, pos2_y) {
+	$.post('/object/create_blinder', {
+		map_id: map_id,
+		pos1_x: pos1_x,
+		pos1_y: pos1_y,
+		pos2_x: pos2_x,
+		pos2_y: pos2_y
+	}).done(function(data) {
+		instance_id = $(data).find('instance_id').text();
+
+		$('div.playarea div#new_blinder').first().attr('id', 'blinder' + instance_id);
+
+		$.contextMenu({
+			selector: 'div#blinder' + instance_id,
+			callback: context_menu_handler,
+			items: {
+				'delete': {name:'Delete', icon:'fa-trash'},
+				'blinder_create': {name:'Create blinder', icon:'fa-eye-slash'}
+			},
+			zIndex: LAYER_MENU
+		});
+
+		if (fow_obj != null) {
+			fog_of_war_update(fow_obj);
+		}
+	}).fail(function(data) {
+		$('div.playarea div#new_blinder').remove();
+		alert('Blinder create error');
+	});
+}
+
+function points_angle(pos1_x, pos1_y, pos2_x, pos2_y) {
+	var dx = pos2_x - pos1_x;
+	var dy = pos2_y - pos1_y;
+
+	var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+	if (angle < 0) {
+		angle += 360;
+	}
+
+	return angle;
+}
+
+function points_distance(pos1_x, pos1_y, pos2_x, pos2_y) {
+	var dx = pos2_x - pos1_x;
+	var dy = pos2_y - pos1_y;
+
+	return Math.sqrt(dx * dx + dy * dy);
+}
+
+function blinder_position(blinder) {
+	var pos1_x = parseInt(blinder.attr('pos1_x'));
+	var pos1_y = parseInt(blinder.attr('pos1_y')) - 2;
+	var pos2_x = parseInt(blinder.attr('pos2_x'));
+	var pos2_y = parseInt(blinder.attr('pos2_y')) - 2;
+	var angle = points_angle(pos1_x, pos1_y, pos2_x, pos2_y);
+	var distance = points_distance(pos1_x, pos1_y, pos2_x, pos2_y);
+
+	blinder.css('left', pos1_x + 'px');
+	blinder.css('top', pos1_y + 'px');
+	blinder.css('width', distance + 'px');
+	blinder.css('height', '4px');
+	blinder.css('transform', 'rotate(' + angle + 'deg)');
+}
+
+function blinder_stop(remove = true) {
+	if (remove) {
+		$('div.playarea div#new_blinder').remove();
+	}
+	$('div.playarea').off('mousemove');
+	$('div.playarea').off('click');
+//	$('body').off('keydown');
+//	$('body').off('keyup');
 }
 
 /* Door functions
@@ -559,6 +661,7 @@ function door_stop(remove = true) {
 	}
 	$('div.playarea').off('mousemove');
 	$('div.playarea').off('click');
+//	$('body').off('keydown');
 }
 
 /* Light functions
@@ -618,7 +721,8 @@ function wall_create(pos_x, pos_y, length, direction, transparent) {
 			selector: 'div#wall' + instance_id,
 			callback: context_menu_handler,
 			items: {
-				'delete': {name:'Delete', icon:'fa-trash'}
+				'delete': {name:'Delete', icon:'fa-trash'},
+				'blinder_create': {name:'Create blinder', icon:'fa-eye-slash'}
 			},
 			zIndex: LAYER_MENU
 		});
@@ -666,8 +770,8 @@ function wall_stop(remove = true) {
 	}
 	$('div.playarea').off('mousemove');
 	$('div.playarea').off('click');
-	$('body').off('keydown');
-	$('body').off('keyup');
+//	$('body').off('keydown');
+//	$('body').off('keyup');
 }
 
 /* Zone functions
@@ -731,10 +835,10 @@ function zone_create(width, height, color, opacity, group, altitude) {
 		$('div.playarea div.zones').prepend(zone);
 
 		$('div#zone' + instance_id).draggable({
-            stop: function(event, ui) {
-                object_move($(this));
-            }
-        });
+			stop: function(event, ui) {
+				object_move($(this));
+			}
+		});
 
 		$.contextMenu({
 			selector: 'div#zone' + instance_id,
@@ -777,9 +881,7 @@ function collectables_select(obj) {
 		game_id: game_id,
 		instance_id: instance_id
 	}).done(function(data) {
-		var body = $('div.collectables div.panel-body');
-		body.empty();
-		body.append('<select id="collectable" class="form-control" ><option value="0">-</option></select>');
+		var body = $('<div class="collectables"><select class="form-control" ><option value="0">-</option></select></div>');
 
 		$(data).find('collectable').each(function() {
 			var c_id = $(this).attr('id');
@@ -794,23 +896,30 @@ function collectables_select(obj) {
 			body.find('select').append(collectable);
 		});
 
-		body.append('<div class="btn-group"><input type="button" value="Save" class="btn btn-default save" /><input type="button" value="Cancel" class="btn btn-default cancel" /></div>');
-
-		$('div.collectables input.save').click(function() {
-			var collectable_id = body.find('select').val();
-			$.post('/object/collectable/place', {
-				collectable_id: collectable_id,
-				instance_id: instance_id
-			}).done(function() {
-				$('div.collectables').hide();
-			});
+		var wf_collectables = $(body).windowframe({
+			style: 'default',
+			header: 'Collectables',
+			buttons: {
+				'Save': function() {
+					var collectable_id = $('div.collectables select').val();
+					$.post('/object/collectable/place', {
+						collectable_id: collectable_id,
+						instance_id: instance_id
+					}).done(function() {
+						wf_collectables.close();
+					});
+				},
+				'Cancel': function() {
+					$(this).close();
+				}
+			},
+			close: function() {
+				wf_collectables.destroy();
+				delete body;
+			}
 		});
 
-		$('div.collectables input.cancel').click(function() {
-			$('div.collectables').hide();
-		});
-
-		$('div.collectables').show();
+		wf_collectables.open();
 	});
 }
 
@@ -833,6 +942,59 @@ function context_menu_handler(key, options) {
 	switch (key) {
 		case 'armor_class':
 			object_armor_class(obj);
+			break;
+		case 'blinder_create':
+			blinder_stop();
+			door_stop();
+			measuring_stop();
+			wall_stop();
+
+//			$('body').keydown(key_down);
+//			$('body').keyup(key_up);
+//			ctrl_down = false;
+
+			if (ctrl_down) {
+				var blinder_x = mouse_x;
+				var blinder_y = mouse_y;
+			} else {
+				var blinder_x = coord_to_grid(mouse_x, true);
+				var blinder_y = coord_to_grid(mouse_y, true);
+			}
+
+			var blinder = '<div id="new_blinder" class="blinder" pos1_x="' + blinder_x + '" pos1_y="' + blinder_y + '" pos2_x="' + blinder_x + '" pos2_y="' + blinder_y + '" />';
+			$('div.playarea div.blinders').append(blinder);
+			$('div#new_blinder').each(function() {
+				blinder_position($(this));
+			});
+
+			$('div.playarea').mousemove(function(event) {
+				capture_mouse_position(event);
+
+				if (ctrl_down) {
+					var blinder_x = mouse_x;
+					var blinder_y = mouse_y;
+				} else {
+					var blinder_x = coord_to_grid(mouse_x, true);
+					var blinder_y = coord_to_grid(mouse_y, true);
+				}
+
+				$('div.playarea div#new_blinder').last().each(function() {
+					$(this).attr('pos2_x', blinder_x);
+					$(this).attr('pos2_y', blinder_y);
+					blinder_position($(this));
+				});
+			});
+
+			$('div.playarea').on('click', function(event) {
+				blinder_stop(false);
+
+				var pos1_x = $('div.playarea div#new_blinder').attr('pos1_x');
+				var pos1_y = $('div.playarea div#new_blinder').attr('pos1_y');
+				var pos2_x = $('div.playarea div#new_blinder').attr('pos2_x');
+				var pos2_y = $('div.playarea div#new_blinder').attr('pos2_y');
+
+				blinder_create(pos1_x, pos1_y, pos2_x, pos2_y);
+			});
 			break;
 		case 'collectable':
 			collectables_select(obj);
@@ -859,6 +1021,7 @@ function context_menu_handler(key, options) {
 			}
 			break;
 		case 'distance':
+			blinder_stop();
 			door_stop();
 			measuring_stop();
 			wall_stop();
@@ -879,22 +1042,27 @@ function context_menu_handler(key, options) {
 				var to_y = event.clientY + scr.top - 41;
 				to_y = coord_to_grid(to_y, false);
 
-				var diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
-				var diff_y = Math.round(Math.abs(to_y - from_y) / grid_cell_size);
+				measure_diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
+				measure_diff_y = Math.round(Math.abs(to_y - from_y) / grid_cell_size);
 
-				var distance = (diff_x > diff_y) ? diff_x : diff_y;
+				var distance = (measure_diff_x > measure_diff_y) ? measure_diff_x : measure_diff_y;
 
-				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft / ' + (diff_x + 1) + 'x' + (diff_y + 1));
+				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft / ' + (measure_diff_x + 1) + 'x' + (measure_diff_y + 1));
 			});
+
+			measuring = true;
 
 			$('div.playarea').on('click', function(event) {
 				measuring_stop();
 			});
 			break;
 		case 'door_create':
+			blinder_stop();
 			door_stop();
 			measuring_stop();
 			wall_stop();
+
+			$('body').keydown(key_down);
 
 			door_x = coord_to_grid(mouse_x, true) / grid_cell_size;
 			door_y = coord_to_grid(mouse_y, true) / grid_cell_size;
@@ -973,19 +1141,22 @@ function context_menu_handler(key, options) {
 			if (fow_obj == null) {
 				fog_of_war_set_distance(0);
 				var distance = null;
-				if ((distance = window.prompt('Fog of War distance:')) != undefined) {
-					distance = parseInt(distance);
-					if (isNaN(distance)) {
-						write_sidebar('Invalid distance');
-					} else if (distance < 1) {
-						write_sidebar('Invalid distance');
-					} else {
-						fog_of_war_set_distance(distance);
+				if ((distance = window.prompt('Fog of War distance (leave empty for unlimited distance):')) != undefined) {
+					if (distance != '') {
+						distance = parseInt(distance);
+						if (isNaN(distance)) {
+							write_sidebar('Invalid distance');
+						} else if (distance < 1) {
+							write_sidebar('Invalid distance');
+						} else {
+							fog_of_war_set_distance(distance);
+						}
 					}
+
+					fog_of_war_init(LAYER_FOG_OF_WAR);
+					fog_of_war_update(obj);
+					fow_obj = obj;
 				}
-				fog_of_war_init(LAYER_FOG_OF_WAR);
-				fog_of_war_update(obj);
-				fow_obj = obj;
 			} else if (obj.is(fow_obj)) {
 				fog_of_war_destroy();
 				fow_obj = null;
@@ -1073,11 +1244,12 @@ function context_menu_handler(key, options) {
 			$('div.script_editor input#zone_group').val($(this).attr('group'));
 			$('div.script_editor textarea').val($(this).find('div.script').text());
 			zone_group_change(true);
-			$('div.script_editor').show();
+			wf_script_editor.open();
 			$('div.script_editor textarea').focus();
 			break;
 		case 'wall_create':
 		case 'window_create':
+			blinder_stop();
 			door_stop();
 			measuring_stop();
 			wall_stop();
@@ -1091,7 +1263,7 @@ function context_menu_handler(key, options) {
 			wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
 			wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
 
-			var type = (key == 'wall_create') ? 'wall' : 'window';
+			var type = (key == 'wall_create') ? 'wall' : 'wall window';
 			var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" />';
 			$('div.playarea div.walls').append(wall);
 			$('div#new_wall').each(function() {
@@ -1157,12 +1329,25 @@ function context_menu_handler(key, options) {
 			});
 			break;
 		case 'zone_create':
+			blinder_stop();
+			door_stop();
+			wall_stop();
+
 			zone_x = coord_to_grid(mouse_x, false);
 			zone_y = coord_to_grid(mouse_y, false);
 
-			$('div.zone_create input#width').val(3);
-			$('div.zone_create input#height').val(3);
-			$('div.zone_create').show();
+			if (measuring) {
+				$('div.zone_create input#width').val(measure_diff_x + 1);
+				$('div.zone_create input#height').val(measure_diff_y + 1);
+
+				measuring_stop();
+			} else {
+				$('div.zone_create input#width').val(3);
+				$('div.zone_create input#height').val(3);
+			}
+			measuring_stop();
+
+			wf_zone_create.open();
 			$('div.zone_create div.panel-body').prop('scrollTop', 0);
 			break;
 		default:
@@ -1206,6 +1391,22 @@ $(document).ready(function() {
 	 */
 	$('div.windows > div').css('z-index', LAYER_MENU);
 
+	/* Blinders
+	 */
+	$('div.blinder').each(function() {
+		blinder_position($(this));
+	});
+
+	$.contextMenu({
+		selector: 'div.blinder',
+		callback: context_menu_handler,
+		items: {
+			'delete': {name:'Delete', icon:'fa-trash'},
+			'blinder_create': {name:'Create blinder', icon:'fa-eye-slash'}
+		},
+		zIndex: LAYER_MENU
+	});
+
 	/* Doors
 	 */
 	$('div.door').each(function() {
@@ -1246,6 +1447,30 @@ $(document).ready(function() {
 		zIndex: LAYER_MENU
 	});
 
+	/* Script
+	 */
+	wf_script_editor = $('div.script_editor').windowframe({
+		width:500,
+		header: 'Event script',
+		buttons: {
+			'Save': function() {
+				script_save();
+				$(this).close();
+			},
+			'Cancel': function() {
+				$(this).close();
+			},
+			'Help': function() {
+				wf_script_manual.open();
+			}
+		}
+	});
+
+	wf_script_manual = $('div.script_manual').windowframe({
+		width: 1000,
+		header: 'Script manual'
+	});
+
 	/* Walls
 	 */
 	$('div.wall[transparent="yes"]').addClass('window');
@@ -1258,7 +1483,8 @@ $(document).ready(function() {
 		selector: 'div.wall',
 		callback: context_menu_handler,
 		items: {
-			'delete': {name:'Delete', icon:'fa-trash'}
+			'delete': {name:'Delete', icon:'fa-trash'},
+			'blinder_create': {name:'Create blinder', icon:'fa-eye-slash'}
 		},
 		zIndex: LAYER_MENU
 	});
@@ -1275,42 +1501,43 @@ $(document).ready(function() {
 
 	zone_init_presence();
 
-	$('div.zone_create div.panel').draggable({
-		handle: 'div.panel-heading',
-		cursor: 'grab'
-	});
+	wf_zone_create = $('div.zone_create').windowframe({
+		width: 450,
+		header: 'Create zone',
+		buttons: {
+			'Create zone': function() {
+				var width = parseInt($('input#width').val());
+				var height = parseInt($('input#height').val());
+				var color = $('input#color').val();
+				var opacity = parseFloat($('input#opacity').val());
+				var group = $('input#group').val();
+				var altitude = parseInt($('input#altitude').val());
 
-	$('div.zone_create button.create').on('click', function() {
-		var width = parseInt($('input#width').val());
-		var height = parseInt($('input#height').val());
-		var color = $('input#color').val();
-		var opacity = parseFloat($('input#opacity').val());
-		var group = $('input#group').val();
-		var altitude = parseInt($('input#altitude').val());
+				if (isNaN(width)) {
+					write_sidebar('Invalid width.');
+					return;
+				} else if (isNaN(height)) {
+					write_sidebar('Invalid height.');
+					return;
+				} else if (isNaN(opacity)) {
+					write_sidebar('Invalid opacity.');
+					return;
+				}
 
-		if (isNaN(width)) {
-			write_sidebar('Invalid width.');
-			return;
-		} else if (isNaN(height)) {
-			write_sidebar('Invalid height.');
-			return;
-		} else if (isNaN(opacity)) {
-			write_sidebar('Invalid opacity.');
-			return;
+				if (opacity < 0) {
+					opacity = 0;
+				} else if (opacity > 1) {
+					opacity = 1;
+				}
+
+				zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
+				zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
+
+				zone_create(width, height, color, opacity, group, altitude);
+
+				$(this).close();
+			}
 		}
-
-		if (opacity < 0) {
-			opacity = 0;
-		} else if (opacity > 1) {
-			opacity = 1;
-		}
-
-		zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
-		zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
-
-		zone_create(width, height, color, opacity, group, altitude);
-
-		$('div.zone_create').hide();
 	});
 
 	$.contextMenu({
@@ -1401,6 +1628,7 @@ $(document).ready(function() {
 			'distance': {name:'Measure distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'sep3': '-',
+			'blinder_create': {name:'Create blinder', icon:'fa-eye-slash'},
 			'door_create': {name:'Create door', icon:'fa-columns'},
 			'wall_create': {name:'Create wall', icon:'fa-th-large'},
 			'window_create': {name:'Create window', icon:'fa-window-maximize'},
@@ -1434,6 +1662,7 @@ $(document).ready(function() {
 			'distance': {name:'Measure distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'sep2': '-',
+			'blinder_create': {name:'Create blinder', icon:'fa-eye-slash'},
 			'door_create': {name:'Create door', icon:'fa-columns'},
 			'wall_create': {name:'Create wall', icon:'fa-th-large'},
 			'window_create': {name:'Create window', icon:'fa-window-maximize'},
@@ -1449,6 +1678,7 @@ $(document).ready(function() {
 			'distance': {name:'Measure distance', icon:'fa-map-signs'},
 			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
 			'sep1': '-',
+			'blinder_create': {name:'Create blinder', icon:'fa-eye-slash'},
 			'door_create': {name:'Create door', icon:'fa-columns'},
 			'light_create': {name:'Create light', icon:'fa-lightbulb-o'},
 			'wall_create': {name:'Create wall', icon:'fa-th-large'},
@@ -1480,6 +1710,9 @@ $(document).ready(function() {
 			capture_mouse_position(event);
 		}
 	});
+
+	$('body').keydown(key_down);
+	$('body').keyup(key_up);
 
 	$('input#filter').val(localStorage.getItem('cms_token_filter'));
 	filter_library();
