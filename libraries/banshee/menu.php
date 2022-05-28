@@ -175,7 +175,7 @@
 				if (isset($_SESSION["menu_last_updated"]) == false) {
 					$_SESSION["menu_last_updated"] = $cache->last_updated;
 				} else if ($cache->last_updated > $_SESSION["menu_last_updated"]) {
-					$_SESSION["menu_cache"] = array();
+					unset($_SESSION["menu_cache"]);
 					$_SESSION["menu_last_updated"] = $cache->last_updated;
 				}
 				unset($cache);

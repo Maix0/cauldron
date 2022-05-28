@@ -4,7 +4,6 @@
 <ul>
 <li>[FULLNAME] &lt;[EMAIL]&gt;</li>
 <li>Username: [USERNAME]</li>
-<li>Group: [GROUP]</li>
 <li>IP address: [IP_ADDR]</li>
 </ul>
 <body>

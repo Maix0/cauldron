@@ -34,8 +34,7 @@ var wf_script_editor = null;
 var wf_script_manual = null;
 var wf_zone_create = null;
 var temporary_hitpoints = 0;
-var battle_order = [];
-var keep_centered = false;
+var keep_centered = true;
 var focus_obj = null;
 var fow_type = null;
 var fow_obj = null;
@@ -351,8 +350,10 @@ function roll_d20(bonus, type = ROLL_NORMAL) {
 function show_help() {
 	var help =
 		(dungeon_master ?
-		'<b>/add &lt;name&gt;</b>: Add NPC to battle and make it its turn.<br />' : '') +
+		'<b>/add &lt;name&gt;</b>: Add NPC to the combat and make it its turn.<br />' : '') +
 		'<b>/clear</b>: Clear this sidebar.<br />' +
+		(dungeon_master ?
+		'<b>/combat</b>: Start a new combat.<br />' : '') +
 		'<b>/d20 [&lt;bonus&gt]</b>: Roll d20 dice.<br />' +
 		'<b>/d20a [&lt;bonus&gt]</b>: Roll d20 dice with advantage.<br />' +
 		'<b>/d20d [&lt;bonus&gt]</b>: Roll d20 dice with disadvantage.<br />' +
@@ -360,19 +361,17 @@ function show_help() {
 		'<b>/damage &lt;points&gt;</b>: Damage your character.<br />') +
 		(dungeon_master ?
 		'<b>/dmroll &lt;dice&gt;</b>: Privately roll dice.<br />' +
-		'<b>/done</b>: End the battle.<br />' : '') +
+		'<b>/done</b>: End the combat.<br />' : '') +
 		(dungeon_master ? '' :
 		'<b>/heal &lt;points&gt;</b>: Heal your character.<br />') +
-		(dungeon_master ?
-		'<b>/init</b>: Roll for initiative.<br />' : '') +
 		'<b>/labels [hide|show]</b>: Manage character name labels and health bars visibility.<br />' +
 		'<b>/log &lt;message&gt;</b>: Add message to journal.<br />' +
 		(dungeon_master ?
-		'<b>/next [&lt;name&gt;]</b>: Next turn in battle.<br />' +
+		'<b>/next [&lt;name&gt;]</b>: Next turn in combat.<br />' +
 		'<b>/ping</b>: See who\'s online in the game.<br />' +
 		'<b>/play [&lt;nr&gt;]:</b> Show available audio files or play one.<br />' +
 		'<b>/reload</b>: Reload current page.<br />' +
-		'<b>/remove &lt;name&gt;</b>: Remove one from battle.<br />' : '') +
+		'<b>/remove &lt;name&gt;</b>: Remove one from the combat.<br />' : '') +
 		'<b>/roll &lt;dice&gt;</b>: Roll dice.<br />' +
 		(dungeon_master ?
 		'<b>/walls [hide|show]</b>: Manage walls and windows visibility.<br />' : '') +
@@ -380,25 +379,6 @@ function show_help() {
 		'<br />Right-click an icon or the map for a menu with options. Move a character via w, a, s and d and rotate via q and e.';
 
 	write_sidebar(help);
-}
-
-function show_battle_order(first_round = false, send = true) {
-	if (first_round) {
-		send_message('Prepare for battle!', null, false);
-	}
-
-	var message = '';
-	var bullet = '&Rightarrow;';
-	battle_order.forEach(function(value, key) {
-		message += bullet + ' ' + value.name + '\n';
-		bullet = '&boxh;';
-	});
-
-	if (send) {
-		send_message(message, 'Battle order');
-	} else {
-		message_to_sidebar('Battle order', message);
-	}
 }
 
 function coord_to_grid(coord, edge = true) {
@@ -419,9 +399,11 @@ function center_character(button) {
 			scroll_to_my_character(0);
 		}
 		$(button).addClass('btn-primary');
+		$(button).removeClass('btn-default');
 	} else {
 		keep_centered = false;
 		$(button).removeClass('btn-primary');
+		$(button).addClass('btn-default');
 	}
 
 	$(button).blur();
@@ -547,10 +529,15 @@ function object_info(obj) {
 
 		info += 'Max hit points: ' + obj.attr('hitpoints') + '<br />';
 
-		var remaining = parseInt(obj.attr('hitpoints')) - parseInt(obj.attr('damage'));
-		info +=
-			'Damage: ' + obj.attr('damage') + '<br />' +
-			'Hit points: ' + remaining.toString() + '<br />';
+		var hitpoints = parseInt(obj.attr('hitpoints'))
+
+		if (hitpoints > 0) {
+			var remaining = hitpoints - parseInt(obj.attr('damage'));
+			var bloodied = (((2 * remaining <= hitpoints) && (remaining > 0)) ? ' (bloodied)' : '');
+			info +=
+				'Damage: ' + obj.attr('damage') + '<br />' +
+				'Hit points: ' + remaining.toString() + bloodied + '<br />';
+		}
 
 		if (obj.is(my_character)) {
 			info += 'Temp, hit points: ' + temporary_hitpoints.toString() + '<br />';
@@ -1784,17 +1771,16 @@ function journal_write() {
 	journal_save_entry(my_name, content);
 }
 
-/* Battle functions
+/* Combat functions
  */
-function battle_done() {
+function combat_done() {
 	if (dungeon_master) {
-		battle_order = [];
-		localStorage.removeItem('battle_order');
+		combat_stop();
 	}
 
 	temporary_hitpoints = 0;
 
-	write_sidebar('The battle is over!');
+	write_sidebar('The combat is over.');
 }
 
 /* Condition functions
@@ -1889,34 +1875,29 @@ function handle_input(input) {
 				break;
 			}
 
-			if (battle_order.length == 0) {
-				write_sidebar('Roll for initiative first.');
-				break;
-			}
-
 			if (param.trim() == '') {
 				write_sidebar('Specify a name.');
 				$('div.input input').val(input);
-				break;
+			} else {
+				combat_add(param);
 			}
-
-			var item = battle_order.shift();
-			battle_order.push(item);
-
-			item = {
-				key: 0,
-				name: param,
-				char_id: null
-			};
-			battle_order.unshift(item);
-
-			show_battle_order();
 			break;
 		case 'cauldron':
 			write_sidebar('<img src="/images/cauldron.png" />');
 			break;
 		case 'clear':
 			$('div.sidebar').empty();
+			break;
+		case 'combat':
+			if (dungeon_master == false) {
+				break;
+			}
+
+			if ($('div.character').length == 0) {
+				write_sidebar('This map has no characters.');
+			} else {
+				combat_start();
+			}
 			break;
 		case 'd20':
 			roll_d20(param);
@@ -1958,7 +1939,7 @@ function handle_input(input) {
 				break;
 			}
 
-			battle_done();
+			combat_done();
 
 			var data = {
 				action: 'done'
@@ -1989,91 +1970,6 @@ function handle_input(input) {
 				history += value + '<br />\n';
 			});
 			write_sidebar(history);
-			break;
-		case 'init':
-			if (dungeon_master == false) {
-				break;
-			}
-
-			if ($('div.character').length == 0) {
-				write_sidebar('This map has no characters.');
-				break;
-			}
-
-			battle_order = [];
-
-			do {
-				var enemy = prompt('Enemy: <name>[, <initiative bonus=0>]\nUse empty input to the start battle.');
-				if (enemy == undefined) {
-					write_sidebar('Battle canceled.');
-					return;
-				}
-
-				if (enemy != '') {
-					var parts = enemy.split(',');
-
-					var present = false;
-					battle_order.forEach(function(value, key) {
-						if (value.name == parts[0]) {
-							present = true;
-						}
-					});
-					if (present) {
-						write_sidebar('Already in battle order.');
-						continue;
-					}
-
-					var initiative = 0;
-					if (parts.length > 1) {
-						initiative = parseInt(parts[1]);
-						if (isNaN(initiative)) {
-							write_sidebar('Invalid initiative value.');
-							continue;
-						}
-					}
-					var roll = Math.floor(Math.random() * 20) + 1 + initiative;
-					roll = roll.toString();
-					while (roll.length < 2) {
-						roll = '0' + roll;
-					}
-
-					var item = {
-						key: roll + '-enemy',
-						name: parts[0],
-						char_id: null
-					}
-					battle_order.push(item);
-
-					write_sidebar(parts[0] + ' added.');
-				}
-			} while (enemy != '');
-
-			$('div.character').each(function() {
-				var initiative = parseInt($(this).attr('initiative'));
-				var roll = Math.floor(Math.random() * 20) + 1 + initiative;
-				roll = roll.toString();
-				while (roll.length < 2) {
-					roll = '0' + roll;
-				}
-				var item = {
-					key: roll + '-' + $(this).attr('id'),
-					name: $(this).find('span.name').text(),
-					char_id: $(this).prop('id')
-				};
-				battle_order.push(item);
-			});
-
-			battle_order.sort((a, b) => b.key.localeCompare(a.key));
-
-			show_battle_order(true);
-
-			$('div.character').each(function() {
-				if ($(this).prop('id') == battle_order[0].char_id) {
-					zone_check_presence_for_turn($(this));
-				}
-			});
-
-			localStorage.setItem('battle_order', JSON.stringify(battle_order));
 			break;
 		case 'labels':
 			if ((param == 'off') || (param == 'hide')) {
@@ -2106,51 +2002,7 @@ function handle_input(input) {
 				break;
 			}
 
-			if (battle_order.length == 0) {
-				write_sidebar('Roll for initiative first.');
-				break;
-			}
-
-			var turn = null;
-			if (param != '') {
-				battle_order.forEach(function(value, key) {
-					if (value.name.substr(0, param.length) == param) {
-						turn = key;
-					}
-				});
-
-				if (turn == null) {
-					write_sidebar(param + ' not in battle order.');
-					$('div.input input').val(input);
-					break;
-				}
-
-				if (turn == 0) {
-					write_sidebar('Already its turn.');
-					break;
-				}
-
-				turn -= 1;
-			}
-
-			var item = battle_order.shift();
-			battle_order.push(item);
-
-			if (turn != null) {
-				var item = battle_order[turn];
-				battle_order.splice(turn, 1);
-				battle_order.unshift(item);
-			}
-
-			show_battle_order();
-
-			$('div.character').each(function() {
-				if ($(this).prop('id') == battle_order[0].char_id) {
-					zone_check_presence_for_turn($(this));
-				}
-			});
-
-			localStorage.setItem('battle_order', JSON.stringify(battle_order));
+			combat_next(param);
 			break;
 		case 'ping':
 			if (dungeon_master == false) {
@@ -2219,33 +2071,12 @@ function handle_input(input) {
 				break;
 			}
 
-			if (battle_order.length == 0) {
-				write_sidebar('Roll for initiative first.');
-				break;
-			}
-
-			var turn = null;
 			if (param == '') {
 				write_sidebar('Specify a name.');
 				$('div.input input').val(input);
-				break;
+			} else {
+				combat_remove(param);
 			}
-
-			var remove = null;
-			battle_order.forEach(function(value, key) {
-				if (value.name.substr(0, param.length) == param) {
-					remove = key;
-				}
-			});
-
-			if (remove == null) {
-				write_sidebar(param + ' not in battle order.');
-				$('div.input input').val(input);
-				break;
-			}
-
-			write_sidebar(battle_order[remove].name + ' removed from battle.');
-			battle_order.splice(remove, 1);
 			break;
 		case 'roll':
 			if (roll_dice(param) == false) {
@@ -2911,6 +2742,7 @@ $(document).ready(function() {
 	var ws_host = $('div.playarea').attr('ws_host');
 	var ws_port = $('div.playarea').attr('ws_port');
 
+	write_sidebar('<img src="/images/cauldron.png" style="max-width:80px; display:block; margin:0 auto" />');
 	write_sidebar('<b>Welcome to Cauldron v' + version + '</b>');
 	write_sidebar('Type /help for command information.');
 	write_sidebar('You are ' + my_name + '.');
@@ -3013,7 +2845,7 @@ $(document).ready(function() {
 				}
 				break;
 			case 'done':
-				battle_done();
+				combat_done();
 				break;
 			case 'door_state':
 				var obj = $('div#' + data.door_id);
@@ -3872,7 +3704,7 @@ $(document).ready(function() {
 		width: 500,
 		style: 'success',
 		header: 'Inventory',
-		open: collectables_show()
+		open: collectables_show
 	});
 
 	$('div.dm_notes').windowframe({
@@ -3888,6 +3720,9 @@ $(document).ready(function() {
 		style: 'info',
 		header: 'Journal',
 		open: journal_show
+	});
+	$('div.journal textarea').on('keyup', function(event) {
+		event.stopPropagation();
 	});
 
 	wf_script_editor = $('div.script_editor').windowframe({
@@ -3957,11 +3792,7 @@ $(document).ready(function() {
 	});
 
 	if (dungeon_master) {
-		var bo = localStorage.getItem('battle_order');
-		if (bo != undefined) {
-			battle_order = JSON.parse(bo);
-			show_battle_order(false, false);
-		}
+		combat_check_running();
 	}
 
 	var conditions = localStorage.getItem('conditions');

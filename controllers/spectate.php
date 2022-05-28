@@ -15,6 +15,10 @@
 		}
 
 		private function resource_path($path, $resources_key) {
+			if ($path == "") {
+				return "/files/default.jpg";
+			}
+
 			if (substr($path, 0, 11) != "/resources/") {
 				return $path;
 			}

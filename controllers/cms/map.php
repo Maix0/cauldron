@@ -58,7 +58,9 @@
 				$this->view->add_system_message("Game has been created. Now add the first map to this game.");
 			}
 
+			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("cms/map.js");
+			$this->view->run_javascript("init_map_browser()");
 
 			$fog_of_war = array("Off", "On, day / illuminated (cell)", "On, day / illuminated (real)", "On, night / dark (cell)", "On, night / dark (real)");
 

@@ -460,6 +460,10 @@
 				$this->settings->database_version = 21;
 			}
 
+			if ($this->settings->database_version == 21) {
+				$this->settings->database_version = 22;
+			}
+
 			return true;
 		}
 

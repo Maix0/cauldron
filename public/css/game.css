@@ -375,3 +375,7 @@ div.zone div.script {
 		right:10px;
 	}
 }
+
+table.combat-tracker input {
+	margin-bottom:0;
+}

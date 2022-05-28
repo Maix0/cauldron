@@ -14,6 +14,8 @@
 	if (($_SERVER["REQUEST_METHOD"] == "POST") && ($_POST["submit_button"] == "Login")) {
 		/* Login via password
 		 */
+		$_POST["username"] = strtolower($_POST["username"]);
+
 		if ($_user->login_password($_POST["username"], $_POST["password"], $_POST["code"])) {
 			if (is_true($_POST["bind_ip"])) {
 				$_session->bind_to_ip();

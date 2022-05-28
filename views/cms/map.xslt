@@ -57,7 +57,7 @@
 <label for="url">Image/video URL:</label>
 <div class="input-group">
 <input type="text" id="url" name="url" value="{map/url}" class="form-control" onKeyDown="javascript:reset_dimension()" />
-<span class="input-group-btn"><input type="button" value="Local maps" class="btn btn-default" onClick="javascript:browse_local()" /></span>
+<span class="input-group-btn"><input type="button" value="Local maps" class="btn btn-default browser" /></span>
 </div>
 <label for="audio">Background audio URL (optional):</label>
 <input type="text" id="audio" name="audio" value="{map/audio}" class="form-control" />

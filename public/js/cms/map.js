@@ -1,30 +1,27 @@
 var grid_size_min = 20;
 var grid_size_max = 200;
+var dialog;
 
-function browse_local() {
+function init_map_browser() {
 	$.ajax('/cms/map').done(function(data) {
-		var dialog =
-			'<div class="overlay" onClick="javascript:$(this).remove()">' +
-			'<div class="panel panel-default" onClick="javascript:event.stopPropagation();">' +
-			'<div class="panel-heading">Maps from Resources<span class="glyphicon glyphicon-remove close" aria-hidden="true" onClick="javascript:$(this).parent().parent().parent().hide()"></span></div>' +
-			'<div class="panel-body"><ul class="maps">';
-
+		var maps = '<div><ul class="maps">';
 		$(data).find('maps map').each(function() {
-			dialog += '<li onClick="javascript:select_map($(this));">/' + $(this).text() + '</li>';
+			maps += '<li onClick="javascript:select_map(this);">/' + $(this).text() + '</li>';
 		});
+		maps += '</ul></div>';
 
-		dialog += '</ul></div></div>';
-
-		$('body').append(dialog);
-		$('body div.overlay').show();
+		dialog = $(maps).windowframe({
+			activator: 'input.browser',
+			header: 'Maps from Resources',
+		});
 	});
 }
 
 function select_map(li) {
-	$('input#url').val(li.text());
+	$('input#url').val($(li).text());
 	reset_dimension();
 
-	li.parent().parent().parent().parent().remove();
+	dialog.close();
 }
 
 function reset_dimension() {

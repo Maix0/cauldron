@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `blinders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `blinders` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `map_id` int(10) unsigned NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE `blinders` (
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
   CONSTRAINT `blinders_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,13 +41,13 @@ CREATE TABLE `blinders` (
 
 DROP TABLE IF EXISTS `cache`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cache` (
   `key` varchar(100) NOT NULL,
   `value` mediumtext NOT NULL,
   `timeout` datetime NOT NULL,
   PRIMARY KEY (`key`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -56,7 +56,7 @@ CREATE TABLE `cache` (
 
 DROP TABLE IF EXISTS `character_icons`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `character_icons` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `character_id` int(10) unsigned NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE `character_icons` (
   `size` tinyint(3) unsigned NOT NULL,
   `extension` varchar(3) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -73,7 +73,7 @@ CREATE TABLE `character_icons` (
 
 DROP TABLE IF EXISTS `characters`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `characters` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE `characters` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `characters_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -95,7 +95,7 @@ CREATE TABLE `characters` (
 
 DROP TABLE IF EXISTS `collectables`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `collectables` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `game_id` int(10) unsigned NOT NULL,
@@ -109,7 +109,7 @@ CREATE TABLE `collectables` (
   KEY `game_id` (`game_id`),
   CONSTRAINT `collectables_ibfk_1` FOREIGN KEY (`map_token_id`) REFERENCES `map_token` (`id`),
   CONSTRAINT `collectables_ibfk_2` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -118,12 +118,12 @@ CREATE TABLE `collectables` (
 
 DROP TABLE IF EXISTS `conditions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `conditions` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -143,7 +143,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `doors`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `doors` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `map_id` int(10) unsigned NOT NULL,
@@ -155,7 +155,7 @@ CREATE TABLE `doors` (
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
   CONSTRAINT `doors_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -164,7 +164,7 @@ CREATE TABLE `doors` (
 
 DROP TABLE IF EXISTS `game_character`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `game_character` (
   `game_id` int(10) unsigned NOT NULL,
   `character_id` int(10) unsigned NOT NULL,
@@ -178,7 +178,7 @@ CREATE TABLE `game_character` (
   CONSTRAINT `game_character_ibfk_2` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`),
   CONSTRAINT `game_character_ibfk_3` FOREIGN KEY (`alternate_icon_id`) REFERENCES `character_icons` (`id`),
   CONSTRAINT `game_character_ibfk_4` FOREIGN KEY (`token_id`) REFERENCES `tokens` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -187,7 +187,7 @@ CREATE TABLE `game_character` (
 
 DROP TABLE IF EXISTS `games`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `games` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `title` varchar(50) NOT NULL,
@@ -202,7 +202,7 @@ CREATE TABLE `games` (
   KEY `active_map_id` (`active_map_id`),
   CONSTRAINT `games_ibfk_1` FOREIGN KEY (`dm_id`) REFERENCES `users` (`id`),
   CONSTRAINT `games_ibfk_2` FOREIGN KEY (`active_map_id`) REFERENCES `maps` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -211,7 +211,7 @@ CREATE TABLE `games` (
 
 DROP TABLE IF EXISTS `journal`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `journal` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `game_id` int(10) unsigned NOT NULL,
@@ -223,7 +223,7 @@ CREATE TABLE `journal` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `journal_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`),
   CONSTRAINT `journal_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -232,7 +232,7 @@ CREATE TABLE `journal` (
 
 DROP TABLE IF EXISTS `lights`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lights` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `map_id` int(10) unsigned NOT NULL,
@@ -243,7 +243,7 @@ CREATE TABLE `lights` (
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
   CONSTRAINT `lights_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -252,7 +252,7 @@ CREATE TABLE `lights` (
 
 DROP TABLE IF EXISTS `map_character`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `map_character` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `map_id` int(10) unsigned NOT NULL,
@@ -266,7 +266,7 @@ CREATE TABLE `map_character` (
   KEY `map_id` (`map_id`) USING BTREE,
   CONSTRAINT `map_character_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`),
   CONSTRAINT `map_character_ibfk_2` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -275,7 +275,7 @@ CREATE TABLE `map_character` (
 
 DROP TABLE IF EXISTS `map_token`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `map_token` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `map_id` int(10) unsigned NOT NULL,
@@ -293,7 +293,7 @@ CREATE TABLE `map_token` (
   KEY `map_id` (`map_id`) USING BTREE,
   CONSTRAINT `map_token_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`),
   CONSTRAINT `map_token_ibfk_2` FOREIGN KEY (`token_id`) REFERENCES `tokens` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -302,7 +302,7 @@ CREATE TABLE `map_token` (
 
 DROP TABLE IF EXISTS `maps`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `maps` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `game_id` int(10) unsigned NOT NULL,
@@ -322,7 +322,7 @@ CREATE TABLE `maps` (
   PRIMARY KEY (`id`),
   KEY `game_id` (`game_id`),
   CONSTRAINT `maps_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -331,7 +331,7 @@ CREATE TABLE `maps` (
 
 DROP TABLE IF EXISTS `menu`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `menu` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `parent_id` int(10) unsigned DEFAULT NULL,
@@ -340,7 +340,7 @@ CREATE TABLE `menu` (
   PRIMARY KEY (`id`),
   KEY `parent_id` (`parent_id`),
   CONSTRAINT `menu_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `menu` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -360,7 +360,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `organisations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `organisations` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
@@ -370,7 +370,7 @@ CREATE TABLE `organisations` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_2` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -390,7 +390,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `page_access`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `page_access` (
   `page_id` int(10) unsigned NOT NULL,
   `role_id` int(10) unsigned NOT NULL,
@@ -399,7 +399,7 @@ CREATE TABLE `page_access` (
   KEY `role_id` (`role_id`),
   CONSTRAINT `page_access_ibfk_1` FOREIGN KEY (`page_id`) REFERENCES `pages` (`id`),
   CONSTRAINT `page_access_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -419,7 +419,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `pages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pages` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `url` varchar(100) NOT NULL,
@@ -439,7 +439,7 @@ CREATE TABLE `pages` (
   `form_done` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `url` (`url`,`language`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -459,7 +459,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `reroute`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `reroute` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `original` varchar(100) NOT NULL,
@@ -467,7 +467,7 @@ CREATE TABLE `reroute` (
   `type` tinyint(3) unsigned NOT NULL,
   `description` tinytext NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -481,35 +481,36 @@ CREATE TABLE `roles` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `non_admins` smallint(6) NOT NULL,
-  `profile` tinyint(1) NOT NULL,
-  `session` tinyint(1) NOT NULL,
   `cms` tinyint(1) NOT NULL,
   `cms/access` tinyint(1) NOT NULL,
   `cms/action` tinyint(1) NOT NULL,
+  `cms/collectable` tinyint(4) DEFAULT 0,
+  `cms/condition` tinyint(4) DEFAULT 0,
   `cms/file` tinyint(1) NOT NULL,
+  `cms/game` tinyint(4) DEFAULT 0,
+  `cms/journal` tinyint(4) DEFAULT 0,
+  `cms/map` tinyint(4) DEFAULT 0,
+  `cms/map/arrange` tinyint(4) DEFAULT 0,
   `cms/menu` tinyint(1) NOT NULL,
   `cms/organisation` tinyint(1) NOT NULL,
   `cms/page` tinyint(1) NOT NULL,
+  `cms/players` tinyint(4) DEFAULT 0,
   `cms/role` tinyint(1) NOT NULL,
+  `cms/reroute` tinyint(4) DEFAULT 0,
+  `cms/resources` tinyint(4) DEFAULT 0,
   `cms/settings` tinyint(1) NOT NULL,
   `cms/switch` tinyint(1) NOT NULL,
-  `cms/user` tinyint(1) NOT NULL,
-  `cms/reroute` tinyint(4) DEFAULT 0,
-  `character` tinyint(4) DEFAULT 0,
   `cms/token` tinyint(4) DEFAULT 0,
+  `cms/user` tinyint(1) NOT NULL,
+  `character` tinyint(4) DEFAULT 0,
   `game` tinyint(4) DEFAULT 0,
-  `cms/game` tinyint(4) DEFAULT 0,
-  `cms/map` tinyint(4) DEFAULT 0,
-  `cms/map/arrange` tinyint(4) DEFAULT 0,
   `object` tinyint(4) DEFAULT 0,
-  `cms/collectable` tinyint(4) DEFAULT 0,
-  `cms/condition` tinyint(4) DEFAULT 0,
-  `cms/players` tinyint(4) DEFAULT 0,
-  `cms/resources` tinyint(4) DEFAULT 0,
+  `profile` tinyint(1) NOT NULL,
+  `session` tinyint(1) NOT NULL,
   `spectate` tinyint(4) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -519,7 +520,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
-INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,0,1),(3,'Dungeon Master',1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,1,1,0),(4,'User maintainer',1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0);
+INSERT INTO `roles` VALUES (1,'Administrator',0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),(2,'Player',1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1),(3,'Dungeon Master',1,1,0,0,1,0,0,1,0,1,1,0,0,0,1,0,0,1,0,0,1,0,1,1,1,1,1,0),(4,'User maintainer',1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,0);
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -529,7 +530,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sessions` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `session_id` varchar(128) NOT NULL,
@@ -544,7 +545,7 @@ CREATE TABLE `sessions` (
   UNIQUE KEY `session_id` (`session_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -553,7 +554,7 @@ CREATE TABLE `sessions` (
 
 DROP TABLE IF EXISTS `settings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `settings` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `key` varchar(32) NOT NULL,
@@ -561,7 +562,7 @@ CREATE TABLE `settings` (
   `value` text NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key` (`key`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -571,7 +572,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','21'),(3,'default_language','string','en'),(4,'head_description','string','A free virtual tabletop for D&D 5e.'),(5,'head_keywords','string','cauldron, virtual tabletop, vtt, free, roleplaying, dungeons & dragons, D&D'),(6,'head_title','string','Cauldron VTT'),(7,'hiawatha_cache_default_time','integer','3600'),(8,'hiawatha_cache_enabled','boolean','false'),(9,'page_after_login','string','game'),(10,'secret_website_code','string',''),(11,'session_persistent','boolean','true'),(12,'session_timeout','integer','15552000'),(13,'start_page','string',''),(14,'screen_grid_size','integer','50'),(15,'webmaster_email','string','root@localhost'),(16,'default_max_resources','string','50');
+INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','22'),(3,'default_language','string','en'),(4,'head_description','string','A free virtual tabletop for D&D 5e.'),(5,'head_keywords','string','cauldron, virtual tabletop, vtt, free, roleplaying, dungeons & dragons, D&D'),(6,'head_title','string','Cauldron VTT'),(7,'hiawatha_cache_default_time','integer','3600'),(8,'hiawatha_cache_enabled','boolean','false'),(9,'page_after_login','string','game'),(10,'secret_website_code','string',''),(11,'session_persistent','boolean','true'),(12,'session_timeout','integer','15552000'),(13,'start_page','string',''),(14,'screen_grid_size','integer','50'),(15,'webmaster_email','string','root@localhost'),(16,'default_max_resources','string','50');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -581,7 +582,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tokens` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `organisation_id` int(10) unsigned NOT NULL,
@@ -595,7 +596,7 @@ CREATE TABLE `tokens` (
   PRIMARY KEY (`id`),
   KEY `organisation_id` (`organisation_id`),
   CONSTRAINT `tokens_ibfk_1` FOREIGN KEY (`organisation_id`) REFERENCES `organisations` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -604,7 +605,7 @@ CREATE TABLE `tokens` (
 
 DROP TABLE IF EXISTS `user_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_role` (
   `user_id` int(10) unsigned NOT NULL,
   `role_id` int(10) unsigned NOT NULL,
@@ -612,7 +613,7 @@ CREATE TABLE `user_role` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `user_role_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `user_role_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -631,11 +632,11 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `organisation_id` int(10) unsigned NOT NULL,
-  `username` varchar(50) CHARACTER SET latin1 COLLATE latin1_general_cs NOT NULL,
+  `username` varchar(50) NOT NULL,
   `password` tinytext NOT NULL,
   `one_time_key` varchar(128) DEFAULT NULL,
   `cert_serial` int(10) unsigned DEFAULT NULL,
@@ -648,7 +649,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`),
   KEY `organisation_id` (`organisation_id`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`organisation_id`) REFERENCES `organisations` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -668,7 +669,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `walls`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `walls` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `map_id` int(10) unsigned NOT NULL,
@@ -680,7 +681,7 @@ CREATE TABLE `walls` (
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
   CONSTRAINT `walls_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -689,7 +690,7 @@ CREATE TABLE `walls` (
 
 DROP TABLE IF EXISTS `zones`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `zones` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `map_id` int(10) unsigned NOT NULL,
@@ -705,7 +706,7 @@ CREATE TABLE `zones` (
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`) USING BTREE,
   CONSTRAINT `zones_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

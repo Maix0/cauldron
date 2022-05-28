@@ -124,7 +124,7 @@
 			$this->add_header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 			$this->add_header("Accept-Charset", "ISO-8859-1,utf-8");
 			$this->add_header("Accept-Language", "en-US,en;q=0.5");
-			$this->add_header("Connection", "close");
+			$this->add_header("Connection", "close", false);
 			$this->add_header("Referer", "http".($this->protocol == "tls" ? "s" : "")."://".$this->host."/");
 			$this->add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0");
 			if (function_exists("gzdecode")) {
@@ -147,13 +147,15 @@
 			/* Perform request
 			 */
 			if (($result = $this->perform_request($method, $uri, $body)) !== false) {
-				if (($result = $this->parse_request_result($result)) !== false) {
-					/* Apply authentication
-					 */
-					if ($result["status"] == 401) {
-						if ($this->apply_authentication($method, $uri, $result)) {
-							if (($result = $this->perform_request($method, $uri, $body)) !== false) {
-								$result = $this->parse_request_result($result);
+				if (is_array($result)) {
+					if (($result = $this->parse_request_result($result)) !== false) {
+						/* Apply authentication
+						 */
+						if ($result["status"] == 401) {
+							if ($this->apply_authentication($method, $uri, $result)) {
+								if (($result = $this->perform_request($method, $uri, $body)) !== false) {
+									$result = $this->parse_request_result($result);
+								}
 							}
 						}
 					}
@@ -213,7 +215,7 @@
 		 */
 		public function add_header($key, $value, $replace = true) {
 			if ($replace || (isset($this->headers[$key]) == false)) {
-				$this->headers[$key] = $key.": ".$value;
+				$this->headers[$key] = $value;
 			}
 		}
 
@@ -261,7 +263,7 @@
 
 			$xpath = new \DOMXPath($xml);
 			$entries = $xpath->query("/output/layout/javascripts");
-			if (($onload = $entries->item(0)->GetAttribute('onload')) == "") {
+			if (($onload = $entries->item(0)->GetAttribute("onload")) == "") {
 				return false;
 			}
 
@@ -286,8 +288,8 @@
 			if ($protocol == "tls") {
 				if (stream_context_set_option($context, "ssl", "verify_peer", true) == false) {
 					return false;
-				#} else if (stream_context_set_option($context, "ssl", "ca_file", "/etc/ssl/certs/ca-certificates.crt") == false) {
-				#	return false;
+				} else if (stream_context_set_option($context, "ssl", "ca_file", "/etc/ssl/certs/ca-certificates.crt") == false) {
+					return false;
 				}
 			}
 
@@ -365,10 +367,20 @@
 
 			/* Build and send request
 			 */
-			$headers = implode("\r\n", $this->headers);
-			$request = sprintf("%s %s HTTP/1.1\r\n%s\r\n\r\n%s", $method, $url, $headers, $body);
+			$headers = array();
+			foreach ($this->headers as $key => $value) {
+				array_push($headers, sprintf("%s: %s\r\n", $key, $value));
+			}
+			$headers = implode("", $headers);
+
+			$request = sprintf("%s %s HTTP/1.1\r\n%s\r\n%s", $method, $url, $headers, $body);
 			if (fputs($sock, $request) === false) {
 				return false;
+			}
+
+			if ($this->headers["Upgrade"] == "websocket") {
+				while (fgets($sock) != "\r\n");
+				return $sock;
 			}
 
 			/* Read response
@@ -506,6 +518,47 @@
 			}
 
 			$this->add_header("Authorization", $this->authorization);
+
+			return true;
+		}
+
+		/* Upgrade connection to websocket
+		 */
+		public function upgrade_to_websocket($path = "/") {
+			$this->add_header("Upgrade", "websocket");
+			$this->add_header("Connection", "Upgrade");
+			$this->add_header("Sec-WebSocket-Key", base64_encode(random_bytes(10)));
+			$this->add_header("Sec-WebSocket-Version", "13");
+
+			return $this->GET($path);
+		}
+
+		/* Write to websocket
+		 */
+		public function write_to_websocket($sock, $message) {
+			$message = utf8_encode($message);
+
+			$first_byte = 0x81;
+			$length = strlen($message);
+
+			if ($length <= 125) {
+				$header = pack("CC", $first_byte, $length);
+			} else if (($length > 125) && ($length <= 65535)) {
+				$header = pack("CCn", $first_byte, 126, $length);
+			} else {
+				$header = pack("CCJ", $first_byte, 127, $length);
+			}
+
+			$mask = pack("N", rand(1, 0xFFFFFFFF));
+			$header .= $mask;
+
+			for ($i = 0; $i < $length; $i++) {
+				$message[$i] = chr(ord($message[$i]) ^ ord($mask[$i % 4]));
+			}
+
+			if (fputs($sock, $header.$message) === false) {
+				return false;
+			}
 
 			return true;
 		}

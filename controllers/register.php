@@ -17,7 +17,8 @@
 
 			$_SESSION["register_code"] = random_string(20);
 
-			$email = new \Banshee\Protocol\email("Verification code for the ".$this->settings->head_title." website");
+			$email = new \Banshee\Protocol\email("Verification code for the ".$this->settings->head_title." website",
+			                                     $this->settings->webmaster_email, "Cauldron VTT");
 			$email->set_message_fields(array(
 				"CODE"    => $_SESSION["register_code"],
 				"WEBSITE" => $this->settings->head_title));
@@ -36,9 +37,9 @@
 
 			if ($_SERVER["REQUEST_METHOD"] == "GET") {
 				$this->model->reset_form_progress();
+			} else if ($_POST["splitform_current"] == 2) {
+				$_POST["username"] = strtolower($_POST["username"]);
 			}
-
-			$this->view->add_tag("ask_organisation", show_boolean(DEFAULT_ORGANISATION_ID == 0));
 
 			parent::execute();
 		}

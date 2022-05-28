@@ -240,6 +240,7 @@
 			$keys = array("id", "organisation_id", "username", "password", "one_time_key", "cert_serial", "status", "authenticator_secret", "fullname", "email");
 
 			$user["id"] = null;
+			$user["username"] = strtolower($user["username"]);
 			$user["password"] = password_hash($user["password"], PASSWORD_ALGORITHM);
 			$user["one_time_key"] = null;
 
@@ -280,6 +281,8 @@
 
 		public function update_user($user) {
 			$keys = array("username", "fullname", "email", "cert_serial");
+
+			$user["username"] = strtolower($user["username"]);
 
 			if ($user["password"] != "") {
 				array_push($keys, "password");

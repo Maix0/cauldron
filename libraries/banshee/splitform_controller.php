@@ -100,6 +100,8 @@
 				$this->model->load_form_data();
 			}
 
+			$this->view->add_javascript("banshee/splitform.js");
+
 			$this->view->open_tag("splitforms");
 			$percentage = round(100 * ($this->model->current_step + 1) / ($this->model->max_steps + 2));
 			$this->view->add_tag("current", $this->model->current_step, array("max" => $this->model->max_steps, "percentage" => $percentage));

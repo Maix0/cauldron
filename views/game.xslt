@@ -67,7 +67,7 @@
 <button class="btn btn-default btn-xs show_dm_notes">DM notes</button>
 </xsl:if>
 <button class="btn btn-default btn-xs show_collectables">Inventory</button>
-<button class="btn btn-default btn-xs" onClick="javascript:center_character(this)">Center character</button>
+<button class="btn btn-primary btn-xs" onClick="javascript:center_character(this)">Center character</button>
 <xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
 <a href="/{/output/page}" class="btn btn-default btn-xs">Back</a>
 </div>

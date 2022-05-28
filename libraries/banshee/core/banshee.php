@@ -11,7 +11,6 @@
 	define("PLAYER_ROLE_ID", 2);
 	define("DUNGEON_MASTER_ROLE_ID", 3);
 	define("USER_MAINTAINER_ROLE_ID", 4);
-	define("DEFAULT_ORGANISATION_ID", 0);
 	define("YES", 1);
 	define("NO", 0);
 	define("USER_STATUS_DISABLED", 0);

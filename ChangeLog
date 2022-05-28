@@ -1,3 +1,12 @@
+cauldron (2.2) stable; urgency=low
+
+  * Renewed combat tracker.
+  * Added journal administration CMS page.
+  * Character set changed to utf8mb4.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 23 May 2022 12:29:14 +0200
+
 cauldron (2.1) stable; urgency=low
 
   * Added a realistic looking Fog of War.

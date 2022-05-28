@@ -122,6 +122,8 @@
 				return;
 			}
 
+debug_log($_POST);
+
 			if ($_POST[self::KEY_CSRF] == $token) {
 				unset($_POST[self::KEY_CSRF]);
 				return;

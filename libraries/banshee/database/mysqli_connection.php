@@ -25,7 +25,7 @@
 				if (($this->link = mysqli_connect($hostname, $username, $password, $database, $port)) == false) {
 					$this->link = null;
 				} else {
-					$this->link->set_charset("utf8");
+					$this->link->set_charset("utf8mb4");
 				}
 			}
 		}

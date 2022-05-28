@@ -18,6 +18,7 @@
 		style: 'primary',
 		header: 'Window Frame',
 		footer: '',
+		info: undefined,
 		buttons: {},
 		open: undefined,
 		close: undefined
@@ -44,21 +45,24 @@
 			$('div.windowframe_overlay').mousedown(windowframe_close);
 			$('div.windowframe_overlay').css({
 				display: 'none', position: 'fixed',
-				zIndex: WINDOWFRAME_Z_INDEX,
 				top: 0, right: 0, bottom: 0, left: 0,
 				backgroundColor: 'rgba(0, 0, 0, 0.6)',
+				zIndex: WINDOWFRAME_Z_INDEX,
 			});
 		}
 
 		var close_button = '<span class="glyphicon glyphicon-remove close" aria-hidden="true"></span>';
+		var info_button = '<span class="glyphicon glyphicon-info-sign close" aria-hidden="true" style="margin-right:10px"></span>';
 		var windowframe = '<div id="windowframe' + id + '" class="panel panel-' + settings.style + '" onMouseDown="javascript:event.stopPropagation()">' +
-		             '<div class="panel-heading">' + settings.header + close_button + '</div>' +
+		             '<div class="panel-heading">' + settings.header + close_button + (settings.info != undefined ? info_button : '') + '</div>' +
 		             '<div class="panel-body"></div>' +
 					 (settings.footer != '' ? '<div class="panel-footer">' + settings.footer + '</div>' : '') +
 		             '</div>';
 		$('div.windowframe_overlay').append(windowframe);
 
 		windowframe = $('div.windowframe_overlay div#windowframe' + id);
+
+		windowframe.find('span.glyphicon-remove').click(windowframe_close);
 
 		/* Add body
 		 */
@@ -78,7 +82,6 @@
 
 		/* Style
 		 */
-		windowframe.find('span.close').click(windowframe_close);
 		windowframe.css({
 			display: 'none', position: 'absolute',
 			boxShadow: '10px 10px 20px #303030',
@@ -89,6 +92,17 @@
 			windowframe.find('div.panel-body').css({
 				maxHeight: settings.height + 'px',
 				overflowY: 'auto'
+			});
+		}
+
+		/* Info
+		 */
+		if (settings.info != undefined) {
+			$('<div>' + settings.info + '</div>').windowframe({
+				header: 'Info',
+				width: 500,
+				style: 'info',
+				activator: 'div#windowframe' + id + ' span.glyphicon-info-sign'
 			});
 		}
 
@@ -145,6 +159,8 @@
 		}
 	};
 
+	/* Functions
+	 */
 	var windowframe_to_top = function(windowframe) {
 		$('div.windowframe_overlay').append(windowframe);
 	}
@@ -201,10 +217,16 @@
 	};
 
 	var windowframe_hide = function(windowframe) {
-		windowframe.hide();
-
 		var body = windowframe.find('div.panel-body').children().first();
 		var settings = body.data('settings');
+
+		if (settings.close != undefined) {
+			if (settings.close() === false) {
+				return;
+			}
+		}
+
+		windowframe.hide();
 
 		if (settings.height != undefined) {
 			windowframe.find('div.panel-body').css({
@@ -214,10 +236,6 @@
 			windowframe.find('div.panel-body').css({
 				maxHeight: ''
 			});
-		}
-
-		if (settings.close != undefined) {
-			settings.close();
 		}
 	}
 
@@ -238,12 +256,12 @@
 			$('div.windowframe_overlay div.panel:visible').each(function() {
 				windowframe_hide($(this));
 			});
-			$('div.windowframe_overlay').hide();
 		} else {
 			windowframe_hide($('div.windowframe_overlay div#' + windowframe_id));
-			if ($('div.windowframe_overlay div.panel:visible').length == 0) {
-				$('div.windowframe_overlay').hide();
-			}
+		}
+
+		if ($('div.windowframe_overlay div.panel:visible').length == 0) {
+			$('div.windowframe_overlay').hide();
 		}
 	};
 
@@ -284,6 +302,21 @@
 		return $('div.windowframe_overlay div#windowframe' + windowframe_id + ' div.panel-body').children().first();
 	}
 
+	var set_footer = function(text) {
+		var windowframe = $('div.windowframe_overlay div#windowframe' + $(this).data('windowframe_id'));
+
+		if (text === null) {
+			windowframe.find('div.panel-footer').remove();
+			return;
+		}
+
+		if (windowframe.find('div.panel-footer').length == 0) {
+			windowframe.append('<div class="panel-footer"></div>');
+		}
+
+		windowframe.find('div.panel-footer').html(text);
+	}
+
 	var destroy = function() {
 		var windowframe_id = $(this).data('windowframe_id');
 		$('div.windowframe_overlay div#windowframe' + windowframe_id).remove();
@@ -304,6 +337,7 @@
 		close: windowframe_close,
 		reset: windowframe_reset,
 		body: get_body,
+		footer: set_footer,
 		destroy: destroy
 	});
 })(jQuery);

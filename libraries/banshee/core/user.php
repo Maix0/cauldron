@@ -122,8 +122,10 @@
 			$this->load_user_record($user_id);
 			$this->log_action("user logged-in");
 
-			$query = "update organisations set last_login=%s where id=%d";
-			$this->db->query($query, date("Y-m-d H:i:s"), $this->record["organisation_id"]);
+			if (isset($_SESSION["user_switch"]) == false) {
+				$query = "update organisations set last_login=%s where id=%d";
+				$this->db->query($query, date("Y-m-d H:i:s"), $this->record["organisation_id"]);
+			}
 		}
 
 		/* Verify user credentials

@@ -15,6 +15,10 @@
 		}
 
 		private function resource_path($path) {
+			if ($path == "") {
+				return "/files/default.jpg";
+			}
+
 			if (substr($path, 0, 11) != "/resources/") {
 				return $path;
 			}
@@ -175,6 +179,7 @@
 				$this->view->add_javascript("banshee/jquery.windowframe.js");
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
+				$this->view->add_javascript("includes/combat.js");
 				$this->view->add_javascript("game.js");
 				if ($active_map["fog_of_war"] > 0) {
 					if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {

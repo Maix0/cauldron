@@ -32,26 +32,24 @@
 <xsl:template match="splitforms">
 <xsl:call-template name="splitform_header" />
 <xsl:call-template name="progressbar"><xsl:with-param name="progress" select="current/@percentage" /></xsl:call-template>
-
-<div class="row">
-<div class="col-sm-6">
 <xsl:call-template name="show_messages" />
 
-<form action="/{/output/page}" method="post">
+<form id="split" action="/{/output/page}" method="post">
 <xsl:apply-templates select="splitform/*" />
 <input type="hidden" name="splitform_current" value="{current}" />
 
+<input type="hidden" id="submit_button" name="submit_button" />
 <div class="btn-group">
-<input type="submit" name="submit_button" value="{buttons/previous}" class="previous btn btn-default">
+<input type="button" value="{buttons/previous}" class="previous btn btn-default" onClick="set_submit_type(this); $('form#split').submit();" >
 <xsl:if test="current=0"><xsl:attribute name="disabled">disabled</xsl:attribute></xsl:if>
 </input>
 
 <xsl:choose>
 	<xsl:when test="current/@max>current">
-		<input type="submit" name="submit_button" value="{buttons/next}" class="next btn btn-default" />
+		<input type="submit" value="{buttons/next}" class="next btn btn-default" onClick="set_submit_type(this);" />
 	</xsl:when>
 	<xsl:otherwise>
-		<input type="submit" name="submit_button" value="{buttons/submit}" class="submit btn btn-default" />
+		<input type="submit" value="{buttons/submit}" class="submit btn btn-primary" onClick="set_submit_type(this);" />
 	</xsl:otherwise>
 </xsl:choose>
 </div>
@@ -62,11 +60,6 @@
 </div>
 </xsl:if>
 </form>
-</div>
-<div class="col-sm-6">
-<xsl:call-template name="splitform_sidebar" />
-</div>
-</div>
 
 <xsl:call-template name="splitform_footer" />
 </xsl:template>

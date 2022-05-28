@@ -71,37 +71,23 @@
 				$result = false;
 			}
 
-			if (DEFAULT_ORGANISATION_ID == 0) {
-				if (trim($data["organisation"] == "")) {
-					$this->view->add_message("Fill in the group name.");
-					$result = false;
-				} else {
-					$query = "select * from organisations where name=%s";
-					if ($this->db->execute($query, $data["organisation"]) != false) {
-						$this->view->add_message("The group name is already taken.");
-						$result = false;
-					}
-				}
-			}
-
 			return $result;
 		}
 
 		public function process_form_data($data) {
-			if (DEFAULT_ORGANISATION_ID == 0) {
-				$organisation = array(
-					"name"          => $data["organisation"],
-					"max_resources" => $this->settings->default_max_resources);
-
-				if ($this->borrow("cms/organisation")->create_organisation($organisation) == false) {
-					$this->db->query("rollback");
-					return false;
-				}
-
-				$organisation_id = $this->db->last_insert_id;
-			} else {
-				$organisation_id = DEFAULT_ORGANISATION_ID;
+			$query = "select max(id) as id from organisations";
+			if (($result = $this->db->execute($query)) == false) {
+				return false;
 			}
+
+			$organisation = array(
+				"name"          => "Group ".$result[0]["id"],
+				"max_resources" => $this->settings->default_max_resources);
+
+			if ($this->borrow("cms/organisation")->create_organisation($organisation) == false) {
+				return false;
+			}
+			$organisation_id = $this->db->last_insert_id;
 
 			$user = array(
 				"organisation_id" => $organisation_id,
@@ -127,11 +113,10 @@
 				"FULLNAME" => $data["fullname"],
 				"EMAIL"    => $data["email"],
 				"USERNAME" => $data["username"],
-				"GROUP"    => $data["organisation"],
 				"WEBSITE"  => $this->settings->head_title,
 				"IP_ADDR"  => $_SERVER["REMOTE_ADDR"]));
 			$email->message(file_get_contents("../extra/account_registered.txt"));
-			$email->send($this->settings->webmaster_email);
+			$email->send($this->settings->webmaster_email, "Cauldron VTT");
 
 			return true;
 		}

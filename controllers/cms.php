@@ -23,6 +23,7 @@
 					"Maps"          => array("cms/map", "map.png"),
 					"Collectables"  => array("cms/collectable", "collectables.png"),
 					"Players"       => array("cms/players", "players.png"),
+					"Journal"       => array("cms/journal", "journal.png"),
 					"Conditions"    => array("cms/condition", "conditions.png")),
 				"System" => array(
 					"Menu"          => array("cms/menu", "menu.png"),
@@ -31,8 +32,6 @@
 					"Settings"      => array("cms/settings", "settings.png"),
 					"Reroute"       => array("cms/reroute", "reroute.png"),
 					"API test"      => array("cms/apitest", "apitest.png")));
-
-			$this->model->reset_idle();
 
 			/* Show warnings
 			 */
