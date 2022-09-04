@@ -1,0 +1,70 @@
+@media (min-width:768px) {
+	form.game-selector {
+		width:250px;
+		float:right;
+		position:relative;
+		margin-right:65px;
+		top:-45px;
+		margin-bottom:-40px;
+	}
+}
+
+table.table th:nth-child(2) {
+	width:95px;
+}
+
+table.table th:last-child {
+	width:115px;
+}
+
+div.input-group {
+	max-width:500px;
+}
+
+ul.maps {
+	padding-left:15px;
+}
+
+ul.maps li:hover {
+	cursor:pointer;
+	background:#ffffa0;
+}
+
+/* Grid
+ */
+div.playarea {
+	border:1px solid #000000;
+	overflow:scroll;
+	max-width:890px;
+	max-height:700px;
+	margin-top:25px;
+}
+
+div.map {
+	position:relative;
+}
+
+div.map img.map,
+div.map video.map {
+	display:block;
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+div#slider {
+	margin-bottom:15px;
+}
+
+#grid-handle {
+	width: 3em;
+	height: 1.6em;
+	top: 50%;
+	margin-top: -.8em;
+	text-align: center;
+	line-height: 1.6em;
+}
+
+span.sizes {
+	margin-left:5px;
+}

@@ -27,8 +27,6 @@
 		 * ERROR:  -
 		 */
 		public function __construct($db = null) {
-			libxml_disable_entity_loader(false);
-
 			if ($db !== null) {
 				$this->cache = new cache($db, "banshee_xml");
 			}
@@ -69,7 +67,7 @@
 		 * ERROR:  -
 		 */
 		private function xmlspecialchars($str) {
-			return htmlspecialchars($str, ENT_XML1 | ENT_COMPAT, "UTF-8");
+			return htmlspecialchars($str ?? "", ENT_XML1 | ENT_COMPAT, "UTF-8");
 		}
 
 		/* Add string to buffer

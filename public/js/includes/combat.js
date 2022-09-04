@@ -8,7 +8,7 @@ var _combat_not_started = 'No combat has been started. Use the /combat command.'
 function _combat_add_table_entry(name = '', bonus = 0) {
 	var readonly = (name == '') ? '' : 'disabled="disabled" ';
 	var cell = '<tr><td><input type="text" value="' + name + '" ' + readonly + 'class="form-control input-sm" /></td>' +
-	           '<td><input type="text" value="' + bonus + '" class="form-control input-sm" /></td></tr>';
+			   '<td><input type="text" value="' + bonus + '" class="form-control input-sm" /></td></tr>';
 	$('table.combat-tracker tbody').append(cell);
 
 	if ($('table.combat-tracker tbody tr').length >= _combat_max_entries) {
@@ -47,22 +47,22 @@ function combat_start() {
 }
 
 function combat_show_order(first_round = false, send = true) {
-    if (first_round) {
-        send_message('Prepare for combat!', null, false);
-    }
+	if (first_round) {
+		send_message('Prepare for combat!', null, false);
+	}
 
-    var message = '';
-    var bullet = '&Rightarrow;';
-    _combat_order.forEach(function(value, key) {
-        message += bullet + ' ' + value.name + '\n';
-        bullet = '&boxh;';
-    });
+	var message = '';
+	var bullet = '&Rightarrow;';
+	_combat_order.forEach(function(value, key) {
+		message += bullet + ' ' + value.name + '\n';
+		bullet = '&boxh;';
+	});
 
-    if (send) {
-        send_message(message, 'Combat order');
-    } else {
-        message_to_sidebar('Combat order', message);
-    }
+	if (send) {
+		send_message(message, 'Combat order');
+	} else {
+		message_to_sidebar('Combat order', message);
+	}
 }
 
 function combat_add(being) {
@@ -92,7 +92,7 @@ function combat_remove(being) {
 
 	var remove = null;
 	_combat_order.forEach(function(value, key) {
-		if (value.name.substr(0, being.length) == being) {
+		if (value.name.substring(0, being.length) == being) {
 			remove = key;
 		}
 	});
@@ -116,7 +116,7 @@ function combat_next(being) {
 	var turn = null;
 	if (being != '') {
 		_combat_order.forEach(function(value, key) {
-			if (value.name.substr(0, being.length) == being) {
+			if (value.name.substring(0, being.length) == being) {
 				turn = key;
 			}
 		});

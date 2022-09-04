@@ -69,7 +69,7 @@ function show_image(img) {
 }
 
 function message_to_sidebar(name, message) {
-	if ((message.substr(0, 7) == 'http://') || (message.substr(0, 8) == 'https://')) {
+	if ((message.substring(0, 7) == 'http://') || (message.substring(0, 8) == 'https://')) {
 		var parts = message.split('.');
 		var extension = parts.pop();
 		var images = ['gif', 'jpg', 'jpeg', 'png'];
@@ -154,13 +154,13 @@ function object_hide(obj) {
 function object_info(obj) {
 	var info = '';
 
-    if (obj.hasClass('zone') == false) {
+	if (obj.hasClass('zone') == false) {
 		var name = obj.find('span.name');
 		if (name.length > 0) {
 			info += 'Name: ' + name.text() + '<br />';
 		}
 
-		if (obj.attr('id').substr(0, 5) == 'token') {
+		if (obj.attr('id').substring(0, 5) == 'token') {
 			info += 'Type: ' + obj.attr('type') + '<br />';
 		}
 		info += 'Armor class: ' + obj.attr('armor_class') + '<br />';
@@ -228,7 +228,7 @@ function object_rotate(obj, rotation, speed = 500) {
 	}, {
 		duration: speed,
 		step: function(now) {
-        	$(this).css('transform', 'rotate(' + now + 'deg)');
+			$(this).css('transform', 'rotate(' + now + 'deg)');
 		},
 		done: function() {
 			img.animate({ rotation: rotation });
@@ -399,7 +399,7 @@ function door_show_unlocked(door) {
 	door.attr('state', 'closed');
 }
 
-/* Light functions 
+/* Light functions
  */
 function light_create_object(instance_id, pos_x, pos_y, radius) {
 	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;">';
@@ -680,6 +680,7 @@ $(document).ready(function() {
 	var ws_host = $('div.playarea').attr('ws_host')
 	var ws_port = $('div.playarea').attr('ws_port')
 
+	write_sidebar('<img src="/images/cauldron.png" style="max-width:80px; display:block; margin:0 auto" />');
 	write_sidebar('<b>Welcome to Cauldron v' + version + '</b>');
 
 	/* Websocket
@@ -936,25 +937,25 @@ $(document).ready(function() {
 
 	/* Menu tokens
 	 */
-	$.contextMenu({
-		selector: 'div.token img',
-		callback: context_menu_handler,
-		items: {
+	$('div.token img').contextmenu(function(event) {
+		var menu_entries = {
 			'view': {name:'View', icon:'fa-search'}
-		},
-		zIndex: LAYER_MENU
+		};
+
+		show_context_menu($(this), event, menu_entries, context_menu_handler, LAYER_MENU);
+		return false;
 	});
 
 	/* Menu characters
 	 */
-	$.contextMenu({
-		selector: 'div.character img',
-		callback: context_menu_handler,
-		items: {
+	$('div.character img').contextmenu(function(event) {
+		var menu_entries = {
 			'info': {name:'Get information', icon:'fa-info-circle'},
 			'view': {name:'View', icon:'fa-search'}
-		},
-		zIndex: LAYER_MENU
+		};
+
+		show_context_menu($(this), event, menu_entries, context_menu_handler, LAYER_MENU);
+		return false;
 	});
 
 	wf_collectables = $('<div class="collectables"></div>').windowframe({

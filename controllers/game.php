@@ -37,9 +37,14 @@
 				return;
 			}
 
+			$is_dm = show_boolean($this->user->has_role("Dungeon Master"));
+
+			if ($is_dm && count($games) == 0) {
+				$this->view->title = "Welcome to Cauldron VTT";
+			}
+
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("games.js");
-			$is_dm = show_boolean($this->user->has_role("Dungeon Master"));
 
 			$this->view->open_tag("games", array("is_dm" => $is_dm));
 			foreach ($games as $game) {
@@ -64,7 +69,7 @@
 				return;
 			}
 
-			if (valid_input($this->page->parameters[1], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
+			if ($this->page->parameter_numeric(1)) {
 				$game["traveled_from"] = $game["active_map_id"];
 				$game["active_map_id"] = $this->page->parameters[1];
 			}
@@ -79,6 +84,8 @@
 					$this->view->add_tag("result", "Error reading effects.");
 					return;
 				}
+			} else {
+				$effects = null;
 			}
 
 			$grid_cell_size = $this->settings->screen_grid_size;
@@ -164,6 +171,8 @@
 				$factor = 1 / $active_map["grid_size"] * $grid_cell_size;
 				$active_map["width"] = round($active_map["width"] * $factor);
 				$active_map["height"] = round($active_map["height"] * $factor);
+			} else {
+				$active_map = null;
 			}
 
 			$this->view->title = $game["title"];
@@ -175,8 +184,8 @@
 
 			if ($active_map != null) {
 				$this->view->add_javascript("webui/jquery-ui.js");
-				$this->view->add_javascript("banshee/jquery.contextMenu.js");
 				$this->view->add_javascript("banshee/jquery.windowframe.js");
+				$this->view->add_javascript("includes/context_menu.js");
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("includes/combat.js");
@@ -190,8 +199,8 @@
 					$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 				}
 
-				$this->view->add_css("banshee/context-menu.css");
 				$this->view->add_css("banshee/font-awesome.css");
+				$this->view->add_css("includes/context_menu.css");
 			} else {
 				$this->view->add_javascript("game_no_map.js");
 			}
@@ -216,7 +225,7 @@
 
 			/* Map selector
 			 */
-			if ($maps != null) {
+			if (isset($maps)) {
 				$this->view->open_tag("maps");
 				if ($active_map == null) {
 					$this->view->add_tag("map", "-", array("id" => 0));
@@ -377,7 +386,7 @@
 
 				/* Alternates
 				 */
-				if (is_array($alternates)) {
+				if (is_array($alternates ?? null)) {
 					$this->view->open_tag("alternates");
 					foreach ($alternates as $alternate) {
 						$alternate["filename"] = $alternate["character_id"]."_".$alternate["id"].".".$alternate["extension"];
@@ -419,10 +428,10 @@
 		public function execute() {
 			$this->view->title = "Games";
 
-			if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {
-				$this->show_games();
-			} else {
+			if ($this->page->parameter_numeric(0)) {
 				$this->run_game($this->page->parameters[0]);
+			} else {
+				$this->show_games();
 			}
 		}
 	}

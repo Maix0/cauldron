@@ -12,7 +12,7 @@
 				$profile = array(
 					"fullname"             => $this->user->fullname,
 					"email"                => $this->user->email,
-					"authenticator_secret" => str_repeat("*", strlen($this->user->authenticator_secret)));
+					"authenticator_secret" => str_repeat("*", strlen($this->user->authenticator_secret ?? "")));
 			}
 
 			if (($organisation = $this->model->get_organisation()) === false) {
@@ -73,7 +73,7 @@
 				}
 			}
 
-			if (($this->page->parameters[0] == "authenticator") && $this->page->ajax_request) {
+			if ($this->page->parameter_value(0, "authenticator") && $this->page->ajax_request) {
 				$authenticator = new \Banshee\authenticator;
 				$this->view->add_tag("secret", $authenticator->create_secret());
 			} else if ($_SERVER["REQUEST_METHOD"] == "POST") {

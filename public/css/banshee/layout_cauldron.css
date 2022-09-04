@@ -66,12 +66,6 @@ div.clear {
 	clear:both;
 }
 
-img.title_icon {
-	float:right;
-	margin-top:-20px;
-	margin-bottom:-20px;
-}
-
 @media (max-width:767px) {
 	table.table-xs th,
 	table.table-xs td {
@@ -152,6 +146,10 @@ input.form-control, textarea.form-control, select.form-control {
 
 textarea.form-control {
 	height:75px;
+}
+
+div.input-group span.input-group-btn .btn {
+	padding:6px 24px;
 }
 
 div.btn-group {

@@ -2,11 +2,6 @@
 	/* Delete layout
 	 */
 	function delete_layout($name) {
-		if ($name == "cms") {
-			print "The CMS layout is required by Banshee.\n";
-			return false;
-		}
-
 		$file = "views/banshee/layout_".$name.".xslt";
 		if (file_exists($file) == false) {
 			printf("Layout %s does not exist.\n", $name);

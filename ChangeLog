@@ -1,3 +1,13 @@
+cauldron (2.3) stable; urgency=low
+
+  * PHP 8 compatibility.
+  * One layout for the entire site, including the CMS (now DM's Vault).
+  * Improved object context menus.
+  * Light and dark interface mode.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  4 Sep 2022 17:26:38 +0200
+
 cauldron (2.2) stable; urgency=low
 
   * Renewed combat tracker.

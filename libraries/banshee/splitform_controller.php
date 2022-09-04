@@ -37,10 +37,10 @@
 
 			/* Start
 			 */
-			$submit_button = $_POST["submit_button"];
+			$submit_button = $_POST["submit_button"] ?? null;
 			unset($_POST["submit_button"]);
 
-			$splitform_current = $_POST["splitform_current"];
+			$splitform_current = $_POST["splitform_current"] ?? null;
 			unset($_POST["splitform_current"]);
 
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {

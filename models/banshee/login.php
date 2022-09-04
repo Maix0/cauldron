@@ -16,8 +16,8 @@
 		 */
 		$_POST["username"] = strtolower($_POST["username"]);
 
-		if ($_user->login_password($_POST["username"], $_POST["password"], $_POST["code"])) {
-			if (is_true($_POST["bind_ip"])) {
+		if ($_user->login_password($_POST["username"], $_POST["password"], $_POST["code"] ?? null)) {
+			if (is_true($_POST["bind_ip"] ?? null)) {
 				$_session->bind_to_ip();
 			}
 
@@ -65,7 +65,7 @@
 		}
 
 		$_page->select_module($next_page);
-		$_view->set_layout();
+
 		if ($_page->module != LOGIN_MODULE) {
 			if (file_exists($file = "../models/".$_page->module.".php")) {
 				include($file);

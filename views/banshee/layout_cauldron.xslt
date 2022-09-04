@@ -99,6 +99,7 @@ div.header {
 	<div class="footer">
 		<div class="container">
 			<span>Cauldron v<xsl:value-of select="/output/cauldron/version" /></span>
+			<span>Join on <a href="https://www.reddit.com/r/CauldronVTT/">Reddit</a></span>
 			<xsl:if test="/output/user">
 			<span>Logged in as <a href="/profile"><xsl:value-of select="/output/user" /></a></span>
 			<span><a href="/session">Session manager</a></span>

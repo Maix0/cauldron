@@ -11,7 +11,7 @@
 		protected $back_page = "";
 
 		protected function prepare_code($data) {
-			if ($_SESSION["register_email"] == $data["email"]) {
+			if (($_SESSION["register_email"] ?? null) == $data["email"]) {
 				return;
 			}
 

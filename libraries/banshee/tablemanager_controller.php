@@ -47,11 +47,13 @@
 					}
 
 					$paging = new pagination($this->view, "tableadmin_".$this->model->table, $this->page_size, $item_count);
-					if ($_POST["submit_button"] == "Search") {
+					if (($_POST["submit_button"] ?? null) == "Search") {
 						$paging->reset();
 					}
 
-					if (($items = $this->model->get_items($paging->offset, $paging->size)) === false) {
+					if ($item_count == 0) {
+						$items = array();
+					} else if (($items = $this->model->get_items($paging->offset, $paging->size)) === false) {
 						$this->view->add_tag("result", "Error while creating overview.");
 						return;
 					}
@@ -69,7 +71,7 @@
 					}
 			}
 
-			if ($this->table_class != null) {
+			if (isset($this->table_class)) {
 				$this->_table_class .= " ".$this->table_class;
 			}
 
@@ -198,7 +200,7 @@
 				}
 
 				if ($element["type"] != "blob") {
-					$this->view->add_tag("value", $item[$name]);
+					$this->view->add_tag("value", $item[$name] ?? "");
 				}
 
 				if ($element["type"] == "foreignkey") {
@@ -383,7 +385,7 @@
 				/* Handle forum submit
 				 */
 				$this->handle_submit();
-			} else if ($this->page->parameters[0] == "new") {
+			} else if (($this->page->parameters[0] ?? null) == "new") {
 				/* Show form for new item
 				 */
 				$item = array();
@@ -397,7 +399,7 @@
 					}
 				}
 				$this->show_item_form($item);
-			} else if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
+			} else if (valid_input($this->page->parameters[0] ?? null, VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
 				/* Show form for existing item
 				 */
 				if (($item = $this->model->get_item($this->page->parameters[0])) == false) {

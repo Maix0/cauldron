@@ -59,9 +59,11 @@
 		$_view->close_tag();
 		$_view->add_tag("website_url", $_SERVER["SERVER_NAME"]);
 
+		$background = (substr($_page->url, 0, 6) != "/vault") ? HEADER_BACKGROUND_WEBSITE : HEADER_BACKGROUND_DM_SECTION;
+
 		$_view->open_tag("cauldron");
 		$_view->add_tag("version", CAULDRON_VERSION);
-		$_view->add_tag("background", HEADER_BACKGROUND);
+		$_view->add_tag("background", $background);
 		$_view->add_tag("resources_key", $_user->resources_key);
 		$_view->close_tag();
 
@@ -81,17 +83,11 @@
 			$_view->add_tag("user", $_user->fullname, $params);
 		}
 
-		/* Multilingual
-		 */
-		if ($_language !== null) {
-			$_language->add_to_view();
-		}
-
 		/* Unsecured connection
 		 */
 		if (($_SERVER["HTTPS"] != "on") && ($_SERVER["HTTP_SCHEME"] != "https")) {
 			$pages = array(LOGIN_MODULE, "register", "password");
-			if (in_array($_page->module, $pages) || (substr($_page->module, 0, 3) == "cms")) {
+			if (in_array($_page->module, $pages) || (substr($_page->module, 0, 5) == "vault")) {
 				$_view->add_system_warning("Warning, the connection you are using is not secure!");
 			}
 		}
@@ -99,18 +95,7 @@
 		/* Main menu
 		 */
 		if (is_true(WEBSITE_ONLINE) || ($_SERVER["REMOTE_ADDR"] == WEBSITE_ONLINE)) {
-			if ((substr($_page->url, 0, 4) == "/cms") || ($_view->layout == LAYOUT_CMS)) {
-				/* CMS menu
-				 */
-				$_view->open_tag("menu");
-				$_view->record(array("link" => "/", "text" => "Homepage"), "item");
-				if (($_user->logged_in) && ($_page->page != LOGOUT_MODULE)) {
-					$_view->record(array("link" => "/manual", "text" => "Manual"), "item");
-					$_view->record(array("link" => "/cms", "text" => "CMS"), "item");
-					$_view->record(array("link" => "/".LOGOUT_MODULE, "text" => "Logout"), "item");
-				}
-				$_view->close_tag();
-			} else if ($_user->logged_in || is_false(HIDE_MENU_FOR_VISITORS)) {
+			if ($_user->logged_in || is_false(HIDE_MENU_FOR_VISITORS)) {
 				/* Normal menu
 				 */
 				$menu = new menu($_database, $_view);
@@ -130,6 +115,9 @@
 		 */
 		$_view->add_javascript("webui/jquery.js");
 		$_view->add_javascript("webui/bootstrap.js");
+		if (($_view->mobile) && ($_page->module == "game")) {
+			$_view->add_javascript("webui/jquery.ui.touch-punch.js");
+		}
 
 		$_view->open_tag("content", array("mobile" => show_boolean($_view->mobile)));
 	}
@@ -145,7 +133,7 @@
 		} else if (is_subclass_of($controller_class, "Banshee\\controller") == false) {
 			print "Controller class '".$controller_class."' does not extend Banshee's controller class.\n";
 		} else {
-			$_controller = new $controller_class($_database, $_settings, $_user, $_page, $_view, $_language);
+			$_controller = new $controller_class($_database, $_settings, $_user, $_page, $_view);
 			$_controller->execute();
 			unset($_controller);
 

@@ -14,22 +14,20 @@
 		protected $user = null;
 		protected $page = null;
 		protected $view = null;
-		protected $language = null;
 		private $borrowed = array();
 
 		/* Constructor
 		 *
-		 * INPUT: object database, object settings, object user, object page, object view[, object language]
+		 * INPUT: object database, object settings, object user, object page, object view
 		 * OUTPUT: -
 		 * ERROR:  -
 		 */
-		public function __construct($database, $settings, $user, $page, $view, $language = null) {
+		public function __construct($database, $settings, $user, $page, $view) {
 			$this->db = $database;
 			$this->settings = $settings;
 			$this->user = $user;
 			$this->page = $page;
 			$this->view = $view;
-			$this->language = $language;
 		}
 
 		/* Borrow function from other model
@@ -62,7 +60,7 @@
 				return null;
 			}
 
-			$this->borrowed[$model_class] = new $model_class($this->db, $this->settings, $this->user, $this->page, $this->view, $this->language);
+			$this->borrowed[$model_class] = new $model_class($this->db, $this->settings, $this->user, $this->page, $this->view);
 
 			return $this->borrowed[$model_class];
 		}

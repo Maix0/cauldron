@@ -6,7 +6,7 @@
 
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=0.67, maximum-scale=0.67" />
 <meta name="author" content="Hugo Leisink" />
 <meta name="publisher" content="Hugo Leisink" />
 <meta name="copyright" content="Copyright (c) by Hugo Leisink" />

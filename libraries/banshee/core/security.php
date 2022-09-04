@@ -26,7 +26,7 @@
 	 */
 	function valid_input($data, $allowed, $length = null) {
 		if (is_array($data) == false) {
-			$data_len = strlen($data);
+			$data_len = strlen($data ?? "");
 
 			if ($length !== null) {
 				if ($length == VALIDATE_NONEMPTY) {

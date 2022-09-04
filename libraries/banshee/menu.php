@@ -160,7 +160,7 @@
 		 * OUTPUT: true
 		 * ERROR:  false
 		 */
-		public function add_to_view($current_url = null) {
+		public function add_to_view($current_url = "") {
 			if (substr($current_url, 0, 1) != "/") {
 				$current_url = "/".$current_url;
 			}

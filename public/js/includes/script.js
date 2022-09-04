@@ -57,13 +57,13 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 	var script = zone_script.text().split('\n');
 	for (ip = 0; ip < script.length; ip++) {
 		var line = script[ip].trim();
-		if ((line.substr(0, 1) == '#') || (line == '')) {
+		if ((line.substring(0, 1) == '#') || (line == '')) {
 			continue;
 		}
 
 		var parts = line.split(/ +/, 1);
 		var command = parts[0];
-		var param = line.substr(parts[0].length + 1).trim();
+		var param = line.substring(parts[0].length + 1).trim();
 
 		if (command == 'event') {
 			valid_triggers = param.split(/, */);
@@ -148,7 +148,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				object_damage(character, -points);
 				break;
 			case 'hide':
-				if (param.substr(0, 5) == 'token') {
+				if (param.substring(0, 5) == 'token') {
 					var target = $('div#' + param);
 					if (target.length == 0) {
 						if (debug) {
@@ -310,7 +310,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				object_rotate(target, direction, debug == false);
 				break;
 			case 'show':
-				if (param.substr(0, 5) == 'token') {
+				if (param.substring(0, 5) == 'token') {
 					var target = $('div#' + param);
 					if (target.length == 0) {
 						if (debug) {
@@ -392,7 +392,7 @@ function script_save(zone) {
 	var script = $('div.script_editor textarea').val();
 
 	$.post('/object/script', {
-		zone_id: zone_id.substr(4),
+		zone_id: zone_id.substring(4),
 		map_id: map_id,
 		script: script,
 		copy_script: copy_script ? 'true' : 'false',

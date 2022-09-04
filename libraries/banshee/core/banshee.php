@@ -49,7 +49,7 @@
 		$parts = explode("\\", $class_name);
 		$class = array_pop($parts);
 
-		if (strtolower($parts[0]) == "banshee") {
+		if (strtolower($parts[0] ?? "") == "banshee") {
 			/* Load Banshee library
 			 */
 			array_shift($parts);

@@ -10,5 +10,5 @@ $(document).delegate('textarea', 'keydown', function(e) {
 		            selText.replace(/\n/g, '\n\t') +
 		            text.substring(end));
 		this.selectionStart = this.selectionEnd = start + 1;
- 	}
+	}
 });

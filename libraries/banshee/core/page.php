@@ -35,7 +35,7 @@
 
 			/* AJAX request
 			 */
-			if (($_SERVER["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest") || ($_GET["output"] == "ajax")) {
+			if ((($_SERVER["HTTP_X_REQUESTED_WITH"] ?? null) == "XMLHttpRequest") || (($_GET["output"] ?? null) == "ajax")) {
 				$this->ajax_request = true;
 			}
 
@@ -139,7 +139,7 @@
 			switch ($key) {
 				case "module": return $this->module;
 				case "previous":
-					if (is_array($_SESSION["previous_pages"]) == false) {
+					if (is_array($_SESSION["previous_pages"] ?? null) == false) {
 						return null;
 					} else if ($_SESSION["previous_pages"][1] != ltrim($this->url, "/")) {
 						return $_SESSION["previous_pages"][1];
@@ -179,22 +179,21 @@
 		 */
 		private function module_on_disk($url, $pages) {
 			$module = null;
-			$url = explode("/", $url);
-			$url_count = count($url);
+			$url_parts = explode("/", $url);
 
 			foreach ($pages as $line) {
-				$page = explode("/", $line);
-				$parts = count($page);
+				$page_parts = explode("/", $line);
+				$page_count = count($page_parts);
 				$match = true;
 
-				for ($i = 0; $i < $parts; $i++) {
-					if ($page[$i] !== $url[$i]) {
+				for ($i = 0; $i < $page_count; $i++) {
+					if ($page_parts[$i] !== ($url_parts[$i] ?? null)) {
 						$match = false;
 						break;
 					}
 				}
 
-				if ($match && (strlen($line) >= strlen($module))) {
+				if ($match && (strlen($line) >= strlen($module ?? ""))) {
 					$module = page_to_module($line);
 					$this->type = page_to_type($line);
 				}
@@ -216,7 +215,7 @@
 			}
 
 			if ($result[0]["visible"] == NO) {
-				if ($this->user->access_allowed("cms/page") == false) {
+				if ($this->user->access_allowed("vault/page") == false) {
 					return null;
 				}
 			}
@@ -224,6 +223,38 @@
 			$this->page = $page;
 
 			return PAGE_MODULE;
+		}
+
+		/* Check parameter has value
+		 *
+		 * INPUT:  int parameter number
+		 * OUTPUT: boolean match
+		 * ERROR:  -
+		 */
+		public function parameter_value($number, $value = null) {
+			if (isset($this->parameters[$number]) == false) {
+				return false;
+			}
+
+			if ($value == null) {
+				return true;
+			}
+
+			return $this->parameters[$number] == $value;
+		}
+
+		/* Check parameter contains a numeric value
+		 *
+		 * INPUT:  int parameter number
+		 * OUTPUT: boolean result
+		 * ERROR:  -
+		 */
+		public function parameter_numeric($number) {
+			if (isset($this->parameters[$number]) == false) {
+				return false;
+			}
+
+			return valid_input($this->parameters[$number], VALIDATE_NUMBERS, VALIDATE_NONEMPTY);
 		}
 
 		/* Determine what module needs te be loaded based on requested page

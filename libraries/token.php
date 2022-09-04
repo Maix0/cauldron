@@ -45,7 +45,7 @@
 
 			$token["id"] = null;
 			$token["organisation_id"] = $this->organisation_id;
-			$token["shape_change"] = is_true($token["shape_change"]) ? YES : NO;
+			$token["shape_change"] = is_true($token["shape_change"] ?? false) ? YES : NO;
 			$token["extension"] = $image["extension"];
 
 			if ($this->db->insert("tokens", $token, $keys) === false) {
@@ -68,7 +68,7 @@
 				return false;
 			}
 
-			$token["shape_change"] = is_true($token["shape_change"]) ? YES : NO;
+			$token["shape_change"] = is_true($token["shape_change"] ?? false) ? YES : NO;
 
 			if ($image["error"] == 0) {
 				if ($this->save_image($image, $token["id"])) {

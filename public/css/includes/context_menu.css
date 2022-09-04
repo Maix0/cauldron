@@ -1,0 +1,41 @@
+div.context_menu {
+	background-color:#ffffff;
+	border:1px solid #808080;
+	box-shadow:5px 5px 10px #202020;
+	padding:4px 0;
+	min-width:200px;
+	font-size:14px;
+	font-family:sans-serif;
+}
+
+div.context_menu div.option {
+	cursor:pointer;
+	padding:2px 8px;
+}
+
+div.context_menu div.option:hover {
+	color:#ffffff;
+	background-color:#2980b9;
+}
+
+div.context_menu div.option span.fa {
+	color:#2980b9;
+	width:20px;
+}
+
+div.context_menu div.option:hover span.fa {
+	color:#ffffff;
+}
+
+div.context_menu div hr {
+	margin:0;
+	border-bottom:1px solid #a0a0a0;
+}
+
+div.context_menu div.submenu:after {
+	content:"\23F5";
+	display:block;
+	text-align:right;
+	margin-top:-19px;
+	margin-right:-5px;
+}

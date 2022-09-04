@@ -60,15 +60,15 @@
 			$this->language = $this->settings->default_language;
 			$this->description = $this->settings->head_description;
 
-			$this->set_layout();
-
 			/* Mobile devices
 			 */
-			$mobiles = array("iPhone", "Android");
-			foreach ($mobiles as $mobile) {
-				if (strpos($_SERVER["HTTP_USER_AGENT"], $mobile) !== false) {
-		            $this->mobile = true;
-					break;
+			if (isset($_SERVER["HTTP_USER_AGENT"])) {
+				$mobiles = array("iPhone", "Android");
+				foreach ($mobiles as $mobile) {
+					if (strpos($_SERVER["HTTP_USER_AGENT"], $mobile) !== false) {
+						$this->mobile = true;
+						break;
+					}
 				}
 			}
 		}
@@ -310,6 +310,7 @@
 		 * ERROR:  -
 		 */
 		public function add_help_button() {
+			$this->add_javascript("banshee/jquery.windowframe.js");
 			$this->add_javascript("banshee/help.js");
 			$this->add_css("banshee/help.css");
 		}
@@ -320,23 +321,12 @@
 		 * OUTPUT: bool layout accepted
 		 * ERROR:  -
 		 */
-		public function set_layout($layout = null) {
-			if ($layout === null) {
-				$inherit_layout = array(LOGOUT_MODULE, "password", "profile");
-				if (substr($this->page->url, 0, 4) == "/cms") {
-					$this->layout = LAYOUT_CMS;
-				} else if (in_array($this->page->module, $inherit_layout)) {
-					if ($_SESSION["previous_layout"] == LAYOUT_CMS) {
-						$this->layout = LAYOUT_CMS;
-					}
-				}
-			} else {
-				if (file_exists("../views/banshee/layout_".$layout.".xslt") == false) {
-					return false;
-				}
-
-				$this->layout = $layout;
+		public function set_layout($layout) {
+			if (file_exists("../views/banshee/layout_".$layout.".xslt") == false) {
+				return false;
 			}
+
+			$this->layout = $layout;
 
 			return true;
 		}
@@ -564,13 +554,15 @@
 		private function can_gzip_output($data) {
 			if (headers_sent()) {
 				return false;
-			} else if (($encodings = $_SERVER["HTTP_ACCEPT_ENCODING"]) === null) {
+			} else if (isset($_SERVER["HTTP_ACCEPT_ENCODING"]) == false) {
 				return false;
 			} else if ($this->activate_hiawatha_cache()) {
 				return false;
+			} else if (ob_get_contents() != "") {
+				return false;
 			}
 
-			$encodings = explode(",", $encodings);
+			$encodings = explode(",", $_SERVER["HTTP_ACCEPT_ENCODING"]);
 			foreach ($encodings as $encoding) {
 				if (trim($encoding) == "gzip") {
 					return true;

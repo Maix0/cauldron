@@ -16,7 +16,7 @@
 
 			$this->view->add_javascript("banshee/login.js");
 
-			$bind_ip = ($_SERVER["REQUEST_METHOD"] == "POST") ? $_POST["bind_ip"] : false;
+			$bind_ip = ($_SERVER["REQUEST_METHOD"] == "POST") ? ($_POST["bind_ip"] ?? null) : false;
 
 			$this->view->open_tag("login", array(
 				"authenticator" => show_boolean(USE_AUTHENTICATOR),

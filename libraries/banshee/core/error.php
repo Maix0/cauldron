@@ -27,7 +27,7 @@
 		} else {
 			printf("<p>Contact your website administrator to solve this issue.</p>\n");
 			$message = sprintf("%s=> %s\nline %d in %s\n", $previous, $error->getMessage(), $error->getLine(), $error->getFile());
-			$error_handler = new website_error_handler($GLOBALS["_view"], $GLOBALS["_settings"], $_user);
+			$error_handler = new website_error_handler($GLOBALS["_view"], $GLOBALS["_settings"], $GLOBALS["_user"]);
 			$error_handler->execute($message);
 		}
 

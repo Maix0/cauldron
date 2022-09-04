@@ -146,11 +146,11 @@
 				return false;
 			}
 
-			if ($this->borrow("cms/user")->delete_oke($this->user->id) == false) {
+			if ($this->borrow("vault/user")->delete_oke($this->user->id) == false) {
 				return false;
 			}
 
-			return $this->borrow("cms/user")->delete_user($this->user->id);
+			return $this->borrow("vault/user")->delete_user($this->user->id);
 		}
 	}
 ?>

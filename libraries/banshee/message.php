@@ -285,7 +285,8 @@
 
 				if (($bbcode == "url") && ($param != $value) && $show_url) {
 					if (substr($param, 0, 4) == "http") {
-						list(,, $hostname) = explode("/", $param, 4);
+						$parts = explode("/", $param, 4);
+						$hostname = $parts[2] ?? "";
 						$replacement .= " [".$hostname."]";
 					}
 				}

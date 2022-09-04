@@ -40,18 +40,22 @@
 <xsl:template match="game">
 <!-- Menu -->
 <div class="menu">
+<span class="menu-one">
 <span id="infobar"></span>
 <xsl:if test="maps">
 <select class="form-control map-selector" onChange="javascript:change_map()">
 <xsl:for-each select="maps/map"><option value="{@id}"><xsl:if test="@current='yes'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option></xsl:for-each>
 </select>
 </xsl:if>
+</span>
+<span class="menu-two">
 <div class="btn-group">
 <button class="btn btn-default btn-xs show_journal">Journal</button>
 <button class="btn btn-default btn-xs show_collectables">Inventory</button>
 <xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
 <a href="/game" class="btn btn-default btn-xs">Back</a>
 </div>
+</span>
 </div>
 <xsl:if test="not(map)">
 <input id="game_id" type="hidden" name="game_id" value="{@id}" />

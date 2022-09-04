@@ -135,7 +135,7 @@
 			$this->view->set_layout("game");
 
 			$this->view->add_javascript("webui/jquery-ui.js");
-			$this->view->add_javascript("banshee/jquery.contextMenu.js");
+			$this->view->add_javascript("includes/context_menu.js");
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("includes/library.js");
 			$this->view->add_javascript("spectate.js");
@@ -148,8 +148,8 @@
 				$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 			}
 
-			$this->view->add_css("banshee/context-menu.css");
 			$this->view->add_css("banshee/font-awesome.css");
+			$this->view->add_css("includes/context_menu.css");
 
 			$group_key = hash_hmac("sha256", $game["title"], $this->settings->secret_website_code);
 			$group_key = substr($group_key, 0, 12);

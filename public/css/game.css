@@ -2,6 +2,21 @@ p.nomap {
 	margin-top:40px;
 }
 
+img.cauldron {
+	float:right;
+	width:150px;
+	max-width:25%;
+	margin-left:25px;
+	margin-top:-15px;
+}
+
+h1 {
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	right:10px;
+}
+
 div.well {
 	background-size:cover;
 	background-color:#606070;
@@ -13,12 +28,12 @@ div.well {
 div.well h2 {
 	font-size:40px;
 	color:#f0f0f0;
-	text-shadow:2px 2px 3px #404040;
+	text-shadow:2px 2px 4px #000000;
 }
 
 div.well span {
-	color:#c0c0c0;
-	text-shadow:1px 1px 2px #000000;
+	color:#e0e0e0;
+	text-shadow:1px 1px 2px #000000, -1px -1px 2px #000000, 0px 0px 5px #000000;
 }
 
 div.well div.btn-group {
@@ -98,6 +113,15 @@ div.door {
 	position:absolute;
 	background-color:#a06000;
 	border:1px solid #402000;
+}
+
+/* Ruler
+ */
+div.ruler {
+	position:absolute;
+	background-color:#ffff00;
+	border:1px solid #404040;
+	transform-origin:0px 2px;
 }
 
 /* Walls
@@ -305,7 +329,7 @@ div.token span,
 div.character span,
 div.marker span {
 	display:block;
-	font-size:8px;
+	font-size:9px;
 	text-align:center;
 	color:#000000;
 	background-color:#ffffff;
@@ -349,6 +373,10 @@ div.zone div.script {
 	div.menu {
 		top:40px;
 	}
+
+	button#center_char {
+		display:none;
+	}
 }
 
 /* Mobile view
@@ -356,26 +384,57 @@ div.zone div.script {
 @media (max-width:767px) {
 	div.playarea {
 		top:95px;
-	}
-
-	div.sidebar {
-		top:95px;
+		right:165px;
 	}
 
 	div.menu {
 		top:40px;
 		right:0;
+		left:0;
 	}
 
-	div.menu div.btn-group {
-		display:block;
+	div.menu > span {
+		position:absolute;
 	}
 
-	div.menu select {
-		right:10px;
+	div.menu > span.menu-one {
+		right:0;
+	}
+
+	div.menu > span.menu-two {
+		right:15px;
+		top:25px;
+	}
+
+	div.sidebar {
+		top:95px;
+		width:150px;
+	}
+
+	div.input {
+		width:145px;
 	}
 }
 
 table.combat-tracker input {
 	margin-bottom:0;
+}
+
+/* Dark mode
+ */
+div.dark {
+	background-color:#202020;
+}
+
+div.dark div.sidebar p {
+	color:#e0e0e0;
+}
+
+div.dark div.sidebar p b {
+	color:#7070d0;
+}
+
+div.dark div.input input {
+	color:#e0e0e0;
+	background-color:#404040;
 }

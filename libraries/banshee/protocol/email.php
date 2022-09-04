@@ -52,6 +52,10 @@
 				"temp-mail.org", "mt2015.com", "no-spam.ws", "onewaymail.com", "shitmail.org",
 				"crapmail.org", "spamgourmet.com", "tempemail.net", "yopmail.com");
 
+			if (strpos($email ?? "", "@") === false) {
+				return false;
+			}
+
 			list(, $domain) = explode("@", $email, 2);
 			if (in_array(strtolower($domain), $forbidden)) {
 				return false;
@@ -187,7 +191,7 @@
 				if (file_exists($filename) == false) {
 					return false;
 				}
-				if (($content = file_get_contents($filename, FILE_BINARY)) == false) {
+				if (($content = file_get_contents($filename)) == false) {
 					return false;
 				}
 				$content_type = mime_content_type($filename);

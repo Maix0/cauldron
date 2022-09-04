@@ -19,7 +19,7 @@
 					$this->user->session->set_user_id($_SESSION["user_switch"]);
 					unset($_SESSION["user_switch"]);
 					unset($_SESSION["edit_game_id"]);
-					$url = "cms/switch";
+					$url = "vault/switch";
 				}
 
 				$this->view->add_tag("result", "You are now logged out.", array("url" => $url));

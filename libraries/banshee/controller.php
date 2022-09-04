@@ -15,22 +15,20 @@
 		protected $user = null;
 		protected $page = null;
 		protected $view = null;
-		protected $language = null;
 		protected $prevent_repost = false;
 
 		/* Constructor
 		 *
-		 * INPUT:  object database, object settings, object user, object page, object view[, object language]
+		 * INPUT:  object database, object settings, object user, object page, object view
 		 * OUTPUT: -
 		 * ERROR:  -
 		 */
-		public function __construct($database, $settings, $user, $page, $view, $language = null) {
+		public function __construct($database, $settings, $user, $page, $view) {
 			$this->db = $database;
 			$this->settings = $settings;
 			$this->user = $user;
 			$this->page = $page;
 			$this->view = $view;
-			$this->language = $language;
 
 			/* POST protection: CSRF and re-post
 			 */
@@ -44,8 +42,12 @@
 				if (is_subclass_of($model_class, "Banshee\\model") == false) {
 					print "Model class '".$model_class."' does not extend Banshee's model class.\n";
 				} else {
-					$this->model = new $model_class($database, $settings, $user, $page, $view, $language);
+					$this->model = new $model_class($database, $settings, $user, $page, $view);
 				}
+			}
+
+			if (substr($this->page->url, 0, 6) == "/vault") {
+				$this->view->add_help_button();
 			}
 		}
 

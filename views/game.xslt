@@ -10,11 +10,15 @@
 //-->
 <xsl:template match="games">
 <xsl:if test="count(game)=0">
-<p>No games available yet.</p>
+<xsl:if test="@is_dm='no'">
+<p>There are no games available yet.</p>
+</xsl:if>
 <xsl:if test="@is_dm='yes'">
-<p>If this is your first time using Cauldron, read the <a href="/manual">online manual</a> first.</p>
-<p>Create a game by clicking the <a href="/cms">CMS</a> link in the top menu bar and then the Games icon.</p>
-<p>Add maps to your game via the Maps icon in the CMS.</p>
+<img src="/images/cauldron.png" class="cauldron" />
+<p>This is the page where you and your players will see an overview of the games you have created.</p>
+<p>If this is your first time using Cauldron VTT, read the <a href="/manual">manual</a> first.</p>
+<p>Create a game by clicking the <a href="/vault">DM's Vault</a> link in the top menu bar and then the Games icon.</p>
+<p>On many pages, help is available by clicking the Help button in the top right corner of the page.</p>
 </xsl:if>
 </xsl:if>
 <div class="row">
@@ -47,6 +51,7 @@
 <div class="loading"><span>Loading...</span></div>
 <!-- Menu -->
 <div class="menu">
+<span class="menu-one">
 <span id="infobar"></span>
 <xsl:if test="maps">
 <select class="form-control map-selector" onChange="javascript:change_map()">
@@ -61,20 +66,24 @@
 <button class="btn btn-default btn-xs" onClick="javascript:zoom_out()">-</button>
 </div>
 //-->
+</span>
+<span class="menu-two">
 <div class="btn-group">
 <button class="btn btn-default btn-xs show_journal">Journal</button>
 <xsl:if test="map/dm_notes!=''">
 <button class="btn btn-default btn-xs show_dm_notes">DM notes</button>
 </xsl:if>
 <button class="btn btn-default btn-xs show_collectables">Inventory</button>
-<button class="btn btn-primary btn-xs" onClick="javascript:center_character(this)">Center character</button>
+<button id="center_char" class="btn btn-primary btn-xs" onClick="javascript:center_character(this)">Center character</button>
+<button id="itfcol" class="btn btn-default btn-xs" onClick="javascript:interface_color(this)">Dark</button>
 <xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
 <a href="/{/output/page}" class="btn btn-default btn-xs">Back</a>
 </div>
+</span>
 </div>
 <xsl:if test="not(map)">
 <input id="game_id" type="hidden" name="game_id" value="{@id}" />
-<p class="nomap">This game has no maps yet. <xsl:if test="@is_dm='yes' and not(maps)">Add maps to your game via the <a href="/cms/map">CMS Map Administration</a> page.</xsl:if></p>
+<p class="nomap">This game has no maps yet. <xsl:if test="@is_dm='yes' and not(maps)">Add maps to your game via the <a href="/vault/map">Dungeon Masters' Vault Map Administration</a> page.</xsl:if></p>
 </xsl:if>
 <!-- Windows -->
 <xsl:if test="map">

@@ -15,7 +15,7 @@
 		}
 
 		public function execute() {
-			if ($this->model->key_oke($_GET["key"])) {
+			if ($this->model->key_oke($_GET["key"] ?? null)) {
 				/* Step 3: show password form
 				 */
 				$this->show_password_form($_GET["key"]);

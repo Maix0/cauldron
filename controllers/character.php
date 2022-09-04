@@ -126,18 +126,18 @@
 				} else {
 					$this->show_overview();
 				}
-			} else if ($this->page->parameters[0] === "alternate") {
+			} else if ($this->page->parameter_value(0, "alternate")) {
 				if (valid_input($this->page->parameters[1], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
 					$this->show_alternate_form($this->page->parameters[1]);
 				} else {
 					$this->show_overview();
 				}
-			} else if ($this->page->parameters[0] === "new") {
+			} else if ($this->page->parameter_value(0, "new")) {
 				/* New character
 				 */
 				$character = array();
 				$this->show_character_form($character);
-			} else if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
+			} else if ($this->page->parameter_numeric(0)) {
 				/* Edit character
 				 */
 				if (($character = $this->model->get_character($this->page->parameters[0])) == false) {

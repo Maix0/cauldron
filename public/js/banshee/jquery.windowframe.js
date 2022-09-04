@@ -133,7 +133,7 @@
 				var height = windowframe.outerHeight(false);
 				if (pos_y + height > window.innerHeight) {
 					pos_y = window.innerHeight - height;
-				} 
+				}
 				if (pos_y < 0) {
 					pos_y = 0;
 				}

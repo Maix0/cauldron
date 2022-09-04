@@ -98,7 +98,7 @@
 			$elements = array_reverse($this->elements, true);
 
 			foreach ($elements as $elem_id => $element) {
-				$message = new message($post[$elem_id]);
+				$message = new message($post[$elem_id] ?? "");
 				$value = $message->unescaped_output();
 
 				switch ($element["type"]) {
@@ -160,7 +160,7 @@
 			$valid_post = true;
 
 			foreach ($this->elements as $elem_id => $element) {
-				if ($post[$elem_id] != "") {
+				if (($post[$elem_id] ?? null) != "") {
 					switch ($element["type"]) {
 						case "checkbox":
 							$post[$elem_id] = show_boolean($post[$elem_id]);

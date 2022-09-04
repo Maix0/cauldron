@@ -28,7 +28,7 @@
 			$this->user = $user;
 			$this->view = $view;
 
-			if (is_array($_SESSION[self::KEY_REPOST]) == false) {
+			if (is_array($_SESSION[self::KEY_REPOST] ?? null) == false) {
 				$_SESSION[self::KEY_REPOST] = array();
 				$_SESSION[self::KEY_REPOST."_count"] = 0;
 			} else {

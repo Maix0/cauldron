@@ -45,7 +45,7 @@
 
 			/* Initialize session storage
 			 */
-			if (is_array($_SESSION["pagination"]) == false) {
+			if (is_array($_SESSION["pagination"] ?? false) == false) {
 				$_SESSION["pagination"] = array();
 			}
 			if (isset($_SESSION["pagination"][$name]) == false) {

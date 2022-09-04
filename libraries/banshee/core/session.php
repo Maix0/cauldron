@@ -49,7 +49,7 @@
 
 			$this->start();
 
-			$_SESSION["request_counter"]++;
+			$_SESSION["request_counter"] = ($_SESSION["request_counter"] ?? 0) + 1;
 		}
 
 		/* Destructor
@@ -156,7 +156,7 @@
 				"user_id"    => null,
 				"ip_address" => $_SERVER["REMOTE_ADDR"],
 				"bind_to_ip" => false,
-				"name"       => substr($_SERVER["HTTP_USER_AGENT"], 0, 250));
+				"name"       => substr($_SERVER["HTTP_USER_AGENT"] ?? "", 0, 250));
 
 			do {
 				if ($attempts-- == 0) {
@@ -171,7 +171,7 @@
 			$this->id = $this->db->last_insert_id;
 			$this->session_id = $session_data["session_id"];
 
-			$timeout = is_true($this->settings->session_persistent) ? time() + $this->settings->session_timeout : null;
+			$timeout = is_true($this->settings->session_persistent) ? time() + $this->settings->session_timeout : 0;
 			setcookie(self::SESSION_NAME, $this->session_id, $timeout, "/", "", is_true(ENFORCE_HTTPS), true);
 			$_COOKIE[self::SESSION_NAME] = $this->session_id;
 
@@ -218,7 +218,7 @@
 			}
 
 			$login_id = hash("sha512", random_string(128));
-			$timeout = is_true($this->settings->session_persistent) ? time() + $this->settings->session_timeout : null;
+			$timeout = is_true($this->settings->session_persistent) ? time() + $this->settings->session_timeout : 0;
 			setcookie(self::SESSION_LOGIN, $login_id, $timeout, "/", "", is_true(ENFORCE_HTTPS), true);
 
 			$user_data = array(

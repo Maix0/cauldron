@@ -138,7 +138,7 @@
 		 */
 		public function save_post_data() {
 			foreach ($this->forms[$this->current_form] as $element) {
-				$this->values[$element] = $_POST[$element];
+				$this->values[$element] = $_POST[$element] ?? null;
 			}
 		}
 
@@ -151,7 +151,7 @@
 		public function load_form_data() {
 			$_POST = array();
 			foreach ($this->forms[$this->current_form] as $element) {
-				$_POST[$element] = $this->values[$element];
+				$_POST[$element] = $this->values[$element] ?? null;
 			}
 		}
 

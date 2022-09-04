@@ -60,7 +60,8 @@
 		 * ERROR:  false
 		 */
 		public function __call($method, $parameters) {
-			list($uri, $body) = $parameters;
+			$uri = array_shift($parameters);
+			$body = array_shift($parameters);
 
 			$methods = array("GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE", "TRACE");
 			if (in_array($method, $methods) == false) {

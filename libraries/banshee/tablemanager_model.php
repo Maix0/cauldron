@@ -40,7 +40,7 @@
 			$this->order = &$_SESSION[$key];
 			$this->desc_order = &$_SESSION[$key."_desc"];
 
-			if (in_array($_GET["order"], array_keys($this->elements))) {
+			if (in_array($_GET["order"] ?? null, array_keys($this->elements))) {
 				if ($_SESSION[$key] == $_GET["order"]) {
 					$this->desc_order = $this->desc_order == false;
 				} else {

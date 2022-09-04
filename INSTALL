@@ -75,10 +75,10 @@ Configure cronjob to run the script database/backup_database once per day.
 
 Configure Banshee
 -----------------
-Go to the Settings administration page in Banshee's CMS and replace the present
-e-mail addresses with your own. Before going live, remove or comment the setup
-module in the file settings/public_modules.conf and set DEBUG_MODE in the file
-settings/banshee.conf to 'no'.
+Go to the Settings administration page in the Dungeon Master's Vault and replace
+the present e-mail addresses with your own. Before going live, remove or comment
+the setup module in the file settings/public_modules.conf and set DEBUG_MODE in
+the file settings/banshee.conf to 'no'.
 
 
 Websocket Server

@@ -56,6 +56,12 @@ var zone_x = 0;
 var zone_y = 0;
 var zone_menu = null;
 var zoom_level = 1;
+var menu_defaults = {
+	root: 'div.playarea',
+	z_index: LAYER_MENU,
+	dy_up: 26,
+	dy_down: 40
+};
 
 /* Zoom functoins
  */
@@ -179,7 +185,7 @@ function show_image(img) {
 }
 
 function message_to_sidebar(name, message) {
-	if ((message.substr(0, 7) == 'http://') || (message.substr(0, 8) == 'https://')) {
+	if ((message.substring(0, 7) == 'http://') || (message.substring(0, 8) == 'https://')) {
 		var parts = message.split('.');
 		var extension = parts.pop();
 		var images = ['gif', 'jpg', 'jpeg', 'png'];
@@ -409,6 +415,28 @@ function center_character(button) {
 	$(button).blur();
 }
 
+function interface_color(button, swap = true) {
+	var color = localStorage.getItem('interface_color');
+
+	if (color == undefined) {
+		color = 'light';
+	}
+
+	if (swap) {
+		color = (color == 'light') ? 'dark' : 'light';
+	}
+
+	if (color == 'dark') {
+		$('div.wrapper').addClass('dark');
+		$(button).text('Light');
+		localStorage.setItem('interface_color', 'dark');
+	} else {
+		$('div.wrapper').removeClass('dark');
+		$(button).text('Dark');
+		localStorage.setItem('interface_color', 'light');
+	}
+}
+
 /* Object functions
  */
 function object_alive(obj) {
@@ -471,25 +499,6 @@ function object_dead(obj) {
 	obj.find('div.hitpoints').css('display', 'none');
 }
 
-function object_handover(obj) {
-	if (focus_obj == null) {
-		write_sidebar('Focus on a character first.');
-		return;
-	}
-
-	if (focus_obj.hasClass('character') == false) {
-		write_sidebar('Focus on a character first.');
-		return;
-	}
-
-	var data = {
-		action: 'handover',
-		instance_id: obj.prop('id'),
-		owner_id: focus_obj.prop('id')
-	};
-	websocket_send(data);
-}
-
 function object_hide(obj, send = true) {
 	if (dungeon_master) {
 		obj.fadeTo(0, 0.5);
@@ -514,14 +523,14 @@ function object_hide(obj, send = true) {
 function object_info(obj) {
 	var info = '';
 
-    if (obj.hasClass('zone') == false) {
+	if (obj.hasClass('zone') == false) {
 		var name = obj.find('span.name');
 		if (name.length > 0) {
 			info += 'Name: ' + name.text() + '<br />';
 		}
 
 		if (dungeon_master || obj.is(my_character)) {
-			if (obj.attr('id').substr(0, 5) == 'token') {
+			if (obj.attr('id').substring(0, 5) == 'token') {
 				info += 'Type: ' + obj.attr('type') + '<br />';
 			}
 			info += 'Armor class: ' + obj.attr('armor_class') + '<br />';
@@ -671,7 +680,7 @@ function object_rotate(obj, rotation, send_to_backend = true, speed = 500) {
 	}, {
 		duration: speed,
 		step: function(now) {
-        	$(this).css('transform', 'rotate(' + now + 'deg)');
+			$(this).css('transform', 'rotate(' + now + 'deg)');
 		},
 		done: function() {
 			img.animate({ rotation: rotation });
@@ -994,21 +1003,21 @@ function effect_create_final(effect_id, src, width, height) {
 		drag: zoom_drag
 	});
 
-	$.contextMenu({
-		selector: 'div#' + effect_id,
-		callback: context_menu_handler,
-		items: {
-			'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
-			'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
+	$('div#' + effect_id).contextmenu(function(event) {
+		var menu_entries = {
+			'handover': { name:'Hand over', icon:'fa-hand-stop-o' },
+			'takeback': { name:'Take back', icon:'fa-hand-grab-o' },
 			'sep1': '-',
-			'marker': {name:'Set marker', icon:'fa-map-marker'},
-			'distance': {name:'Measure distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
+			'marker': { name:'Set marker', icon:'fa-map-marker' },
+			'distance': { name:'Measure distance', icon:'fa-map-signs' },
+			'coordinates': { name:'Get coordinates', icon:'fa-flag' },
 			'sep2': '-',
-			'effect_duplicate': {name:'Duplicate', icon:'fa-copy'},
-			'effect_delete': {name:'Delete', icon:'fa-trash'}
-		},
-		zIndex: LAYER_MENU
+			'effect_duplicate': { name:'Duplicate', icon:'fa-copy' },
+			'effect_delete': { name:'Delete', icon:'fa-trash' }
+		};
+
+		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+		return false;
 	});
 }
 
@@ -1017,7 +1026,7 @@ function effect_create_final(effect_id, src, width, height) {
 function measuring_stop() {
 	$('div.playarea').off('mousemove');
 	$('span#infobar').text('');
-	$('img.pin').remove();
+	$('div.ruler').remove();
 }
 
 /* Door functions
@@ -1099,7 +1108,7 @@ function door_send_state(door) {
 	websocket_send(data);
 
 	$.post('/object/door_state', {
-		door_id: door.prop('id').substr(4),
+		door_id: door.prop('id').substring(4),
 		state: door.attr('state')
 	});
 }
@@ -1261,7 +1270,7 @@ function door_show_unlocked(door) {
 	door.attr('state', 'closed');
 }
 
-/* Light functions 
+/* Light functions
  */
 function light_create_object(instance_id, pos_x, pos_y, radius) {
 	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;">';
@@ -1274,7 +1283,9 @@ function light_create_object(instance_id, pos_x, pos_y, radius) {
 
 	/* Fog of War
 	 */
-	fog_of_war_light($('div#light' + instance_id));
+	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
+		fog_of_war_light($('div#light' + instance_id));
+	}
 
 	if ((fow_type != FOW_OFF) && my_character != null) {
 		fog_of_war_update(my_character);
@@ -1311,15 +1322,20 @@ function light_create(pos_x, pos_y, radius) {
 			drag: zoom_drag
 		});
 
-		$.contextMenu({
-			selector: 'div#light' + instance_id,
-			callback: context_menu_handler,
-			items: {
-				'light_toggle': {name:'Turn on / off', icon:'fa-toggle-on'},
-				'light_attach': {name:'Attach to character', icon:'fa-compress'},
-				'delete': {name:'Delete', icon:'fa-trash'}
-			},
-			zIndex: LAYER_MENU
+		$('div#light' + instance_id).contextmenu(function(event) {
+			var menu_entries = {};
+
+			if ($(this).attr('state') == 'on') {
+				menu_entries['light_toggle'] = { name:'Turn off', icon:'fa-toggle-off' };
+			} else {
+				menu_entries['light_toggle'] = { name:'Turn on', icon:'fa-toggle-on' };
+			}
+
+			menu_entries['light_attach'] = { name:'Attach to character', icon:'fa-compress' };
+			menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 	}).fail(function(data) {
 		alert('Light create error');
@@ -1356,11 +1372,28 @@ function light_follow(character, pos_x = null, pos_y = null) {
 	}
 }
 
+function light_state(obj, state) {
+	obj.attr('state', state);
+	obj.find('img').attr('src', '/images/light_' + state + '.png');
+
+	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
+		fog_of_war_light(obj);
+	}
+
+	if ((fow_type != FOW_OFF) && (my_character != null)) {
+		fog_of_war_update(my_character);
+	} else if (fow_obj != null) {
+		fog_of_war_update(fow_obj);
+	}
+}
+
 function light_delete(obj) {
 	delete fow_light_char[obj.prop('id')];
 
 	obj.attr('state', 'delete');
-	fog_of_war_light(obj);
+	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
+		fog_of_war_light(obj);
+	}
 
 	if ((fow_type != FOW_OFF) && (my_character != null)) {
 		fog_of_war_update(my_character);
@@ -1642,11 +1675,11 @@ function zone_create(width, height, color, opacity, group, altitude) {
 		};
 		websocket_send(data);
 
-		$.contextMenu({
-			selector: 'div#zone' + instance_id,
-			callback: context_menu_handler,
-			items: zone_menu,
-			zIndex: LAYER_MENU
+		$('div#zone' + instance_id).contextmenu(function(event) {
+			var menu_entries = zone_menu;
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 	}).fail(function(data) {
 		alert('Zone create error');
@@ -1655,7 +1688,7 @@ function zone_create(width, height, color, opacity, group, altitude) {
 
 function zone_delete(obj) {
 	var zone_id = obj.prop('id');
-	if (zone_id.substr(0, 4) != 'zone') {
+	if (zone_id.substring(0, 4) != 'zone') {
 		return;
 	}
 
@@ -1857,8 +1890,8 @@ function handle_input(input) {
 		return;
 	}
 
-	if (input.substr(0, 1) != '/') {
-		if (input.substr(0, 4).toLowerCase() == "dice") {
+	if (input.substring(0, 1) != '/') {
+		if (input.substring(0, 4).toLowerCase() == "dice") {
 			return;
 		}
 		send_message(input, my_name);
@@ -1866,8 +1899,8 @@ function handle_input(input) {
 	}
 
 	var parts = input.split(' ', 1);
-	var command = parts[0].substr(1);
-	var param = input.substr(parts[0].length + 1).trim();
+	var command = parts[0].substring(1);
+	var param = input.substring(parts[0].length + 1).trim();
 
 	switch (command) {
 		case 'add':
@@ -2051,7 +2084,7 @@ function handle_input(input) {
 					audio.play();
 				}
 			}).fail(function() {
-				write_sidebar('Directory audio/' + game_id + ' not found. Create it via File Administration in the CMS and upload some audio files.');
+				write_sidebar('Directory audio/' + game_id + ' not found. Create it via File Administration in the Dungeon Master\' Vault and upload some audio files.');
 			});
 			break;
 		case 'reload':
@@ -2278,29 +2311,46 @@ function context_menu_handler(key, options) {
 		case 'distance':
 			measuring_stop();
 
-			var pos_x = coord_to_grid(mouse_x, false) + (grid_cell_size >> 1) - 12;
-			var pos_y = coord_to_grid(mouse_y, false) - (grid_cell_size >> 1) + 7;
-			var marker = '<img src="/images/pin.png" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y +
-			             'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" class="pin" />';
-			$('div.playarea div.markers').append(marker);
+			var ruler_position = function(to_x, to_y) {
+				var angle = points_angle(ruler_x, ruler_y, to_x, to_y);
+				var distance = points_distance(ruler_x, ruler_y, to_x, to_y);
 
-			$('div.playarea').mousemove(function(event) {
+				var ruler = $('div.ruler');
+				ruler.css('width', distance + 'px');
+				ruler.css('height', '4px');
+				ruler.css('transform', 'rotate(' + angle + 'deg)');
+
 				var from_x = coord_to_grid(mouse_x, false);
 				var from_y = coord_to_grid(mouse_y, false);
 
-				var scr = screen_scroll();
+				measure_diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
+				measure_diff_y = Math.round(Math.abs(to_y - from_y) / grid_cell_size);
 
-				var to_x = (event.clientX / zoom_level) + scr.left - 16;
+				var distance = (measure_diff_x > measure_diff_y) ? measure_diff_x : measure_diff_y;
+
+				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft / ' + (measure_diff_x + 1) + 'x' + (measure_diff_y + 1));
+			}
+
+			var ruler_x = coord_to_grid(mouse_x, false);
+			var ruler_y = coord_to_grid(mouse_y, false);
+			var ruler = '<div class="ruler" />';
+			$('div.playarea div.markers').append(ruler);
+			$('div.ruler').each(function() {
+				ruler_position(ruler_x, ruler_y);
+			});
+
+			var ruler = $('div.ruler');
+			ruler.css('left', (ruler_x + (grid_cell_size >> 1)) + 'px');
+			ruler.css('top', (ruler_y + (grid_cell_size >> 1)) + 'px');
+
+			$('div.playarea').mousemove(function(event) {
+				var scr = screen_scroll();
+				var to_x = event.clientX + scr.left - 16;
 				to_x = coord_to_grid(to_x, false);
-	            var to_y = (event.clientY / zoom_level) + scr.top - 41;
+				var to_y = event.clientY + scr.top - 41;
 				to_y = coord_to_grid(to_y, false);
 
-				var diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
-				var diff_y = Math.round(Math.abs(to_y - from_y) / grid_cell_size);
-
-				var distance = (diff_x > diff_y) ? diff_x : diff_y;
-
-				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft / ' + (diff_x + 1) + 'x' + (diff_y + 1));
+				ruler_position(to_x, to_y);
 			});
 
 			$('div.playarea').on('click', function(event) {
@@ -2405,7 +2455,22 @@ function context_menu_handler(key, options) {
 			websocket_send(data);
 			break;
 		case 'handover':
-			object_handover(obj);
+			if (focus_obj == null) {
+				write_sidebar('Focus on a character first.');
+				return;
+			}
+
+			if (focus_obj.hasClass('character') == false) {
+				write_sidebar('Focus on a character first.');
+				return;
+			}
+
+			var data = {
+				action: 'handover',
+				instance_id: obj.prop('id'),
+				owner_id: focus_obj.prop('id')
+			};
+			websocket_send(data);
 			break;
 		case 'heal':
 			var points = window.prompt('Points:');
@@ -2427,22 +2492,40 @@ function context_menu_handler(key, options) {
 		case 'light_create':
 			var pos_x = coord_to_grid(mouse_x, false);
 			var pos_y = coord_to_grid(mouse_y, false);
-			var radius = 3;
 
-			if ((radius = window.prompt('Radius:', radius)) == undefined) {
-				return;
-			}
+			wf_light_create = $('<p><input id="light_new" type="text" value="3" class="form-control" /></p>').windowframe({
+				width: 530,
+				style: 'danger',
+				header: 'Create light',
+				buttons: {
+					'Create': function() {
+						var radius = parseInt($('input#light_new').val());
 
-			radius = parseInt(radius);
-			if (isNaN(radius)) {
-				write_sidebar('Invalid radius.');
-				return;
-			} else if (radius < 0) {
-				write_sidebar('Invalid radius.');
-				return;
-			}
+						if (isNaN(radius)) {
+							write_sidebar('Invalid radius.');
+							return;
+						} else if (radius < 0) {
+							write_sidebar('Invalid radius.');
+							return;
+						}
 
-			light_create(pos_x, pos_y, radius);
+						light_create(pos_x, pos_y, radius);
+
+						$(this).close();
+					},
+					'Cancel': function() {
+						$(this).close();
+					}
+				},
+				open: function() {
+					$('input#light_new').focus();
+				},
+				close: function() {
+					wf_light_create.destroy();
+				}
+			});
+
+			wf_light_create.open();
 			break;
 		case 'light_delete':
 			if (confirm('Delete light?')) {
@@ -2516,20 +2599,21 @@ function context_menu_handler(key, options) {
 		case 'light_toggle':
 			var toggle = { on:'off', off:'on' };
 			var state = toggle[obj.attr('state')];
-
-			obj.attr('state', state);
-			obj.find('img').attr('src', '/images/light_' + state + '.png');
-
-			var data = {
-				action: 'light_toggle',
-				light_id: obj.prop('id').substr(5),
-				state: state
-			};
-			websocket_send(data);
+			var light_id = obj.prop('id').substring(5);
 
 			$.post('/object/light_state', {
-				light_id: obj.prop('id').substr(5),
+				light_id: light_id,
 				state: state
+			}).done(function() {
+				var data = {
+					action: 'light_state',
+					light_id: light_id,
+					state: state
+				};
+				websocket_send(data);
+
+				var light = $('div#light' + light_id);
+				light_state(light, state);
 			});
 			break;
 		case 'lower':
@@ -2915,7 +2999,7 @@ $(document).ready(function() {
 					return;
 				}
 
-				if (data.instance_id.substr(0, 4) == 'zone') {
+				if (data.instance_id.substring(0, 4) == 'zone') {
 					var handle = null;
 				} else {
 					var handle = 'img';
@@ -2933,37 +3017,36 @@ $(document).ready(function() {
 					drag: zoom_drag
 				});
 
-				if (data.instance_id.substr(0, 4) == 'zone') {
+				if (data.instance_id.substring(0, 4) == 'zone') {
 					return;
-				} else if (data.instance_id.substr(0, 6) == 'effect') {
+				} else if (data.instance_id.substring(0, 6) == 'effect') {
 					return;
 				}
 
-				$('div#' + data.instance_id + ' img').contextMenu('destroy');
-
-				$.contextMenu({
-					selector: 'div#' + data.instance_id + ' img',
-					callback: context_menu_handler,
-					items: {
-						'info': {name:'Get infomation', icon:'fa-info-circle'},
-						'stick': {name:'Stick to / unstick', icon:'fa-lock'},
-						'rotate': {name:'Rotate', icon:'fa-compass', items:{
-							'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
-							'rotate_ne': {name:'North East'},
-							'rotate_e':  {name:'East', icon:'fa-arrow-circle-right'},
-							'rotate_se': {name:'South East'},
-							'rotate_s':  {name:'South', icon:'fa-arrow-circle-down'},
-							'rotate_sw': {name:'South West'},
-							'rotate_w':  {name:'West', icon:'fa-arrow-circle-left'},
-							'rotate_nw': {name:'North West'}
+				$('div#' + data.instance_id + ' img').off('contextmenu');
+				$('div#' + data.instance_id + ' img').contextmenu(function(event) {
+					var menu_entries = {
+						'info': { name:'Get infomation', icon:'fa-info-circle' },
+						'stick': { name:'Stick to / unstick', icon:'fa-lock' },
+						'rotate': { name:'Rotate', icon:'fa-compass', items:{
+							'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
+							'rotate_ne': { name:'North East' },
+							'rotate_e':  { name:'East', icon:'fa-arrow-circle-right' },
+							'rotate_se': { name:'South East' },
+							'rotate_s':  { name:'South', icon:'fa-arrow-circle-down' },
+							'rotate_sw': { name:'South West' },
+							'rotate_w':  { name:'West', icon:'fa-arrow-circle-left' },
+							'rotate_nw': { name:'North West' }
 						}},
-						'lower': {name:'Lower', icon:'fa-arrow-down'},
+						'lower': { name:'Lower', icon:'fa-arrow-down' },
 						'sep1': '-',
-						'attack': {name:'Attack', icon:'fa-shield'},
-						'damage': {name:'Damage', icon:'fa-warning'},
-						'heal': {name:'Heal', icon:'fa-medkit'}
-					},
-					zIndex: LAYER_MENU
+						'attack': { name:'Attack', icon:'fa-legal' },
+						'damage': { name:'Damage', icon:'fa-warning' },
+						'heal': { name:'Heal', icon:'fa-medkit' }
+					};
+
+					show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+					return false;
 				});
 
 				$('div#' + data.instance_id).css('cursor', 'grab');
@@ -2983,15 +3066,9 @@ $(document).ready(function() {
 				var obj = $('div#' + data.instance_id);
 				light_delete(obj);
 				break;
-			case 'light_toggle':
+			case 'light_state':
 				var light = $('div#light' + data.light_id);
-				light.attr('state', data.state);
-
-				fog_of_war_light(light);
-
-				if (my_character != null) {
-					fog_of_war_update(my_character);
-				}
+				light_state(light, data.state);
 				break;
 			case 'lower':
 				z_index--;
@@ -3104,16 +3181,16 @@ $(document).ready(function() {
 				$('div#' + data.instance_id).find('img').css('cursor', 'default');
 				$('div#' + data.instance_id).draggable('destroy');
 
-				$('div#' + data.instance_id + ' img').contextMenu('destroy');
-				$.contextMenu({
-					selector: 'div#' + data.instance_id + ' img',
-					callback: context_menu_handler,
-					items: {
-						'view': {name:'View', icon:'fa-search'},
-						'stick': {name:'Stick to / unstick', icon:'fa-lock'},
-						'attack': {name:'Attack', icon:'fa-shield'}
-					},
-					zIndex: LAYER_MENU
+				$('div#' + data.instance_id + ' img').off('contextmenu');
+				$('div#' + data.instance_id + ' img').contextmenu(function(event) {
+					var menu_entries = {
+						'view': { name:'View', icon:'fa-search' },
+						'stick': { name:'Stick to / unstick', icon:'fa-lock' },
+						'attack': { name:'Attack', icon:'fa-legal' }
+					};
+
+					show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+					return false;
 				});
 
 				if (data.instance_id == stick_to) {
@@ -3187,21 +3264,26 @@ $(document).ready(function() {
 		door_position($(this));
 	});
 
-	var items = {
-		'door_open': {name:'Open', icon:'fa-toggle-on'},
-		'door_close': {name:'Close', icon:'fa-toggle-off'},
-	};
 
-	if (dungeon_master) {
-		items['door_lock'] = {name:'Lock', icon:'fa-lock'};
-		items['door_unlock'] = {name:'Unlock', icon:'fa-unlock'};
-	}
+	$('div.door').contextmenu(function(event) {
+		var menu_entries = {};
 
-	$.contextMenu({
-		selector: 'div.door',
-		callback: context_menu_handler,
-		items: items,
-		zIndex: LAYER_MENU
+		if ($(this).attr('state') == 'open') {
+			menu_entries['door_close'] = { name:'Close', icon:'fa-toggle-off' };
+		} else {
+			menu_entries['door_open'] = { name:'Open', icon:'fa-toggle-on' };
+		}
+
+		if (dungeon_master) {
+			if ($(this).attr('state') == 'locked') {
+				menu_entries['door_unlock'] = { name:'Unlock', icon:'fa-unlock' };
+			} else {
+				menu_entries['door_lock'] = { name:'Lock', icon:'fa-lock' };
+			}
+		}
+
+		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+		return false;
 	});
 
 	/* Walls
@@ -3319,172 +3401,197 @@ $(document).ready(function() {
 			drag: zoom_drag
 		});
 
-		$.contextMenu({
-			selector: 'div.light',
-			callback: context_menu_handler,
-			items: {
-				'light_toggle': {name:'Turn on / off', icon:'fa-toggle-on'},
-				'light_attach': {name:'Attach to character', icon:'fa-compress'},
-				'light_delete': {name:'Delete', icon:'fa-trash'}
-			},
-			zIndex: LAYER_MENU
+		$('div.light').contextmenu(function(event) {
+			var menu_entries = {};
+
+			if ($(this).attr('state') == 'on') {
+				menu_entries['light_toggle'] = { name:'Turn off', icon:'fa-toggle-off' };
+			} else {
+				menu_entries['light_toggle'] = { name:'Turn on', icon:'fa-toggle-on' };
+			}
+
+			menu_entries['light_attach'] = { name:'Attach to character', icon:'fa-compress' };
+			menu_entries['light_delete'] = { name:'Delete', icon:'fa-trash' };
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 
 		/* Menu zones
 		 */
 		zone_menu = {
-			'info': {name:'Get information', icon:'fa-info-circle'},
-			'script': {name:'Edit event script', icon:'fa-edit'},
+			'info': { name:'Get information', icon:'fa-info-circle' },
+			'script': { name:'Edit event script', icon:'fa-edit' },
 			'sep1': '-',
-			'marker': {name:'Set marker', icon:'fa-map-marker'},
-			'distance': {name:'Measure distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Show coordinates', icon:'fa-flag'},
-			'effect_create': {name:'Create effect', icon:'fa-fire'},
-			'light_create': {name:'Create light', icon:'fa-lightbulb-o'},
+			'marker': { name:'Set marker', icon:'fa-map-marker' },
+			'distance': { name:'Measure distance', icon:'fa-map-signs' },
+			'coordinates': { name:'Show coordinates', icon:'fa-flag' },
+			'effect_create': { name:'Create effect', icon:'fa-fire' },
+			'light_create': { name:'Create light', icon:'fa-lightbulb-o' },
 			'sep2': '-',
-			'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
-			'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
+			'handover': { name:'Hand over', icon:'fa-hand-stop-o' },
+			'takeback': { name:'Take back', icon:'fa-hand-grab-o' },
 			'sep3': '-',
-			'zone_delete': {name:'Delete', icon:'fa-trash'},
+			'zone_delete': { name:'Delete', icon:'fa-trash' },
 		};
 
-		$.contextMenu({
-			selector: 'div.zone',
-			callback: context_menu_handler,
-			items: zone_menu,
-			zIndex: LAYER_MENU
+		$('div.zone').contextmenu(function(event) {
+			var menu_entries = zone_menu;
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 
 		/* Menu tokens
 		 */
-		items = {
-			'info': {name:'Get information', icon:'fa-info-circle'},
-			'view': {name:'View', icon:'fa-search'},
-			'rotate': {name:'Rotate', icon:'fa-compass', items:{
-				'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
-				'rotate_ne': {name:'North East'},
-				'rotate_e':  {name:'East', icon:'fa-arrow-circle-right'},
-				'rotate_se': {name:'South East'},
-				'rotate_s':  {name:'South', icon:'fa-arrow-circle-down'},
-				'rotate_sw': {name:'South West'},
-				'rotate_w':  {name:'West', icon:'fa-arrow-circle-left'},
-				'rotate_nw': {name:'North West'}
-			}},
-			'presence': {name:'Toggle presence', icon:'fa-low-vision'},
-			'lower': {name:'Lower', icon:'fa-arrow-down'},
-			'sep1': '-',
-			'focus': {name:'Focus', icon:'fa-binoculars'},
-			'handover': {name:'Hand over', icon:'fa-hand-stop-o'},
-			'takeback': {name:'Take back', icon:'fa-hand-grab-o'},
-			'sep2': '-',
-			'marker': {name:'Set marker', icon:'fa-map-marker'},
-			'distance': {name:'Measure distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
-			'zone_create': {name:'Zone', icon:'fa-square-o'},
-			'sep3': '-',
-			'attack': {name:'Attack', icon:'fa-shield'},
-			'damage': {name:'Damage', icon:'fa-warning'},
-			'heal': {name:'Heal', icon:'fa-medkit'}
-		};
+		$('div.token img').contextmenu(function(event) {
+			var menu_entries = {};
 
-		var conditions = {};
-		conditions['condition_0'] = {name: 'None'};
-		conditions['sep0'] = '-';
-		$('div.conditions div').each(function() {
-			var con_id = $(this).attr('con_id');
-			conditions['condition_' + con_id] = {name: $(this).text()};
-		});
+			menu_entries['info'] = { name:'Get information', icon:'fa-info-circle' };
+			menu_entries['view'] = { name:'View', icon:'fa-search' };
+			var rotate = {
+				'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
+				'rotate_ne': { name:'North East' },
+				'rotate_e':  { name:'East', icon:'fa-arrow-circle-right' },
+				'rotate_se': { name:'South East' },
+				'rotate_s':  { name:'South', icon:'fa-arrow-circle-down' },
+				'rotate_sw': { name:'South West' },
+				'rotate_w':  { name:'West', icon:'fa-arrow-circle-left' },
+				'rotate_nw': { name:'North West' }
+			};
+			menu_entries['rotate'] = { name:'Rotate', icon:'fa-compass', items:rotate };
+			menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
+			menu_entries['lower'] = { name:'Lower', icon:'fa-arrow-down' };
+			menu_entries['sep1'] = '-';
 
-		items['sep2'] = '-';
-		items['conditions'] = {name:'Set condition', icon:'fa-heartbeat', items:conditions};
+			var label = $(this).parent().is(focus_obj) ? 'Unfocus' : 'Focus';
+			menu_entries['focus'] = { name:label, icon:'fa-binoculars' };
 
-		$.contextMenu({
-			selector: 'div.token img',
-			callback: context_menu_handler,
-			items: items,
-			zIndex: LAYER_MENU
+			menu_entries['handover'] = { name:'Hand over', icon:'fa-hand-stop-o' };
+			menu_entries['takeback'] = { name:'Take back', icon:'fa-hand-grab-o' };
+			menu_entries['sep2'] = '-';
+			menu_entries['marker'] = { name:'Set marker', icon:'fa-map-marker' };
+			menu_entries['distance'] = { name:'Measure distance', icon:'fa-map-signs' };
+			menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
+			menu_entries['zone_create'] = { name:'Zone', icon:'fa-square-o' };
+			menu_entries['sep3'] = '-';
+			menu_entries['attack'] = { name:'Attack', icon:'fa-legal' };
+			menu_entries['damage'] = { name:'Damage', icon:'fa-warning' };
+			menu_entries['heal'] = { name:'Heal', icon:'fa-medkit' };
+
+			var has = $(this).parent().find('span.conditions').text().split(',');
+			var conditions = {};
+			conditions['condition_0'] = { name: 'None' };
+			conditions['sep0'] = '-';
+			$('div.conditions div').each(function() {
+				var con_id = $(this).attr('con_id');
+				var name = $(this).text();
+				var icon = has.includes(name) ? 'fa-check-square-o' : 'fa-square-o';
+				conditions['condition_' + con_id] = { name: name, icon: icon};
+			});
+
+			menu_entries['sep2'] = '-';
+			menu_entries['conditions'] = { name:'Set condition', icon:'fa-heartbeat', items:conditions};
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 
 		/* Menu characters
 		 */
-		var maps = {};
-		$('select.map-selector option').each(function() {
-			var m_id = $(this).attr('value');
-			if (m_id != map_id) {
-				var key = 'travel_' + m_id;
-				maps[key] = {name: $(this).text()};
+		$('div.character img').contextmenu(function(event) {
+			var menu_entries = {
+				'info': { name:'Get information', icon:'fa-info-circle' },
+				'view': { name:'View', icon:'fa-search' },
+				'presence': { name:'Toggle presence', icon:'fa-low-vision' },
 			}
-		});
 
-		var items = {
-			'info': {name:'Get information', icon:'fa-info-circle'},
-			'view': {name:'View', icon:'fa-search'},
-			'presence': {name:'Toggle presence', icon:'fa-low-vision'},
-			'focus': {name:'Focus', icon:'fa-binoculars'},
-			'sep1': '-',
-			'distance': {name:'Measure distance', icon:'fa-map-signs'},
-			'coordinates': {name:'Get coordinates', icon:'fa-flag'},
-			'sep2': '-',
-			'fow_show': {name:'Show its Fog of War', icon:'fa-cloud'},
-			'fow_distance': {name:'Set Fog of War distance', icon:'fa-cloud-upload'},
-			'light_detach': {name:'Detach light', icon:'fa-lightbulb-o'},
-			'light_remove': {name:'Remove light', icon:'fa-circle'},
-			'sep3': '-',
-			'attack': {name:'Attack', icon:'fa-shield'},
-			'damage': {name:'Damage', icon:'fa-warning'},
-			'heal': {name:'Heal', icon:'fa-medkit'},
-			'conditions': {name:'Set condition', icon:'fa-heartbeat', items:conditions},
-		};
+			var label = $(this).parent().is(focus_obj) ? 'Unfocus' : 'Focus';
+			menu_entries['focus'] = { name:label, icon:'fa-binoculars' };
 
-		var shapes = {};
-		shapes['shape_0'] = {name: 'Default'};
-		shapes['sep0'] = '-';
-		$('div.shape_change div').each(function() {
-			var shape_id = $(this).attr('shape_id');
-			shapes['shape_' + shape_id] = {name: $(this).text()};
-		});
+			menu_entries['sep1'] = '-';
+			menu_entries['distance'] = { name:'Measure distance', icon:'fa-map-signs' };
+			menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
+			menu_entries['sep2'] = '-';
 
-		if (Object.keys(shapes).length > 2) {
-			items['shapes'] = {name:'Set shape', icon:'fa-user-circle', items:shapes};
-		}
+			if (fow_type != FOW_OFF) {
+				if ($(this).parent().is(fow_obj)) {
+					menu_entries['fow_show'] = { name:'Remove Fog of War', icon:'fa-mixcloud' };
+				} else {
+					menu_entries['fow_show'] = { name:'Show its Fog of War', icon:'fa-cloud' };
+				}
+				menu_entries['fow_distance'] = { name:'Set Fog of War distance', icon:'fa-cloud-upload' };
+				if (Object.values(fow_light_char).includes($(this).parent().prop('id'))) {
+					menu_entries['light_detach'] = { name:'Detach light', icon:'fa-lightbulb-o' };
+					menu_entries['light_remove'] = { name:'Remove light', icon:'fa-circle' };
+				}
+				menu_entries['sep3'] = '-';
+			}
 
-		items['sep4'] = '-';
-		items['zone_create'] = {name:'Create zone', icon:'fa-square-o'};
+			menu_entries['attack'] = { name:'Attack', icon:'fa-legal' };
+			menu_entries['damage'] = { name:'Damage', icon:'fa-warning' };
+			menu_entries['heal'] = { name:'Heal', icon:'fa-medkit' };
 
-		if (fow_type == FOW_OFF) {
-			delete items['fow_show'];
-			delete items['fow_distance'];
-			delete items['light_detach'];
-			delete items['light_remove'];
-			delete items['sep3'];
-		}
+			var has = $(this).parent().find('span.conditions').text().split(',');
+			var conditions = {};
+			conditions['condition_0'] = { name: 'None' };
+			conditions['sep0'] = '-';
+			$('div.conditions div').each(function() {
+				var con_id = $(this).attr('con_id');
+				var name = $(this).text();
+				var icon = has.includes(name) ? 'fa-check-square-o' : 'fa-square-o';
+				conditions['condition_' + con_id] = { name: name, icon: icon};
+			});
 
-		if (Object.keys(maps).length > 0) {
-			items['send'] = {name:'Send to map', icon:'fa-compass', items:maps};
-		}
+			menu_entries['conditions'] = { name:'Set condition', icon:'fa-heartbeat', items:conditions};
 
-		$.contextMenu({
-			selector: 'div.character img',
-			callback: context_menu_handler,
-			items: items,
-			zIndex: LAYER_MENU
+			var shapes = {};
+			shapes['shape_0'] = { name: 'Default' };
+			shapes['sep0'] = '-';
+			$('div.shape_change div').each(function() {
+				var shape_id = $(this).attr('shape_id');
+				shapes['shape_' + shape_id] = { name: $(this).text()};
+			});
+
+			if (Object.keys(shapes).length > 2) {
+				menu_entries['shapes'] = { name:'Set shape', icon:'fa-user-circle', items:shapes};
+			}
+
+			menu_entries['sep4'] = '-';
+			menu_entries['zone_create'] = { name:'Create zone', icon:'fa-square-o' };
+
+			var maps = {};
+			$('select.map-selector option').each(function() {
+				var m_id = $(this).attr('value');
+				if (m_id != map_id) {
+					var key = 'travel_' + m_id;
+					maps[key] = { name: $(this).text()};
+				}
+			});
+
+			if (Object.keys(maps).length > 0) {
+				menu_entries['send'] = { name:'Send to map', icon:'fa-compass', items:maps};
+			}
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 
 		/* Menu map
 		 */
-		$.contextMenu({
-			selector: 'div.playarea > div',
-			callback: context_menu_handler,
-			items: {
-				'marker': {name:'Set marker', icon:'fa-map-marker'},
-				'distance': {name:'Measure distance', icon:'fa-map-signs'},
-				'coordinates': {name:'Get coordinates', icon:'fa-flag'},
+		$('div.playarea > div').contextmenu(function(event) {
+			var menu_entries = {
+				'marker': { name:'Set marker', icon:'fa-map-marker' },
+				'distance': { name:'Measure distance', icon:'fa-map-signs' },
+				'coordinates': { name:'Get coordinates', icon:'fa-flag' },
 				'sep1': '-',
-				'effect_create': {name:'Create effect', icon:'fa-fire'},
-				'light_create': {name:'Create light', icon:'fa-lightbulb-o'},
-				'zone_create': {name:'Create zone', icon:'fa-square-o'}
-			},
-			zIndex: LAYER_MENU
+				'effect_create': { name:'Create effect', icon:'fa-fire' },
+				'light_create': { name:'Create light', icon:'fa-lightbulb-o' },
+				'zone_create': { name:'Create zone', icon:'fa-square-o' }
+			};
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 
 		$('div.characters').css('cursor', 'grab');
@@ -3526,59 +3633,50 @@ $(document).ready(function() {
 
 			/* Menu my character
 			 */
-			var items = {
-				'info': {name:'Get information', icon:'fa-info-circle'},
-				'view': {name:'View', icon:'fa-search'},
-				'distance': {name:'Measure distance', icon:'fa-map-signs'},
-				'sep1': '-',
-				'damage': {name:'Damage', icon:'fa-warning'},
-				'heal': {name:'Heal', icon:'fa-medkit'},
-				'temphp': {name:'Set temporary hit points', icon:'fa-heart-o'},
-				'sep2': '-',
-				'maxhp': {name:'Set maximum hit points', icon:'fa-heart'},
-				'armor': {name:'Set armor class', icon:'fa-shield'},
-				'sep3': '-',
-				'rotate': {name:'Rotate', icon:'fa-compass', items:{
-					'rotate_n':  {name:'North', icon:'fa-arrow-circle-up'},
-					'rotate_ne': {name:'North East'},
-					'rotate_e':  {name:'East', icon:'fa-arrow-circle-right'},
-					'rotate_se': {name:'South East'},
-					'rotate_s':  {name:'South', icon:'fa-arrow-circle-down'},
-					'rotate_sw': {name:'South West'},
-					'rotate_w':  {name:'West', icon:'fa-arrow-circle-left'},
-					'rotate_nw': {name:'North West'}
-				}}
-			};
+			$('div#' + my_char + ' img').contextmenu(function(event) {
+				var menu_entries = {
+					'info': { name:'Get information', icon:'fa-info-circle' },
+					'view': { name:'View', icon:'fa-search' },
+					'distance': { name:'Measure distance', icon:'fa-map-signs' },
+					'sep1': '-',
+					'damage': { name:'Damage', icon:'fa-warning' },
+					'heal': { name:'Heal', icon:'fa-medkit' },
+					'temphp': { name:'Set temporary hit points', icon:'fa-heart-o' },
+					'sep2': '-',
+					'maxhp': { name:'Set maximum hit points', icon:'fa-heart' },
+					'armor': { name:'Set armor class', icon:'fa-shield' },
+					'sep3': '-'
+				};
 
-			var conditions = {};
-			conditions['condition_0'] = {name: 'None'};
-			conditions['sep0'] = '-';
-			$('div.conditions div').each(function() {
-				var con_id = $(this).attr('con_id');
-				conditions['condition_' + con_id] = {name: $(this).text()};
-			});
-
-			items['conditions'] = {name:'Set condition', icon:'fa-heartbeat', items:conditions};
-
-			var alternates = $('div.alternates div');
-			if (alternates.length > 0) {
-				var icons = {};
-				icons['alternate_0'] = {name: 'Default'};
-				icons['sep1'] = '-';
-
-				alternates.each(function() {
-					var icon_id = $(this).attr('icon_id');
-					icons['alternate_' + icon_id] = {name: $(this).text()};
+				var has = $(this).parent().find('span.conditions').text().split(',');
+				var conditions = {};
+				conditions['condition_0'] = { name: 'None' };
+				conditions['sep0'] = '-';
+				$('div.conditions div').each(function() {
+					var con_id = $(this).attr('con_id');
+					var name = $(this).text();
+					var icon = has.includes(name) ? 'fa-check-square-o' : 'fa-square-o';
+					conditions['condition_' + con_id] = { name: name, icon: icon};
 				});
 
-				items['alternates'] = {name:'Change icon', icon:'fa-user-circle', items:icons};
-			}
+				menu_entries['conditions'] = { name:'Set condition', icon:'fa-heartbeat', items:conditions };
 
-			$.contextMenu({
-				selector: 'div#' + my_char + ' img',
-				callback: context_menu_handler,
-				items: items,
-				zIndex: LAYER_MENU
+				var alternates = $('div.alternates div');
+				if (alternates.length > 0) {
+					var icons = {};
+					icons['alternate_0'] = { name: 'Default' };
+					icons['sep1'] = '-';
+
+					alternates.each(function() {
+						var icon_id = $(this).attr('icon_id');
+						icons['alternate_' + icon_id] = { name: $(this).text()};
+					});
+
+					menu_entries['alternates'] = { name:'Change icon', icon:'fa-user-circle', items:icons };
+				}
+
+				show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+				return false;
 			});
 
 			/* Zone presence
@@ -3598,45 +3696,47 @@ $(document).ready(function() {
 
 		/* Menu tokens
 		 */
-		$.contextMenu({
-			selector: 'div.token img',
-			callback: context_menu_handler,
-			items: {
-				'view': {name:'View', icon:'fa-search'},
-				'stick': {name:'Stick to / unstick', icon:'fa-lock'},
-				'attack': {name:'Attack', icon:'fa-shield'},
+
+		 $('div.token img').contextmenu(function(event) {
+			var menu_entries = {
+				'view': { name:'View', icon:'fa-search' },
+				'stick': { name:'Stick to / unstick', icon:'fa-lock' },
+				'attack': { name:'Attack', icon:'fa-legal' },
 				'sep': '-',
-				'marker': {name:'Set marker', icon:'fa-map-marker'},
-				'distance': {name:'Measure distance', icon:'fa-map-signs'}
-			},
-			zIndex: LAYER_MENU
+				'marker': { name:'Set marker', icon:'fa-map-marker' },
+				'distance': { name:'Measure distance', icon:'fa-map-signs' }
+			};
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 
 		/* Menu (other) characters
 		 */
-		$.contextMenu({
-			selector: 'div.character img',
-			callback: context_menu_handler,
-			items: {
-				'info': {name:'Get information', icon:'fa-info-circle'},
-				'view': {name:'View', icon:'fa-search'},
+		$('div.character:not(.mine) img').contextmenu(function(event) {
+			var menu_entries = {
+				'info': { name:'Get information', icon:'fa-info-circle' },
+				'view': { name:'View', icon:'fa-search' },
+				'attack': { name:'Attack', icon:'fa-legal' },
 				'sep': '-',
-				'marker': {name:'Set marker', icon:'fa-map-marker'},
-				'distance': {name:'Measure distance', icon:'fa-map-signs'},
-			},
-			zIndex: LAYER_MENU
+				'marker': { name:'Set marker', icon:'fa-map-marker' },
+				'distance': { name:'Measure distance', icon:'fa-map-signs' },
+			};
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 
 		/* Menu map
 		 */
-		$.contextMenu({
-			selector: 'div.playarea > div',
-			callback: context_menu_handler,
-			items: {
-				'marker': {name:'Set marker', icon:'fa-map-marker'},
-				'distance': {name:'Measure distance', icon:'fa-map-signs'}
-			},
-			zIndex: LAYER_MENU
+		$('div.playarea > div').contextmenu(function(event) {
+			var menu_entries = {
+				'marker': { name:'Set marker', icon:'fa-map-marker' },
+				'distance': { name:'Measure distance', icon:'fa-map-signs' }
+			};
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
 		});
 	}
 
@@ -3695,7 +3795,7 @@ $(document).ready(function() {
 		width: 530,
 		style: 'default',
 		header: 'Create effect',
-		footer: '<span class="effect_size">width: <input id="effect_width" type="number" value="1" min="1" /></span>' + 
+		footer: '<span class="effect_size">width: <input id="effect_width" type="number" value="1" min="1" /></span>' +
 		        '<span class="effect_size">height: <input id="effect_height" type="number" value="1" min="1" /></span>'
 	});
 
@@ -3820,6 +3920,13 @@ $(document).ready(function() {
 	$('body').keyup(object_steer);
 
 	scroll_to_my_character();
+
+	/* Interface color
+	 */
+	var color = localStorage.getItem('interface_color');
+	if (color == 'dark') {
+		interface_color($('button#itfcol'), false);
+	}
 
 /*
 	$(window).resize(function() {
