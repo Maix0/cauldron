@@ -8,9 +8,9 @@
 
 	class session_model extends Banshee\model {
 		public function get_sessions() {
-			$now = date("Y-m-d H:i:s");
 			$query = "select id, session_id, UNIX_TIMESTAMP(expire) as expire, ip_address, bind_to_ip, name from sessions ".
 			         "where user_id=%d and expire>=%s order by name, ip_address";
+			$now = date("Y-m-d H:i:s");
 
 			return $this->db->execute($query, $this->user->id, $now);
 		}
@@ -18,6 +18,7 @@
 		public function get_session($id) {
 			$query = "select id, UNIX_TIMESTAMP(expire) as expire, ip_address, name ".
 			         "from sessions where id=%d and user_id=%d and expire>=%s";
+			$now = date("Y-m-d H:i:s");
 
 			if (($result = $this->db->execute($query, $id, $this->user->id, $now)) == false) {
 				return false;
