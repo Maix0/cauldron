@@ -17,7 +17,7 @@ h1 {
 	right:10px;
 }
 
-div.well {
+div.row div.well {
 	background-size:cover;
 	background-color:#606070;
 	background-position:center;
@@ -25,18 +25,18 @@ div.well {
 	position:relative;
 }
 
-div.well h2 {
+div.row div.well h2 {
 	font-size:40px;
 	color:#f0f0f0;
 	text-shadow:2px 2px 4px #000000;
 }
 
-div.well span {
+div.row div.well span {
 	color:#e0e0e0;
 	text-shadow:1px 1px 2px #000000, -1px -1px 2px #000000, 0px 0px 5px #000000;
 }
 
-div.well div.btn-group {
+div.row div.well div.btn-group {
 	position:absolute;
 	bottom:15px;
 	right:15px;
@@ -64,6 +64,8 @@ div.loading span {
 	right:0;
 }
 
+/* Menu
+*/
 div.menu {
 	position:absolute;
 	top:5px;
@@ -105,6 +107,67 @@ div.menu div.zoom button {
 
 table.table th:last-child {
 	width:200px;
+}
+
+div.menu-options {
+	display:none;
+	top:25px;
+	right:0;
+	position:absolute;
+	width:250px;
+	border:1px solid #808080;
+	background-color:#ffffff;
+	border-radius:4px;
+	box-shadow:10px 10px 10px;
+	padding:10px;
+}
+
+div.menu-options .btn {
+	display:block;
+	width:100%;
+	margin-bottom:5px;
+}
+
+div.menu-options div.draw-colors {
+	margin-bottom:5px;
+}
+div.menu-options div.draw-colors span {
+	display:inline-block;
+	width:25px;
+	height:25px;
+	border:1px solid #404040;
+	margin:7px 7px 0 0;
+	cursor:pointer;
+}
+div.menu-options div.draw-colors span:before {
+	font-size:20px;
+	position:absolute;
+}
+
+/* Drawing
+ */
+div.menu-options h2 {
+	font-size:20px;
+	margin-bottom:5px;
+	margin-top:10px;
+	border-top:1px solid #808080;
+	padding-top:5px;
+}
+
+div.drawing {
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+div#draw_width {
+	margin:0 10px 10px 10px;
+}
+
+div#draw_width div {
+	width:20px;
+	height:20px;
+	text-align:center;
 }
 
 /* Doors
@@ -256,10 +319,43 @@ div.playarea video {
 	top:0;
 }
 
+/* Library
+ */
+div.library {
+    position:absolute;
+    right:0px;
+    top:40px;
+    width:200px;
+	height:280px;
+    overflow-y:scroll;
+    padding-right:15px;
+}
+
+div.library img.icon {
+    float:left;
+    max-width:50px;
+    max-height:50px;
+    transform:rotate(180deg);
+    cursor:grab;
+}
+
+div.library div.well div {
+    margin-left:60px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+img.ui-draggable-dragging {
+    transform:rotate(180deg);
+}
+
+/* Sidebar
+ */
 div.sidebar {
 	font-size:12px;
 	position:absolute;
-	top:40px;
+	top:330px;
 	right:0px;
 	bottom:65px;
 	width:200px;
@@ -314,14 +410,14 @@ div.hitpoints {
 	margin-bottom:-4px;
 	height:4px;
 	border:1px solid #808080;
-	background-color:#ff0000;
+	background-color:#00ff00;
 }
 
 div.hitpoints div.damage {
 	position:absolute;
 	right:0;
 	height:100%;
-	background-color:#000000;
+	background-color:#ff0000;
 	float:right;
 }
 
@@ -348,8 +444,10 @@ div.character span.conditions {
 
 /* Grid
  */
-div.grid div.glass {
+div.grid {
 	position:absolute;
+	top:0;
+	left:0;
 }
 
 /* Zone
@@ -366,53 +464,44 @@ div.zone div.script {
  */
 @media (max-width:991px) {
 	div.playarea,
-	div.sidebar {
+	div.library {
 		top:70px;
 	}
 
+	div.sidebar {
+		top:360px;
+	}
+
 	div.menu {
 		top:40px;
 	}
 
-	button#center_char {
-		display:none;
+	div.menu select.map-selector {
+		width:185px;
 	}
 }
 
-/* Mobile view
- */
 @media (max-width:767px) {
 	div.playarea {
-		top:95px;
 		right:165px;
 	}
 
-	div.menu {
-		top:40px;
-		right:0;
-		left:0;
-	}
-
-	div.menu > span {
-		position:absolute;
-	}
-
-	div.menu > span.menu-one {
-		right:0;
-	}
-
-	div.menu > span.menu-two {
-		right:15px;
-		top:25px;
+	div.library {
+		width:150px;
+		height:180px;
 	}
 
 	div.sidebar {
-		top:95px;
+		top:260px;
 		width:150px;
 	}
 
 	div.input {
 		width:145px;
+	}
+
+	div.menu span#infobar {
+		display:none;
 	}
 }
 

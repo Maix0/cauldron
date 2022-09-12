@@ -84,6 +84,9 @@
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("includes/library.js");
 			$this->view->add_javascript("includes/script.js");
+			if (is_true($map["show_grid"])) {
+				$this->view->add_javascript("includes/grid.js");
+			}
 			$this->view->add_javascript("vault/map/arrange.js");
 
 			if (($map["fog_of_war"] == FOW_DAY_REAL) || ($map["fog_of_war"] == FOW_NIGHT_REAL)) {

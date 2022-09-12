@@ -57,7 +57,7 @@
 				return;
 			}
 
-			if (valid_input($this->page->parameters[1], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
+			if ($this->page->parameter_numeric(1)) {
 				$game["active_map_id"] = $this->page->parameters[1];
 			}
 
@@ -138,6 +138,9 @@
 			$this->view->add_javascript("includes/context_menu.js");
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("includes/library.js");
+			if (is_true($active_map["show_grid"])) {
+				$this->view->add_javascript("includes/grid.js");
+			}
 			$this->view->add_javascript("spectate.js");
 			if ($active_map["fog_of_war"] > 0) {
 				if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
@@ -315,10 +318,10 @@
 			$this->view->title = "Spectate games";
 			$this->view->add_css("game.css");
 
-			if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {
-				$this->show_games();
-			} else {
+			if ($this->page->parameter_numeric(0)) {
 				$this->spectate_game($this->page->parameters[0]);
+			} else {
+				$this->show_games();
 			}
 		}
 	}

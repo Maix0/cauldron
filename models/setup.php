@@ -468,6 +468,10 @@
 				$this->settings->database_version = 23;
 			}
 
+			if ($this->settings->database_version == 23) {
+				$this->settings->database_version = 24;
+			}
+
 			return true;
 		}
 

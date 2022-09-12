@@ -52,9 +52,9 @@
 <input type="hidden" name="mode" value="{map/mode}" />
 <xsl:if test="map/show_grid='yes'"><input type="hidden" name="show_grid" value="on" /></xsl:if>
 
-<label for="title">Title:</label>
+<label for="title">Map title:</label>
 <input type="text" id="title" name="title" value="{map/title}" class="form-control" />
-<label for="url">Image/video URL:</label>
+<label for="url">Map image/video URL:</label>
 <div class="input-group">
 <input type="text" id="url" name="url" value="{map/url}" class="form-control" onKeyDown="javascript:reset_dimension()" />
 <span class="input-group-btn"><input type="button" value="Browse resources" class="btn btn-default browser" /></span>
@@ -92,7 +92,8 @@
 </form>
 
 <div id="help">
-<p>The image/video URL can point to a resource at another website. Click the 'Browse resources' to list all the available maps in the '<a href="/vault/resources/maps">maps</a>' directory in your Resources section.</p>
+<p>This is where you add a map to your game. Specify at least the title of your map and the URL to the map image or video.</p>
+<p>The map image/video URL can point to a resource at another website. Click the 'Browse resources' to list all the available maps in the '<a href="/vault/resources/maps">maps</a>' directory in your Resources section.</p>
 </div>
 </xsl:template>
 
@@ -111,7 +112,7 @@
 <div id="slider"><div id="grid-handle" class="ui-slider-handle" /></div>
 <input type="hidden" name="grid_size" value="{grid_size}" />
 <div><b>Possible grid sizes:</b><span class="sizes"></span></div>
-<div><b>Show grid on map:</b><input type="checkbox" name="show_grid"><xsl:if test="show_grid='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
+<div><b>Show grid on map:</b><input type="checkbox" name="show_grid"><xsl:if test="show_grid='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input> (will not be red, but semi-transparent black)</div>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Set grid size" class="btn btn-default" />
@@ -129,6 +130,7 @@
 <xsl:if test="type='image'"><img src="{url}" class="map" /></xsl:if>
 <xsl:if test="type='video'"><video width="{width}" height="{height}" loop="true" class="map"><source src="{url}" /></video></xsl:if>
 </div>
+<div class="grid"></div>
 </div>
 </xsl:template>
 

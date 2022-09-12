@@ -81,6 +81,8 @@
 </xsl:text></xsl:if>
 <!-- Grid -->
 <div class="grid"></div>
+<!-- Drawing -->
+<div class="drawing"></div>
 <!-- Zones -->
 <div class="zones">
 <xsl:for-each select="zones/zone">

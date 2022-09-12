@@ -77,6 +77,10 @@
 </xsl:if>
 </div>
 </form>
+
+<div id="help">
+<p>When a token is available for shape change, you can change a player's token into this appearance. Right-click a player's token and select 'Change shape'.</p>
+</div>
 </xsl:template>
 
 <!--

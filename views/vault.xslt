@@ -27,6 +27,7 @@
 
 <div id="help">
 <p>The Dungeon Master's Vault is where you as a Dungeon Master maintain your games and the accounts of your players.</p>
+<p>If you want to create a new game, start by clicking the Games icon.</p>
 </div>
 </xsl:template>
 

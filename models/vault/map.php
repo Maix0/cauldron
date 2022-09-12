@@ -108,7 +108,7 @@
 
 				if (($result = $website->GET("/".$path)) === false) {
 					return false;
-				} else if ($result["status"] != 200) {
+				} else if (($result["status"] ?? null) != 200) {
 					return false;
 				}
 
@@ -176,7 +176,7 @@
 				$extensions = array_merge(
 					config_array(MAP_IMAGE_EXTENSIONS),
 					config_array(MAP_VIDEO_EXTENSIONS));
-				if (in_array($info["extension"], $extensions) == false) {
+				if (in_array($info["extension"] ?? null, $extensions) == false) {
 					$this->view->add_message("Unsupported file extension in image/video URL.");
 					$result = false;
 				}
@@ -295,7 +295,7 @@
 			              "drag_character", "fog_of_war", "fow_distance", "dm_notes");
 
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
-			$map["drag_character"] = is_true($map["drag_character"]) ? YES : NO;
+			$map["drag_character"] = is_true($map["drag_character"] ?? false) ? YES : NO;
 
 			return $this->db->update("maps", $map["id"], $map, $keys);
 		}

@@ -101,6 +101,13 @@
 					return;
 				}
 
+				if ($user_is_dungeon_master) {
+					if (($library = $this->model->get_available_tokens()) === false) {
+						$this->view->add_tag("result", "Database error.", array("url" => "vault/map"));
+						return;
+					}
+				}
+
 				if (($blinders = $this->model->get_blinders($game["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
@@ -189,6 +196,9 @@
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("includes/combat.js");
+				if (is_true($active_map["show_grid"])) {
+					$this->view->add_javascript("includes/grid.js");
+				}
 				$this->view->add_javascript("game.js");
 				if ($active_map["fog_of_war"] > 0) {
 					if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
@@ -199,6 +209,7 @@
 					$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 				}
 
+				$this->view->add_css("webui/jquery-ui.css");
 				$this->view->add_css("banshee/font-awesome.css");
 				$this->view->add_css("includes/context_menu.css");
 			} else {
@@ -267,6 +278,16 @@
 				$active_map["url"] = $this->resource_path($active_map["url"]);
 
 				$this->view->record($active_map, "map");
+
+				if ($user_is_dungeon_master) {
+					/* Token library
+					 */
+					$this->view->open_tag("library");
+					foreach ($library as $token) {
+						$this->view->record($token, "token");
+					}
+					$this->view->close_tag();
+				}
 
 				/* Doors
 				 */

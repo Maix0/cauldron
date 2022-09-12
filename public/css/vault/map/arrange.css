@@ -25,7 +25,7 @@ div.character span {
 }
 
 select#collectable {
-    font-family:sans-serif;
+	font-family:sans-serif;
 }
 
 /* Menu
@@ -136,6 +136,14 @@ div.playarea div.conditions {
 	display:none;
 }
 
+/* Grid
+ */
+div.grid canvas#grid {
+	position:absolute;
+	top:0;
+	left:0;
+}
+
 /* Library
  */
 div.library {
@@ -157,10 +165,10 @@ div.library img.icon {
 }
 
 div.library div.well div {
-    margin-left:60px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+	margin-left:60px;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
 }
 
 img.ui-draggable-dragging {
@@ -196,4 +204,37 @@ div.script_manual div.conditions span:after {
 }
 div.script_manual div.conditions span:last-child:after {
 	content:'.';
+}
+
+/* Mobile view
+ */
+@media (max-width:991px) {
+	div.playarea,
+	div.filter {
+		top:70px;
+	}
+
+	div.library {
+		top:120px;
+	}
+
+	div.menu {
+		top:40px;
+	}
+}
+
+@media (max-width:767px) {
+	div.playarea {
+		right:165px;
+	}
+
+	div.filter,
+	div.library,
+	div.sidebar {
+		width:150px;
+	}
+
+	div.menu span#infobar {
+		display:none;
+	}
 }

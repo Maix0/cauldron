@@ -51,7 +51,6 @@
 <div class="loading"><span>Loading...</span></div>
 <!-- Menu -->
 <div class="menu">
-<span class="menu-one">
 <span id="infobar"></span>
 <xsl:if test="maps">
 <select class="form-control map-selector" onChange="javascript:change_map()">
@@ -66,20 +65,41 @@
 <button class="btn btn-default btn-xs" onClick="javascript:zoom_out()">-</button>
 </div>
 //-->
-</span>
-<span class="menu-two">
 <div class="btn-group">
 <button class="btn btn-default btn-xs show_journal">Journal</button>
 <xsl:if test="map/dm_notes!=''">
 <button class="btn btn-default btn-xs show_dm_notes">DM notes</button>
 </xsl:if>
 <button class="btn btn-default btn-xs show_collectables">Inventory</button>
-<button id="center_char" class="btn btn-primary btn-xs" onClick="javascript:center_character(this)">Center character</button>
-<button id="itfcol" class="btn btn-default btn-xs" onClick="javascript:interface_color(this)">Dark</button>
-<xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
-<a href="/{/output/page}" class="btn btn-default btn-xs">Back</a>
+<button class="btn btn-default btn-xs menu">Menu</button>
 </div>
-</span>
+<div class="menu-options">
+<a href="/{/output/page}" class="btn btn-default btn-sm">Leave game</a>
+<button id="center_char" class="btn btn-primary btn-sm" onClick="javascript:center_character(this)">Center character</button>
+<button id="itfcol" class="btn btn-default btn-sm" onClick="javascript:interface_color(this)">Dark</button>
+<xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-sm">Play video</button></xsl:if>
+<xsl:if test="@is_dm='yes'">
+<h2>Drawing options</h2>
+<div class="draw-colors">
+<span style="background-color:#000000"></span>
+<span style="background-color:#808080"></span>
+<span style="background-color:#ffffff"></span>
+<span style="background-color:#804000"></span>
+<span style="background-color:#ff0000"></span>
+<span style="background-color:#ff8000"></span>
+<span style="background-color:#ffff00"></span>
+<span style="background-color:#00ff00"></span>
+<span style="background-color:#008000"></span>
+<span style="background-color:#00ffff"></span>
+<span style="background-color:#0000ff"></span>
+<span style="background-color:#0000a0"></span>
+<span style="background-color:#ff00ff"></span>
+<span style="background-color:#800080"></span>
+</div>
+<div id="draw_width"><div class="ui-slider-handle"></div></div>
+<button id="draw_clear" class="btn btn-default btn-sm">Remove drawings</button>
+</xsl:if>
+</div>
 </div>
 <xsl:if test="not(map)">
 <input id="game_id" type="hidden" name="game_id" value="{@id}" />
@@ -131,7 +151,9 @@
 <video width="{map/width}" height="{map/height}" autoplay="true" loop="true"><source src="{map/url}" /></video><xsl:text>
 </xsl:text></xsl:if>
 <!-- Grid -->
-<div class="grid"><div class="glass" style="width:{map/width}px; height:{map/height}px" /></div>
+<div class="grid"></div>
+<!-- Drawing -->
+<div class="drawing"></div>
 <!-- Zones -->
 <div class="zones">
 <xsl:for-each select="zones/zone">
@@ -213,6 +235,18 @@
 </div>
 </div>
 <!-- Right bar -->
+<xsl:if test="@is_dm='yes'">
+<div class="library">
+<xsl:for-each select="library/token">
+<div class="well well-sm">
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" style="max-width:{../../@grid_cell_size}px; max-height:{../../@grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" />
+<div class="name"><xsl:value-of select="name" /></div>
+<div>Width: <xsl:value-of select="width" /></div>
+<div>Height: <xsl:value-of select="height" /></div>
+</div>
+</xsl:for-each>
+</div>
+</xsl:if>
 <div class="sidebar">
 </div>
 <div class="input">

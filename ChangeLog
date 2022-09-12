@@ -1,3 +1,12 @@
+cauldron (2.4) stable; urgency=low
+
+  * Drawing on the map.
+  * Increased grid rendering performance.
+  * Help function in DM's Vault pages.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 12 Sep 2022 08:57:12 +0200
+
 cauldron (2.3) stable; urgency=low
 
   * PHP 8 compatibility.

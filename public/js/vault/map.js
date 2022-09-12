@@ -31,19 +31,9 @@ function reset_dimension() {
 
 /* Grid
  */
+
 function init_grid(grid_cell_size) {
-	var cell = '<img src="/images/grid_cell.png" class="cell" style="float:left; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; position:relative;" />';
-
-	var map_width = Math.round($('div.playarea > div').width());
-	var map_height = Math.round($('div.playarea > div').height());
-
-	var count_x = Math.floor(map_width / grid_cell_size);
-	var count_y = Math.floor(map_height / grid_cell_size);
-	var count = count_x * count_y;
-
-	for (var i = 0 ;i < count; i++) {
-		$('div.map').append(cell);
-	}
+	grid_init(grid_cell_size, 'rgba(240, 0, 0, 0.6)');
 
 	var handle = $('#grid-handle');
 	$('#slider').slider({
@@ -57,31 +47,15 @@ function init_grid(grid_cell_size) {
 			handle.text(ui.value);
 			$('input[name="grid_size"]').val(ui.value);
 
-			var count_x = Math.floor($('div.playarea > div').width() / ui.value);
-			var count_y = Math.floor($('div.playarea > div').height() / ui.value);
-			var count = count_x * count_y;
-
-			var current = $('div.playarea img.cell').length;
-			var diff = count - current;
-
-			if (diff > 0) {
-				for (var i = 0 ;i < diff; i++) {
-					$('div.map').append(cell);
-				}
-			} else if (diff < 0) {
-				for (var i = 0 ;i < -diff; i++) {
-					$('div.playarea img.cell').first().remove();
-				}
-			}
-
-			var cells = $('div.map img.cell');
-			cells.css('width', ui.value + 'px');
-			cells.css('height', ui.value + 'px');
+			grid_draw(ui.value);
 		}
 	});
 
 	/* Possible sizes
 	 */
+	var map_width = Math.round($('div.playarea > div').first().width());
+	var map_height = Math.round($('div.playarea > div').first().height());
+
 	var result = [];
 	for (i = grid_size_min; i <= grid_size_max; i++) {
 		if (((map_width % i) == 0) && ((map_height % i) == 0)) {

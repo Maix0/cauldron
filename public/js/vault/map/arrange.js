@@ -244,7 +244,7 @@ function object_create(icon, x, y) {
 	}).done(function(data) {
 		var instance_id = $(data).find('instance_id').text();
 
-		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
+		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + type + '" is_hidden="' + hidden + '" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
 		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px;" />' +
 		          '</div>';
 
@@ -275,7 +275,7 @@ function object_create(icon, x, y) {
 		$('div.playarea div#token' + instance_id).draggable({
 			stop: function(event, ui) {
 				object_move($(this));
-			},
+			}
 		});
 
 		object_token_context_menu($('div.playarea div#token' + instance_id));
@@ -306,7 +306,7 @@ function object_damage(obj, points) {
 
 function object_delete(obj) {
 	$.post('/object/delete', {
-		instance_id: obj.prop('id'),
+		instance_id: obj.prop('id')
 	}).done(function() {
 		obj.remove();
 
@@ -1497,14 +1497,7 @@ $(document).ready(function() {
 	/* Show grid
 	 */
 	if ($('div.playarea').attr('show_grid') == 'yes') {
-		var count_x = Math.floor($('div.playarea > div').width() / grid_cell_size);
-		var count_y = Math.floor($('div.playarea > div').height() / grid_cell_size);
-		var count = count_x * count_y;
-
-		var cell = '<img src="/images/grid_cell.png" style="float:left; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; position:relative;" />';
-		for (var i = 0 ;i < count; i++) {
-			$('div.playarea div.grid').append(cell);
-		}
+		grid_init(grid_cell_size);
 	}
 
 	/* Player start position
@@ -1814,6 +1807,12 @@ $(document).ready(function() {
 
 	$('body').keydown(key_down);
 	$('body').keyup(key_up);
+
+    $(window).focus(function() {
+		ctrl_down = false;
+		shift_down = false;
+		alt_down = false;
+	});
 
 	$('input#filter').val(localStorage.getItem('vault_token_filter'));
 	filter_library();

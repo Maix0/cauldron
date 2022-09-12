@@ -28,6 +28,8 @@ var fow_obj = null;
 var fow_default_distance = null;
 var fow_char_distances = {};
 var fow_light_char = {};
+var drawing_canvas = null;
+var drawing_ctx = null;
 
 function websocket_send(data) {
 	if (websocket == null) {
@@ -100,6 +102,19 @@ function coord_to_grid(coord, edge = true) {
 	}
 
 	return coord;
+}
+
+/* Draw functions
+ */
+function draw_circle(draw_x, draw_y) {
+	var width = drawing_ctx.lineWidth;
+	drawing_ctx.lineWidth = 1;
+	drawing_ctx.beginPath();
+	drawing_ctx.arc(draw_x, draw_y, (width / 2) - 1, 0, 2 * Math.PI);
+	drawing_ctx.stroke();
+	drawing_ctx.fillStyle = drawing_ctx.strokeStyle;
+	drawing_ctx.fill();
+	drawing_ctx.lineWidth = width;
 }
 
 /* Object functions
@@ -702,6 +717,12 @@ $(document).ready(function() {
 			};
 			websocket_send(data);
 		}
+
+		var data = {
+			action: 'draw_request',
+			user_id: user_id
+		};
+		websocket_send(data);
 	}
 
 	websocket.onmessage = function(event) {
@@ -755,6 +776,28 @@ $(document).ready(function() {
 					case 'open': door_show_open(obj); break;
 					case 'unlocked': door_show_unlocked(obj); break;
 				}
+				break;
+			case 'draw_clear':
+				drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
+				break
+			case 'draw_color':
+				drawing_ctx.beginPath();
+				drawing_ctx.strokeStyle = data.color;
+				break
+			case 'draw_move':
+				if (drawing_ctx.lineWidth > 1) {
+					draw_circle(data.draw_x, data.draw_y);
+				}
+				drawing_ctx.beginPath();
+				drawing_ctx.moveTo(data.draw_x, data.draw_y);
+				break
+			case 'draw_line':
+				drawing_ctx.lineTo(data.draw_x, data.draw_y);
+				drawing_ctx.stroke();
+				break
+			case 'draw_width':
+				drawing_ctx.beginPath();
+				drawing_ctx.lineWidth = data.width;
 				break;
 			case 'effect_create':
 				if (data.map_id != map_id) {
@@ -858,15 +901,21 @@ $(document).ready(function() {
 	/* Show grid
 	 */
 	if ($('div.playarea').attr('show_grid') == 'yes') {
-		var count_x = Math.floor($('div.playarea > div').width() / grid_cell_size);
-		var count_y = Math.floor($('div.playarea > div').height() / grid_cell_size);
-		var count = count_x * count_y;
-
-		var cell = '<img src="/images/grid_cell.png" style="float:left; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; position:relative;" />';
-		for (var i = 0 ;i < count; i++) {
-			$('div.playarea div.grid').append(cell);
-		}
+		grid_init(grid_cell_size);
 	}
+
+	/* Drawing
+	 */
+	var map = $('div.playarea > div');
+	var width = Math.round(map.width());
+	var height = Math.round(map.height());
+
+	$('div.drawing').prepend('<canvas id="drawing" class="drawing" width="' + width + '" height="' + height + '" />');
+	drawing_canvas = document.getElementById('drawing');
+
+	drawing_ctx = drawing_canvas.getContext('2d');
+	drawing_ctx.lineWidth = 1;
+	drawing_ctx.strokeStyle = '#000000';
 
 	/* Zones
 	 */
@@ -993,4 +1042,9 @@ $(document).ready(function() {
 		audio.loop = true;
 		audio.play();
 	}
+
+	$('div.sidebar').css({
+		'top': '40px',
+		'bottom': '15px'
+	});
 });

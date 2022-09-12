@@ -29,13 +29,13 @@
 			$this->view->add_tag("previous", $previous);
 
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				$this->view->add_tag("username", $_POST["username"]);
+				$this->view->add_tag("username", $_POST["username"] ?? "");
 			}
 
 			$this->view->add_tag("remote_addr", $_SERVER["REMOTE_ADDR"]);
 
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				if ($_POST["submit_button"] == "Login") {
+				if (($_POST["submit_button"] ?? null) == "Login") {
 					if (strpos($_POST["username"], "'") !== false) {
 						$this->view->add_message("Sorry, this application does not support SQL injection.");
 						$this->user->log_action("SQL injection attempt");

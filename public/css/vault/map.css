@@ -31,22 +31,23 @@ ul.maps li:hover {
 }
 
 /* Grid
- */
+*/
 div.playarea {
 	border:1px solid #000000;
 	overflow:scroll;
-	max-width:890px;
 	max-height:700px;
 	margin-top:25px;
-}
-
-div.map {
 	position:relative;
 }
 
 div.map img.map,
 div.map video.map {
-	display:block;
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+div.grid canvas#grid {
 	position:absolute;
 	top:0;
 	left:0;

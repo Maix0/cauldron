@@ -83,6 +83,7 @@
 		private function show_grid_form($map) {
 			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("vault/map.js");
+			$this->view->add_javascript("includes/grid.js");
 			$this->view->run_javascript("init_grid(".$map["grid_size"].")");
 
 			$this->view->add_css("webui/jquery-ui.css");
@@ -100,6 +101,7 @@
 			}
 
 			$this->view->open_tag("maps");
+			$this->view->add_tag("map", "files/empty_map.png");
 			foreach ($maps as $map) {
 				$this->view->add_tag("map", $map);
 			}

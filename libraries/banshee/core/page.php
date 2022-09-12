@@ -101,7 +101,10 @@
 					$this->module = ERROR_MODULE;
 					$this->http_code = 404;
 				}
-				$this->pathinfo = explode("/", $page);
+
+				if (isset($page)) {
+					$this->pathinfo = explode("/", $page);
+				}
 			}
 
 			if ($this->module === null) {
@@ -232,7 +235,7 @@
 		 * ERROR:  -
 		 */
 		public function parameter_value($number, $value = null) {
-			if (isset($this->parameters[$number]) == false) {
+			if (empty($this->parameters[$number])) {
 				return false;
 			}
 

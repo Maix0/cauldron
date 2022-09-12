@@ -379,7 +379,7 @@
 				return false;
 			}
 
-			if ($this->headers["Upgrade"] == "websocket") {
+			if (($this->headers["Upgrade"] ?? null) == "websocket") {
 				while (fgets($sock) != "\r\n");
 				return $sock;
 			}

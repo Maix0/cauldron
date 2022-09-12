@@ -181,6 +181,12 @@
 			return $this->db->execute($query, $map_id);
 		}
 
+		public function get_available_tokens() {
+			$query = "select * from tokens where organisation_id=%d order by name";
+
+			return $this->db->execute($query, $this->user->organisation_id);
+		}
+
 		public function get_tokens($map_id) {
 			$query = "select t.id, t.name as type, t.width, t.height, t.extension, ".
 			         "c.id as c_id, c.name as c_name, c.image as c_src, hide as c_hide, found as c_found, ".

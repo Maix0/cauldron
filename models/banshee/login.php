@@ -11,7 +11,7 @@
 	 */
 
 	$login_successful = false;
-	if (($_SERVER["REQUEST_METHOD"] == "POST") && ($_POST["submit_button"] == "Login")) {
+	if (($_SERVER["REQUEST_METHOD"] == "POST") && (($_POST["submit_button"] ?? null) == "Login")) {
 		/* Login via password
 		 */
 		$_POST["username"] = strtolower($_POST["username"]);

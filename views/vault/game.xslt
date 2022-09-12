@@ -32,7 +32,7 @@
 
 <div id="help">
 <p>All your games are listed here.</p>
-<p>After creating a new game, you will automatically be forwarded to the Maps section, where you can create a new map for your game.</p>
+<p>After creating a new game, you will automatically be forwarded to the Maps section, where you can add one or more maps to your game.</p>
 </div>
 </xsl:template>
 
@@ -71,7 +71,7 @@
 </form>
 
 <div id="help">
-<p>When no background image is specified, a <a href="/files/default.jpg">default image</a> will be used. You can store your custom images in, for example, the root of your <a href="/vault/resources">Resources section</a> and then use '/resources/&lt;file name&gt;' as the URL.</p>
+<p>When no background image is specified, a <a href="/files/default.jpg" target="_blank">default image</a> will be used. You can store your custom images in, for example, the root of your <a href="/vault/resources">Resources section</a> and then use '/resources/&lt;file name&gt;' as the URL.</p>
 </div>
 </xsl:template>
 

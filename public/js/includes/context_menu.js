@@ -2,9 +2,7 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 	var settings = {
 		root: 'body',
 		z_index: 1,
-		main: true,
-		dy_up: 0,
-		dy_down: 0
+		main: true
 	};
 
 	Object.assign(settings, options);
@@ -79,19 +77,18 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 	}
 	$(settings.root).append(menu);
 
+	var root_pos = $(settings.root).position();
+
 	var scroll = settings.root == 'body' ? 'html' : settings.root;
 	var scroll_y = Math.round($(scroll).scrollTop());
-	menu_y += scroll_y - settings.dy_down;
+
+	menu_y += scroll_y - Math.round(root_pos.top) - 1;
 
 	var scroll_x = Math.round($(scroll).scrollLeft());
-	menu_x += scroll_x - 15;
+	menu_x += scroll_x - Math.round(root_pos.left);
 
 	if (flip_y) {
 		menu_y -= menu.outerHeight();
-
-		if (settings.main == false) {
-			menu_y += settings.dy_up;
-		}
 	}
 
 	if (flip_x) {

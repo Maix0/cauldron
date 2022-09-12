@@ -17,6 +17,9 @@ const LAYER_MARKER = DEFAULT_Z_INDEX + 5;
 const LAYER_MENU = DEFAULT_Z_INDEX + 6;
 const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
 
+const DRAW_DEFAULT_COLOR = 1;
+const DRAW_DEFAULT_WIDTH = 1;
+
 var websocket;
 var group_key = null;
 var game_id = null;
@@ -58,10 +61,14 @@ var zone_menu = null;
 var zoom_level = 1;
 var menu_defaults = {
 	root: 'div.playarea',
-	z_index: LAYER_MENU,
-	dy_up: 26,
-	dy_down: 40
+	z_index: LAYER_MENU
 };
+var ctrl_down = false;
+var shift_down = false;
+var alt_down = false;
+var drawing_canvas = null;
+var drawing_ctx = null;
+var drawing_history = [];
 
 /* Zoom functoins
  */
@@ -367,7 +374,8 @@ function show_help() {
 		'<b>/damage &lt;points&gt;</b>: Damage your character.<br />') +
 		(dungeon_master ?
 		'<b>/dmroll &lt;dice&gt;</b>: Privately roll dice.<br />' +
-		'<b>/done</b>: End the combat.<br />' : '') +
+		'<b>/done</b>: End the combat.<br />' +
+		'<b>/filter [&lt;text&gt;]</b>: Filter the token library.<br />' : '') +
 		(dungeon_master ? '' :
 		'<b>/heal &lt;points&gt;</b>: Heal your character.<br />') +
 		'<b>/labels [hide|show]</b>: Manage character name labels and health bars visibility.<br />' +
@@ -437,6 +445,19 @@ function interface_color(button, swap = true) {
 	}
 }
 
+/* Draw functions
+ */
+function draw_circle(draw_x, draw_y) {
+	var width = drawing_ctx.lineWidth;
+	drawing_ctx.lineWidth = 1;
+	drawing_ctx.beginPath();
+	drawing_ctx.arc(draw_x, draw_y, (width / 2) - 1, 0, 2 * Math.PI);
+	drawing_ctx.stroke();
+	drawing_ctx.fillStyle = drawing_ctx.strokeStyle;
+	drawing_ctx.fill();
+	drawing_ctx.lineWidth = width;
+}
+
 /* Object functions
  */
 function object_alive(obj) {
@@ -445,6 +466,153 @@ function object_alive(obj) {
 		obj.css('opacity', '1');
 	}
 	obj.find('div.hitpoints').css('display', 'block');
+}
+
+function object_contextmenu_dm(event) {
+	var menu_entries = {};
+
+	menu_entries['info'] = { name:'Get information', icon:'fa-info-circle' };
+	menu_entries['view'] = { name:'View', icon:'fa-search' };
+	var rotate = {
+		'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
+		'rotate_ne': { name:'North East' },
+		'rotate_e':  { name:'East', icon:'fa-arrow-circle-right' },
+		'rotate_se': { name:'South East' },
+		'rotate_s':  { name:'South', icon:'fa-arrow-circle-down' },
+		'rotate_sw': { name:'South West' },
+		'rotate_w':  { name:'West', icon:'fa-arrow-circle-left' },
+		'rotate_nw': { name:'North West' }
+	};
+	menu_entries['rotate'] = { name:'Rotate', icon:'fa-compass', items:rotate };
+	menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
+	menu_entries['sep1'] = '-';
+
+	var label = $(this).parent().is(focus_obj) ? 'Unfocus' : 'Focus';
+	menu_entries['focus'] = { name:label, icon:'fa-binoculars' };
+
+	menu_entries['handover'] = { name:'Hand over', icon:'fa-hand-stop-o' };
+	menu_entries['takeback'] = { name:'Take back', icon:'fa-hand-grab-o' };
+	menu_entries['sep2'] = '-';
+	menu_entries['marker'] = { name:'Set marker', icon:'fa-map-marker' };
+	menu_entries['distance'] = { name:'Measure distance', icon:'fa-map-signs' };
+	menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
+	menu_entries['zone_create'] = { name:'Zone', icon:'fa-square-o' };
+	menu_entries['sep3'] = '-';
+	menu_entries['attack'] = { name:'Attack', icon:'fa-legal' };
+
+	var hitpoints = parseInt($(this).parent().attr('hitpoints'));
+	if (hitpoints > 0) {
+		menu_entries['damage'] = { name:'Damage', icon:'fa-warning' };
+		menu_entries['heal'] = { name:'Heal', icon:'fa-medkit' };
+	}
+
+	var has = $(this).parent().find('span.conditions').text().split(',');
+	var conditions = {};
+	conditions['condition_0'] = { name: 'None' };
+	conditions['sep0'] = '-';
+	$('div.conditions div').each(function() {
+		var con_id = $(this).attr('con_id');
+		var name = $(this).text();
+		var icon = has.includes(name) ? 'fa-check-square-o' : 'fa-square-o';
+		conditions['condition_' + con_id] = { name: name, icon: icon};
+	});
+
+	menu_entries['sep4'] = '-';
+	menu_entries['conditions'] = { name:'Set condition', icon:'fa-heartbeat', items:conditions};
+	menu_entries['sep5'] = '-';
+	menu_entries['lower'] = { name:'Lower', icon:'fa-arrow-down' };
+	menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
+
+	show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+
+	return false;
+}
+
+function object_contextmenu_player(event) {
+	var menu_entries = {
+		'view': { name:'View', icon:'fa-search' },
+		'stick': { name:'Stick to / unstick', icon:'fa-lock' },
+		'attack': { name:'Attack', icon:'fa-legal' },
+		'sep': '-',
+		'marker': { name:'Set marker', icon:'fa-map-marker' },
+		'distance': { name:'Measure distance', icon:'fa-map-signs' }
+	};
+
+	show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+	return false;
+}
+
+function object_create(icon, x, y) {
+	var token_id = $(icon).attr('token_id');
+	var width = parseInt($(icon).attr('obj_width')) * grid_cell_size;
+	var height = parseInt($(icon).attr('obj_height')) * grid_cell_size;
+	var url = $(icon).attr('src');
+	var armor_class = $(icon).attr('armor_class');
+	var hitpoints = $(icon).attr('hitpoints');
+	var type = $(icon).parent().find('div.name').text();
+	var rotation = 180;
+
+	var scr = screen_scroll();
+	x = coord_to_grid(x + scr.left - 30, false);
+	y = coord_to_grid(y + scr.top - 40, false);
+
+	$.post('/object/create_token', {
+		map_id: map_id,
+		token_id: token_id,
+		pos_x: x / grid_cell_size,
+		pos_y: y / grid_cell_size,
+	}).done(function(data) {
+		var instance_id = $(data).find('instance_id').text();
+
+		var data = {
+			action: 'create',
+			instance_id: instance_id,
+			pos_x: x,
+			pos_y: y,
+			type: type,
+			armor_class: armor_class,
+			hitpoints: hitpoints,
+			url: url,
+			width: width,
+			height:height
+		};
+		websocket_send(data);
+
+		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
+		          (hitpoints > 0 ? '<div class="hitpoints"><div class="damage" style="width:0%"></div></div>' : '') +
+		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px;" />' +
+		          '</div>';
+
+		$('div.playarea div.tokens').append(obj);
+
+		if (parseInt(hitpoints) > 0) {
+			$.post('/object/hitpoints', {
+				instance_id: 'token' + instance_id,
+				hitpoints: hitpoints
+			});
+		}
+
+		if (parseInt(armor_class) != 10) {
+			$.post('/object/armor_class', {
+				instance_id: 'token' + instance_id,
+				armor_class: armor_class
+			});
+		}
+
+		if (parseInt(rotation) > 0) {
+			object_rotate($('div#token' + instance_id), rotation, true, 0);
+		}
+
+		$('div.playarea div#token' + instance_id).draggable({
+			stop: function(event, ui) {
+				object_move($(this));
+			}
+		});
+
+		$('div#token' + instance_id).contextmenu(object_contextmenu_dm);
+	}).fail(function() {
+		write_sidebar('Error creating object.');
+	});
 }
 
 function object_damage(obj, points) {
@@ -497,6 +665,20 @@ function object_dead(obj) {
 	obj.css('background-color', '#c03010');
 	obj.css('opacity', '0.7');
 	obj.find('div.hitpoints').css('display', 'none');
+}
+
+function object_delete(obj) {
+	$.post('/object/delete', {
+		instance_id: obj.prop('id')
+	}).done(function() {
+		obj.remove();
+
+		var data = {
+			action: 'delete',
+			instance_id: obj.prop('id')
+		};
+		websocket_send(data);
+	});
 }
 
 function object_hide(obj, send = true) {
@@ -1979,6 +2161,26 @@ function handle_input(input) {
 			};
 			websocket_send(data);
 			break;
+		case 'filter':
+			if (dungeon_master == false) {
+				break;
+			}
+
+    		$('div.library div.well').show();
+
+			if (param == '') {
+				return;
+			}
+
+			param = param.toLowerCase();
+
+			$('div.library div.well').each(function() {
+				var name = $(this).find('div.name').text().toLowerCase();
+				if (name.includes(param) == false) {
+					$(this).hide();
+				}
+			});
+			break;
 		case 'heal':
 			if (my_character == null) {
 				write_sidebar('You have no character.');
@@ -2307,6 +2509,11 @@ function context_menu_handler(key, options) {
 			}
 
 			object_damage(obj, points);
+			break;
+		case 'delete':
+			if (confirm('Delete object?')) {
+				object_delete(obj);
+			}
 			break;
 		case 'distance':
 			measuring_stop();
@@ -2809,6 +3016,30 @@ function context_menu_handler(key, options) {
 	}
 }
 
+function key_down(event) {
+    if (event.which == 16) {
+        shift_down = true;
+    } else if (event.which == 17) {
+        ctrl_down = true;
+    } else if (event.which == 18) {
+        alt_down = true;
+    }
+}
+
+function key_up(event) {
+    if (event.which == 16) {
+        shift_down = false;
+		$('canvas#drawing').off('mousemove');
+    } else if (event.which == 17) {
+        ctrl_down = false;
+		if (shift_down == false) {
+			$('canvas#drawing').off('mousemove');
+		}
+    } else if (event.which == 18) {
+        alt_down = false;
+    }
+}
+
 /* Main
  */
 $(document).ready(function() {
@@ -2841,6 +3072,28 @@ $(document).ready(function() {
 		};
 		websocket_send(data);
 
+		if (dungeon_master) {
+			var color = $('div.menu-options div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').css('background-color');
+			var data = {
+				action: 'draw_color',
+				color: color
+			};
+			websocket_send(data);
+
+			var data = {
+				action: 'draw_width',
+				width: DRAW_DEFAULT_WIDTH
+			};
+			websocket_send(data);
+
+			var data = {
+				action: 'draw_clear'
+			};
+			websocket_send(data);
+		}
+
+		$('div.menu-options div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').trigger('click');
+
 		write_sidebar('Connection established.');
 		send_message(my_name + ' entered the game.', null, false);
 
@@ -2866,6 +3119,14 @@ $(document).ready(function() {
 			if (my_character.attr('is_hidden') == 'yes') {
 				object_show(my_character, true);
 			}
+
+			/* Request drawing update
+			 */
+			var data = {
+				action: 'draw_request',
+				user_id: user_id
+			};
+			websocket_send(data);
 		}
 	}
 
@@ -2882,13 +3143,19 @@ $(document).ready(function() {
 			return;
 		}
 
-		if (typeof data.recipient !== 'undefined') {
-			if (dungeon_master && (data.recipient != 0)) {
+		if (typeof data.to_char_id !== 'undefined') {
+			if (dungeon_master && (data.to_char_id != 0)) {
 				return;
 			} else if (my_character != null) {
-				if (data.recipient != my_character.prop('id')) {
+				if (data.to_char_id != my_character.prop('id')) {
 					return;
 				}
+			}
+		}
+
+		if (typeof data.to_user_id !== 'undefined') {
+			if (data.to_user_id != user_id) {
+				return;
 			}
 		}
 
@@ -2918,6 +3185,13 @@ $(document).ready(function() {
 				set_conditions(obj, data.condition);
 				save_conditions(obj, data.condition);
 				break;
+			case 'create':
+				var obj = '<div id="token' + data.instance_id + '" token_id="' + data.token_id +'" class="token" style="left:' + data.pos_x + 'px; top:' + data.pos_y + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + data.type + '" is_hidden="no" rotation="0" armor_class="' + data.armor_class + '" hitpoints="' + data.hitpoints + '" damage="0" name="">' +
+						  '<img src="' + data.url + '" style="width:' + data.width + 'px; height:' + data.height + 'px;" />' +
+						  '</div>';
+				$('div.playarea div.tokens').append(obj);
+				$('div#token' + data.instance_id).contextmenu(object_contextmenu_player);
+				break;
 			case 'damage':
 				var obj = $('div#' + data.instance_id);
 				obj.attr('damage', data.damage);
@@ -2927,6 +3201,10 @@ $(document).ready(function() {
 				} else {
 					object_alive(obj);
 				}
+				break;
+			case 'delete':
+				var obj = $('div#' + data.instance_id);
+				obj.remove();
 				break;
 			case 'done':
 				combat_done();
@@ -2939,6 +3217,40 @@ $(document).ready(function() {
 					case 'open': door_show_open(obj); break;
 					case 'unlocked': door_show_unlocked(obj); break;
 				}
+				break;
+			case 'draw_clear':
+				drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
+				break
+			case 'draw_color':
+				drawing_ctx.beginPath();
+				drawing_ctx.strokeStyle = data.color;
+				break
+			case 'draw_erase':
+				drawing_ctx.clearRect(data.draw_x - (data.width >> 1), data.draw_y - (data.width >>1), data.width, data.width);
+				break;
+			case 'draw_move':
+				if (drawing_ctx.lineWidth > 1) {
+					draw_circle(data.draw_x, data.draw_y);
+				}
+				drawing_ctx.beginPath();
+				drawing_ctx.moveTo(data.draw_x, data.draw_y);
+				break
+			case 'draw_line':
+				drawing_ctx.lineTo(data.draw_x, data.draw_y);
+				drawing_ctx.stroke();
+				break
+			case 'draw_request':
+				if (dungeon_master == false) {
+					break;
+				}
+				drawing_history.forEach(function(draw) {
+					draw.to_user_id = data.user_id;
+					websocket_send(draw);
+				});
+				break;
+			case 'draw_width':
+				drawing_ctx.beginPath();
+				drawing_ctx.lineWidth = data.width;
 				break;
 			case 'effect_create':
 				if (data.map_id != map_id) {
@@ -3245,17 +3557,178 @@ $(document).ready(function() {
 		websocket = null;
 	};
 
+	/* Menu
+	 */
+	$('button.menu').on('click', function(event) {
+		var skip = 1;
+		$('div.menu-options').toggle();
+		$('body').one('click', function() {
+			$('div.menu-options').hide();
+		});
+		event.stopPropagation();
+	});
+	$('div.menu-options').css('z-index', LAYER_MENU);
+	$('div.menu-options div.draw-colors span').click(function() {
+		var color = $(this).css('background-color');
+
+		drawing_ctx.strokeStyle = color;
+
+		var data = {
+			action: 'draw_color',
+			color: color
+		};
+		websocket_send(data);
+		drawing_history.push(data);
+
+		$('div.menu-options div.draw-colors span').css('box-shadow', '');
+		$(this).css('box-shadow', '0 0 5px #0080ff');
+	});
+
 	/* Show grid
 	 */
 	if ($('div.playarea').attr('show_grid') == 'yes') {
-		var count_x = Math.floor($('div.playarea > div').width() / grid_cell_size);
-		var count_y = Math.floor($('div.playarea > div').height() / grid_cell_size);
-		var count = count_x * count_y;
+		grid_init(grid_cell_size);
+    }
 
-		var cell = '<img src="/images/grid_cell.png" style="float:left; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; position:relative;" />';
-		for (var i = 0 ;i < count; i++) {
-			$('div.playarea div.grid').prepend(cell);
-		}
+	/* Drawing
+	 */
+	var map = $('div.playarea > div');
+	var width = Math.round(map.width());
+	var height = Math.round(map.height());
+
+	$('div.drawing').prepend('<canvas id="drawing" width="' + width + '" height="' + height + '" />');
+	drawing_canvas = document.getElementById('drawing');
+
+	drawing_ctx = drawing_canvas.getContext('2d');
+	drawing_ctx.lineWidth = DRAW_DEFAULT_WIDTH;
+	drawing_ctx.strokeStyle = DRAW_DEFAULT_COLOR;
+
+	var pos = $('div.playarea').position();
+	var canvas_x = Math.round(pos.left);
+	var canvas_y = Math.round(pos.top);
+
+	if (dungeon_master) {	
+		var handle = $('div#draw_width div');
+		$('div#draw_width').slider({
+			min: 1,
+			max: 50,
+			create: function() {
+				handle.text($(this).slider("value"));
+			},
+			slide: function(event, ui) {
+				handle.text(ui.value);
+			},
+			stop: function(event, ui) {
+				drawing_ctx.lineWidth = ui.value;
+
+				var data = {
+					action: 'draw_width',
+					width: ui.value
+				};
+				websocket_send(data);
+				drawing_history.push(data);
+			}
+		});
+
+		$('canvas#drawing').on('mousedown', function(event) {
+			if (shift_down) {
+				/* Erase
+				 */
+				$('canvas#drawing').on('mousemove', function(event) {
+					var scr = screen_scroll();
+
+					var draw_x = event.clientX - canvas_x + scr.left;
+					var draw_y = event.clientY - canvas_y + scr.top;
+					var width = ctrl_down ? 40 : 10;
+
+					var data = {
+						action: 'draw_erase',
+						draw_x: draw_x,
+						draw_y: draw_y,
+						width: width
+					};
+					websocket_send(data);
+					drawing_history.push(data);
+
+					drawing_ctx.clearRect(draw_x - (width >> 1), draw_y - (width >>1), width, width);
+				});
+
+				$('canvas#drawing').one('mouseup', function() {
+					$('canvas#drawing').off('mousemove');
+				});
+			} else if (ctrl_down) {
+				/* Draw
+				 */
+				var scr = screen_scroll();
+
+				var draw_x = event.clientX - canvas_x + scr.left;
+				var draw_y = event.clientY - canvas_y + scr.top;
+
+				var data = {
+					action: 'draw_move',
+					draw_x: draw_x,
+					draw_y: draw_y
+				};
+				websocket_send(data);
+				drawing_history.push(data);
+
+				if (drawing_ctx.lineWidth > 1) {
+					draw_circle(draw_x, draw_y);
+				}
+
+				drawing_ctx.beginPath();
+				drawing_ctx.moveTo(draw_x, draw_y);
+
+				$('canvas#drawing').on('mousemove', function(event) {
+					var scr = screen_scroll();
+
+					var draw_x = event.clientX - canvas_x + scr.left;
+					var draw_y = event.clientY - canvas_y + scr.top;
+
+					var data = {
+						action: 'draw_line',
+						draw_x: draw_x,
+						draw_y: draw_y
+					};
+					websocket_send(data);
+					drawing_history.push(data);
+
+					drawing_ctx.lineTo(draw_x, draw_y);
+					drawing_ctx.stroke();
+				});
+
+				$('canvas#drawing').one('mouseup', function() {
+					$('canvas#drawing').off('mousemove');
+				});
+			}
+		});
+
+		$('button#draw_clear').click(function() {
+			if (confirm('Clear all drawings?') == false) {
+				return;
+			}
+
+			var data = {
+				action: 'draw_clear'
+			};
+			websocket_send(data);
+
+			drawing_history = [];
+
+			var data = {
+				action: 'draw_color',
+				color: drawing_ctx.strokeStyle
+			};
+			drawing_history.push(data);
+
+			var data = {
+				action: 'draw_width',
+				width: drawing_ctx.lineWidth
+			};
+			drawing_history.push(data);
+
+			drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
+		});
 	}
 
 	/* Doors
@@ -3444,58 +3917,7 @@ $(document).ready(function() {
 
 		/* Menu tokens
 		 */
-		$('div.token img').contextmenu(function(event) {
-			var menu_entries = {};
-
-			menu_entries['info'] = { name:'Get information', icon:'fa-info-circle' };
-			menu_entries['view'] = { name:'View', icon:'fa-search' };
-			var rotate = {
-				'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
-				'rotate_ne': { name:'North East' },
-				'rotate_e':  { name:'East', icon:'fa-arrow-circle-right' },
-				'rotate_se': { name:'South East' },
-				'rotate_s':  { name:'South', icon:'fa-arrow-circle-down' },
-				'rotate_sw': { name:'South West' },
-				'rotate_w':  { name:'West', icon:'fa-arrow-circle-left' },
-				'rotate_nw': { name:'North West' }
-			};
-			menu_entries['rotate'] = { name:'Rotate', icon:'fa-compass', items:rotate };
-			menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
-			menu_entries['lower'] = { name:'Lower', icon:'fa-arrow-down' };
-			menu_entries['sep1'] = '-';
-
-			var label = $(this).parent().is(focus_obj) ? 'Unfocus' : 'Focus';
-			menu_entries['focus'] = { name:label, icon:'fa-binoculars' };
-
-			menu_entries['handover'] = { name:'Hand over', icon:'fa-hand-stop-o' };
-			menu_entries['takeback'] = { name:'Take back', icon:'fa-hand-grab-o' };
-			menu_entries['sep2'] = '-';
-			menu_entries['marker'] = { name:'Set marker', icon:'fa-map-marker' };
-			menu_entries['distance'] = { name:'Measure distance', icon:'fa-map-signs' };
-			menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
-			menu_entries['zone_create'] = { name:'Zone', icon:'fa-square-o' };
-			menu_entries['sep3'] = '-';
-			menu_entries['attack'] = { name:'Attack', icon:'fa-legal' };
-			menu_entries['damage'] = { name:'Damage', icon:'fa-warning' };
-			menu_entries['heal'] = { name:'Heal', icon:'fa-medkit' };
-
-			var has = $(this).parent().find('span.conditions').text().split(',');
-			var conditions = {};
-			conditions['condition_0'] = { name: 'None' };
-			conditions['sep0'] = '-';
-			$('div.conditions div').each(function() {
-				var con_id = $(this).attr('con_id');
-				var name = $(this).text();
-				var icon = has.includes(name) ? 'fa-check-square-o' : 'fa-square-o';
-				conditions['condition_' + con_id] = { name: name, icon: icon};
-			});
-
-			menu_entries['sep2'] = '-';
-			menu_entries['conditions'] = { name:'Set condition', icon:'fa-heartbeat', items:conditions};
-
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
-			return false;
-		});
+		$('div.token img').contextmenu(object_contextmenu_dm);
 
 		/* Menu characters
 		 */
@@ -3554,7 +3976,7 @@ $(document).ready(function() {
 			});
 
 			if (Object.keys(shapes).length > 2) {
-				menu_entries['shapes'] = { name:'Set shape', icon:'fa-user-circle', items:shapes};
+				menu_entries['shapes'] = { name:'Change shape', icon:'fa-user-circle', items:shapes};
 			}
 
 			menu_entries['sep4'] = '-';
@@ -3607,6 +4029,16 @@ $(document).ready(function() {
 				fow_char_distances[$(this).prop('id')] = fow_default_distance;
 			});
 		}
+
+		/* Library
+		 */
+		$('div.library img.icon').draggable({
+			helper: 'clone',
+			appendTo: 'div.playarea',
+			stop: function(event, ui) {
+				object_create($(this), event.pageX, event.pageY);
+			}
+		});
 	} else {
 		/* Player settings
 		 /*/
@@ -3696,20 +4128,7 @@ $(document).ready(function() {
 
 		/* Menu tokens
 		 */
-
-		 $('div.token img').contextmenu(function(event) {
-			var menu_entries = {
-				'view': { name:'View', icon:'fa-search' },
-				'stick': { name:'Stick to / unstick', icon:'fa-lock' },
-				'attack': { name:'Attack', icon:'fa-legal' },
-				'sep': '-',
-				'marker': { name:'Set marker', icon:'fa-map-marker' },
-				'distance': { name:'Measure distance', icon:'fa-map-signs' }
-			};
-
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
-			return false;
-		});
+		$('div.token img').contextmenu(object_contextmenu_player);
 
 		/* Menu (other) characters
 		 */
@@ -3738,6 +4157,10 @@ $(document).ready(function() {
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
+
+		/* No token library, so enlarge sidebar.
+		 */
+		$('div.sidebar').css('top', '40px');
 	}
 
 	/* Input field
@@ -3920,6 +4343,16 @@ $(document).ready(function() {
 	$('body').keyup(object_steer);
 
 	scroll_to_my_character();
+
+	$('body').keydown(key_down);
+	$('body').keyup(key_up);
+
+	$(window).focus(function() {
+		ctrl_down = false;
+		shift_down = false;
+		alt_down = false;
+		$('canvas#drawing').off('mousemove');
+	});
 
 	/* Interface color
 	 */

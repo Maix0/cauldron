@@ -332,7 +332,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				var data = {
 					action: 'zone_opacity',
 					instance_id: zone_id,
-					recipient: char_id,
+					to_char_id: char_id,
 					opacity: 1
 				};
 				websocket_send(data);
@@ -341,7 +341,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				var data = {
 					action: 'zone_opacity',
 					instance_id: zone_id,
-					recipient: char_id,
+					to_char_id: char_id,
 					opacity: 0
 				};
 				websocket_send(data);
@@ -350,7 +350,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				if (debug == false) {
 					var data = {
 						action: 'say',
-						recipient: char_id,
+						to_char_id: char_id,
 						name: speaker,
 						mesg: param
 					};
