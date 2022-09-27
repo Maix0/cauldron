@@ -70,7 +70,7 @@
 						$_FILES["icon"]["extension"] = $extension;
 					}
 
-					if ($this->model->save_oke($_POST, $_FILES["icon"]) == false) {
+					if ($this->model->save_okay($_POST, $_FILES["icon"]) == false) {
 						$this->show_character_form($_POST);
 					} else if (isset($_POST["id"]) === false) {
 						/* Create character
@@ -96,7 +96,7 @@
 				} else if ($_POST["submit_button"] == "Delete character") {
 					/* Delete character
 					 */
-					if ($this->model->delete_oke($_POST) == false) {
+					if ($this->model->delete_okay($_POST) == false) {
 						$this->show_character_form($_POST);
 					} else if ($this->model->delete_character($_POST["id"]) === false) {
 						$this->view->add_message("Error deleting character.");
@@ -108,7 +108,7 @@
 				} else if ($_POST["submit_button"] == "Add icon") {
 					/* Add alternate icon
 					 */
-					if ($this->model->icon_oke($_POST, $_FILES["icon"]) != false) {
+					if ($this->model->icon_okay($_POST, $_FILES["icon"]) != false) {
 						if ($this->model->add_icon($_POST, $_FILES["icon"]) == false) {
 							$this->view->add_message("Error adding alternate icon.");
 						}

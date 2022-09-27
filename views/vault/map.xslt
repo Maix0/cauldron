@@ -9,10 +9,10 @@
 //
 //-->
 <xsl:template match="overview">
-<form action="/{/output/page}" method="post" class="game-selector">
-<input type="hidden" name="submit_button" value="Change game" />
-<select name="game" class="form-control" onChange="javascript:submit()">
-<xsl:for-each select="games/game">
+<form action="/{/output/page}" method="post" class="adventure-selector">
+<input type="hidden" name="submit_button" value="Change adventure" />
+<select name="adventure" class="form-control" onChange="javascript:submit()">
+<xsl:for-each select="adventures/adventure">
 <option value="{@id}"><xsl:if test="@selected='yes'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
 </xsl:for-each>
 </select>
@@ -20,12 +20,15 @@
 
 <table class="table table-condensed table-striped table-hover">
 <thead>
-<tr><th>Title</th></tr>
+<tr><th>Title</th><th>Tokens</th><th>Type</th><th>Fog of War</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="maps/map">
 <tr class="click">
 <td onClick="javascript:document.location='/{/output/page}/arrange/{@id}'"><xsl:value-of select="title" /></td>
+<td><xsl:value-of select="tokens" /></td>
+<td><xsl:value-of select="type" /></td>
+<td><xsl:value-of select="fog_of_war" /></td>
 </tr>
 </xsl:for-each>
 </tbody>
@@ -92,7 +95,7 @@
 </form>
 
 <div id="help">
-<p>This is where you add a map to your game. Specify at least the title of your map and the URL to the map image or video.</p>
+<p>This is where you add a map to your adventure. Specify at least the title of your map and the URL to the map image or video.</p>
 <p>The map image/video URL can point to a resource at another website. Click the 'Browse resources' to list all the available maps in the '<a href="/vault/resources/maps">maps</a>' directory in your Resources section.</p>
 </div>
 </xsl:template>
@@ -141,7 +144,7 @@
 //-->
 <xsl:template match="content">
 <img src="/images/icons/map.png" class="title_icon" />
-<h1>Game maps</h1>
+<h1>Adventure maps</h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="grid" />

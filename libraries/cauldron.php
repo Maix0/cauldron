@@ -1,9 +1,9 @@
 <?php
-	define("CAULDRON_VERSION", "2.4");
+	define("CAULDRON_VERSION", "2.5");
 
-	define("GAME_ACCESS_DM_ONLY", 0);
-	define("GAME_ACCESS_PLAYERS", 1);
-	define("GAME_ACCESS_PLAYERS_SPECTATORS", 2);
+	define("ADVENTURE_ACCESS_DM_ONLY", 0);
+	define("ADVENTURE_ACCESS_PLAYERS", 1);
+	define("ADVENTURE_ACCESS_PLAYERS_SPECTATORS", 2);
 
 	define("FOW_OFF", 0);
 	define("FOW_DAY_CELL", 1);

@@ -85,7 +85,7 @@
 			return false;
 		}
 
-		public function save_oke($page) {
+		public function save_okay($page) {
 			$result = true;
 
 			if (valid_input(trim($page["url"]), VALIDATE_URL, VALIDATE_NONEMPTY) == false) {

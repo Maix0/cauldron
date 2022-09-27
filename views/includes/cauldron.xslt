@@ -18,7 +18,6 @@ Zone group: <input id="zone_group" type="text" maxlength="10" onKeyUp="javascrip
 <div class="copy_script">Copy script to entire group: <input type="checkbox" id="copy_script" name="copy_script" /></div>
 </div>
 </div>
-<div class="game_id">Game ID: <xsl:value-of select="@id" /></div>
 </div>
 </xsl:template>
 
@@ -31,7 +30,7 @@ Zone group: <input id="zone_group" type="text" maxlength="10" onKeyUp="javascrip
 <div class="script_manual" style="display:none">
 <p>A script consists of one or more lines, each containing a single command. A script can only be triggered by a character when it enters, moves inside, leaves the zone or is inside the zone on its combat turn. An object's ID can be obtained by selecting 'Get information' after a right click on that object. The following commands are available:</p>
 <ul>
-<li><b>audio &lt;file&gt;:</b> Play the audio file '/resources/audio/&lt;game id&gt;/&lt;file&gt;'. Upload audio files via the File administration page in the Dungeon Master's Vault.</li>
+<li><b>audio &lt;file&gt;:</b> Play the audio file '/resources/audio/&lt;file&gt;'. Upload audio files via the Resources page in the Dungeon Master's Vault.</li>
 <li><b>condition &lt;condition&gt;:</b> Character gains one of the following conditions:<div class="conditions"><xsl:for-each select="conditions/condition"><span><xsl:value-of select="." /></span></xsl:for-each></div></li>
 <li><b>damage &lt;points&gt;:</b> Damage the triggering character.</li>
 <li><b>delete [&lt;zone id&gt;]:</b> Delete the triggered or specified zone.</li>

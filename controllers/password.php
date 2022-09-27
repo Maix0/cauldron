@@ -15,7 +15,7 @@
 		}
 
 		public function execute() {
-			if ($this->model->key_oke($_GET["key"] ?? null)) {
+			if ($this->model->key_okay($_GET["key"] ?? null)) {
 				/* Step 3: show password form
 				 */
 				$this->show_password_form($_GET["key"]);
@@ -33,9 +33,9 @@
 				} else if ($_POST["submit_button"] == "Save password") {
 					/* Step 4: Save password
 					 */
-					if ($this->model->key_oke($_POST["key"]) == false) {
+					if ($this->model->key_okay($_POST["key"]) == false) {
 						$this->view->add_tag("request");
-					} else if ($this->model->password_oke($_SESSION["reset_password_username"], $_POST) == false) {
+					} else if ($this->model->password_okay($_SESSION["reset_password_username"], $_POST) == false) {
 						$this->show_password_form($_POST["key"]);
 					} else if ($this->model->save_password($_SESSION["reset_password_username"], $_POST) == false) {
 						$this->view->add_message("Error while saving password.");

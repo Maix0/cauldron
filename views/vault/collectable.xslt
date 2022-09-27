@@ -8,10 +8,10 @@
 //
 //-->
 <xsl:template match="overview">
-<form action="/{/output/page}" method="post" class="game-selector">
-<input type="hidden" name="submit_button" value="Change game" />
-<select name="game" class="form-control" onChange="javascript:submit()">
-<xsl:for-each select="games/game">
+<form action="/{/output/page}" method="post" class="adventure-selector">
+<input type="hidden" name="submit_button" value="Change adventure" />
+<select name="adventure" class="form-control" onChange="javascript:submit()">
+<xsl:for-each select="adventures/adventure">
 <option value="{@id}"><xsl:if test="@selected='yes'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
 </xsl:for-each>
 </select>
@@ -40,7 +40,7 @@
 
 <div id="help">
 <p>A collectable is an object that can be hidden inside a token on a map for players to find. To hide a collectable inside a token, go to the <a href="/vault/map">Map section</a>, select a map, right-click a token and choose 'Assign collectable'.</p>
-<p>When during a game a player right-clicks a nearby token and selects 'View', that object will be revealed. The player can then choose to add that object to the inventory, which is shared among all players.</p>
+<p>When during a game session a player right-clicks a nearby token and selects 'View', that object will be revealed. The player can then choose to add that object to the inventory, which is shared among all players.</p>
 </div>
 </xsl:template>
 

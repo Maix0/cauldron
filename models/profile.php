@@ -58,7 +58,7 @@
 			return array_reverse($result);
 		}
 
-		public function profile_oke($profile) {
+		public function profile_okay($profile) {
 			$result = true;
 
 			if (trim($profile["fullname"]) == "") {
@@ -132,7 +132,7 @@
 			return $this->db->update("users", $this->user->id, $profile, $keys) !== false;
 		}
 
-		public function delete_oke() {
+		public function delete_okay() {
 			if ($this->user->has_role("User maintainer")) {
 				$this->view->add_message("As a User maintainer, you are not allowed to delete your own account.");
 				return false;
@@ -146,7 +146,7 @@
 				return false;
 			}
 
-			if ($this->borrow("vault/user")->delete_oke($this->user->id) == false) {
+			if ($this->borrow("vault/user")->delete_okay($this->user->id) == false) {
 				return false;
 			}
 

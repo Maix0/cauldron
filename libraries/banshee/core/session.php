@@ -152,7 +152,7 @@
 				"session_id" => null,
 				"login_id"   => null,
 				"content"    => null,
-				"expire"     => date("Y-m-d H:i:s", time() + $this->settings->session_timeout),
+				"expire"     => date("Y-m-d H:i:s", time() + DAY),
 				"user_id"    => null,
 				"ip_address" => $_SERVER["REMOTE_ADDR"],
 				"bind_to_ip" => false,
@@ -224,6 +224,7 @@
 			$user_data = array(
 				"user_id"    => (int)$user_id,
 				"login_id"   => $login_id,
+				"expire"     => date("Y-m-d H:i:s", time() + $this->settings->session_timeout),
 				"ip_address" => $_SERVER["REMOTE_ADDR"]);
 
 			return $this->db->update("sessions", $this->id, $user_data) !== false;

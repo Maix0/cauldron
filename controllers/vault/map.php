@@ -1,5 +1,12 @@
 <?php
 	class vault_map_controller extends Banshee\controller {
+		private $fog_of_war = array(
+			"Off",
+			"On, day / illuminated (cell)",
+			"On, day / illuminated (real)",
+			"On, night / dark (cell)",
+			"On, night / dark (real)");
+
 		private function resource_path($path) {
 			if (substr($path, 0, 11) != "/resources/") {
 				return $path;
@@ -14,38 +21,40 @@
 		}
 
 		private function show_overview() {
-			if (($games = $this->model->get_games()) === false) {
+			if (($adventures = $this->model->get_adventures()) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if (count($games) == 0) {
-				$this->view->add_tag("result", "Create a game first.", array("url" => "vault/game/new"));
+			if (count($adventures) == 0) {
+				$this->view->add_tag("result", "Create an adventure first.", array("url" => "vault/adventure/new"));
 				return;
 			}
 
-			if (isset($_SESSION["edit_game_id"]) == false) {
-				$_SESSION["edit_game_id"] = $games[0]["id"];
+			if (isset($_SESSION["edit_adventure_id"]) == false) {
+				$_SESSION["edit_adventure_id"] = $adventures[0]["id"];
 			}
 
-			if (($maps = $this->model->get_maps($_SESSION["edit_game_id"])) === false) {
+			if (($maps = $this->model->get_maps($_SESSION["edit_adventure_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
 			$this->view->open_tag("overview");
 
-			$this->view->open_tag("games");
-			foreach ($games as $game) {
+			$this->view->open_tag("adventures");
+			foreach ($adventures as $adventure) {
 				$attr = array(
-					"id"       => $game["id"],
-					"selected" => show_boolean($game["id"] == $_SESSION["edit_game_id"]));
-				$this->view->add_tag("game", $game["title"], $attr);
+					"id"       => $adventure["id"],
+					"selected" => show_boolean($adventure["id"] == $_SESSION["edit_adventure_id"]));
+				$this->view->add_tag("adventure", $adventure["title"], $attr);
 			}
 			$this->view->close_tag();
 
 			$this->view->open_tag("maps");
 			foreach ($maps as $map) {
+				$map["type"] = $this->model->get_map_type($map["url"]);
+				$map["fog_of_war"] = $this->fog_of_war[$map["fog_of_war"]];
 				$this->view->record($map, "map");
 			}
 			$this->view->close_tag();
@@ -55,19 +64,17 @@
 
 		private function show_map_form($map) {
 			if (isset($_GET["first"])) {
-				$this->view->add_system_message("Game has been created. Now add the first map to this game.");
+				$this->view->add_system_message("Adventure has been created. Now add the first map to this adventure.");
 			}
 
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("vault/map.js");
 			$this->view->run_javascript("init_map_browser()");
 
-			$fog_of_war = array("Off", "On, day / illuminated (cell)", "On, day / illuminated (real)", "On, night / dark (cell)", "On, night / dark (real)");
-
 			$this->view->open_tag("edit");
 
 			$this->view->open_tag("fog_of_war");
-			foreach ($fog_of_war as $value => $label) {
+			foreach ($this->fog_of_war as $value => $label) {
 				$this->view->add_tag("type", $label, array("value" => $value));
 			}
 			$this->view->close_tag();
@@ -96,7 +103,7 @@
 		}
 
 		private function show_local_maps() {
-			if (($maps = $this->model->get_local_maps()) == false) {
+			if (($maps = $this->model->get_resources("maps")) == false) {
 				return false;
 			}
 
@@ -112,11 +119,11 @@
 			if ($this->page->ajax_request) {
 				$this->show_local_maps();
 			} else if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				if ($_POST["submit_button"] == "Change game") {
-					/* Change game
+				if ($_POST["submit_button"] == "Change adventure") {
+					/* Change adventure
 					 */
-					if ($this->model->is_my_game($_POST["game"])) {
-						$_SESSION["edit_game_id"] = $_POST["game"];
+					if ($this->model->is_my_adventure($_POST["adventure"])) {
+						$_SESSION["edit_adventure_id"] = $_POST["adventure"];
 					}
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save map") {
@@ -137,7 +144,7 @@
 
 					/* Save map
 					 */
-					if ($this->model->save_oke($_POST) == false) {
+					if ($this->model->save_okay($_POST) == false) {
 						$this->show_map_form($_POST);
 					} else if (isset($_POST["id"]) === false) {
 						/* Create map
@@ -179,7 +186,7 @@
 				} else if ($_POST["submit_button"] == "Delete map") {
 					/* Delete map
 					 */
-					if ($this->model->delete_oke($_POST) == false) {
+					if ($this->model->delete_okay($_POST) == false) {
 						$this->show_map_form($_POST);
 					} else if ($this->model->delete_map($_POST["id"]) === false) {
 						$this->view->add_message("Error deleting map.");

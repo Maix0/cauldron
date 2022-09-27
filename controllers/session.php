@@ -47,7 +47,7 @@
 				if ($_POST["submit_button"] == "Update session") {
 					/* Update session
 				 	 */
-					if ($this->model->session_oke($_POST) == false) {
+					if ($this->model->session_okay($_POST) == false) {
 						$this->show_session_form($_POST);
 					} else if ($this->model->update_session($_POST) == false) {
 						$this->view->add_tag("result", "Error while updating session.");

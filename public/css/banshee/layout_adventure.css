@@ -68,13 +68,6 @@ div.script_editor textarea {
 	max-width:none;
 }
 
-div.script_editor div.game_id {
-	color:#a0a0a0;
-	float:right;
-	position:relative;
-	top:20px;
-}
-
 div.script_editor span.zone_group {
 	margin-left:50px;
 }

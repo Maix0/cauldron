@@ -5,7 +5,7 @@ const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 2;
 const LAYER_MARKER = DEFAULT_Z_INDEX + 3;
 const LAYER_MENU = DEFAULT_Z_INDEX + 4;
 
-var game_id = null;
+var adventure_id = null;
 var map_id = null;
 var resources_key = null;
 var grid_cell_size = null;
@@ -939,7 +939,7 @@ function zone_group_unhighlight() {
 function collectables_select(obj) {
 	var instance_id = obj.prop('id').substring(5);
 	$.post('/object/collectables/unused', {
-		game_id: game_id,
+		adventure_id: adventure_id,
 		instance_id: instance_id
 	}).done(function(data) {
 		var body = $('<div class="collectables"><select class="form-control" ><option value="0">-</option></select></div>');
@@ -1487,12 +1487,10 @@ function context_menu_handler(key, options) {
 /* Main
  */
 $(document).ready(function() {
-	game_id = parseInt($('div.playarea').attr('game_id'));
+	adventure_id = parseInt($('div.playarea').attr('adventure_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
 	resources_key = parseInt($('div.playarea').attr('resources_key'));
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
-
-	write_sidebar('Game ID: ' + game_id);
 
 	/* Show grid
 	 */

@@ -12,7 +12,7 @@
 <table class="table table-condensed table-striped table-hover">
 <thead>
 <tr>
-<th>Name</th><th>Users</th><th>Tokens</th><th>Games</th><th>Maps</th><th>Max resources (MB)</th><th>Days idle</th>
+<th>Name</th><th>Users</th><th>Tokens</th><th>Adventures</th><th>Maps</th><th>Max resources (MB)</th><th>Days idle</th>
 </tr>
 </thead>
 <tbody>
@@ -21,7 +21,7 @@
 <td><xsl:value-of select="name" /></td>
 <td><xsl:value-of select="users" /></td>
 <td><xsl:value-of select="tokens" /></td>
-<td><xsl:value-of select="games" /></td>
+<td><xsl:value-of select="adventures" /></td>
 <td><xsl:value-of select="maps" /></td>
 <td><xsl:value-of select="max_resources" /></td>
 <td><xsl:value-of select="idle" /></td>

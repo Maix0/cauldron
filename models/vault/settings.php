@@ -103,7 +103,7 @@
 			return $item;
 		}
 
-		public function save_oke($item) {
+		public function save_okay($item) {
 			if (in_array($item["key"], $this->hidden_keys)) {
 				$this->view->add_message("You are not allowed to change this setting.");
 				return false;
@@ -111,13 +111,13 @@
 
 			header("X-Hiawatha-Cache-Remove: all");
 
-			$result = parent::save_oke($item);
+			$result = parent::save_okay($item);
 
 			return $result;
 		}
 
-		public function delete_oke($item_id) {
-			if (parent::delete_oke($item_id) == false) {
+		public function delete_okay($item_id) {
+			if (parent::delete_okay($item_id) == false) {
 				return false;
 			}
 

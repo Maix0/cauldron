@@ -5,81 +5,89 @@
 
 <!--
 //
-//  Games template
+//  Adventures template
 //
 //-->
-<xsl:template match="games">
-<xsl:if test="count(game)=0">
+<xsl:template match="adventures">
+<xsl:if test="count(adventure)=0">
 <xsl:if test="@is_dm='no'">
-<p>There are no games available yet.</p>
+<p>There are no adventures available yet.</p>
 </xsl:if>
 <xsl:if test="@is_dm='yes'">
 <img src="/images/cauldron.png" class="cauldron" />
-<p>This is the page where you and your players will see an overview of the games you have created.</p>
+<p>This is the page where you and your players will see an overview of the adventures you have created.</p>
 <p>If this is your first time using Cauldron VTT, read the <a href="/manual">manual</a> first.</p>
-<p>Create a game by clicking the <a href="/vault">DM's Vault</a> link in the top menu bar and then the Games icon.</p>
+<p>Create a adventure by clicking the <a href="/vault">DM's Vault</a> link in the top menu bar and then the Adventures icon.</p>
 <p>On many pages, help is available by clicking the Help button in the top right corner of the page.</p>
 </xsl:if>
 </xsl:if>
 <div class="row">
-<xsl:for-each select="game">
+<xsl:for-each select="adventure">
 <div class="col-sm-6">
 <div class="well" style="background-image:url({image})">
 <h2><xsl:value-of select="title" /></h2>
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
 <div class="btn-group">
 <xsl:if test="story!=''"><button class="btn btn-primary btn-sm show_story{@id}">Introduction</button></xsl:if>
-<xsl:if test="(access='yes' or dm_id=/output/user/@id) and type='play'"><a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Start game</a></xsl:if>
-<xsl:if test="type='spectate'"><a href="/spectate/{@id}" class="btn btn-success btn-sm">Spectate game</a></xsl:if>
+<xsl:if test="(access='yes' or dm_id=/output/user/@id) and type='play'"><a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Start adventure</a></xsl:if>
+<xsl:if test="type='spectate'"><a href="/spectate/{@id}" class="btn btn-success btn-sm">Spectate adventure</a></xsl:if>
 </div>
 </div>
 </div>
 </xsl:for-each>
 </div>
 
-<xsl:for-each select="game">
+<xsl:for-each select="adventure">
 <div class="story" id="story{@id}" title="{title}" style="display:none"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
 </xsl:for-each>
 </xsl:template>
 
 <!--
 //
-//  Game template
+//  Adventure template
 //
 //-->
-<xsl:template match="game">
+<xsl:template match="adventure">
 <div class="loading"><span>Loading...</span></div>
 <!-- Menu -->
-<div class="menu">
+<div class="topbar">
 <span id="infobar"></span>
-<xsl:if test="maps">
-<select class="form-control map-selector" onChange="javascript:change_map()">
+<div class="btn-group">
+<button class="btn btn-primary btn-xs open_menu">Menu</button>
+</div>
+<div class="menu">
+<div class="row">
+<div class="col-sm-6">
+<button class="btn btn-default btn-sm show_journal">Journal</button>
+<button class="btn btn-default btn-sm show_collectables">Inventory</button>
+<xsl:if test="@is_dm='yes'">
+<h2>Dungeon Master options</h2>
+<xsl:if test="map/dm_notes!=''">
+<button class="btn btn-default btn-sm show_dm_notes">DM notes</button>
+</xsl:if>
+<button class="btn btn-default btn-sm start_combat">Combat</button>
+<button class="btn btn-default btn-sm play_audio">Audio</button>
+</xsl:if>
+</div>
+<div class="col-sm-6">
+<a href="/{/output/page}" class="btn btn-default btn-sm">Leave session</a>
+<button id="center_char" class="btn btn-primary btn-sm center_character">Center character</button>
+<button id="itfcol" class="btn btn-default btn-sm interface_color">Dark interface</button>
+<xsl:if test="map/type='video'"><button class="btn btn-default btn-sm playvideo">Play video</button></xsl:if>
+<xsl:if test="@is_dm='yes'">
+<h2>Map switching</h2>
+<select class="form-control map-selector">
 <xsl:if test="traveled_from"><xsl:attribute name="style">display:none</xsl:attribute></xsl:if>
 <xsl:for-each select="maps/map"><option value="{@id}"><xsl:if test="@current='yes'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option></xsl:for-each>
 </select>
+<xsl:if test="map/type='image'">
+<button class="btn btn-default btn-sm map_image">Change map image</button>
 </xsl:if>
-<!--
-<div class="btn-group zoom">
-<button class="btn btn-default btn-xs" onClick="javascript:zoom_in()">+</button>
-<button class="btn btn-default btn-xs" onClick="javascript:zoom_playarea(1)">o</button>
-<button class="btn btn-default btn-xs" onClick="javascript:zoom_out()">-</button>
-</div>
-//-->
-<div class="btn-group">
-<button class="btn btn-default btn-xs show_journal">Journal</button>
-<xsl:if test="map/dm_notes!=''">
-<button class="btn btn-default btn-xs show_dm_notes">DM notes</button>
 </xsl:if>
-<button class="btn btn-default btn-xs show_collectables">Inventory</button>
-<button class="btn btn-default btn-xs menu">Menu</button>
 </div>
-<div class="menu-options">
-<a href="/{/output/page}" class="btn btn-default btn-sm">Leave game</a>
-<button id="center_char" class="btn btn-primary btn-sm" onClick="javascript:center_character(this)">Center character</button>
-<button id="itfcol" class="btn btn-default btn-sm" onClick="javascript:interface_color(this)">Dark</button>
-<xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-sm">Play video</button></xsl:if>
+</div>
 <xsl:if test="@is_dm='yes'">
-<h2>Drawing options</h2>
+<h2>Drawing</h2>
 <div class="draw-colors">
 <span style="background-color:#000000"></span>
 <span style="background-color:#808080"></span>
@@ -89,21 +97,28 @@
 <span style="background-color:#ff8000"></span>
 <span style="background-color:#ffff00"></span>
 <span style="background-color:#00ff00"></span>
-<span style="background-color:#008000"></span>
+<span style="background-color:#00a000"></span>
+<span style="background-color:#005000"></span>
 <span style="background-color:#00ffff"></span>
 <span style="background-color:#0000ff"></span>
 <span style="background-color:#0000a0"></span>
 <span style="background-color:#ff00ff"></span>
 <span style="background-color:#800080"></span>
 </div>
+<div class="row">
+<div class="col-sm-6">
 <div id="draw_width"><div class="ui-slider-handle"></div></div>
+</div>
+<div class="col-sm-6">
 <button id="draw_clear" class="btn btn-default btn-sm">Remove drawings</button>
+</div>
+</div>
 </xsl:if>
 </div>
 </div>
 <xsl:if test="not(map)">
-<input id="game_id" type="hidden" name="game_id" value="{@id}" />
-<p class="nomap">This game has no maps yet. <xsl:if test="@is_dm='yes' and not(maps)">Add maps to your game via the <a href="/vault/map">Dungeon Masters' Vault Map Administration</a> page.</xsl:if></p>
+<input id="adventure_id" type="hidden" name="adventure_id" value="{@id}" />
+<p class="nomap">This adventure has no maps yet. <xsl:if test="@is_dm='yes'">Add maps to this adventure via the <a href="/vault/map">Dungeon Masters' Vault Map Administration</a> page.</xsl:if></p>
 </xsl:if>
 <!-- Windows -->
 <xsl:if test="map">
@@ -117,7 +132,7 @@
 </div>
 <div class="row">
 <div class="col-xs-10"><textarea class="form-control"></textarea></div>
-<div class="col-xs-2"><button onClick="javascript:journal_write()" class="btn btn-default">Add</button></div>
+<div class="col-xs-2"><button class="btn btn-default journal_write">Add</button></div>
 </div>
 <!-- DM notes -->
 <xsl:if test="map/dm_notes!=''">
@@ -138,14 +153,14 @@
 <!-- Effects -->
 <div class="effect_create" style="display:none">
 <xsl:for-each select="effects/effect">
-<img src="/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" onClick="javascript:effect_create($(this))" /><xsl:text>
+<img src="/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" /><xsl:text>
 </xsl:text></xsl:for-each>
 </div>
 <!-- Play area -->
-<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
+<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" adventure_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
-<div>
+<div id="map_background">
 <xsl:if test="map/type='image'"><xsl:attribute name="style">background-image:url(<xsl:value-of select="map/url" />); background-size:<xsl:value-of select="map/width" />px <xsl:value-of select="map/height" />px; width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute></xsl:if>
 <xsl:if test="map/type='video'"><xsl:attribute name="style">width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute>
 <video width="{map/width}" height="{map/height}" autoplay="true" loop="true"><source src="{map/url}" /></video><xsl:text>
@@ -236,6 +251,7 @@
 </div>
 <!-- Right bar -->
 <xsl:if test="@is_dm='yes'">
+<div class="filter"><input class="form-control" placeholder="Filter" /></div>
 <div class="library">
 <xsl:for-each select="library/token">
 <div class="well well-sm">
@@ -262,8 +278,8 @@
 //-->
 <xsl:template match="content">
 <h1><xsl:value-of select="/output/layout/title/@page" /></h1>
-<xsl:apply-templates select="games" />
-<xsl:apply-templates select="game" />
+<xsl:apply-templates select="adventures" />
+<xsl:apply-templates select="adventure" />
 <xsl:apply-templates select="result" />
 </xsl:template>
 

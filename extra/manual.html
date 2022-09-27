@@ -11,7 +11,7 @@ function show_section(section) {
 <h3>For players</h3>
 <ul>
 <li onClick="javascript:show_section('character')">Creating a character</li>
-<li onClick="javascript:show_section('playing')">Playing a game</li>
+<li onClick="javascript:show_section('playing')">Playing an adventure</li>
 </ul>
 </div>
 
@@ -19,8 +19,8 @@ function show_section(section) {
 <h3>For Dungeon Masters</h3>
 <ul>
 <li onClick="javascript:show_section('party')">Gathering a party</li>
-<li onClick="javascript:show_section('creating')">Creating a game</li>
-<li onClick="javascript:show_section('running')">Running a game</li>
+<li onClick="javascript:show_section('creating')">Creating an adventure</li>
+<li onClick="javascript:show_section('running')">Running an adventure</li>
 </ul>
 </div>
 </div>
@@ -33,7 +33,7 @@ function show_section(section) {
 </div>
 
 <div class="section playing">
-<h2>Playing a game</h2>
+<h2>Playing an adventure</h2>
 <p>You can move your character via the keys w, a, s and d and rotate it via q and e. Optionally, you can drag your character via the mouse, but its up to the Dungeon Master to allow that. Right clicking with the mouse on your or another character, a token or the map opens a menu with options. Most options should explain themselves enough, but here is some information to make your understanding of Cauldron easier and faster.</p>
 <p><span class="fa fa-warning"></span> Damage: The amount of damage points that you enter, are added to your current damage.</p>
 <p><span class="fa fa-medkit"></span> Healing: The same as damage, but the points are of course subtracted from your current damage.</p>
@@ -43,7 +43,7 @@ function show_section(section) {
 <p><span class="fa fa-map-signs"></span> Measure distance: The distance is shown in the top bar of the screen. Left clicking with the mouse will stop the measuring.</p>
 <p>The input field at the right bottom corner of the screen can be used to enter commands. Type '/help' to see all available commands.</p>
 <p>Use the journal to log notes during a session. The journal is shared between all players and the Dungeon Master.</p>
-<p>The Inventory shows items you have found during the game. Items can be found when you right click on a token and select View. You have to be close to that token, otherwise the token itself is shown.</p>
+<p>The Inventory shows items you have found during the adventure. Items can be found when you right click on a token and select View. You have to be close to that token, otherwise the token itself is shown.</p>
 </div>
 
 <div class="section party">
@@ -52,11 +52,11 @@ function show_section(section) {
 </div>
 
 <div class="section creating">
-<h2>Creating a game</h2>
-<p>All that is needed to create a game, can be found in the Dungeon Master's Vault. To enter the Dungeon Master's Vault, click on the DM's Vault link in the menu bar. The Dungeon Master's Vault also has all that is needed for user and website administration. A user needs the Dungeon Master role to access the Dungeon Master's Vault. The game creation section has the following options.</p>
+<h2>Creating an adventure</h2>
+<p>All that is needed to create an adventure, can be found in the Dungeon Master's Vault. To enter the Dungeon Master's Vault, click on the DM's Vault link in the menu bar. The Dungeon Master's Vault also has all that is needed for user and website administration. A user needs the Dungeon Master role to access the Dungeon Master's Vault. The adventure creation section has the following options.</p>
 
 <h3>Token administration</h3>
-<p>This page allows you to add monster, NPC and object tokens to Cauldron. Be aware that tokes are available for every game created within your group. Make sure that all Dungeon Masters in your group only make changes to an existing token if all other Dungeon Masters agree. Otherwise, a change made to a token could affect another Dungeon Master's game!</p>
+<p>This page allows you to add monster, NPC and object tokens to Cauldron. Be aware that tokes are available for every adventure created within your group. Make sure that all Dungeon Masters in your group only make changes to an existing token if all other Dungeon Masters agree. Otherwise, a change made to a token could affect another Dungeon Master's adventure!</p>
 <p>When you upload an image for a token, make sure that it's a top view image. When it's a token for a monster or NPC, make sure that it's looking down. Otherwise, setting the orientation for that token during map building won't work properly.</p>
 <p>A few resources with free tokens to get you started:</p>
 <ul>
@@ -65,22 +65,22 @@ function show_section(section) {
 <li><a href="https://www.pinterest.com/Sylphreni/top-down-tokens/">https://www.pinterest.com/Sylphreni/top-down-tokens/</a></li>
 </ul>
 <h3>Resource administration</h3>
-<p>Each game and map uses multiple resources, which can be stored within Cauldron. The following directories are available by default:</p>
+<p>Each adventure and map uses multiple resources, which can be stored within Cauldron. The following directories are available by default:</p>
 <ul>
-<li><b>audio</b>: Here you can store audio files that can be played during a game. Store audios file for a game in a subdirectory which name equals the ID of that game. The game ID can be found in the Game administration page. Audio files can be played via the command line or via a zone script.</li>
+<li><b>audio</b>: Here you can store audio files that can be played during a game session. Audio files can be played on command or via a zone script.</li>
 <li><b>characters</b>: Cauldron uses this directory for player character tokens. Only change its content if you know what you're doing.</li>
 <li><b>collectables</b>: Cauldron uses this directory for collectables. Only change its content if you know what you're doing.</li>
 <li><b>effects</b>: Here you can store icons that will be used for map effects. A Dungeon Master can create a map effect via a right click on the map and selecting Create effect.</li>
-<li><b>maps</b>: Here you can store map background images. You can create a subdirectory per game if you like.</li>
+<li><b>maps</b>: Here you can store map background images. You can create a subdirectory per adventure if you like.</li>
 <li><b>tokens</b>: Cauldron uses this directory for monster, NPC and object tokens. Only change its content if you know what you're doing.</li>
 </ul>
 <p>You can link to a resource via <i>/resources/&lt;filename&gt;.</i> You can use the breadcrumbs above the resource browser to find the path to your resource file. Be aware that there is a limit to the amount of resources you can store in Cauldron.</p>
 
-<h3>Game administration</h3>
-<p>Before you can build maps, you need to create a game first. The background image and introduction story are shown in the main menu screen. You can link to an external background image or upload one to, for example, the root of the resource directory in the Resource Administration.</p>
+<h3>Adventure administration</h3>
+<p>Before you can build maps, you need to create an adventure first. The background image and introduction story are shown in the main menu screen. You can link to an external background image or upload one to, for example, the root of the resource directory in the Resource Administration.</p>
 
 <h3>Map administration</h3>
-<p>Creating maps is the most important part of the game building. In Cauldron, you can use images and videos as a map background. They can be stored in Cauldron via Resource Administration, but you can also use resources from other websites. A background audio is played repeatedly when that map is active during a game. A player controls its character via the keyboard, but optionally it can drag it via the mouse. When a player drags its character via the mouse, doors, walls and windows that would otherwise block the character's path, will be ignored. The default Fog of War distance only applies to the Dark / Night type Fog of War. During a game, the map notes are available to the Dungeon Master via the 'DM notes' button at the top of the screen.</p>
+<p>Creating maps is the most important part of the adventure building. In Cauldron, you can use images and videos as a map background. They can be stored in Cauldron via Resource Administration, but you can also use resources from other websites. A background audio is played repeatedly when that map is active during a game session. A player controls its character via the keyboard, but optionally it can drag it via the mouse. When a player drags its character via the mouse, doors, walls and windows that would otherwise block the character's path, will be ignored. The default Fog of War distance only applies to the Dark / Night type Fog of War. During a game session, the map notes are available to the Dungeon Master via the 'DM notes' button at the top of the screen.</p>
 <p>In the map building screen, right click on the map to create blinders, doors, lights, walls, windows and zones. You can add tokens by dragging them from your token collection on the right side of the screen onto the map. Right click on a token to change its settings. Via 'Change presence', you can hide a token for the players. When you duplicate a token, the new token will have the same hit points, armor class, rotation and presence. Lowering a token allows you to access another token underneath it.</p>
 <img src="/files/manual/blinders.png" alt="Blinders and windows" title="Blinders and windows" class="manual" />
 <p>Doors, walls and windows can be used to block a player's path and or vision. They are all placed at the edges of the grid cells (hold the ctrl button to place multiple walls or windows). Sometimes, a wall on a map isn't on a cell's edge. This is where you use blinders. Blinders can be placed anywhere on the map (hold the alt button to get off the edges), but they only block vision. Use a combination of blinders and windows to have a correct path and vision blocking on such maps. In the next example, the walls are orange, the windows are blue and the blinders are purple.</p>
@@ -101,11 +101,11 @@ function show_section(section) {
 <p>Throughout the maps, you can hide items for players to find. Here you can create those items. Items can only be placed 'inside' a token that is placed on a map. In Map Administration, right click a token on a map and select 'Assign collectable' to place a collectable inside that token.</p>
 <p>A player can find an item when its character is nearby the containing token and selects 'View' via a right click on that token. An item that is found, is shown in every player's inventory. When an item is found, you can optionally let Cauldron automatically hide the containing token.</p>
 <h3>Player administration</h3>
-<p>The last step before you can start running your game, is to add player characters. Player's don't receive a notification about this. Characters will be placed on the maps at or near the 'Player start' marker. Make sure all your players have created the right character for your game, as this step can only be done once!</p>
+<p>The last step before you can start running your adventure, is to add player characters. Player's don't receive a notification about this. Characters will be placed on the maps at or near the 'Player start' marker. Make sure all your players have created the right character for your adventure, as this step can only be done once!</p>
 </div>
 
 <div class="section running">
-<h2>Running a game</h2>
+<h2>Running an adventure</h2>
 <p>Right clicking with the mouse on a character, a token or the map opens a menu with options. Most options should explain themselves enough, but here is some information to make your understanding of Cauldron easier and faster.</p>
 <p><span class="fa fa-warning"></span> Create effect: An effect is a temporary visual marker on the map. When de Dungeon Master reloads the map, they are gone.</p>
 <p><span class="fa fa-lightbulb-o"></span> Create light: A light only has effect on a map with Fog of War type set to night / dark.</p>
@@ -114,6 +114,7 @@ function show_section(section) {
 <p><span class="fa fa-hand-grab-o"></span> Take back: Take back the control over this object from all other players.</p>
 <p><span class="fa fa-shield"></span> Attack: This rolls a D20 dice. The attack bonus you enter is added to the result of the dice roll. Only the outcome of the roll is shared with the players.</p>
 <p><span class="fa fa-compass"></span> Send to map: Makes the character invisible and sends it to another map. That map will also open in the Dungeon Master's browser.</p>
-<p>As a Dungeon Master, you are allowed to do more in a game than players. Because a zone scripts needs to be able to do what a Dungeon Master is allowed to do, a zone script is executed by the Dungeon Master's computer. If no Dungeon Master is in the game, zone scripts will not be executed. Dungeon Masters need to be sure that they open a map only once. Otherwise, a script will be executed more than once!</p>
+<p>As a Dungeon Master, you are allowed to do more in an adventure than players. Because a zone scripts needs to be able to do what a Dungeon Master is allowed to do, a zone script is executed by the Dungeon Master's computer. If no Dungeon Master is present in the game session, zone scripts will not be executed. Dungeon Masters need to be sure that they open a map only once. Otherwise, a script will be executed more than once!</p>
 <p>A battle is started by entering /init in the command line field. It rolls initiative for all players using their initiative bonus. You can add monsters or monster groups by entering its name and optionally its initiative bonus separated by a comma in the dialog box that appears. You can add monsters via the /add command and remove them via the /remove command. Change the player's turn via the /next command. Optionally, you can provide a name (or the first part of its name as long as it's unique) to change the battle order. When the battle is over, enter the command /done.</p>
+<p>As a Dungeon Master, you can make drawings on the screen. Hold the CTRL key to draw and the SHIFT key to erase. Open de menu in the upper right corner for all available drawing colors. Press the CTRL key while erasing to erase a larger area. Pressing the ALT key aligns the drawing or erasing to the grid.</p>
 </div>

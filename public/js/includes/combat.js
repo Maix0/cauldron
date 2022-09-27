@@ -24,11 +24,11 @@ function combat_check_running() {
 		return;
 	}
 
-	var bg = localStorage.getItem('combat_game_id');
+	var bg = localStorage.getItem('combat_adventure_id');
 	if (bg == undefined) {
 		combat_stop();
 		return;
-	} else if (bg != game_id) {
+	} else if (bg != adventure_id) {
 		combat_stop();
 		return;
 	}
@@ -38,6 +38,11 @@ function combat_check_running() {
 }
 
 function combat_start() {
+	if ($('div.character').length == 0) {
+		write_sidebar('This map has no characters.');
+		return;
+	}
+
 	if (_combat_order.length > 0) {
 		write_sidebar('Another combat has already been started.');
 		return;
@@ -158,7 +163,7 @@ function combat_next(being) {
 function combat_stop() {
 	_combat_order = [];
 	localStorage.removeItem('combat_order');
-	localStorage.removeItem('combat_game_id');
+	localStorage.removeItem('combat_adventure_id');
 }
 
 $(document).ready(function() {
@@ -173,7 +178,7 @@ $(document).ready(function() {
 		info: '<p>If you remove a character\'s initiative bonus, that character will not be included in the combat.</p>' +
 		      '<p>If you want a character or enemy to go first, give it a very high initiative bonus. If you want it to ' +
 		      'go last, give it a very high negative initiative bonus.</p>',
-		top: 50,
+		top: 75,
 		open: function() {
 			$('table.combat-tracker tbody').empty();
 			$('div.character').each(function() {
@@ -256,7 +261,7 @@ $(document).ready(function() {
 				});
 
 				localStorage.setItem('combat_order', JSON.stringify(_combat_order));
-				localStorage.setItem('combat_game_id', game_id);
+				localStorage.setItem('combat_adventure_id', adventure_id);
 
 				$(this).close();
 			},

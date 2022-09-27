@@ -9,7 +9,7 @@
 	class vault_file_model extends Banshee\model {
         protected $max_capacity = false;
 
-		private function filename_oke($file) {
+		private function filename_okay($file) {
 			if (trim($file) == "") {
 				return false;
 			}
@@ -21,7 +21,7 @@
 			return valid_input($file, VALIDATE_NUMBERS.VALIDATE_LETTERS."-_. ");
 		}
 
-		private function dirname_oke($file) {
+		private function dirname_okay($file) {
 			return valid_input($file, VALIDATE_NUMBERS.VALIDATE_LETTERS."-_", VALIDATE_NONEMPTY);
 		}
 
@@ -99,13 +99,13 @@
 			return $result;
 		}
 
-		public function upload_oke($file, $directory) {
+		public function upload_okay($file, $directory) {
 			if ($file["error"] !== 0) {
 				$this->view->add_system_warning("Error while uploading file.");
 				return false;
 			}
 
-			if ($this->filename_oke($file["name"]) == false) {
+			if ($this->filename_okay($file["name"]) == false) {
 				$this->view->add_message("Invalid filename.");
 				return false;
 			}
@@ -147,11 +147,11 @@
 		}
 
 		public function rename_file($current, $new, $directory) {
-			if ($this->filename_oke($current) == false) {
+			if ($this->filename_okay($current) == false) {
 				return false;
 			}
 
-			if ($this->filename_oke($new) == false) {
+			if ($this->filename_okay($new) == false) {
 				return false;
 			}
 
@@ -159,11 +159,11 @@
 			$r_new = $directory."/".$new;
 
 			if (is_dir($r_current)) {
-				if ($this->dirname_oke($current) == false) {
+				if ($this->dirname_okay($current) == false) {
 					return false;
 				}
 
-				if ($this->dirname_oke($new) == false) {
+				if ($this->dirname_okay($new) == false) {
 					return false;
 				}
 			}
@@ -172,7 +172,7 @@
 		}
 
 		public function delete_file($file, $directory) {
-			if ($this->filename_oke($file) == false) {
+			if ($this->filename_okay($file) == false) {
 				return false;
 			}
 			$file = $directory."/".$file;
@@ -198,10 +198,10 @@
 			return $result;
 		}
 
-		public function directory_oke($subdir, $directory) {
+		public function directory_okay($subdir, $directory) {
 			$result = true;
 
-			if ($this->dirname_oke($subdir) == false) {
+			if ($this->dirname_okay($subdir) == false) {
 				$this->view->add_message("Invalid directory name.");
 				$result = false;
 			} else if (file_exists($directory."/".$subdir)) {

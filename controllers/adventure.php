@@ -1,5 +1,5 @@
 <?php
-	class game_controller extends Banshee\controller {
+	class adventure_controller extends Banshee\controller {
 		protected $prevent_repost = false;
 
 		private function format_text($text) {
@@ -31,51 +31,51 @@
 			return "/resources/".$this->user->resources_key.substr($path, 10);
 		}
 
-		private function show_games() {
-			if (($games = $this->model->get_games()) === false) {
+		private function show_adventures() {
+			if (($adventures = $this->model->get_adventures()) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
 			$is_dm = show_boolean($this->user->has_role("Dungeon Master"));
 
-			if ($is_dm && count($games) == 0) {
+			if ($is_dm && count($adventures) == 0) {
 				$this->view->title = "Welcome to Cauldron VTT";
 			}
 
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
-			$this->view->add_javascript("games.js");
+			$this->view->add_javascript("adventures.js");
 
-			$this->view->open_tag("games", array("is_dm" => $is_dm));
-			foreach ($games as $game) {
-				$game["image"] = $this->resource_path($game["image"]);
-				$game["story"] = $this->format_text($game["story"]);
-				$game["access"] = show_boolean($game["access"] >= GAME_ACCESS_PLAYERS);
+			$this->view->open_tag("adventures", array("is_dm" => $is_dm));
+			foreach ($adventures as $adventure) {
+				$adventure["image"] = $this->resource_path($adventure["image"]);
+				$adventure["story"] = $this->format_text($adventure["story"]);
+				$adventure["access"] = show_boolean($adventure["access"] >= ADVENTURE_ACCESS_PLAYERS);
 
-				$this->view->record($game, "game");
+				$this->view->record($adventure, "adventure");
 			}
 			$this->view->close_tag();
 		}
 
-		private function run_game($game_id) {
-			if (($game = $this->model->get_game($game_id)) === false) {
-				$this->view->add_tag("result", "Game not found.");
+		private function run_adventure($adventure_id) {
+			if (($adventure = $this->model->get_adventure($adventure_id)) === false) {
+				$this->view->add_tag("result", "Adventure not found.");
 				return;
 			}
-			$user_is_dungeon_master = ($game["dm_id"] == $this->user->id);
+			$user_is_dungeon_master = ($adventure["dm_id"] == $this->user->id);
 
-			if (($game["access"] == GAME_ACCESS_DM_ONLY) && ($user_is_dungeon_master == false)) {
-				$this->view->add_tag("result", "This game is not accessible at the moment.");
+			if (($adventure["access"] == ADVENTURE_ACCESS_DM_ONLY) && ($user_is_dungeon_master == false)) {
+				$this->view->add_tag("result", "This adventure is not accessible at the moment.");
 				return;
 			}
 
 			if ($this->page->parameter_numeric(1)) {
-				$game["traveled_from"] = $game["active_map_id"];
-				$game["active_map_id"] = $this->page->parameters[1];
+				$adventure["traveled_from"] = $adventure["active_map_id"];
+				$adventure["active_map_id"] = $this->page->parameters[1];
 			}
 
 			if ($user_is_dungeon_master) {
-				if (($maps = $this->model->get_maps($game_id)) === false) {
+				if (($maps = $this->model->get_maps($adventure_id)) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -90,13 +90,13 @@
 
 			$grid_cell_size = $this->settings->screen_grid_size;
 
-			if ($game["active_map_id"] != null) {
-				if (($active_map = $this->model->get_map($game["active_map_id"])) == false) {
+			if ($adventure["active_map_id"] != null) {
+				if (($active_map = $this->model->get_map($adventure["active_map_id"])) == false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
 
-				if ($active_map["game_id"] != $game_id) {
+				if ($active_map["adventure_id"] != $adventure_id) {
 					$this->view->add_tag("result", "Invalid map.");
 					return;
 				}
@@ -108,12 +108,12 @@
 					}
 				}
 
-				if (($blinders = $this->model->get_blinders($game["active_map_id"])) === false) {
+				if (($blinders = $this->model->get_blinders($adventure["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
 
-				if (($characters = $this->model->get_characters($game["active_map_id"])) === false) {
+				if (($characters = $this->model->get_characters($adventure["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -123,22 +123,22 @@
 					return;
 				}
 
-				if (($doors = $this->model->get_doors($game["active_map_id"])) === false) {
+				if (($doors = $this->model->get_doors($adventure["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
 
-				if (($journal = $this->model->get_journal($game_id)) === false) {
+				if (($journal = $this->model->get_journal($adventure_id)) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
 
-				if (($lights = $this->model->get_lights($game["active_map_id"])) === false) {
+				if (($lights = $this->model->get_lights($adventure["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
 
-				if (($tokens = $this->model->get_tokens($game["active_map_id"])) === false) {
+				if (($tokens = $this->model->get_tokens($adventure["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -148,12 +148,12 @@
 					return;
 				}
 
-				if (($walls = $this->model->get_walls($game["active_map_id"])) === false) {
+				if (($walls = $this->model->get_walls($adventure["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
 
-				if (($zones = $this->model->get_zones($game["active_map_id"])) === false) {
+				if (($zones = $this->model->get_zones($adventure["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -182,11 +182,11 @@
 				$active_map = null;
 			}
 
-			$this->view->title = $game["title"];
-			if ($user_is_dungeon_master) {
+			$this->view->title = $adventure["title"];
+			if ($user_is_dungeon_master && ($active_map != null)) {
 				$this->view->title .= " - ".$active_map["title"];
 			}
-			$this->view->set_layout("game");
+			$this->view->set_layout("adventure");
 			$this->view->run_javascript("$('div.loading').remove()");
 
 			if ($active_map != null) {
@@ -199,7 +199,7 @@
 				if (is_true($active_map["show_grid"])) {
 					$this->view->add_javascript("includes/grid.js");
 				}
-				$this->view->add_javascript("game.js");
+				$this->view->add_javascript("adventure.js");
 				if ($active_map["fog_of_war"] > 0) {
 					if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
 						$type = "real";
@@ -213,19 +213,19 @@
 				$this->view->add_css("banshee/font-awesome.css");
 				$this->view->add_css("includes/context_menu.css");
 			} else {
-				$this->view->add_javascript("game_no_map.js");
+				$this->view->add_javascript("adventure_no_map.js");
 			}
 
-			$group_key = hash_hmac("sha256", $game["title"], $this->settings->secret_website_code);
+			$group_key = hash_hmac("sha256", $adventure["title"], $this->settings->secret_website_code);
 			$group_key = substr($group_key, 0, 12);
 
 			$attr = array(
-				"id"             => $game["id"],
+				"id"             => $adventure["id"],
 				"group_key"      => $group_key,
 				"is_dm"          => show_boolean($user_is_dungeon_master),
 				"grid_cell_size" => $grid_cell_size);
-			$this->view->open_tag("game", $attr);
-			$this->view->record($game);
+			$this->view->open_tag("adventure", $attr);
+			$this->view->record($adventure);
 
 			/* Websocket
 			 */
@@ -446,13 +446,43 @@
 			$this->view->close_tag();
 		}
 
-		public function execute() {
-			$this->view->title = "Games";
+		private function show_map_resources() {
+			if (($maps = $this->model->get_map_resources()) == false) {
+				return false;
+			}
 
-			if ($this->page->parameter_numeric(0)) {
-				$this->run_game($this->page->parameters[0]);
+			$this->view->open_tag("maps");
+			foreach ($maps as $map) {
+				$this->view->add_tag("map", $map);
+			}
+			$this->view->close_tag();
+		}
+
+		private function show_audio_resources() {
+			if (($sounds = $this->model->get_audio_resources()) == false) {
+				return false;
+			}
+
+			$this->view->open_tag("audio");
+			foreach ($sounds as $sound) {
+				$this->view->add_tag("sound", $sound);
+			}
+			$this->view->close_tag();
+		}
+
+		public function execute() {
+			$this->view->title = "Adventures";
+
+			if ($this->page->ajax_request) {
+				if ($this->page->parameter_value(0, "maps")) {
+					$this->show_map_resources();
+				} else if ($this->page->parameter_value(0, "audio")) {
+					$this->show_audio_resources();
+				}
+			} else if ($this->page->parameter_numeric(0)) {
+				$this->run_adventure($this->page->parameters[0]);
 			} else {
-				$this->show_games();
+				$this->show_adventures();
 			}
 		}
 	}

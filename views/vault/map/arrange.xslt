@@ -5,10 +5,10 @@
 
 <!--
 //
-//  Game template
+//  Adventure template
 //
 //-->
-<xsl:template match="game">
+<xsl:template match="adventure">
 <!-- Menu -->
 <div class="menu">
 <span id="infobar"></span>
@@ -28,7 +28,7 @@
 <xsl:call-template name="zone_create" />
 </div>
 <!-- Play area -->
-<div class="playarea" game_id="{@id}" map_id="{map/@id}" resources_key="{/output/cauldron/resources_key}" show_grid="{map/show_grid}" grid_cell_size="{@grid_cell_size}">
+<div class="playarea" adventure_id="{@id}" map_id="{map/@id}" resources_key="{/output/cauldron/resources_key}" show_grid="{map/show_grid}" grid_cell_size="{@grid_cell_size}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <div>
 <xsl:if test="map/type='image'"><xsl:attribute name="style">background-image:url(<xsl:value-of select="map/url" />); background-size:<xsl:value-of select="map/width" />px <xsl:value-of select="map/height" />px; width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute></xsl:if>
@@ -118,8 +118,8 @@
 //
 //-->
 <xsl:template match="content">
-<h1><xsl:value-of select="/output/layout/title/@page" /> - <xsl:value-of select="game/map/title" /></h1>
-<xsl:apply-templates select="game" />
+<h1><xsl:value-of select="/output/layout/title/@page" /> - <xsl:value-of select="adventure/map/title" /></h1>
+<xsl:apply-templates select="adventure" />
 <xsl:apply-templates select="result" />
 </xsl:template>
 

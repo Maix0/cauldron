@@ -27,7 +27,7 @@
 			return $result[0];
 		}
 
-		public function session_oke($session) {
+		public function session_okay($session) {
 			$result = true;
 
 			if ($this->settings->session_persistent) {

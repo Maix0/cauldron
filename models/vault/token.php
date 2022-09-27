@@ -13,7 +13,7 @@
 			return $token->get_token($token_id);
 		}
 
-		public function save_oke($token, $image) {
+		public function save_okay($token, $image) {
 			$result = true;
 
 			if (trim($token["name"]) == "") {
@@ -71,7 +71,7 @@
 			return $token->update_token($post, $image);
 		}
 
-		public function delete_oke($token) {
+		public function delete_okay($token) {
 			$result = true;
 
 			if (($current = $this->get_token($token["id"])) == false) {

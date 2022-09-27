@@ -17,7 +17,7 @@
 			return $result[0];
 		}
 
-		public function key_oke($key) {
+		public function key_okay($key) {
 			return (empty($key) == false) && ($key == $_SESSION["reset_password_key"]);
 		}
 
@@ -35,7 +35,7 @@
 			$email->send($user["email"], $user["fullname"]);
 		}
 
-		public function password_oke($username, $password) {
+		public function password_okay($username, $password) {
 			$result = true;
 
 			if (is_secure_password($password["password"], $this->view) == false) {

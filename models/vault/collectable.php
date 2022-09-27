@@ -1,26 +1,26 @@
 <?php
 	class vault_collectable_model extends Banshee\model {
-		public function get_games() {
-			$query = "select * from games where dm_id=%d order by timestamp desc";
+		public function get_adventures() {
+			$query = "select * from adventures where dm_id=%d order by timestamp desc";
 
 			return $this->db->execute($query, $this->user->id);
 		}
 
-		public function is_my_game($game_id) {
-			$query = "select * from games where id=%d and dm_id=%d";
+		public function is_my_adventure($adventure_id) {
+			$query = "select * from adventures where id=%d and dm_id=%d";
 
-			return $this->db->execute($query, $game_id, $this->user->id) != false;
+			return $this->db->execute($query, $adventure_id, $this->user->id) != false;
 		}
 
 		public function get_collectables() {
-			$query = "select * from collectables where game_id=%d order by name";
+			$query = "select * from collectables where adventure_id=%d order by name";
 
-			return $this->db->execute($query, $_SESSION["edit_game_id"]);
+			return $this->db->execute($query, $_SESSION["edit_adventure_id"]);
 		}
 
 		public function get_collectable($collectable_id) {
-			$query = "select c.* from collectables c, games g ".
-			         "where c.game_id=g.id and c.id=%d and g.dm_id=%d";
+			$query = "select c.* from collectables c, adventures a ".
+			         "where c.adventure_id=a.id and c.id=%d and a.dm_id=%d";
 
 			if (($collectables = $this->db->execute($query, $collectable_id, $this->user->id)) == false) {
 				return false;
@@ -42,7 +42,7 @@
 		}
 
 
-		public function save_oke($collectable, $image) {
+		public function save_okay($collectable, $image) {
 			$result = true;
 
 			if (isset($collectable["id"])) {
@@ -65,7 +65,7 @@
 					$max_capacity = $this->user->max_resources * MB;
 					$capacity = $this->borrow("vault/file")->get_directory_size("resources/".$this->user->resources_key);
 
-					if ($capacity + filesize($file["tmp_name"]) > $max_capacity) {
+					if ($capacity + filesize($image["tmp_name"]) > $max_capacity) {
 						$this->view->add_message("This file is too big for your maximum resource capacity (%s MB).", $this->user->max_resources);
 						return false;
 					}
@@ -84,10 +84,10 @@
 		}
 
 		public function create_collectable($collectable, $image) {
-			$keys = array("id", "game_id", "name", "image", "found", "hide");
+			$keys = array("id", "adventure_id", "name", "image", "found", "hide");
 
 			$collectable["id"] = null;
-			$collectable["game_id"] = $_SESSION["edit_game_id"];
+			$collectable["adventure_id"] = $_SESSION["edit_adventure_id"];
 			$collectable["image"] = "";
 			$collectable["found"] = is_true($collectable["found"] ?? false) ? YES : NO;
 			$collectable["hide"] = is_true($collectable["hide"] ?? false) ? YES : NO;
@@ -133,7 +133,7 @@
 			return $this->db->update("collectables", $collectable["id"], $collectable, $keys);
 		}
 
-		public function delete_oke($collectable) {
+		public function delete_okay($collectable) {
 			$result = true;
 
 			if ($this->get_collectable($collectable["id"]) == false) {

@@ -1,6 +1,6 @@
 var grid_size_min = 20;
 var grid_size_max = 200;
-var dialog;
+var map_dialog;
 
 function init_map_browser() {
 	$.ajax('/vault/map').done(function(data) {
@@ -10,7 +10,7 @@ function init_map_browser() {
 		});
 		maps += '</ul></div>';
 
-		dialog = $(maps).windowframe({
+		map_dialog = $(maps).windowframe({
 			activator: 'input.browser',
 			header: 'Maps from Resources',
 		});
@@ -21,7 +21,7 @@ function select_map(li) {
 	$('input#url').val($(li).text());
 	reset_dimension();
 
-	dialog.close();
+	map_dialog.close();
 }
 
 function reset_dimension() {

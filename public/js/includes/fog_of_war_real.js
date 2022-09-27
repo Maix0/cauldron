@@ -1,6 +1,5 @@
 const FOW_COLOR_SHADOW = '#202020';
-const FOW_LIGHT_EDGE_WIDTH = 50;
-const FOW_LIGHT_EDGE_STEPS = 10;
+const FOW_LIGHT_EDGE = 0.75;
 const FOW_COVERED_CHECKS = 2;
 
 var fog_of_war_distance = 0;
@@ -145,54 +144,42 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 
 	/* Draw sphere
 	 */
-	l_ctx.save();
-	l_ctx.beginPath();
-	l_ctx.arc(pos_x, pos_y, radius, 0, 2 * Math.PI);
-	l_ctx.clip();
-	l_ctx.clearRect(0, 0, canvas.width, canvas.height);
-	l_ctx.restore();
+	var grad = l_ctx.createRadialGradient(pos_x, pos_y, 0, pos_x, pos_y, radius);
+	grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+	grad.addColorStop(FOW_LIGHT_EDGE, 'rgba(0, 0, 0, ' + FOW_LIGHT_EDGE + ')');
+	grad.addColorStop(0, 'rgba(0, 0, 0, 1)');
 
-	/* Edge gradiant
+	var min_x = Math.min(pos_x - radius, 0);
+	var min_y = Math.min(pos_y - radius, 0);
+	var max_x = Math.max(pos_x + radius, l_canvas.width - 1);
+	var max_y = Math.max(pos_y + radius, l_canvas.height - 1);
+
+	l_ctx.globalCompositeOperation = 'xor';
+	l_ctx.fillStyle = grad;
+	l_ctx.fillRect(min_x, min_y, max_x, max_y);
+
+	l_ctx.globalCompositeOperation = 'source-over';
+	l_ctx.fillStyle = FOW_COLOR_SHADOW;
+
+	/* Walls
 	 */
-	if (FOW_LIGHT_EDGE_WIDTH > 0) {
-		l_ctx.lineWidth = FOW_LIGHT_EDGE_WIDTH / FOW_LIGHT_EDGE_STEPS;
-		edge_color = 0.6;
-		edge_color_step = edge_color / FOW_LIGHT_EDGE_STEPS;
-
-		for (r = 0; r < FOW_LIGHT_EDGE_STEPS; r+= 1) {
-			radius -= l_ctx.lineWidth;
-			edge_color -= edge_color_step;
-
-			l_ctx.strokeStyle = 'rgba(32, 32, 32, ' + edge_color + ')';
-			l_ctx.arc(pos_x, pos_y, radius, 0, 2 * Math.PI);
-			l_ctx.stroke();
+	$('div.wall').each(function() {
+		if ($(this).attr('transparent') == 'yes') {
+			return;
 		}
 
-		l_ctx.beginPath();
-		l_ctx.lineWidth = 2;
-		l_ctx.arc(pos_x, pos_y, radius + FOW_LIGHT_EDGE_WIDTH, 0, 2 * Math.PI);
-		l_ctx.stroke();
+		draw_fow_shape_for_construct(l_ctx, pos_x, pos_y, $(this));
+	});
 
-		/* Walls
-		 */
-		$('div.wall').each(function() {
-			if ($(this).attr('transparent') == 'yes') {
-				return;
-			}
+	/* Doors
+	 */
+	$('div.door').each(function() {
+		if ($(this).attr('state') == 'open') {
+			return;
+		}
 
-			draw_fow_shape_for_construct(l_ctx, pos_x, pos_y, $(this));
-		});
-
-		/* Doors
-		 */
-		$('div.door').each(function() {
-			if ($(this).attr('state') == 'open') {
-				return;
-			}
-
-			draw_fow_shape_for_construct(l_ctx, pos_x, pos_y, $(this));
-		});
-	}
+		draw_fow_shape_for_construct(l_ctx, pos_x, pos_y, $(this));
+	});
 
 	ctx.globalCompositeOperation = 'destination-in';
 	ctx.drawImage(l_canvas, 0, 0);

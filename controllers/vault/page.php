@@ -99,7 +99,7 @@
 					/* Save page
 					 */
 					$_POST["url"] = "/".trim($_POST["url"], "/ ");
-					if ($this->model->save_oke($_POST) == false) {
+					if ($this->model->save_okay($_POST) == false) {
 						$this->show_page_form($_POST);
 					} else if (isset($_POST["id"]) == false) {
 						/* Create page

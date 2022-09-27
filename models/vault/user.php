@@ -116,7 +116,7 @@
 			return $this->db->execute($query, YES);
 		}
 
-		public function save_oke($user) {
+		public function save_okay($user) {
 			$result = true;
 
 			if (isset($user["id"])) {
@@ -345,7 +345,7 @@
 			return $this->db->query("commit") != false;
 		}
 
-		public function delete_oke($user_id) {
+		public function delete_okay($user_id) {
 			$result = true;
 
 			if ($user_id == $this->user->id) {
@@ -353,12 +353,12 @@
 				$result = false;
 			}
 
-			$query = "select count(*) as count from games where dm_id=%d";
+			$query = "select count(*) as count from adventures where dm_id=%d";
 			if (($chars = $this->db->execute($query, $user_id)) == false) {
 				$this->view->add_message("Database error.");
 				$result = false;
 			} else if ($chars[0]["count"] > 0) {
-				$this->view->add_message("This account contains games.");
+				$this->view->add_message("This account contains adventures.");
 				$result = false;
 			}
 
@@ -402,7 +402,7 @@
 
 			foreach ($characters as $character) {
 				array_push($queries, array("delete from map_character where character_id=%d", $character["id"]));
-				array_push($queries, array("delete from game_character where character_id=%d", $character["id"]));
+				array_push($queries, array("delete from adventure_character where character_id=%d", $character["id"]));
 				array_push($queries, array("delete from character_icons where character_id=%d", $character["id"]));
 				array_push($queries, array("delete from characters where id=%d", $character["id"]));
 			}

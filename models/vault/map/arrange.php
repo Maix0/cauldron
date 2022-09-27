@@ -1,13 +1,13 @@
 <?php
 	class vault_map_arrange_model extends Banshee\model {
-		public function get_game($game_id) {
-			$query = "select * from games where id=%d and dm_id=%d";
+		public function get_adventure($adventure_id) {
+			$query = "select * from adventures where id=%d and dm_id=%d";
 
-			if (($games = $this->db->execute($query, $game_id, $this->user->id)) == false) {
+			if (($adventures = $this->db->execute($query, $adventure_id, $this->user->id)) == false) {
 				return false;
 			}
 
-			return $games[0];
+			return $adventures[0];
 		}
 
 		public function get_map($map_id) {
@@ -33,11 +33,11 @@
 			return $this->db->execute($query);
 		}
 
-		private function place_characters($game_id, $map_id) {
-			$query = "select l.character_id from game_character l, characters c ".
-					 "where l.character_id=c.id and game_id=%d order by c.name";
+		private function place_characters($adventure_id, $map_id) {
+			$query = "select l.character_id from adventure_character l, characters c ".
+					 "where l.character_id=c.id and adventure_id=%d order by c.name";
 
-			if (($characters = $this->db->execute($query, $game_id)) === false) {
+			if (($characters = $this->db->execute($query, $adventure_id)) === false) {
 				return false;
 			}
 

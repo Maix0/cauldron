@@ -11,13 +11,14 @@
 <xsl:template match="overview">
 <table class="table table-condensed table-striped table-hover">
 <thead>
-<tr><th>ID</th><th>Title</th><th>Players</th><th>Access</th></tr>
+<tr><th>ID</th><th>Title</th><th>Maps</th><th>Players</th><th>Access</th></tr>
 </thead>
 <tbody>
-<xsl:for-each select="games/game">
+<xsl:for-each select="adventures/adventure">
 <tr class="click" onClick="javascript:document.location='/{/output/page}/{@id}'">
 <td><xsl:value-of select="@id" /></td>
 <td><xsl:value-of select="title" /></td>
+<td><xsl:value-of select="maps" /></td>
 <td><xsl:value-of select="players" /></td>
 <td><xsl:value-of select="access" /></td>
 </tr>
@@ -26,13 +27,13 @@
 </table>
 
 <div class="btn-group left">
-<a href="/{/output/page}/new" class="btn btn-default">New game</a>
+<a href="/{/output/page}/new" class="btn btn-default">New adventure</a>
 <a href="/vault" class="btn btn-default">Back</a>
 </div>
 
 <div id="help">
-<p>All your games are listed here.</p>
-<p>After creating a new game, you will automatically be forwarded to the Maps section, where you can add one or more maps to your game.</p>
+<p>All your adventures are listed here.</p>
+<p>After creating a new adventure, you will automatically be forwarded to the Maps section, where you can add one or more maps to your adventure.</p>
 </div>
 </xsl:template>
 
@@ -44,28 +45,28 @@
 <xsl:template match="edit">
 <xsl:call-template name="show_messages" />
 <form action="/{/output/page}" method="post">
-<xsl:if test="game/@id">
-<input type="hidden" name="id" value="{game/@id}" />
+<xsl:if test="adventure/@id">
+<input type="hidden" name="id" value="{adventure/@id}" />
 </xsl:if>
 
 <label for="title">Title:</label>
-<input type="text" id="title" name="title" value="{game/title}" class="form-control" />
+<input type="text" id="title" name="title" value="{adventure/title}" class="form-control" />
 <label for="image">Title background image URL (optional):</label>
-<input type="text" id="image" name="image" value="{game/image}" class="form-control" />
+<input type="text" id="image" name="image" value="{adventure/image}" class="form-control" />
 <label for="story">Introduction story (optional):</label>
-<textarea id="story" name="story" class="form-control"><xsl:value-of select="game/story" /></textarea>
+<textarea id="story" name="story" class="form-control"><xsl:value-of select="adventure/story" /></textarea>
 <label for="story">Access rights:</label>
 <select id="access" name="access" class="form-control">
 <xsl:for-each select="access/level">
-<option value="{@value}"><xsl:if test="@value=../../game/access"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
+<option value="{@value}"><xsl:if test="@value=../../adventure/access"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
 </xsl:for-each>
 </select>
 
 <div class="btn-group">
-<input type="submit" name="submit_button" value="Save game" class="btn btn-default" />
+<input type="submit" name="submit_button" value="Save adventure" class="btn btn-default" />
 <a href="/{/output/page}" class="btn btn-default">Cancel</a>
-<xsl:if test="game/@id">
-<input type="submit" name="submit_button" value="Delete game" class="btn btn-default" onClick="javascript:return confirm('DELETE: Are you sure?')" />
+<xsl:if test="adventure/@id">
+<input type="submit" name="submit_button" value="Delete adventure" class="btn btn-default" onClick="javascript:return confirm('DELETE: Are you sure?')" />
 </xsl:if>
 </div>
 </form>
@@ -81,8 +82,8 @@
 //
 //-->
 <xsl:template match="content">
-<img src="/images/icons/game.png" class="title_icon" />
-<h1>Your games</h1>
+<img src="/images/icons/adventure.png" class="title_icon" />
+<h1>Your adventures</h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="result" />

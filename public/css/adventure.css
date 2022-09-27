@@ -42,7 +42,7 @@ div.row div.well div.btn-group {
 	right:15px;
 }
 
-/* Run a game
+/* Running an adventure
  */
 div.loading {
 	position:absolute;
@@ -66,14 +66,14 @@ div.loading span {
 
 /* Menu
 */
-div.menu {
+div.topbar {
 	position:absolute;
 	top:5px;
 	right:15px;
 	margin:0;
 }
 
-div.menu span#infobar {
+div.topbar span#infobar {
 	margin-right:15px;
 	display:inline-block;
 	position:relative;
@@ -84,37 +84,26 @@ div.menu span#infobar {
 	text-align:right;
 }
 
-div.menu div.btn-group {
+div.topbar div.btn-group {
 	margin:0;
 	display:inline-block;
 }
 
-div.menu select.map-selector {
-	margin-right:15px;
-	display:inline-block;
-	width:200px;
-	height:20px;
-	padding:0;
-	position:relative;
-	top:1px;
-	font-size:12px;
-}
-
-div.menu div.zoom button {
-	font-family:sans-serif;
-	padding:0 10px;
+div.topbar select.map-selector {
+	display:block;
+	width:100%;
 }
 
 table.table th:last-child {
 	width:200px;
 }
 
-div.menu-options {
+div.menu {
 	display:none;
 	top:25px;
 	right:0;
 	position:absolute;
-	width:250px;
+	width:500px;
 	border:1px solid #808080;
 	background-color:#ffffff;
 	border-radius:4px;
@@ -122,16 +111,16 @@ div.menu-options {
 	padding:10px;
 }
 
-div.menu-options .btn {
+div.menu .btn {
 	display:block;
 	width:100%;
 	margin-bottom:5px;
 }
 
-div.menu-options div.draw-colors {
+div.menu div.draw-colors {
 	margin-bottom:5px;
 }
-div.menu-options div.draw-colors span {
+div.menu div.draw-colors span {
 	display:inline-block;
 	width:25px;
 	height:25px;
@@ -139,18 +128,40 @@ div.menu-options div.draw-colors span {
 	margin:7px 7px 0 0;
 	cursor:pointer;
 }
-div.menu-options div.draw-colors span:before {
+div.menu div.draw-colors span:last-child {
+	margin-right:0;
+}
+div.menu div.draw-colors span:before {
 	font-size:20px;
 	position:absolute;
 }
 
+ul.map_image {
+	padding-left:15px;
+}
+
+ul.map_image li:hover {
+	cursor:pointer;
+	background:#ffffa0;
+}
+
+ul.audio {
+	padding-left:15px;
+}
+
+ul.audio li:hover {
+	cursor:pointer;
+	background:#ffffa0;
+}
+
 /* Drawing
  */
-div.menu-options h2 {
-	font-size:20px;
+div.menu h2 {
+	font-size:19px;
+	color:#5385c1;
 	margin-bottom:5px;
 	margin-top:10px;
-	border-top:1px solid #808080;
+	border-top:1px solid #f06000;
 	padding-top:5px;
 }
 
@@ -161,7 +172,7 @@ div.drawing {
 }
 
 div#draw_width {
-	margin:0 10px 10px 10px;
+	margin:10px;
 }
 
 div#draw_width div {
@@ -321,10 +332,18 @@ div.playarea video {
 
 /* Library
  */
+div.filter {
+    position:absolute;
+    right:30px;
+    top:40px;
+    width:170px;
+	height:45px;
+}
+
 div.library {
     position:absolute;
     right:0px;
-    top:40px;
+    top:85px;
     width:200px;
 	height:280px;
     overflow-y:scroll;
@@ -355,7 +374,7 @@ img.ui-draggable-dragging {
 div.sidebar {
 	font-size:12px;
 	position:absolute;
-	top:330px;
+	top:375px;
 	right:0px;
 	bottom:65px;
 	width:200px;
@@ -463,27 +482,42 @@ div.zone div.script {
 /* Mobile view
  */
 @media (max-width:991px) {
-	div.playarea,
-	div.library {
+	div.playarea {
 		top:70px;
 	}
 
-	div.sidebar {
-		top:360px;
+	div.filter {
+		top:70px;
 	}
 
-	div.menu {
+	div.library {
+		top:115px;
+	}
+
+	div.sidebar {
+		top:405px;
+	}
+
+	div.topbar {
 		top:40px;
 	}
 
-	div.menu select.map-selector {
+	div.topbar select.map-selector {
 		width:185px;
 	}
 }
 
 @media (max-width:767px) {
+	h1 {
+		font-size:22px;
+	}
+
 	div.playarea {
 		right:165px;
+	}
+
+	div.filter {
+		width:120px;
 	}
 
 	div.library {
@@ -492,7 +526,7 @@ div.zone div.script {
 	}
 
 	div.sidebar {
-		top:260px;
+		top:305px;
 		width:150px;
 	}
 
@@ -500,7 +534,8 @@ div.zone div.script {
 		width:145px;
 	}
 
-	div.menu span#infobar {
+	button.start_combat,
+	button.play_audio {
 		display:none;
 	}
 }
@@ -523,7 +558,17 @@ div.dark div.sidebar p b {
 	color:#7070d0;
 }
 
+div.dark div.filter input,
 div.dark div.input input {
 	color:#e0e0e0;
 	background-color:#404040;
+}
+
+div.dark div.library div.well {
+	background-color:#c0c0c0;
+	background-image:none;
+}
+
+div.dark div.menu {
+	background-color:#d0d0d0;
 }

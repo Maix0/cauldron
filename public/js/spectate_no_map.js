@@ -1,9 +1,9 @@
-var game_id = null;
+var adventure_id = null;
 
 function change_map() {
-	document.location = '/spectate/' + game_id + '/' + $('select.map-selector').val();
+	document.location = '/spectate/' + adventure_id + '/' + $('select.map-selector').val();
 }
 
 $(document).ready(function() {
-    game_id = parseInt($('input#game_id').val());
+    adventure_id = parseInt($('input#adventure_id').val());
 });

@@ -11,7 +11,7 @@
 <xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:import href="functions.xslt" />
 <xsl:import href="layout_cauldron.xslt" />
-<xsl:import href="layout_game.xslt" />
+<xsl:import href="layout_adventure.xslt" />
 
 <xsl:output method="html" doctype-system="about:legacy-compat" />
 

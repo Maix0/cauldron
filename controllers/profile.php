@@ -80,7 +80,7 @@
 				/* Update profile
 				 */
 				if ($_POST["submit_button"] == "Update profile") {
-					if ($this->model->profile_oke($_POST) == false) {
+					if ($this->model->profile_okay($_POST) == false) {
 						$this->show_profile_form($_POST);
 					} else if ($this->model->update_profile($_POST) === false) {
 						$this->view->add_tag("result", "Error while updating profile.", array("url" => PROFILE_MODULE));
@@ -90,7 +90,7 @@
 						unset($_SESSION["profile_next"]);
 					}
 				} else if ($_POST["submit_button"] == "Delete profile") {
-					if ($this->model->delete_oke() == false) {
+					if ($this->model->delete_okay() == false) {
 						$this->show_profile_form();
 					} else if ($this->model->delete_account() == false) {
 						$this->view->add_message("Something went wrong while deleting this account.");

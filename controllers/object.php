@@ -11,7 +11,7 @@
 		}
 
 		public function post_change_map() {
-			$this->model->change_map($_POST["game_id"], $_POST["map_id"]);
+			$this->model->change_map($_POST["adventure_id"], $_POST["map_id"]);
 		}
 
 		public function post_create_blinder() {
@@ -168,7 +168,7 @@
 		/* Collectables
 		 */
 		public function post_collectables_unused() {
-			if (($collectables = $this->model->collectables_get_unused($_POST["game_id"], $_POST["instance_id"])) === false) {
+			if (($collectables = $this->model->collectables_get_unused($_POST["adventure_id"], $_POST["instance_id"])) === false) {
 				return false;
 			}
 
@@ -186,7 +186,7 @@
 		}
 
 		public function post_collectables_found() {
-			if (($collectables = $this->model->collectables_get_found($_POST["game_id"])) === false) {
+			if (($collectables = $this->model->collectables_get_found($_POST["adventure_id"])) === false) {
 				return false;
 			}
 
@@ -198,13 +198,13 @@
 		/* Alternate icon
 		 */
 		public function post_alternate() {
-			$this->model->set_alternate($_POST["game_id"], $_POST["char_id"], $_POST["alternate_id"]);
+			$this->model->set_alternate($_POST["adventure_id"], $_POST["char_id"], $_POST["alternate_id"]);
 		}
 
 		/* Change shape
 		 */
 		public function post_shape() {
-			$this->model->set_shape($_POST["game_id"], $_POST["char_id"], $_POST["token_id"]);
+			$this->model->set_shape($_POST["adventure_id"], $_POST["char_id"], $_POST["token_id"]);
 		}
 
 		/* Doors
@@ -216,7 +216,7 @@
 		/* Journal
 		 */
 		public function post_journal() {
-			$this->model->journal_add($_POST["game_id"], $_POST["content"]);
+			$this->model->journal_add($_POST["adventure_id"], $_POST["content"]);
 		}
 
 		/* Lights
@@ -234,20 +234,6 @@
 		public function post_script() {
 			$copy_script = is_true($_POST["copy_script"]);
 			$this->model->script_save($_POST["zone_id"], $_POST["map_id"], $_POST["script"], $_POST["zone_group"], $copy_script);
-		}
-
-		/* Audio
-		 */
-		public function post_audio() {
-			if (($files = $this->model->get_audio_files($_POST["game_id"])) === false) {
-				return false;
-			}
-
-			$this->view->open_tag("audio");
-			foreach ($files as $file) {
-				$this->view->add_tag("file", $file);
-			}
-			$this->view->close_tag();
 		}
 	}
 ?>

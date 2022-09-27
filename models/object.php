@@ -1,23 +1,37 @@
 <?php
 	class object_model extends Banshee\api_model {
-		private function valid_game_id($game_id) {
-			$query = "select count(*) as count from games g ".
-			         "left join game_character i on g.id=i.game_id ".
-			         "left join characters c on i.character_id=c.id ".
-			         "where g.id=%d and (g.dm_id=%d or c.user_id=%d)";
+		private function valid_adventure_id($adventure_id) {
+			if (isset($_SESSION["valid_adventure_id"]) == false) {
+				$_SESSION["valid_adventure_id"] = array();
+			}
 
-			if (($result = $this->db->execute($query, $game_id, $this->user->id, $this->user->id)) === false) {
+			if (in_array($adventure_id, $_SESSION["valid_adventure_id"])) {
+				return true;
+			}
+
+			$query = "select count(*) as count from adventures a ".
+			         "left join adventure_character i on a.id=i.adventure_id ".
+			         "left join characters c on i.character_id=c.id ".
+			         "where a.id=%d and (a.dm_id=%d or c.user_id=%d)";
+
+			if (($result = $this->db->execute($query, $adventure_id, $this->user->id, $this->user->id)) === false) {
 				return false;
 			}
 
-			return $result[0]["count"] > 0;
+			if ($result[0]["count"] == 0) {
+				return false;
+			}
+
+			array_push($_SESSION["valid_adventure_id"], $adventure_id);
+
+			return true;
 		}
 
 		/* Map functions
 		 */
 		private function valid_map_id($map_id) {
-			$query = "select count(*) as count from maps m, games g ".
-			         "where m.game_id=g.id and m.id=%d and g.dm_id=%d";
+			$query = "select count(*) as count from maps m, adventures a ".
+			         "where m.adventure_id=a.id and m.id=%d and a.dm_id=%d";
 
 			if (($result = $this->db->execute($query, $map_id, $this->user->id)) === false) {
 				return false;
@@ -26,14 +40,14 @@
 			return $result[0]["count"] > 0;
 		}
 
-		public function change_map($game_id, $map_id) {
+		public function change_map($adventure_id, $map_id) {
 			if ($this->valid_map_id($map_id) == false) {
 				return false;
 			}
 
-			$query = "update games set active_map_id=%d where id=%d and dm_id=%d";
+			$query = "update adventures set active_map_id=%d where id=%d and dm_id=%d";
 
-			return $this->db->query($query, $map_id, $game_id, $this->user->id) != false;
+			return $this->db->query($query, $map_id, $adventure_id, $this->user->id) != false;
 		}
 
 		/* Start functions
@@ -51,19 +65,32 @@
 		/* Token functions
 		 */
 		private function valid_token_instance_id($instance_id) {
+			if (isset($_SESSION["valid_instance_id"]) == false) {
+				$_SESSION["valid_instance_id"] = array();
+			}
+
+			if (in_array($instance_id, $_SESSION["valid_instance_id"])) {
+				return true;
+			}
+
 			$query = "select count(*) as count ".
-			         "from map_token t, maps m, games g ".
-			         "left join game_character i on g.id=i.game_id ".
+			         "from map_token t, maps m, adventures a ".
+			         "left join adventure_character i on a.id=i.adventure_id ".
 			         "left join characters c on i.character_id=c.id ".
-			         "where t.id=%d and t.map_id=m.id and m.game_id=g.id ".
-			         "and (g.dm_id=%d or c.user_id=%d)";
+			         "where t.id=%d and t.map_id=m.id and m.adventure_id=a.id ".
+			         "and (a.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $instance_id, $this->user->id, $this->user->id)) === false) {
 				return false;
 			}
 
+			if ($result[0]["count"] == 0) {
+				return false;
+			}
 
-			return $result[0]["count"] > 0;
+			array_push($_SESSION["valid_instance_id"], $instance_id);
+
+			return true;
 		}
 
 		public function token_armor_class($instance_id, $armor_class) {
@@ -180,8 +207,8 @@
 		/* Blinder functions
 		 */
 		private function valid_blinder_id($blinder_id) {
-			$query = "select count(*) as count from blinders w, maps m, games g ".
-			         "where w.id=%d and w.map_id=m.id and m.game_id=g.id and g.dm_id=%d";
+			$query = "select count(*) as count from blinders w, maps m, adventures a ".
+			         "where w.id=%d and w.map_id=m.id and m.adventure_id=a.id and a.dm_id=%d";
 
 			if (($result = $this->db->execute($query, $blinder_id, $this->user->id)) === false) {
 				return false;
@@ -232,16 +259,30 @@
 		/* Character functions
 		 */
 		private function valid_character_instance_id($instance_id) {
+			if (isset($_SESSION["valid_character_instance_id"]) == false) {
+				$_SESSION["valid_character_instance_id"] = array();
+			}
+
+			if (in_array($instance_id, $_SESSION["valid_character_instance_id"])) {
+				return true;
+			}
+
 			$query = "select count(*) as count ".
-			         "from map_character h, maps m, games g, game_character p, characters c ".
-			         "where h.map_id=m.id and m.game_id=g.id and g.id=p.game_id and p.character_id=c.id ".
-			         "and h.character_id=c.id and h.id=%d and (g.dm_id=%d or c.user_id=%d)";
+			         "from map_character h, maps m, adventures a, adventure_character p, characters c ".
+			         "where h.map_id=m.id and m.adventure_id=a.id and a.id=p.adventure_id and p.character_id=c.id ".
+			         "and h.character_id=c.id and h.id=%d and (a.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $instance_id, $this->user->id, $this->user->id)) === false) {
 				return false;
 			}
 
-			return $result[0]["count"] > 0;
+			if ($result[0]["count"] == 0) {
+				return false;
+			}
+
+			array_push($_SESSION["valid_character_instance_id"], $instance_id);
+
+			return true;
 		}
 
 		private function get_character($instance_id) {
@@ -330,11 +371,11 @@
 		/* Door functions
 		 */
 		private function valid_door_id($door_id) {
-			$query = "select count(*) as count from doors d, maps m, games g ".
-			         "left join game_character i on g.id=i.game_id ".
+			$query = "select count(*) as count from doors d, maps m, adventures a ".
+			         "left join adventure_character i on a.id=i.adventure_id ".
 			         "left join characters c on i.character_id=c.id ".
-			         "where d.id=%d and d.map_id=m.id and m.game_id=g.id ".
-			         "and (g.dm_id=%d or c.user_id=%d)";
+			         "where d.id=%d and d.map_id=m.id and m.adventure_id=a.id ".
+			         "and (a.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $door_id, $this->user->id, $this->user->id)) === false) {
 				return false;
@@ -389,8 +430,8 @@
 		/* Light functions
 		 */
 		private function valid_light_id($light_id) {
-			$query = "select count(*) as count from lights l, maps m, games g ".
-			         "where l.id=%d and l.map_id=m.id and m.game_id=g.id and g.dm_id=%d";
+			$query = "select count(*) as count from lights l, maps m, adventures a ".
+			         "where l.id=%d and l.map_id=m.id and m.adventure_id=a.id and a.dm_id=%d";
 
 			if (($result = $this->db->execute($query, $light_id, $this->user->id)) === false) {
 				return false;
@@ -457,8 +498,8 @@
 		/* Wall functions
 		 */
 		private function valid_wall_id($wall_id) {
-			$query = "select count(*) as count from walls w, maps m, games g ".
-			         "where w.id=%d and w.map_id=m.id and m.game_id=g.id and g.dm_id=%d";
+			$query = "select count(*) as count from walls w, maps m, adventures a ".
+			         "where w.id=%d and w.map_id=m.id and m.adventure_id=a.id and a.dm_id=%d";
 
 			if (($result = $this->db->execute($query, $wall_id, $this->user->id)) === false) {
 				return false;
@@ -499,11 +540,11 @@
 		/* Zone functions
 		 */
 		private function valid_zone_id($zone_id) {
-			$query = "select count(*) as count from zones z, maps m, games g ".
-			         "left join game_character i on g.id=i.game_id ".
+			$query = "select count(*) as count from zones z, maps m, adventures a ".
+			         "left join adventure_character i on a.id=i.adventure_id ".
 			         "left join characters c on i.character_id=c.id ".
-			         "where z.id=%d and z.map_id=m.id and m.game_id=g.id ".
-			         "and (g.dm_id=%d or c.user_id=%d)";
+			         "where z.id=%d and z.map_id=m.id and m.adventure_id=a.id ".
+			         "and (a.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $zone_id, $this->user->id, $this->user->id)) === false) {
 				return false;
@@ -578,10 +619,10 @@
 		/* Collectable functions
 		 */
 		private function valid_collectable_id($collectable_id) {
-			$query = "select count(*) as count from collectables o, games g ".
-			         "left join game_character i on g.id=i.game_id ".
+			$query = "select count(*) as count from collectables o, adventures a ".
+			         "left join adventure_character i on a.id=i.adventure_id ".
 			         "left join characters c on i.character_id=c.id ".
-			         "where o.id=%d and o.game_id=g.id and (g.dm_id=%d or c.user_id=%d)";
+			         "where o.id=%d and o.adventure_id=a.id and (a.dm_id=%d or c.user_id=%d)";
 
 			if (($result = $this->db->execute($query, $collectable_id, $this->user->id, $this->user->id)) === false) {
 				return false;
@@ -590,8 +631,8 @@
 			return $result[0]["count"] > 0;
 		}
 
-		public function collectables_get_unused($game_id, $token_instance_id) {
-			if ($this->valid_game_id($game_id) == false) {
+		public function collectables_get_unused($adventure_id, $token_instance_id) {
+			if ($this->valid_adventure_id($adventure_id) == false) {
 				return false;
 			}
 
@@ -600,9 +641,9 @@
 			}
 
 			$query = "select id, map_token_id, name, image from collectables ".
-			         "where game_id=%d and (map_token_id is null or map_token_id=%d) order by name";
+			         "where adventure_id=%d and (map_token_id is null or map_token_id=%d) order by name";
 
-			return $this->db->execute($query, $game_id, $token_instance_id);
+			return $this->db->execute($query, $adventure_id, $token_instance_id);
 		}
 
 		public function collectable_place($collectable_id, $token_instance_id) {
@@ -637,108 +678,84 @@
 			return $this->db->update("collectables", $collectable_id, $data) !== false;
 		}
 
-		public function collectables_get_found($game_id) {
-			if ($this->valid_game_id($game_id) == false) {
-				return false;
+		public function collectables_get_found($adventure_id) {
+			if ($this->valid_adventure_id($adventure_id) == false) {
+				$query = "select a.access from adventures a, users u ".
+				         "where a.id=%d and a.dm_id=u.id and u.organisation_id=%d";
+				if (($adventure = $this->db->execute($query, $adventure_id, $this->user->organisation_id)) == false) {
+					return false;
+				}
+
+				if ($adventure[0]["access"] != ADVENTURE_ACCESS_PLAYERS_SPECTATORS) {
+					return false;
+				}
 			}
 
 			$query = "select id, name, image from collectables ".
-					 "where game_id=%d and found=%d order by name";
+					 "where adventure_id=%d and found=%d order by name";
 
-			return $this->db->execute($query, $game_id, YES);
+			return $this->db->execute($query, $adventure_id, YES);
 		}
 
 		/* Journal functions
 		 */
-		public function journal_add($game_id, $content) {
-			if ($this->valid_game_id($game_id) == false) {
+		public function journal_add($adventure_id, $content) {
+			if ($this->valid_adventure_id($adventure_id) == false) {
 				return false;
 			}
 
 			$data = array(
-				"game_id" => $game_id,
-				"user_id" => $this->user->id,
-				"content" => $content);
+				"adventure_id" => $adventure_id,
+				"user_id"      => $this->user->id,
+				"content"      => $content);
 
 			return $this->db->insert("journal", $data) != false;
 		}
 
 		/* Alternate functions
 		 */
-		public function set_alternate($game_id, $character_id, $alternate_id) {
-			$query = "select * from game_character g, characters c ".
-			         "where g.game_id=%d and g.character_id=c.id and c.id=%d and c.user_id=%d";
-			if (($character = $this->db->execute($query, $game_id, $character_id, $this->user->id)) == false) {
+		public function set_alternate($adventure_id, $character_id, $alternate_id) {
+			$query = "select * from adventure_character g, characters c ".
+			         "where a.adventure_id=%d and a.character_id=c.id and c.id=%d and c.user_id=%d";
+			if (($character = $this->db->execute($query, $adventure_id, $character_id, $this->user->id)) == false) {
 				return false;
 			}
 
 			$params = array();
-			$query = "update game_character set alternate_icon_id=";
+			$query = "update adventure_character set alternate_icon_id=";
 			if ($alternate_id == 0) {
 			 	$query .= "null";
 			} else {
 				$query .= "%d";
 				array_push($params, $alternate_id);
 			}
-			$query .= ", token_id=null where game_id=%d and character_id=%d";
-			array_push($params, $game_id, $character_id);
+			$query .= ", token_id=null where adventure_id=%d and character_id=%d";
+			array_push($params, $adventure_id, $character_id);
 
 			return $this->db->query($query, $params) !== false;
 		}
 
 		/* Shape functions
 		 */
-		public function set_shape($game_id, $character_id, $token_id) {
-			$query = "select * from game_character c, games g ".
-			         "where c.game_id=g.id and g.id=%d and c.character_id=%d and g.dm_id=%d";
-			if (($character = $this->db->execute($query, $game_id, $character_id, $this->user->id)) == false) {
+		public function set_shape($adventure_id, $character_id, $token_id) {
+			$query = "select * from adventure_character c, adventures a ".
+			         "where c.adventure_id=a.id and a.id=%d and c.character_id=%d and a.dm_id=%d";
+			if (($character = $this->db->execute($query, $adventure_id, $character_id, $this->user->id)) == false) {
 				return false;
 			}
 
 			$params = array();
-			$query = "update game_character set token_id=";
+			$query = "update adventure_character set token_id=";
 			if ($token_id == 0) {
 			 	$query .= "null";
 			} else {
 				$query .= "%d";
 				array_push($params, $token_id);
 			}
-			$query .= ", alternate_icon_id=null where game_id=%d and character_id=%d";
-			array_push($params, $game_id, $character_id);
+			$query .= ", alternate_icon_id=null where adventure_id=%d and character_id=%d";
+			array_push($params, $adventure_id, $character_id);
 
 			return $this->db->query($query, $params) !== false;
-		}
-
-		/* Audio functions
-		 */
-		public function get_audio_files($game_id) {
-			if (valid_input($game_id, VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {
-				return false;
-			}
-
-			$directory = "resources/".$this->user->resources_key."/audio/".$game_id;
-
-			if (file_exists($directory) == false) {
-				return false;
-			}
-
-			if (($dp = opendir($directory)) == false) {
-				return false;
-			}
-
-			$files = array();
-			while (($file = readdir($dp)) != false) {
-				if (substr($file, 0, 1) == ".") {
-					continue;
-				}
-				array_push($files, $file);
-			}
-
-			closedir($dp);
-
-			sort($files);
-
-			return $files;
 		}
 	}
 ?>

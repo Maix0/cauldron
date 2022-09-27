@@ -1,58 +1,22 @@
 <?php
-	class vault_map_model extends Banshee\model {
-		public function get_games() {
-			$query = "select * from games where dm_id=%d order by timestamp desc";
+	class vault_map_model extends cauldron_model {
+		public function get_adventures() {
+			$query = "select * from adventures where dm_id=%d order by timestamp desc";
 
 			return $this->db->execute($query, $this->user->id);
 		}
 
-		public function is_my_game($game_id) {
-			$query = "select * from games where id=%d and dm_id=%d";
+		public function is_my_adventure($adventure_id) {
+			$query = "select * from adventures where id=%d and dm_id=%d";
 
-			return $this->db->execute($query, $game_id, $this->user->id) != false;
+			return $this->db->execute($query, $adventure_id, $this->user->id) != false;
 		}
 
-		public function get_maps($game_id) {
-			$query = "select * from maps where game_id=%d order by title";
+		public function get_maps($adventure_id) {
+			$query = "select *, (select count(*) from map_token where map_id=m.id) as tokens ".
+			         "from maps m where adventure_id=%d order by title";
 
-			return $this->db->execute($query, $game_id);
-		}
-
-		private function get_files($path) {
-			if (($dp = opendir($path)) == false) {
-				return false;
-			}
-
-			$maps = array();
-			while (($file = readdir($dp)) != false) {
-				if (substr($file, 0, 1) == ".") {
-					continue;
-				}
-
-				$file = $path."/".$file;
-				if (is_dir($file) == false) {
-					array_push($maps, $file);
-				} else if (($dir = $this->get_files($file)) != false) {
-					$maps = array_merge($maps, $dir);
-				}
-			}
-
-			closedir($dp);
-
-			return $maps;
-		}
-
-		public function get_local_maps() {
-			if (($maps = $this->get_files("resources/".$this->user->resources_key."/maps")) !== false) {
-				sort($maps);
-			}
-
-			$len = strlen($this->user->resources_key);
-			foreach ($maps as $m => $map) {
-				$maps[$m] = substr($map, 0, 10).substr($map, $len + 11);
-			}
-
-			return $maps;
+			return $this->db->execute($query, $adventure_id);
 		}
 
 		public function get_map_type($url) {
@@ -74,8 +38,8 @@
 			static $cache = array();
 
 			if (isset($cache[$map_id]) == false) {
-				$query = "select m.* from maps m, games g ".
-						 "where m.game_id=g.id and m.id=%d and g.dm_id=%d";
+				$query = "select m.* from maps m, adventures a ".
+						 "where m.adventure_id=a.id and m.id=%d and a.dm_id=%d";
 
 				if (($maps = $this->db->execute($query, $map_id, $this->user->id)) == false) {
 					return false;
@@ -152,7 +116,7 @@
 			return $map["url"] != $current["url"];
 		}
 
-		public function save_oke($map) {
+		public function save_okay($map) {
 			$result = true;
 
 			if (isset($map["id"])) {
@@ -200,16 +164,16 @@
 			return $result;
 		}
 
-		public function place_characters($game_id, $map_id, $start_x, $start_y) {
+		public function place_characters($adventure_id, $map_id, $start_x, $start_y) {
 			if (($map = $this->db->entry("maps", $map_id)) == false) {
 				return false;
 			}
 
-			$query = "select l.character_id from game_character l, characters c ".
-			         "where l.character_id=c.id and game_id=%d and l.character_id not in ".
+			$query = "select l.character_id from adventure_character l, characters c ".
+			         "where l.character_id=c.id and l.adventure_id=%d and l.character_id not in ".
 			         "(select character_id from map_character where map_id=%d) order by c.name";
 
-			if (($characters = $this->db->execute($query, $game_id, $map_id)) === false) {
+			if (($characters = $this->db->execute($query, $adventure_id, $map_id)) === false) {
 				return false;
 			}
 
@@ -243,12 +207,12 @@
 		}
 
 		public function create_map($map) {
-			$keys = array("id", "game_id", "title", "url", "audio", "width", "height",
+			$keys = array("id", "adventure_id", "title", "url", "audio", "width", "height",
 			              "grid_size", "show_grid", "drag_character", "fog_of_war",
 			              "fow_distance", "start_x", "start_y", "dm_notes");
 
 			$map["id"] = null;
-			$map["game_id"] = $_SESSION["edit_game_id"];
+			$map["adventure_id"] = $_SESSION["edit_adventure_id"];
 			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["grid_size"] = 50;
 			$map["show_grid"] = NO;
@@ -266,7 +230,7 @@
 			}
 			$map_id = $this->db->last_insert_id;
 
-			if ($this->place_characters($_SESSION["edit_game_id"], $map_id, $map["start_x"], $map["start_y"]) === false) {
+			if ($this->place_characters($_SESSION["edit_adventure_id"], $map_id, $map["start_x"], $map["start_y"]) === false) {
 				$this->db->query("rollback");
 				return false;
 			}
@@ -275,10 +239,10 @@
 				return false;
 			}
 
-			if (($game = $this->db->entry("games", $_SESSION["edit_game_id"])) != false) {
-				if ($game["active_map_id"] == null) {
+			if (($adventure = $this->db->entry("adventures", $_SESSION["edit_adventure_id"])) != false) {
+				if ($adventure["active_map_id"] == null) {
 					$data = array("active_map_id" => $map_id);
-					$this->db->update("games", $game["id"], $data);
+					$this->db->update("adventures", $adventure["id"], $data);
 				}
 			}
 
@@ -313,7 +277,7 @@
 			return $this->db->update("maps", $map["id"], $map, $keys);
 		}
 
-		public function delete_oke($map) {
+		public function delete_okay($map) {
 			$result = true;
 
 			if ($this->get_map($map["id"]) == false) {
@@ -331,7 +295,7 @@
 				array("delete from zones where map_id=%d", $map_id),
 				array("delete from map_token where map_id=%d", $map_id),
 				array("delete from map_character where map_id=%d", $map_id),
-				array("update games set active_map_id=null where active_map_id=%d", $map_id),
+				array("update adventures set active_map_id=null where active_map_id=%d", $map_id),
 				array("delete from maps where id=%d", $map_id));
 
 			return $this->db->transaction($queries);

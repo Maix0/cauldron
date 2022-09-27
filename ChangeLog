@@ -1,3 +1,13 @@
+cauldron (2.5) stable; urgency=low
+
+  * Fog of War real-mode performance improvement.
+  * Improved drawing on map.
+  * Change map image during game.
+  * Some interface improvements.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 27 Sep 2022 10:10:33 +0200
+
 cauldron (2.4) stable; urgency=low
 
   * Drawing on the map.

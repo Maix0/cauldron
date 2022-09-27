@@ -26,7 +26,7 @@
 				return;
 			}
 
-			if (($game = $this->model->get_game($map["game_id"])) === false) {
+			if (($adventure = $this->model->get_adventure($map["adventure_id"])) === false) {
 				$this->view->add_tag("result", "Database error.", array("url" => "vault/map"));
 				return;
 			}
@@ -76,8 +76,8 @@
 			$map["width"] = round($map["width"] * $factor);
 			$map["height"] = round($map["height"] * $factor);
 
-			$this->view->title = $game["title"];
-			$this->view->set_layout("game");
+			$this->view->title = $adventure["title"];
+			$this->view->set_layout("adventure");
 
 			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("includes/context_menu.js");
@@ -100,11 +100,11 @@
 		   	$this->view->add_css("includes/context_menu.css");
 
 			$attr = array(
-				"id"             => $game["id"],
+				"id"             => $adventure["id"],
 				"resources_key"  => $this->user->resources_key,
 				"grid_cell_size" => $grid_cell_size);
-			$this->view->open_tag("game", $attr);
-			$this->view->record($game);
+			$this->view->open_tag("adventure", $attr);
+			$this->view->record($adventure);
 
 			$map["url"] = $this->resource_path($map["url"]);
 			$map["show_grid"] = show_boolean($map["show_grid"]);
@@ -214,7 +214,7 @@
 		}
 
 		public function execute() {
-			$this->view->title = "Game";
+			$this->view->title = "Adventure";
 
 			if (valid_input($this->page->parameters[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {
 				$this->view->add_tag("result", "No map specified.", array("url" => "vault/map"));

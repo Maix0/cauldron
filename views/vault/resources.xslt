@@ -99,7 +99,7 @@
 </div>
 
 <div id="help">
-<p>All images and sound files for your games are stored here. The files in the directories 'characters', 'collectables' and 'tokens' are maintained via other pages, so only change the files in those directories when you know what you are doing.</p>
+<p>All images and sound files for your adventures are stored here. The files in the directories 'characters', 'collectables' and 'tokens' are maintained via other pages, so only change the files in those directories when you know what you are doing.</p>
 <p>Cauldron VTT can use images from remote locations, but you can also upload them here when you have enough space left.</p>
 </div>
 </xsl:template>

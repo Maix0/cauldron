@@ -15,10 +15,10 @@
 					"Organisations" => array("vault/organisation", "organisations.png"),
 					"Access"        => array("vault/access", "access.png"),
 					"User switch"   => array("vault/switch", "switch.png")),
-				"Game creation" => array(
+				"Adventure creation" => array(
 					"Tokens"        => array("vault/token", "token.png"),
 					"Resources"     => array("vault/resources", "resources.png"),
-					"Games"         => array("vault/game", "game.png"),
+					"Adventures"    => array("vault/adventure", "adventure.png"),
 					"Maps"          => array("vault/map", "map.png"),
 					"Collectables"  => array("vault/collectable", "collectables.png"),
 					"Players"       => array("vault/players", "players.png"),

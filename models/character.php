@@ -3,9 +3,9 @@
 		/* Character functions
 		 */
 		public function get_characters() {
-			$query = "select c.*, g.title from characters c ".
-			         "left join game_character p on c.id=p.character_id ".
-			         "left join games g on p.game_id=g.id ".
+			$query = "select c.*, a.title from characters c ".
+			         "left join adventure_character p on c.id=p.character_id ".
+			         "left join adventures a on p.adventure_id=a.id ".
 			         "where user_id=%d order by name";
 
 			return $this->db->execute($query, $this->user->id);
@@ -29,7 +29,7 @@
 			return $characters[$character_id];
 		}
 
-		private function file_upload_oke($icon) {
+		private function file_upload_okay($icon) {
 			$result = true;
 
 			if ($icon["error"] != 0) {
@@ -53,7 +53,7 @@
 			return $result;
 		}
 
-		public function save_oke($character, $icon) {
+		public function save_okay($character, $icon) {
 			$result = true;
 
 			if (isset($character["id"])) {
@@ -85,7 +85,7 @@
 			}
 
 			if (isset($character["id"]) == false) {
-				if ($this->file_upload_oke($icon) == false) {
+				if ($this->file_upload_okay($icon) == false) {
 					$result = false;
 				}
 			}
@@ -149,7 +149,7 @@
 			return $this->db->update("characters", $character["id"], $character, $keys);
 		}
 
-		public function delete_oke($character) {
+		public function delete_okay($character) {
 			$result = true;
 
 			if (($current = $this->get_character($character["id"])) == false) {
@@ -157,15 +157,15 @@
 				$result = false;
 			}
 
-			$query = "select count(*) as count from game_character where character_id=%d";
+			$query = "select count(*) as count from adventure_character where character_id=%d";
 
-			if (($games = $this->db->execute($query, $character["id"])) === false) {
+			if (($adventures = $this->db->execute($query, $character["id"])) === false) {
 				$this->view->add_message("Database error.");
 				$result = false;
 			}
 
-			if ($games[0]["count"] > 0) {
-				$this->view->add_message("This character is part of a game.");
+			if ($adventures[0]["count"] > 0) {
+				$this->view->add_message("This character is part of a adventure.");
 				$result = false;
 			}
 
@@ -207,7 +207,7 @@
 			return $this->db->execute($query, $character_id);
 		}
 
-		public function icon_oke($info, $icon) {
+		public function icon_okay($info, $icon) {
 			$result = true;
 
 			if ($this->get_character($info["char_id"]) == false) {
@@ -225,7 +225,7 @@
 				$result = false;
 			}
 
-			if ($this->file_upload_oke($icon) == false) {
+			if ($this->file_upload_okay($icon) == false) {
 				$result = false;
 			}
 
@@ -267,7 +267,7 @@
 			$current = $character[0];
 
 			$queries = array(
-				array("update game_character set alternate_icon_id=null where alternate_icon_id=%d", $icon_id),
+				array("update adventure_character set alternate_icon_id=null where alternate_icon_id=%d", $icon_id),
 				array("delete from character_icons where id=%d", $icon_id));
 
 			if ($this->db->transaction($queries) == false) {

@@ -78,7 +78,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 
 		switch (command) {
 			case 'audio':
-				var filename = '/resources/' + resources_key + '/audio/' + game_id + '/' + param;
+				var filename = '/resources/' + resources_key + '/audio/' + param;
 
 				if (debug == false) {
 					var data = {

@@ -40,7 +40,7 @@
 			return $result;
 		}
 
-		public function save_oke($role) {
+		public function save_okay($role) {
 			$result = true;
 
 			$query = "select id,name from roles where name=%s";
@@ -69,7 +69,7 @@
 			return $result;
 		}
 
-		public function delete_oke($role) {
+		public function delete_okay($role) {
 			return $role["id"] != ADMIN_ROLE_ID;
 		}
 

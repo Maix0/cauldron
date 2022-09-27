@@ -78,7 +78,7 @@
 				if ($_POST["submit_button"] == "Save role") {
 					/* Save role
 					 */
-					if ($this->model->save_oke($_POST) == false) {
+					if ($this->model->save_okay($_POST) == false) {
 						$this->show_role_form($_POST);
 					} else if (isset($_POST["id"]) == false) {
 						/* Create role
@@ -104,7 +104,7 @@
 				} else if ($_POST["submit_button"] == "Delete role") {
 					/* Delete role
 					 */
-					if ($this->model->delete_oke($_POST) == false) {
+					if ($this->model->delete_okay($_POST) == false) {
 						$this->view->add_tag("result", "This role cannot be deleted.");
 					} else if ($this->model->delete_role($_POST["id"]) == false) {
 						$this->view->add_tag("result", "Database error while deleting role.");

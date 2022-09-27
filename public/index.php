@@ -115,7 +115,7 @@
 		 */
 		$_view->add_javascript("webui/jquery.js");
 		$_view->add_javascript("webui/bootstrap.js");
-		if (($_view->mobile) && ($_page->module == "game")) {
+		if (($_view->mobile) && ($_page->module == "adventure")) {
 			$_view->add_javascript("webui/jquery.ui.touch-punch.js");
 		}
 

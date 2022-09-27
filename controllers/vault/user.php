@@ -130,7 +130,7 @@
 
 					/* Save user
 					 */
-					if ($this->model->save_oke($_POST) == false) {
+					if ($this->model->save_okay($_POST) == false) {
 						$this->show_user_form($_POST);
 					} else if (isset($_POST["id"]) === false) {
 						/* Create user
@@ -171,7 +171,7 @@
 					 */
 					$username = $this->model->get_username($_POST["id"]);
 
-					if ($this->model->delete_oke($_POST["id"]) == false) {
+					if ($this->model->delete_okay($_POST["id"]) == false) {
 						$this->show_user_form($_POST);
 					} else if ($this->model->delete_user($_POST["id"]) == false) {
 						$this->view->add_system_warning("Database error while deleting user.");

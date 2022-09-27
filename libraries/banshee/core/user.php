@@ -264,7 +264,7 @@
 
 			/* No roles, no access
 			 */
-			if (is_array($this->record["role_ids"]) == false) {
+			if (is_array($this->record["role_ids"] ?? null) == false) {
 				return false;
 			} else if (count($this->record["role_ids"]) == 0) {
 				return false;

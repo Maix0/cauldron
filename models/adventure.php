@@ -1,60 +1,60 @@
 <?php
-	class game_model extends Banshee\model {
-		public function get_games() {
-			$query = "select distinct g.*, u.fullname as dm from users u, games g ".
-			         "left join game_character i on g.id=i.game_id ".
+	class adventure_model extends cauldron_model {
+		public function get_adventures() {
+			$query = "select distinct a.*, u.fullname as dm from users u, adventures a ".
+			         "left join adventure_character i on a.id=i.adventure_id ".
 			         "left join characters c on i.character_id=c.id ".
-			         "where g.dm_id=u.id and (g.dm_id=%d or c.user_id=%d) ".
+			         "where a.dm_id=u.id and (a.dm_id=%d or c.user_id=%d) ".
 			         "order by timestamp desc";
 
-			if (($games = $this->db->execute($query, $this->user->id, $this->user->id, GAME_ACCESS_PLAYERS_SPECTATORS)) === false) {
+			if (($adventures = $this->db->execute($query, $this->user->id, $this->user->id, ADVENTURE_ACCESS_PLAYERS_SPECTATORS)) === false) {
 				return false;
 			}
 
 			$result = array();
-			foreach ($games as $game) {
-				$game["type"] = "play";
-				$result[$game["id"]] = $game;
+			foreach ($adventures as $adventure) {
+				$adventure["type"] = "play";
+				$result[$adventure["id"]] = $adventure;
 			}
 
-			$query = "select k.*, u.fullname as dm from games k, users u ".
-                     "where k.dm_id=u.id and u.organisation_id=%d and access>=%d ".
+			$query = "select a.*, u.fullname as dm from adventures a, users u ".
+                     "where a.dm_id=u.id and u.organisation_id=%d and access>=%d ".
 			         "order by timestamp desc";
 
-			if (($games = $this->db->execute($query, $this->user->organisation_id, GAME_ACCESS_PLAYERS_SPECTATORS)) === false) {
+			if (($adventures = $this->db->execute($query, $this->user->organisation_id, ADVENTURE_ACCESS_PLAYERS_SPECTATORS)) === false) {
 				return false;
 			}
 
-			foreach ($games as $game) {
-				if (isset($result[$game["id"]])) {
+			foreach ($adventures as $adventure) {
+				if (isset($result[$adventure["id"]])) {
 					continue;
 				}
 
-				$game["type"] = "spectate";
-				$result[$game["id"]] = $game;
+				$adventure["type"] = "spectate";
+				$result[$adventure["id"]] = $adventure;
 			}
 
 			return $result;
 		}
 
-		public function get_game($game_id) {
-			$query = "select g.*, u.fullname as dm from users u, games g ".
-			         "left join game_character i on g.id=i.game_id ".
+		public function get_adventure($adventure_id) {
+			$query = "select a.*, u.fullname as dm from users u, adventures a ".
+			         "left join adventure_character i on a.id=i.adventure_id ".
 			         "left join characters c on i.character_id=c.id ".
-			         "where g.id=%d and g.dm_id=u.id and (g.dm_id=%d or c.user_id=%d) ".
-			         "order by g.timestamp desc";
+			         "where a.id=%d and a.dm_id=u.id and (a.dm_id=%d or c.user_id=%d) ".
+			         "order by a.timestamp desc";
 
-			if (($games = $this->db->execute($query, $game_id, $this->user->id, $this->user->id)) == false) {
+			if (($adventures = $this->db->execute($query, $adventure_id, $this->user->id, $this->user->id)) == false) {
 				return false;
 			}
 
-			return $games[0];
+			return $adventures[0];
 		}
 
-		public function get_maps($game_id) {
-			$query = "select id, title from maps where game_id=%d order by title";
+		public function get_maps($adventure_id) {
+			$query = "select id, title from maps where adventure_id=%d order by title";
 
-			return $this->db->execute($query, $game_id);
+			return $this->db->execute($query, $adventure_id);
 		}
 
 		public function get_map($map_id) {
@@ -74,6 +74,25 @@
 			return $map;
 		}
 
+		public function get_map_resources() {
+			if (($maps = $this->get_resources("maps")) === false) {
+				return false;
+			}
+
+			foreach ($maps as $i => $map) {
+				$type = $this->borrow("vault/map")->get_map_type($map);
+				if ($type == "video") {
+					unset($maps[$i]);
+				}
+			}
+
+			return $maps;
+		}
+
+		public function get_audio_resources() {
+			return $this->get_resources("audio");
+		}
+
 		public function get_alternate_icons($character_id) {
 			$query = "select * from character_icons where character_id=%d order by name";
 
@@ -90,11 +109,11 @@
 			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.rotation, i.hidden, ".
 			         "a.id as alternate_id, a.extension as alternate_extension, a.size as alternate_size, ".
 					 "t.id as token_id, t.extension as token_extension ".
-			         "from characters c, map_character i, maps m, game_character g ".
-			         "left join character_icons a on g.alternate_icon_id=a.id ".
-			         "left join tokens t on g.token_id=t.id ".
+			         "from characters c, map_character i, maps m, adventure_character l ".
+			         "left join character_icons a on l.alternate_icon_id=a.id ".
+			         "left join tokens t on l.token_id=t.id ".
 			         "where c.id=i.character_id and i.map_id=%d and m.id=i.map_id ".
-			         "and g.game_id=m.game_id and g.character_id=c.id ".
+			         "and l.adventure_id=m.adventure_id and l.character_id=c.id ".
 			         "order by id desc";
 
 			return $this->db->execute($query, $map_id);
@@ -137,20 +156,20 @@
 			return $effects;
 		}
 
-		public function get_journal($game_id) {
+		public function get_journal($adventure_id) {
 			/* Get DM
 			 */
-			if (($game = $this->db->entry("games", $game_id)) === false) {
+			if (($adventure = $this->db->entry("adventures", $adventure_id)) === false) {
 				return false;
 			}
-			$characters = array($game["dm_id"] => "Dungeon Master");
+			$characters = array($adventure["dm_id"] => "Dungeon Master");
 
 			/* Get players
 			 */
-			$query = "select c.user_id, c.name from characters c, game_character p ".
-			         "where c.id=p.character_id and p.game_id=%d";
+			$query = "select c.user_id, c.name from characters c, adventure_character p ".
+			         "where c.id=p.character_id and p.adventure_id=%d";
 
-			if (($players = $this->db->execute($query, $game_id)) === false) {
+			if (($players = $this->db->execute($query, $adventure_id)) === false) {
 				return false;
 			}
 
@@ -161,9 +180,9 @@
 			/* Get journal
 			 */
 			$query = "select user_id, content, UNIX_TIMESTAMP(timestamp) as timestamp ".
-			         "from journal where game_id=%d order by timestamp";
+			         "from journal where adventure_id=%d order by timestamp";
 
-			if (($result = $this->db->execute($query, $game_id)) === false) {
+			if (($result = $this->db->execute($query, $adventure_id)) === false) {
 				return false;
 			}
 

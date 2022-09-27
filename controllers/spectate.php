@@ -31,68 +31,68 @@
 			return "/resources/".$resources_key.substr($path, 10);
 		}
 
-		private function show_games() {
-			if (($games = $this->model->get_games()) === false) {
+		private function show_adventures() {
+			if (($adventures = $this->model->get_adventures()) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
-			$this->view->add_javascript("games.js");
+			$this->view->add_javascript("adventures.js");
 
-			$this->view->open_tag("games");
-			foreach ($games as $game) {
-				$game["image"] = $this->resource_path($game["image"], $game["resources_key"]);
-				$game["story"] = $this->format_text($game["story"]);
+			$this->view->open_tag("adventures");
+			foreach ($adventures as $adventure) {
+				$adventure["image"] = $this->resource_path($adventure["image"], $adventure["resources_key"]);
+				$adventure["story"] = $this->format_text($adventure["story"]);
 
-				$this->view->record($game, "game");
+				$this->view->record($adventure, "adventure");
 			}
 			$this->view->close_tag();
 		}
 
-		private function spectate_game($game_id) {
-			if (($game = $this->model->get_game($game_id)) === false) {
-				$page = ($this->page->previous != "spectate") ? "game" : "spectate";
-				$this->view->add_tag("result", "Game not found.", array("url" => $page));
+		private function spectate_adventure($adventure_id) {
+			if (($adventure = $this->model->get_adventure($adventure_id)) === false) {
+				$page = ($this->page->previous != "spectate") ? "adventure" : "spectate";
+				$this->view->add_tag("result", "Adventure not found.", array("url" => $page));
 				return;
 			}
 
 			if ($this->page->parameter_numeric(1)) {
-				$game["active_map_id"] = $this->page->parameters[1];
+				$adventure["active_map_id"] = $this->page->parameters[1];
 			}
 
-			if (($maps = $this->model->get_maps($game_id)) === false) {
+			if (($maps = $this->model->get_maps($adventure_id)) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
 			if (count($maps) == 0) {
-				$this->view->add_tag("result", "This game has no maps.");
+				$this->view->add_tag("result", "This adventure has no maps.");
 				return;
 			}
 
 			$grid_cell_size = $this->settings->screen_grid_size;
 
-			if ($game["active_map_id"] == null) {
-				$game["active_map_id"] = $maps[0]["id"];
+			if ($adventure["active_map_id"] == null) {
+				$adventure["active_map_id"] = $maps[0]["id"];
 			}
 
-			if (($active_map = $this->model->get_map($game["active_map_id"])) == false) {
+			if (($active_map = $this->model->get_map($adventure["active_map_id"])) == false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if ($active_map["game_id"] != $game_id) {
+			if ($active_map["adventure_id"] != $adventure_id) {
 				$this->view->add_tag("result", "Invalid map.");
 				return;
 			}
 
-			if (($tokens = $this->model->get_tokens($game["active_map_id"])) === false) {
+			if (($tokens = $this->model->get_tokens($adventure["active_map_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if (($characters = $this->model->get_characters($game["active_map_id"])) === false) {
+			if (($characters = $this->model->get_characters($adventure["active_map_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
@@ -102,27 +102,27 @@
 				return;
 			}
 
-			if (($doors = $this->model->get_doors($game["active_map_id"])) === false) {
+			if (($doors = $this->model->get_doors($adventure["active_map_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if (($walls = $this->model->get_walls($game["active_map_id"])) === false) {
+			if (($walls = $this->model->get_walls($adventure["active_map_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if (($lights = $this->model->get_lights($game["active_map_id"])) === false) {
+			if (($lights = $this->model->get_lights($adventure["active_map_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if (($zones = $this->model->get_zones($game["active_map_id"])) === false) {
+			if (($zones = $this->model->get_zones($adventure["active_map_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if (($journal = $this->model->get_journal($game_id)) === false) {
+			if (($journal = $this->model->get_journal($adventure_id)) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
@@ -131,8 +131,8 @@
 			$active_map["width"] = round($active_map["width"] * $factor);
 			$active_map["height"] = round($active_map["height"] * $factor);
 
-			$this->view->title = $game["title"];
-			$this->view->set_layout("game");
+			$this->view->title = $adventure["title"];
+			$this->view->set_layout("adventure");
 
 			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("includes/context_menu.js");
@@ -154,15 +154,15 @@
 			$this->view->add_css("banshee/font-awesome.css");
 			$this->view->add_css("includes/context_menu.css");
 
-			$group_key = hash_hmac("sha256", $game["title"], $this->settings->secret_website_code);
+			$group_key = hash_hmac("sha256", $adventure["title"], $this->settings->secret_website_code);
 			$group_key = substr($group_key, 0, 12);
 
 			$attr = array(
-				"id"             => $game["id"],
+				"id"             => $adventure["id"],
 				"group_key"      => $group_key,
 				"grid_cell_size" => $grid_cell_size);
-			$this->view->open_tag("game", $attr);
-			$this->view->record($game);
+			$this->view->open_tag("adventure", $attr);
+			$this->view->record($adventure);
 
 			/* Websocket
 			 */
@@ -196,7 +196,7 @@
 
 				$active_map["show_grid"] = show_boolean($active_map["show_grid"]);
 				$active_map["drag_character"] = show_boolean($active_map["drag_character"]);
-				$active_map["url"] = $this->resource_path($active_map["url"], $game["resources_key"]);
+				$active_map["url"] = $this->resource_path($active_map["url"], $adventure["resources_key"]);
 
 				$this->view->record($active_map, "map");
 
@@ -315,13 +315,14 @@
 		}
 
 		public function execute() {
-			$this->view->title = "Spectate games";
-			$this->view->add_css("game.css");
+			$this->view->title = "Spectate adventures";
+			$this->view->add_css("adventure.css");
+			$this->view->add_css("spectate.css");
 
 			if ($this->page->parameter_numeric(0)) {
-				$this->spectate_game($this->page->parameters[0]);
+				$this->spectate_adventure($this->page->parameters[0]);
 			} else {
-				$this->show_games();
+				$this->show_adventures();
 			}
 		}
 	}

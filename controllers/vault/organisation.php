@@ -53,7 +53,7 @@
 				if ($_POST["submit_button"] == "Save organisation") {
 					/* Save organisation
 					 */
-					if ($this->model->save_oke($_POST) == false) {
+					if ($this->model->save_okay($_POST) == false) {
 						$this->show_organisation_form($_POST);
 					} else if (isset($_POST["id"]) === false) {
 						/* Create organisation

@@ -37,7 +37,7 @@
 						$_FILES["image"]["extension"] = $extension;
 					}
 
-					if ($this->model->save_oke($_POST, $_FILES["image"]) == false) {
+					if ($this->model->save_okay($_POST, $_FILES["image"]) == false) {
 						$this->show_token_form($_POST);
 					} else if (isset($_POST["id"]) === false) {
 						/* Create token
@@ -63,7 +63,7 @@
 				} else if ($_POST["submit_button"] == "Delete token") {
 					/* Delete token
 					 */
-					if ($this->model->delete_oke($_POST) == false) {
+					if ($this->model->delete_okay($_POST) == false) {
 						$this->show_token_form($_POST);
 					} else if ($this->model->delete_token($_POST["id"]) === false) {
 						$this->view->add_message("Error deleting token.");

@@ -1,16 +1,16 @@
 <?php
 	class vault_players_controller extends Banshee\controller {
 		private function show_overview() {
-			if (($games = $this->model->get_games()) === false) {
+			if (($adventures = $this->model->get_adventures()) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
 			$this->view->open_tag("overview");
 
-			$this->view->open_tag("games");
-			foreach ($games as $game) {
-				$this->view->record($game, "game");
+			$this->view->open_tag("adventures");
+			foreach ($adventures as $adventure) {
+				$this->view->record($adventure, "adventure");
 			}
 			$this->view->close_tag();
 
@@ -18,12 +18,12 @@
 		}
 
 		private function show_invite_form($invite) {
-			if (($game = $this->model->get_game($invite["game_id"])) == false) {
-				$this->view->add_tag("result", "Game not found.");
+			if (($adventure = $this->model->get_adventure($invite["adventure_id"])) == false) {
+				$this->view->add_tag("result", "Adventure not found.");
 				return;
 			}
 
-			if (($characters = $this->model->get_characters($invite["game_id"])) === false) {
+			if (($characters = $this->model->get_characters($invite["adventure_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
@@ -39,9 +39,9 @@
 
 			$this->view->open_tag("edit");
 
-			$this->view->record($game, "game");
+			$this->view->record($adventure, "adventure");
 
-			$active_game = false;
+			$active_adventure = false;
 
 			if (is_array($characters)) {
 				$this->view->open_tag("characters");
@@ -50,7 +50,7 @@
 					foreach ($chars as $char) {
 						if (is_true($char["enrolled"])) {
 							array_push($invite["characters"], $char["id"]);
-							$active_game = true;
+							$active_adventure = true;
 						}
 
 						$attr = array(
@@ -63,8 +63,8 @@
 				$this->view->close_tag();
 			}
 
-			if ($active_game) {
-				$this->view->add_message("Changing characters in an active game, will move all characters to the 'Player start' location on each map.");
+			if ($active_adventure) {
+				$this->view->add_message("Changing characters in an active adventure, will move all characters to the 'Player start' location on each map.");
 			}
 
 			$this->view->close_tag();
@@ -74,7 +74,7 @@
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				/* Inite players
 				 */
-				if ($this->model->save_oke($_POST) == false) {
+				if ($this->model->save_okay($_POST) == false) {
 					$this->show_invite_form($_POST);
 				} else if ($this->model->invite_players($_POST) == false) {
 					$this->view->add_message("Error while inviting players.");
@@ -85,7 +85,7 @@
 			} else if ($this->page->parameter_numeric(0)) {
 				/* Select players
 				 */
-				$invite = array("game_id" => $this->page->parameters[0]);
+				$invite = array("adventure_id" => $this->page->parameters[0]);
 				$this->show_invite_form($invite);
 			} else {
 				/* Show overview

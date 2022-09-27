@@ -62,7 +62,7 @@
 				if ($_POST["submit_button"] == "Create") {
 					/* Create directory
 					 */
-					if ($this->model->directory_oke($_POST["create"], $directory) == false) {
+					if ($this->model->directory_okay($_POST["create"], $directory) == false) {
 						$this->view->add_tag("create", $_POST["create"]);
 					} else if ($this->model->create_directory($_POST["create"], $directory) == false) {
 						$this->view->add_tag("create", $_POST["create"]);
@@ -73,7 +73,7 @@
 				} else if ($_POST["submit_button"] == "Upload") {
 					/* Upload file
 					 */
-					if ($this->model->upload_oke($_FILES["file"], $directory)) {
+					if ($this->model->upload_okay($_FILES["file"], $directory)) {
 						if ($this->model->import_uploaded_file($_FILES["file"], $directory) == false) {
 							$this->view->add_message("Error while importing file.");
 						} else {

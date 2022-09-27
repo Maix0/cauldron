@@ -34,7 +34,7 @@
 </div>
 
 <div id="help">
-<p>Here you maintain your tokens, which can represent an NPC or a player's enemy. These tokens are available for all your games.</p>
+<p>Here you maintain your tokens, which can represent an NPC or a player's enemy. These tokens are available for all your adventures.</p>
 </div>
 </xsl:template>
 

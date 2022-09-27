@@ -1,18 +1,18 @@
 <?php
 	class vault_collectable_controller extends Banshee\controller {
 		private function show_overview() {
-			if (($games = $this->model->get_games()) === false) {
+			if (($adventures = $this->model->get_adventures()) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if (count($games) == 0) {
-				$this->view->add_tag("result", "Create a game first.", array("url" => "vault/game/new"));
+			if (count($adventures) == 0) {
+				$this->view->add_tag("result", "Create an adventure first.", array("url" => "vault/adventure/new"));
 				return;
 			}
 
-			if (isset($_SESSION["edit_game_id"]) == false) {
-				$_SESSION["edit_game_id"] = $games[0]["id"];
+			if (isset($_SESSION["edit_adventure_id"]) == false) {
+				$_SESSION["edit_adventure_id"] = $adventures[0]["id"];
 			}
 
 			if (($collectables = $this->model->get_collectables()) === false) {
@@ -22,12 +22,12 @@
 
 			$this->view->open_tag("overview");
 
-			$this->view->open_tag("games");
-			foreach ($games as $game) {
+			$this->view->open_tag("adventures");
+			foreach ($adventures as $adventure) {
 				$attr = array(
-					"id"	   => $game["id"],
-					"selected" => show_boolean($game["id"] == $_SESSION["edit_game_id"]));
-				$this->view->add_tag("game", $game["title"], $attr);
+					"id"	   => $adventure["id"],
+					"selected" => show_boolean($adventure["id"] == $_SESSION["edit_adventure_id"]));
+				$this->view->add_tag("adventure", $adventure["title"], $attr);
 			}
 			$this->view->close_tag();
 
@@ -53,17 +53,17 @@
 
 		public function execute() {
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				if ($_POST["submit_button"] == "Change game") {
-					/* Change game
+				if ($_POST["submit_button"] == "Change adventure") {
+					/* Change adventure
 					 */
-					if ($this->model->is_my_game($_POST["game"])) {
-						$_SESSION["edit_game_id"] = $_POST["game"];
+					if ($this->model->is_my_adventure($_POST["adventure"])) {
+						$_SESSION["edit_adventure_id"] = $_POST["adventure"];
 					}
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save collectable") {
 					/* Save collectable
 					 */
-					if ($this->model->save_oke($_POST, $_FILES["image"]) == false) {
+					if ($this->model->save_okay($_POST, $_FILES["image"]) == false) {
 						$this->show_collectable_form($_POST);
 					} else if (isset($_POST["id"]) === false) {
 						/* Create collectable
@@ -89,7 +89,7 @@
 				} else if ($_POST["submit_button"] == "Delete collectable") {
 					/* Delete collectable
 					 */
-					if ($this->model->delete_oke($_POST) == false) {
+					if ($this->model->delete_okay($_POST) == false) {
 						$this->show_collectable_form($_POST);
 					} else if ($this->model->delete_collectable($_POST["id"]) === false) {
 						$this->view->add_message("Error deleting collectable.");

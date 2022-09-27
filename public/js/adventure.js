@@ -22,7 +22,7 @@ const DRAW_DEFAULT_WIDTH = 1;
 
 var websocket;
 var group_key = null;
-var game_id = null;
+var adventure_id = null;
 var map_id = null;
 var user_id = null;
 var resources_key = null;
@@ -33,9 +33,11 @@ var my_name = null;
 var my_character = null;
 var wf_collectables = null;
 var wf_effect_create = null;
+var wf_journal = null;
 var wf_script_editor = null;
 var wf_script_manual = null;
 var wf_zone_create = null;
+var wf_play_audio = null;
 var temporary_hitpoints = 0;
 var keep_centered = true;
 var focus_obj = null;
@@ -58,7 +60,6 @@ var zone_presence = [];
 var zone_x = 0;
 var zone_y = 0;
 var zone_menu = null;
-var zoom_level = 1;
 var menu_defaults = {
 	root: 'div.playarea',
 	z_index: LAYER_MENU
@@ -70,50 +71,6 @@ var drawing_canvas = null;
 var drawing_ctx = null;
 var drawing_history = [];
 
-/* Zoom functoins
- */
-function zoom_playarea(level) {
-	if (level < 0.5) {
-		level = 0.5;
-	} else if (level > 2) {
-		level = 2;
-	}
-
-	var playarea = $('div.playarea');
-
-	playarea.css('transform', 'scale(1)');
-	playarea.css('width', '');
-	playarea.css('height', '');
-	playarea.css('right', '215px');
-	playarea.css('bottom', '15px');
-
-	var width = parseInt(playarea.css('width'));
-	var height = parseInt(playarea.css('height'));
-
-	playarea.css('transform', 'scale(' + level + ')');
-	playarea.css('width', Math.round(width / level) + 'px');
-	playarea.css('height', Math.round(height / level) + 'px');
-
-	zoom_level = level;
-}
-
-function zoom_in() {
-	zoom_playarea(zoom_level + 0.1);
-}
-
-function zoom_out() {
-	zoom_playarea(zoom_level - 0.1);
-}
-
-function zoom_drag(evt, ui) {
-	return;
-
-	var scr = screen_scroll();
-
-	ui.position.top = Math.round((ui.position.top / zoom_level) + (scr.top * (1 - (1 / zoom_level))));
-	ui.position.left = Math.round((ui.position.left / zoom_level) + (scr.left * (1 - (1 / zoom_level))));
-}
-
 /* Websocket
  */
 function websocket_send(data) {
@@ -121,16 +78,16 @@ function websocket_send(data) {
 		return;
 	}
 
-	data.game_id = game_id;
+	data.adventure_id = adventure_id;
 	data.from_user_id = user_id;
 	data = JSON.stringify(data);
 
 	websocket.send(data);
 }
 
-function change_map() {
+function map_switch() {
 	$.post('/object/change_map', {
-		game_id: game_id,
+		adventure_id: adventure_id,
 		map_id: $('select.map-selector').val()
 	}).done(function() {
 		var data = {
@@ -138,7 +95,43 @@ function change_map() {
 		};
 		websocket_send(data);
 
-		document.location = '/game/' + game_id;
+		document.location = '/adventure/' + adventure_id;
+	});
+}
+
+function map_image() {
+	$.ajax('/adventure/maps').done(function(data) {
+		var maps = '<div><ul class="map_image">';
+		$(data).find('maps map').each(function() {
+			maps += '<li>/' + $(this).text() + '</li>';
+		});
+		maps += '</ul></div>';
+
+		var map_dialog = $(maps).windowframe({
+			header: 'Maps from Resources',
+		});
+
+		$('ul.map_image li').click(function() {
+			var map_url = $(this).text();
+			var resources_key = $('div.playarea').attr('resources_key');
+
+			map_url = map_url.substr(0, 11) + resources_key + map_url.substr(10);
+			map_dialog.close();
+
+			var data = {
+				action: 'map_image',
+				url: map_url
+			};
+			websocket_send(data);
+
+			var image = $('<img src="' + map_url + '" />');
+			image.one('load', function() {
+				$('div#map_background').css('background-image', 'url(' + map_url + ')');
+				delete image;
+			});
+		});
+
+		map_dialog.open();
 	});
 }
 
@@ -374,16 +367,14 @@ function show_help() {
 		'<b>/damage &lt;points&gt;</b>: Damage your character.<br />') +
 		(dungeon_master ?
 		'<b>/dmroll &lt;dice&gt;</b>: Privately roll dice.<br />' +
-		'<b>/done</b>: End the combat.<br />' +
-		'<b>/filter [&lt;text&gt;]</b>: Filter the token library.<br />' : '') +
+		'<b>/done</b>: End the combat.<br />' : '') +
 		(dungeon_master ? '' :
 		'<b>/heal &lt;points&gt;</b>: Heal your character.<br />') +
 		'<b>/labels [hide|show]</b>: Manage character name labels and health bars visibility.<br />' +
 		'<b>/log &lt;message&gt;</b>: Add message to journal.<br />' +
 		(dungeon_master ?
 		'<b>/next [&lt;name&gt;]</b>: Next turn in combat.<br />' +
-		'<b>/ping</b>: See who\'s online in the game.<br />' +
-		'<b>/play [&lt;nr&gt;]:</b> Show available audio files or play one.<br />' +
+		'<b>/ping</b>: See who\'s online in the session.<br />' +
 		'<b>/reload</b>: Reload current page.<br />' +
 		'<b>/remove &lt;name&gt;</b>: Remove one from the combat.<br />' : '') +
 		'<b>/roll &lt;dice&gt;</b>: Roll dice.<br />' +
@@ -436,26 +427,13 @@ function interface_color(button, swap = true) {
 
 	if (color == 'dark') {
 		$('div.wrapper').addClass('dark');
-		$(button).text('Light');
+		$(button).text('Bright interface');
 		localStorage.setItem('interface_color', 'dark');
 	} else {
 		$('div.wrapper').removeClass('dark');
-		$(button).text('Dark');
+		$(button).text('Dark interface');
 		localStorage.setItem('interface_color', 'light');
 	}
-}
-
-/* Draw functions
- */
-function draw_circle(draw_x, draw_y) {
-	var width = drawing_ctx.lineWidth;
-	drawing_ctx.lineWidth = 1;
-	drawing_ctx.beginPath();
-	drawing_ctx.arc(draw_x, draw_y, (width / 2) - 1, 0, 2 * Math.PI);
-	drawing_ctx.stroke();
-	drawing_ctx.fillStyle = drawing_ctx.strokeStyle;
-	drawing_ctx.fill();
-	drawing_ctx.lineWidth = width;
 }
 
 /* Object functions
@@ -820,8 +798,8 @@ function object_move_to_sticked(obj) {
 
 function object_position(obj) {
 	var pos = obj.position();
-	pos.left = Math.round(pos.left / zoom_level);
-	pos.top = Math.round(pos.top / zoom_level);
+	pos.left = Math.round(pos.left);
+	pos.top = Math.round(pos.top);
 
 	var scr = screen_scroll();
 	pos.left += scr.left;
@@ -1181,8 +1159,7 @@ function effect_create_final(effect_id, src, width, height) {
 		containment: 'div.playarea > div',
 		stop: function(event, ui) {
 			object_move($(this));
-		},
-		drag: zoom_drag
+		}
 	});
 
 	$('div#' + effect_id).contextmenu(function(event) {
@@ -1500,8 +1477,7 @@ function light_create(pos_x, pos_y, radius) {
 			containment: 'div.playarea > div',
 			stop: function(event, ui) {
 				object_move($(this));
-			},
-			drag: zoom_drag
+			}
 		});
 
 		$('div#light' + instance_id).contextmenu(function(event) {
@@ -1839,8 +1815,7 @@ function zone_create(width, height, color, opacity, group, altitude) {
 			containment: 'div.playarea > div',
 			stop: function(event, ui) {
 				object_move($(this));
-			},
-			drag: zoom_drag
+			}
 		});
 
 		var data = {
@@ -1921,7 +1896,7 @@ function marker_create(pos_x, pos_y, name = null) {
  */
 function collectables_show() {
 	$.post('/object/collectables/found', {
-		game_id: game_id,
+		adventure_id: adventure_id,
 	}).done(function(data) {
 		var body = wf_collectables.body();
 		body.empty();
@@ -1961,7 +1936,7 @@ function journal_save_entry(name, content) {
 	websocket_send(data);
 
 	$.post('/object/journal', {
-		game_id: game_id,
+		adventure_id: adventure_id,
 		content: content
 	});
 }
@@ -2097,6 +2072,9 @@ function handle_input(input) {
 				combat_add(param);
 			}
 			break;
+		case 'audio':
+			wf_play_audio.open();
+			break;
 		case 'cauldron':
 			write_sidebar('<img src="/images/cauldron.png" />');
 			break;
@@ -2108,11 +2086,7 @@ function handle_input(input) {
 				break;
 			}
 
-			if ($('div.character').length == 0) {
-				write_sidebar('This map has no characters.');
-			} else {
-				combat_start();
-			}
+			combat_start();
 			break;
 		case 'd20':
 			roll_d20(param);
@@ -2161,26 +2135,6 @@ function handle_input(input) {
 			};
 			websocket_send(data);
 			break;
-		case 'filter':
-			if (dungeon_master == false) {
-				break;
-			}
-
-    		$('div.library div.well').show();
-
-			if (param == '') {
-				return;
-			}
-
-			param = param.toLowerCase();
-
-			$('div.library div.well').each(function() {
-				var name = $(this).find('div.name').text().toLowerCase();
-				if (name.includes(param) == false) {
-					$(this).hide();
-				}
-			});
-			break;
 		case 'heal':
 			if (my_character == null) {
 				write_sidebar('You have no character.');
@@ -2205,6 +2159,12 @@ function handle_input(input) {
 				history += value + '<br />\n';
 			});
 			write_sidebar(history);
+			break;
+		case 'inventory':
+			wf_collectables.open();
+			break;
+		case 'journal':
+			wf_journal.open();
 			break;
 		case 'labels':
 			if ((param == 'off') || (param == 'hide')) {
@@ -2244,50 +2204,12 @@ function handle_input(input) {
 				break;
 			}
 
-			write_sidebar('Present in game:');
+			write_sidebar('Present in this session:');
 
 			var data = {
 				action: 'ping'
 			};
 			websocket_send(data);
-			break;
-		case 'play':
-			if (dungeon_master == false) {
-				break;
-			}
-
-			$.post('/object/audio', {
-				game_id: game_id,
-			}).done(function(data) {
-				if (param == '') {
-					var audio_files = $(data).find('audio file');
-					if (audio_files.length == 0) {
-						write_sidebar('Directory audio/' + game_id + ' is empty.');
-					} else {
-						var nr = 1;
-						audio_files.each(function() {
-							write_sidebar(nr + ': ' + $(this).text());
-							nr++;
-						});
-					}
-				} else {
-					var file = $(data).find('audio file').eq(param - 1).text();
-					write_sidebar('Playing ' + file + '.');
-
-					var filename = '/resources/' + resources_key + '/audio/' + game_id + '/' + file;
-
-					var data = {
-						action: 'audio',
-						filename: filename
-					};
-					websocket_send(data);
-
-					var audio = new Audio(filename);
-					audio.play();
-				}
-			}).fail(function() {
-				write_sidebar('Directory audio/' + game_id + ' not found. Create it via File Administration in the Dungeon Master\' Vault and upload some audio files.');
-			});
 			break;
 		case 'reload':
 			if (dungeon_master == false) {
@@ -2393,7 +2315,7 @@ function context_menu_handler(key, options) {
 			websocket_send(data);
 
 			$.post('/object/alternate', {
-				game_id: game_id,
+				adventure_id: adventure_id,
 				char_id: my_character.attr('char_id'),
 				alternate_id: alternate_id
 			});
@@ -2917,7 +2839,7 @@ function context_menu_handler(key, options) {
 			websocket_send(data);
 
 			$.post('/object/shape', {
-				game_id: game_id,
+				adventure_id: adventure_id,
 				char_id: obj.attr('char_id'),
 				token_id: shape_change_id
 			});
@@ -2976,7 +2898,7 @@ function context_menu_handler(key, options) {
 
 			var parts = window.location.pathname.split('/');
 			if (parts.length == 3) {
-				window.open('/game/' + game_id + '/' + travel_map_id);
+				window.open('/adventure/' + adventure_id + '/' + travel_map_id);
 			}
 
 			object_hide(obj);
@@ -3017,34 +2939,34 @@ function context_menu_handler(key, options) {
 }
 
 function key_down(event) {
-    if (event.which == 16) {
-        shift_down = true;
-    } else if (event.which == 17) {
-        ctrl_down = true;
-    } else if (event.which == 18) {
-        alt_down = true;
-    }
+	if (event.which == 16) {
+		shift_down = true;
+	} else if (event.which == 17) {
+		ctrl_down = true;
+	} else if (event.which == 18) {
+		alt_down = true;
+	}
 }
 
 function key_up(event) {
-    if (event.which == 16) {
-        shift_down = false;
+	if (event.which == 16) {
+		shift_down = false;
 		$('canvas#drawing').off('mousemove');
-    } else if (event.which == 17) {
-        ctrl_down = false;
+	} else if (event.which == 17) {
+		ctrl_down = false;
 		if (shift_down == false) {
 			$('canvas#drawing').off('mousemove');
 		}
-    } else if (event.which == 18) {
-        alt_down = false;
-    }
+	} else if (event.which == 18) {
+		alt_down = false;
+	}
 }
 
 /* Main
  */
 $(document).ready(function() {
 	group_key = $('div.playarea').attr('group_key');
-	game_id = parseInt($('div.playarea').attr('game_id'));
+	adventure_id = parseInt($('div.playarea').attr('adventure_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
 	user_id = parseInt($('div.playarea').attr('user_id'));
 	resources_key = $('div.playarea').attr('resources_key');
@@ -3073,7 +2995,7 @@ $(document).ready(function() {
 		websocket_send(data);
 
 		if (dungeon_master) {
-			var color = $('div.menu-options div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').css('background-color');
+			var color = $('div.menu div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').css('background-color');
 			var data = {
 				action: 'draw_color',
 				color: color
@@ -3092,10 +3014,10 @@ $(document).ready(function() {
 			websocket_send(data);
 		}
 
-		$('div.menu-options div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').trigger('click');
+		$('div.menu div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').trigger('click');
 
 		write_sidebar('Connection established.');
-		send_message(my_name + ' entered the game.', null, false);
+		send_message(my_name + ' entered the session.', null, false);
 
 		if (dungeon_master == false) {
 			var data = {
@@ -3137,7 +3059,7 @@ $(document).ready(function() {
 			return;
 		}
 
-		if (data.game_id != game_id) {
+		if (data.adventure_id != adventure_id) {
 			return;
 		} else if (data.from_user_id == user_id) {
 			return;
@@ -3159,7 +3081,7 @@ $(document).ready(function() {
 			}
 		}
 
-		delete data.game_id;
+		delete data.adventure_id;
 		delete data.from_user_id;
 
 		switch (data.action) {
@@ -3225,17 +3147,14 @@ $(document).ready(function() {
 				drawing_ctx.beginPath();
 				drawing_ctx.strokeStyle = data.color;
 				break
-			case 'draw_erase':
-				drawing_ctx.clearRect(data.draw_x - (data.width >> 1), data.draw_y - (data.width >>1), data.width, data.width);
-				break;
 			case 'draw_move':
-				if (drawing_ctx.lineWidth > 1) {
-					draw_circle(data.draw_x, data.draw_y);
-				}
+				drawing_ctx.globalCompositeOperation = (data.erase == 'yes') ? 'destination-out' : 'source-over';
+				drawing_ctx.lineWidth = data.width;
 				drawing_ctx.beginPath();
 				drawing_ctx.moveTo(data.draw_x, data.draw_y);
 				break
 			case 'draw_line':
+				drawing_ctx.lineCap = data.linecap;
 				drawing_ctx.lineTo(data.draw_x, data.draw_y);
 				drawing_ctx.stroke();
 				break
@@ -3325,8 +3244,7 @@ $(document).ready(function() {
 						if ($(this).prop('id') == stick_to) {
 							object_move_to_sticked($(this));
 						}
-					},
-					drag: zoom_drag
+					}
 				});
 
 				if (data.instance_id.substring(0, 4) == 'zone') {
@@ -3385,6 +3303,13 @@ $(document).ready(function() {
 			case 'lower':
 				z_index--;
 				$('div#' + data.instance_id).css('z-index', z_index);
+				break;
+			case 'map_image':
+				var image = $('<img src="' + data.url + '" />');
+				image.one('load', function() {
+					$('div#map_background').css('background-image', 'url(' + data.url + ')');
+					delete image;
+				});
 				break;
 			case 'marker':
 				marker_create(data.pos_x, data.pos_y, data.name);
@@ -3470,7 +3395,7 @@ $(document).ready(function() {
 				}
 				break;
 			case 'reload':
-				document.location = '/game/' + game_id;
+				document.location = '/adventure/' + adventure_id;
 				break;
 			case 'rotate':
 				var obj = $('div#' + data.instance_id);
@@ -3511,7 +3436,7 @@ $(document).ready(function() {
 				break;
 			case 'travel':
 				if (data.instance_id == my_character.prop('id')) {
-					document.location = '/game/' + game_id + '/' + data.map_id;
+					document.location = '/adventure/' + adventure_id + '/' + data.map_id;
 				}
 				break;
 			case 'zone_create':
@@ -3559,16 +3484,30 @@ $(document).ready(function() {
 
 	/* Menu
 	 */
-	$('button.menu').on('click', function(event) {
+	$('button.open_menu').on('click', function(event) {
 		var skip = 1;
-		$('div.menu-options').toggle();
+		$('div.menu').toggle();
 		$('body').one('click', function() {
-			$('div.menu-options').hide();
+			$('div.menu').hide();
 		});
 		event.stopPropagation();
 	});
-	$('div.menu-options').css('z-index', LAYER_MENU);
-	$('div.menu-options div.draw-colors span').click(function() {
+	$('div.menu').on('click', function(event) {
+		event.stopPropagation();
+	});
+	$('div.menu button').on('click', function(event) {
+		$('div.menu').hide();
+	});
+	$('div.menu span').on('click', function(event) {
+		$('div.menu').hide();
+	});
+	$('div.menu div.ui-slider-handle').on('mousedown', function(event) {
+		$('body').one('mouseup', function() {
+			$('div.menu').hide();
+		});
+	});
+	$('div.menu').css('z-index', LAYER_MENU);
+	$('div.menu div.draw-colors span').click(function() {
 		var color = $(this).css('background-color');
 
 		drawing_ctx.strokeStyle = color;
@@ -3580,7 +3519,7 @@ $(document).ready(function() {
 		websocket_send(data);
 		drawing_history.push(data);
 
-		$('div.menu-options div.draw-colors span').css('box-shadow', '');
+		$('div.menu div.draw-colors span').css('box-shadow', '');
 		$(this).css('box-shadow', '0 0 5px #0080ff');
 	});
 
@@ -3603,15 +3542,13 @@ $(document).ready(function() {
 	drawing_ctx.lineWidth = DRAW_DEFAULT_WIDTH;
 	drawing_ctx.strokeStyle = DRAW_DEFAULT_COLOR;
 
-	var pos = $('div.playarea').position();
-	var canvas_x = Math.round(pos.left);
-	var canvas_y = Math.round(pos.top);
+	drawing_ctx.lineJoin = 'bevel';
 
 	if (dungeon_master) {	
 		var handle = $('div#draw_width div');
 		$('div#draw_width').slider({
 			min: 1,
-			max: 50,
+			max: grid_cell_size,
 			create: function() {
 				handle.text($(this).slider("value"));
 			},
@@ -3631,76 +3568,115 @@ $(document).ready(function() {
 		});
 
 		$('canvas#drawing').on('mousedown', function(event) {
+			var pos = $('div.playarea').position();
+			var canvas_x = Math.round(pos.left) + 1;
+			var canvas_y = Math.round(pos.top) + 1;
+
 			if (shift_down) {
-				/* Erase
-				 */
-				$('canvas#drawing').on('mousemove', function(event) {
-					var scr = screen_scroll();
-
-					var draw_x = event.clientX - canvas_x + scr.left;
-					var draw_y = event.clientY - canvas_y + scr.top;
-					var width = ctrl_down ? 40 : 10;
-
-					var data = {
-						action: 'draw_erase',
-						draw_x: draw_x,
-						draw_y: draw_y,
-						width: width
-					};
-					websocket_send(data);
-					drawing_history.push(data);
-
-					drawing_ctx.clearRect(draw_x - (width >> 1), draw_y - (width >>1), width, width);
-				});
-
-				$('canvas#drawing').one('mouseup', function() {
-					$('canvas#drawing').off('mousemove');
-				});
+				drawing_ctx.globalCompositeOperation = 'destination-out';
+				drawing_ctx.lineWidth = ctrl_down ? 50 : 15;
 			} else if (ctrl_down) {
-				/* Draw
-				 */
+				drawing_ctx.globalCompositeOperation = 'source-over';
+				drawing_ctx.lineWidth = parseInt($('div#draw_width div').text());
+			} else {
+				return;
+			}
+
+			var scr = screen_scroll();
+			var draw_x = event.clientX - canvas_x + scr.left;
+			var draw_y = event.clientY - canvas_y + scr.top;
+
+			var half_grid = grid_cell_size >> 1;
+			var draw_wide = drawing_ctx.lineWidth > half_grid;
+			if (alt_down) {
+				draw_x = coord_to_grid(draw_x, draw_wide == false);
+				draw_y = coord_to_grid(draw_y, draw_wide == false);
+
+				if (draw_wide) {
+					draw_x += half_grid;
+					draw_y += half_grid;
+				}
+			}
+
+			var data = {
+				action: 'draw_move',
+				erase: shift_down ? 'yes' : 'no',
+				width: drawing_ctx.lineWidth,
+				draw_x: draw_x,
+				draw_y: draw_y
+			};
+			websocket_send(data);
+			drawing_history.push(data);
+
+			drawing_ctx.beginPath();
+			drawing_ctx.moveTo(draw_x, draw_y);
+
+			var draw_prev_x = null;
+			var draw_prev_y = null;
+
+			var draw = function(event) {
 				var scr = screen_scroll();
 
 				var draw_x = event.clientX - canvas_x + scr.left;
 				var draw_y = event.clientY - canvas_y + scr.top;
 
+				if (alt_down) {
+					draw_x = coord_to_grid(draw_x, draw_wide == false);
+					draw_y = coord_to_grid(draw_y, draw_wide == false);
+
+					if (draw_wide) {
+						draw_x += half_grid;
+						draw_y += half_grid;
+					}
+				}
+
+				if ((draw_x == draw_prev_x) && (draw_y == draw_prev_y)) {
+					return;
+				}
+
+				draw_prev_x = draw_x;
+				draw_prev_y = draw_y;
+
+				if ((drawing_ctx.lineWidth == grid_cell_size) && alt_down) {
+					drawing_ctx.lineCap = 'square';
+				} else {
+					drawing_ctx.lineCap = 'round';
+				}
+
 				var data = {
-					action: 'draw_move',
+					action: 'draw_line',
 					draw_x: draw_x,
-					draw_y: draw_y
+					draw_y: draw_y,
+					linecap: drawing_ctx.lineCap
 				};
 				websocket_send(data);
 				drawing_history.push(data);
 
-				if (drawing_ctx.lineWidth > 1) {
-					draw_circle(draw_x, draw_y);
-				}
+				drawing_ctx.lineTo(draw_x, draw_y);
+				drawing_ctx.stroke();
+			}
+
+			draw(event);
+			$('canvas#drawing').on('mousemove', function(event) {
+				draw(event);
+			});
+
+			$('canvas#drawing').on('mouseleave', function(event) {
+				drawing_ctx.closePath();
+			});
+
+			$('canvas#drawing').on('mouseenter', function(event) {
+				var scr = screen_scroll();
+				var draw_x = event.clientX - canvas_x + scr.left;
+				var draw_y = event.clientY - canvas_y + scr.top;
 
 				drawing_ctx.beginPath();
 				drawing_ctx.moveTo(draw_x, draw_y);
+			});
 
-				$('canvas#drawing').on('mousemove', function(event) {
-					var scr = screen_scroll();
-
-					var draw_x = event.clientX - canvas_x + scr.left;
-					var draw_y = event.clientY - canvas_y + scr.top;
-
-					var data = {
-						action: 'draw_line',
-						draw_x: draw_x,
-						draw_y: draw_y
-					};
-					websocket_send(data);
-					drawing_history.push(data);
-
-					drawing_ctx.lineTo(draw_x, draw_y);
-					drawing_ctx.stroke();
-				});
-
-				$('canvas#drawing').one('mouseup', function() {
-					$('canvas#drawing').off('mousemove');
-				});
-			}
+			$('canvas#drawing').one('mouseup', function() {
+				$('canvas#drawing').off('mousemove');
+			});
 		});
 
 		$('button#draw_clear').click(function() {
@@ -3790,7 +3766,7 @@ $(document).ready(function() {
 			});
 		});
 		$('video').on('play', function() {
-			$('button#playvideo').remove();
+			$('button.playvideo').remove();
 		});
 		$('video').append('<source src="' + $('video').attr('source') + '"></source>');
 	} else {
@@ -3826,8 +3802,7 @@ $(document).ready(function() {
 			containment: 'div.playarea > div',
 			stop: function(event, ui) {
 				object_move($(this));
-			},
-			drag: zoom_drag
+			}
 		});
 		$('div.zone').filter(function() {
 			return $(this).css('background-color') == 'rgb(0, 0, 0)';
@@ -3842,8 +3817,7 @@ $(document).ready(function() {
 			handle: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
-			},
-			drag: zoom_drag
+			}
 		});
 
 		$('div.character').draggable({
@@ -3851,8 +3825,7 @@ $(document).ready(function() {
 			handle: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
-			},
-			drag: zoom_drag
+			}
 		});
 
 		$('div.token[is_hidden=yes]').each(function() {
@@ -3870,8 +3843,7 @@ $(document).ready(function() {
 			handler: 'img',
 			stop: function(event, ui) {
 				object_move($(this));
-			},
-			drag: zoom_drag
+			}
 		});
 
 		$('div.light').contextmenu(function(event) {
@@ -4039,6 +4011,51 @@ $(document).ready(function() {
 				object_create($(this), event.pageX, event.pageY);
 			}
 		});
+
+		/* Start combat button
+		 */
+		$('button.start_combat').on('click', function() {
+			combat_start();
+		});
+
+		/* Audio dialog
+		 */
+		var audio_dialog = '<div><p>Select an audio file to play it.</p><ul class="audio"></ul></div>'
+		wf_play_audio = $(audio_dialog).windowframe({
+			activator: 'button.play_audio',
+			header: 'Audio files from Resources',
+			open: function() {
+				$.ajax('/adventure/audio').done(function(data) {
+					var audio = '';
+					$(data).find('audio sound').each(function() {
+						audio += '<li>/' + $(this).text() + '</li>';
+					});
+
+					$('ul.audio').append(audio);
+
+					$('ul.audio li').click(function() {
+						wf_play_audio.close();
+
+						$('div.input input').focus();
+
+						var filename = $(this).text();
+						filename = filename.substr(0, 11) + resources_key + filename.substr(10);
+
+						var data = {
+							action: 'audio',
+							filename: filename
+						};
+						websocket_send(data);
+
+						var audio = new Audio(filename);
+						audio.play();
+					});
+				});
+			},
+			close: function() {
+				$('ul.audio').empty();
+			}
+		});
 	} else {
 		/* Player settings
 		 /*/
@@ -4055,8 +4072,7 @@ $(document).ready(function() {
 					stop: function(event, ui) {
 						stick_to = null;
 						object_move($(this));
-					},
-					drag: zoom_drag
+					}
 				});
 				my_character.css('cursor', 'grab');
 			}
@@ -4206,20 +4222,18 @@ $(document).ready(function() {
 		}
 	});
 
-	$('div.playarea').mousedown(function(event) {
-		if (event.which == 3) {
-			var scr = screen_scroll();
-			mouse_x = (event.clientX / zoom_level) + scr.left - 16;
-			mouse_y = (event.clientY / zoom_level) + scr.top - 41;
-		}
-	});
-
+	/* Windows
+	 */
 	wf_effect_create = $('div.effect_create').windowframe({
 		width: 530,
 		style: 'default',
 		header: 'Create effect',
 		footer: '<span class="effect_size">width: <input id="effect_width" type="number" value="1" min="1" /></span>' +
 		        '<span class="effect_size">height: <input id="effect_height" type="number" value="1" min="1" /></span>'
+	});
+
+	$('div.effect_create img').click(function() {
+		effect_create($(this));
 	});
 
 	wf_collectables = $('<div class="collectables"></div>').windowframe({
@@ -4236,7 +4250,7 @@ $(document).ready(function() {
 		header: 'DM notes'
 	});
 
-	$('div.journal').windowframe({
+	wf_journal = $('div.journal').windowframe({
 		activator: 'button.show_journal',
 		width: 800,
 		height: 400,
@@ -4310,13 +4324,56 @@ $(document).ready(function() {
 		}
 	});
 
-	$('select.map-selector').click(function(event) {
-		event.stopPropagation();
+	$('button.journal_write').click(function() {
+		journal_write();
+	});
+
+	$('button.center_character').click(function() {
+		center_character($(this));
+	});
+
+	$('button.interface_color').click(function() {
+		interface_color($(this));
+	});
+
+	$('select.map-selector').on('change', function() {
+		map_switch();
+	});
+
+	$('button.map_image').click(function() {
+		map_image();
+	});
+
+	$('button.playvideo').click(function() {
+		$('video').get(0).play();
+	});
+
+	/* Other stuff
+	 */
+	$('div.playarea').mousedown(function(event) {
+		if (event.which == 3) {
+			var scr = screen_scroll();
+			mouse_x = event.clientX + scr.left - 16;
+			mouse_y = event.clientY + scr.top - 41;
+		}
 	});
 
 	if (dungeon_master) {
 		combat_check_running();
 	}
+
+	$('div.filter input').on('keyup',function() {
+		param = $(this).val().toLowerCase();
+
+		$('div.library div.well').each(function() {
+			var name = $(this).find('div.name').text().toLowerCase();
+			if (name.includes(param) == false) {
+				$(this).hide();
+			} else {
+				$(this).show();
+			}
+		});
+	});
 
 	var conditions = localStorage.getItem('conditions');
 	if (conditions != undefined) {
@@ -4360,11 +4417,4 @@ $(document).ready(function() {
 	if (color == 'dark') {
 		interface_color($('button#itfcol'), false);
 	}
-
-/*
-	$(window).resize(function() {
-		zoom_playarea(zoom_level);
-	});
-	zoom_playarea(1);
-*/
 });

@@ -1,9 +1,9 @@
-form.game-selector select {
+form.adventure-selector select {
 	max-width:none;
 }
 
 @media (min-width:768px) {
-	form.game-selector {
+	form.adventure-selector {
 		width:250px;
 		float:right;
 		position:relative;

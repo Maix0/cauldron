@@ -145,7 +145,7 @@
 
 			/* Test login for existing user
 			 */
-			if ($users[0]["count"] == 0) {
+			if ($users[0]["count"] > 0) {
 				$login_test = new \Banshee\Database\MySQLi_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
 				if ($login_test->connected == false) {
 					$db->query("rollback");
@@ -470,6 +470,24 @@
 
 			if ($this->settings->database_version == 23) {
 				$this->settings->database_version = 24;
+			}
+
+			if ($this->settings->database_version == 24) {
+				$this->db_query("RENAME TABLE game_character TO adventure_character");
+
+				$this->db_query("ALTER TABLE adventure_character CHANGE game_id adventure_id INT(10) UNSIGNED NOT NULL");
+				$this->db_query("ALTER TABLE collectables CHANGE game_id adventure_id INT(10) UNSIGNED NOT NULL");
+				$this->db_query("ALTER TABLE journal CHANGE game_id adventure_id INT(10) UNSIGNED NOT NULL");
+				$this->db_query("ALTER TABLE maps CHANGE game_id adventure_id INT(10) UNSIGNED NOT NULL");
+
+				$this->db_query("ALTER TABLE adventure_character DROP INDEX game_id, ADD INDEX adventure_id (adventure_id) USING BTREE");
+				$this->db_query("ALTER TABLE collectables DROP INDEX game_id, ADD INDEX adventure_id (adventure_id) USING BTREE");
+				$this->db_query("ALTER TABLE journal DROP INDEX game_id, ADD INDEX adventure_id (adventure_id) USING BTREE");
+				$this->db_query("ALTER TABLE maps DROP INDEX game_id, ADD INDEX adventure_id (adventure_id) USING BTREE");
+
+				$this->db_query("RENAME TABLE games TO adventures");
+
+				$this->settings->database_version = 25;
 			}
 
 			return true;

@@ -427,6 +427,14 @@
 		}
 	}
 
+	/* PHP warning prevention
+	 */
+	if (isset($_SERVER["REQUEST_METHOD"]) == false) {
+		$_SERVER["REQUEST_METHOD"] = null;
+	} else if (($_SERVER["REQUEST_METHOD"] == "POST") && (isset($_POST["submit_button"]) == false)) {
+		$_POST["submit_button"] = null;
+	}
+
 	/* Autoloaders
 	 */
 	if (file_exists($composer = __DIR__."/../../composer/autoload.php")) {

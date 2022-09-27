@@ -23,7 +23,7 @@
 <div>Armor class: <xsl:value-of select="armor_class" /></div>
 <div>Initiative bonus: <xsl:value-of select="initiative" /></div>
 </div>
-<div class="panel-footer">Game: <span><xsl:value-of select="title" /></span></div>
+<div class="panel-footer">Adventure: <span><xsl:value-of select="title" /></span></div>
 </div>
 </div>
 </xsl:for-each>

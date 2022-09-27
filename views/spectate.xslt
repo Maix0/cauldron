@@ -5,41 +5,41 @@
 
 <!--
 //
-//  Games template
+//  Adventures template
 //
 //-->
-<xsl:template match="games">
-<xsl:if test="count(game)=0">
-<p>No games available yet.</p>
+<xsl:template match="adventures">
+<xsl:if test="count(adventure)=0">
+<p>No adventures available yet.</p>
 </xsl:if>
 <div class="row">
-<xsl:for-each select="game">
+<xsl:for-each select="adventure">
 <div class="col-sm-6">
 <div class="well" style="background-image:url({image})">
 <h2><xsl:value-of select="title" /></h2>
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
 <div class="btn-group">
 <xsl:if test="story!=''"><button class="btn btn-primary btn-sm show_story{@id}">Introduction</button></xsl:if>
-<a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Spectate game</a>
+<a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Spectate adventure</a>
 </div>
 </div>
 </div>
 </xsl:for-each>
 </div>
 
-<xsl:for-each select="game">
+<xsl:for-each select="adventure">
 <div class="story" id="story{@id}" title="{title}" style="display:none"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
 </xsl:for-each>
 </xsl:template>
 
 <!--
 //
-//  Game template
+//  Adventure template
 //
 //-->
-<xsl:template match="game">
+<xsl:template match="adventure">
 <!-- Menu -->
-<div class="menu">
+<div class="topbar">
 <span class="menu-one">
 <span id="infobar"></span>
 <xsl:if test="maps">
@@ -53,12 +53,12 @@
 <button class="btn btn-default btn-xs show_journal">Journal</button>
 <button class="btn btn-default btn-xs show_collectables">Inventory</button>
 <xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
-<a href="/game" class="btn btn-default btn-xs">Back</a>
+<a href="/adventure" class="btn btn-default btn-xs">Back</a>
 </div>
 </span>
 </div>
 <xsl:if test="not(map)">
-<input id="game_id" type="hidden" name="game_id" value="{@id}" />
+<input id="adventure_id" type="hidden" name="adventure_id" value="{@id}" />
 <p class="nomap">No map has been selected yet.</p>
 </xsl:if>
 <!-- Windows -->
@@ -71,7 +71,7 @@
 </xsl:for-each>
 </div>
 <!-- Play area -->
-<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" game_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
+<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" adventure_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div>
@@ -164,8 +164,8 @@
 //-->
 <xsl:template match="content">
 <h1><xsl:value-of select="/output/layout/title/@page" /></h1>
-<xsl:apply-templates select="games" />
-<xsl:apply-templates select="game" />
+<xsl:apply-templates select="adventures" />
+<xsl:apply-templates select="adventure" />
 <xsl:apply-templates select="result" />
 </xsl:template>
 

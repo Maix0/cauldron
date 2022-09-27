@@ -282,7 +282,7 @@
 
 				/* Save item
 				 */
-				if ($this->model->save_oke($_POST) == false) {
+				if ($this->model->save_okay($_POST) == false) {
 					$this->show_item_form($_POST);
 				} else if (isset($_POST["id"]) == false) {
 					/* Create item
@@ -318,7 +318,7 @@
 			} else if ($_POST["submit_button"] == "Delete ".$item) {
 				/* Delete item
 				 */
-				if ($this->model->delete_oke($_POST["id"]) == false) {
+				if ($this->model->delete_okay($_POST["id"]) == false) {
 					$this->show_item_form($_POST);
 				} else if ($this->model->delete_item($_POST["id"]) === false) {
 					$this->view->add_system_warning("Error while deleting ".$item.".");
@@ -363,7 +363,7 @@
 
 			/* Check class settings
 			 */
-			if ($this->model->class_settings_oke() == false) {
+			if ($this->model->class_settings_okay() == false) {
 				return false;
 			}
 

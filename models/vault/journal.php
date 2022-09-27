@@ -2,23 +2,23 @@
 	class vault_journal_model extends Banshee\model {
 		private $columns = array();
 
-		public function get_games() {
-			$query = "select * from games where dm_id=%d order by timestamp desc";
+		public function get_adventures() {
+			$query = "select * from adventures where dm_id=%d order by timestamp desc";
 
 			return $this->db->execute($query, $this->user->id);
 		}
 
-		public function is_my_game($game_id) {
-			$query = "select * from games where id=%d and dm_id=%d";
+		public function is_my_adventure($adventure_id) {
+			$query = "select * from adventures where id=%d and dm_id=%d";
 
-			return $this->db->execute($query, $game_id, $this->user->id) != false;
+			return $this->db->execute($query, $adventure_id, $this->user->id) != false;
 		}
 
-		public function get_journal($game_id) {
+		public function get_journal($adventure_id) {
 			$query = "select j.*, UNIX_TIMESTAMP(j.timestamp) as timestamp, u.fullname ".
-			         "from journal j, users u where j.user_id=u.id and game_id=%d order by timestamp";
+			         "from journal j, users u where j.user_id=u.id and adventure_id=%d order by timestamp";
 
-			return $this->db->execute($query, $game_id);
+			return $this->db->execute($query, $adventure_id);
 		}
 
 		public function get_entry($entry_id) {
@@ -28,7 +28,7 @@
 				return false;
 			}
 
-			if ($this->is_my_game($entries[0]["game_id"]) == false) {
+			if ($this->is_my_adventure($entries[0]["adventure_id"]) == false) {
 				return false;
 			}
 
@@ -43,8 +43,8 @@
 					$this->view->add_message("Invalid entry id.");
 					$result = false;
 				}
-			} else if ($this->is_my_game($entry["game_id"]) == false) {
-				$this->view->add_message("Invalid game id.");
+			} else if ($this->is_my_adventure($entry["adventure_id"]) == false) {
+				$this->view->add_message("Invalid adventure id.");
 				$result = false;
 			}
 
@@ -57,7 +57,7 @@
 		}
 
 		public function create_entry($entry) {
-			$keys = array("id", "game_id", "user_id", "timestamp", "content");
+			$keys = array("id", "adventure_id", "user_id", "timestamp", "content");
 
 			$entry["id"] = null;
 			$entry["user_id"] = $this->user->id;

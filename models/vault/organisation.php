@@ -12,9 +12,9 @@
 
 		public function get_organisations($offset, $limit) {
 			$query = "select *, (select count(*) from users where organisation_id=o.id) as users, ".
-			         "(select count(*) from games g, users u where g.dm_id=u.id and u.organisation_id=o.id) as games, ".
+			         "(select count(*) from adventures a, users u where a.dm_id=u.id and u.organisation_id=o.id) as adventures, ".
 			         "(select count(*) from tokens t where t.organisation_id=o.id) as tokens, ".
-			         "(select count(*) from maps m, games g, users u where m.game_id=g.id and g.dm_id=u.id and u.organisation_id=o.id) as maps ".
+			         "(select count(*) from maps m, adventures a, users u where m.adventure_id=a.id and a.dm_id=u.id and u.organisation_id=o.id) as maps ".
 			         "from organisations o order by name limit %d,%d";
 
 			return $this->db->execute($query, $offset, $limit);
@@ -30,7 +30,7 @@
 			return $this->db->execute($query, $organisation_id);
 		}
 
-		public function save_oke($organisation) {
+		public function save_okay($organisation) {
 			$result = true;
 
 			if (trim($organisation["name"]) == "") {
@@ -104,15 +104,15 @@
 		}
 
 		public function delete_organisation($organisation_id) {
-			/* Delete games
+			/* Delete adventures
 			 */
-			$query = "select g.id from games g, users u where g.dm_id=u.id and u.organisation_id=%d";
-			if (($games = $this->db->execute($query, $organisation_id)) === false) {
+			$query = "select a.id from adventures a, users u where a.dm_id=u.id and u.organisation_id=%d";
+			if (($adventures = $this->db->execute($query, $organisation_id)) === false) {
 				return false;
 			}
 
-			foreach ($games as $game) {
-				if ($this->borrow("vault/game")->delete_game($game["id"]) === false) {
+			foreach ($adventures as $adventure) {
+				if ($this->borrow("vault/adventure")->delete_adventure($adventure["id"]) === false) {
 					return false;
 				}
 			}

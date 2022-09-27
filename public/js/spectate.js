@@ -16,7 +16,7 @@ const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
 
 var websocket;
 var group_key = null;
-var game_id = null;
+var adventure_id = null;
 var map_id = null;
 var user_id = null;
 var resources_key = null;
@@ -36,7 +36,7 @@ function websocket_send(data) {
 		return;
 	}
 
-	data.game_id = game_id;
+	data.adventure_id = adventure_id;
 	data.user_id = user_id;
 	data = JSON.stringify(data);
 
@@ -44,7 +44,7 @@ function websocket_send(data) {
 }
 
 function change_map() {
-	document.location = '/spectate/' + game_id + '/' + $('select.map-selector').val();
+	document.location = '/spectate/' + adventure_id + '/' + $('select.map-selector').val();
 
 }
 
@@ -557,7 +557,7 @@ function marker_create(pos_x, pos_y, name = null) {
  */
 function collectables_show() {
 	$.post('/object/collectables/found', {
-		game_id: game_id,
+		adventure_id: adventure_id,
 	}).done(function(data) {
 		var body = wf_collectables.body();
 		body.empty();
@@ -682,7 +682,7 @@ function context_menu_handler(key, options) {
  */
 $(document).ready(function() {
 	group_key = $('div.playarea').attr('group_key');
-	game_id = parseInt($('div.playarea').attr('game_id'));
+	adventure_id = parseInt($('div.playarea').attr('adventure_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
 	user_id = parseInt($('div.playarea').attr('user_id'));
 	resources_key = $('div.playarea').attr('resources_key');
@@ -732,11 +732,11 @@ $(document).ready(function() {
 			return;
 		}
 
-		if (data.game_id != game_id) {
+		if (data.adventure_id != adventure_id) {
 			return;
 		}
 
-		delete data.game_id;
+		delete data.adventure_id;
 		delete data.user_id;
 
 		switch (data.action) {
@@ -859,7 +859,7 @@ $(document).ready(function() {
 				});
 				break;
 			case 'reload':
-				document.location = '/spectate/' + game_id;
+				document.location = '/spectate/' + adventure_id;
 				break;
 			case 'rotate':
 				var obj = $('div#' + data.instance_id);
@@ -1043,8 +1043,22 @@ $(document).ready(function() {
 		audio.play();
 	}
 
+/*
 	$('div.sidebar').css({
 		'top': '40px',
 		'bottom': '15px'
 	});
+
+	$('select.map-selector').css({
+		'display': 'inline-block',
+		'margin-right': '15px',
+		'display': 'inline-block',
+		'width': '200px',
+		'height': '20px',
+		'padding': '0',
+		'position': 'relative',
+		'top': '1px',
+		'font-size': '12px'
+	});
+*/
 });

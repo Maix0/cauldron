@@ -9,10 +9,10 @@
 //
 //-->
 <xsl:template match="overview">
-<form action="/{/output/page}" method="post" class="game-selector">
-<input type="hidden" name="submit_button" value="Change game" />
-<select name="game" class="form-control" onChange="javascript:submit()">
-<xsl:for-each select="games/game">
+<form action="/{/output/page}" method="post" class="adventure-selector">
+<input type="hidden" name="submit_button" value="Change adventure" />
+<select name="adventure" class="form-control" onChange="javascript:submit()">
+<xsl:for-each select="adventures/adventure">
 <option value="{@id}"><xsl:if test="@selected='yes'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
 </xsl:for-each>
 </select>
@@ -53,8 +53,8 @@
 <xsl:template match="edit">
 <xsl:call-template name="show_messages" />
 <form action="/{/output/page}" method="post">
-<xsl:if test="entry/game_id">
-<input type="hidden" name="game_id" value="{entry/game_id}" />
+<xsl:if test="entry/adventure_id">
+<input type="hidden" name="adventure_id" value="{entry/adventure_id}" />
 </xsl:if>
 <xsl:if test="entry/@id">
 <input type="hidden" name="id" value="{entry/@id}" />

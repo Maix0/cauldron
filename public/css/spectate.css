@@ -1,0 +1,28 @@
+div.sidebar {
+	top:40px;
+	bottom:15px;
+}
+
+div.topbar select.map-selector {
+	display:inline-block;
+	margin-right:15px;
+	display:inline-block;
+	width:200px;
+	height:20px;
+	padding:0;
+	position:relative;
+	top:1px;
+	font-size:12px;
+}
+
+@media (max-width:991px) {
+	div.sidebar {
+		top:70px;
+	}
+}
+
+@media (max-width:767px) {
+	div.topbar span#infobar {
+		display:none;
+	}
+}

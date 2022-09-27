@@ -313,7 +313,7 @@
 		 * OUTPUT: boolean item validation oke
 		 * ERROR:  -
 		 */
-		public function save_oke($item) {
+		public function save_okay($item) {
 			$result = true;
 
 			if (isset($item["id"]) == false) {
@@ -392,7 +392,7 @@
 		 * OUTPUT: true
 		 * ERROR:  false
 		 */
-		public function delete_oke($item_id) {
+		public function delete_okay($item_id) {
 			if ($this->allow_delete == false) {
 				$this->view->add_message("You are not allowed to delete items.");
 				return false;
@@ -470,7 +470,7 @@
 					}
 				}
 
-				if (($element["null"] === true) && ($item[$key] == "")) {
+				if ((($element["null"] ?? null) === true) && ($item[$key] == "")) {
 					$item[$key] = null;
 				}
 			}
@@ -494,50 +494,50 @@
 		 * OUTPUT: true
 		 * ERROR:  false
 		 */
-		public function class_settings_oke() {
-			$class_oke = true;
+		public function class_settings_okay() {
+			$class_okay = true;
 
 			$ckeditors = 0;
 
 			if ($this->table == null) {
 				print "Table not set in ".get_class($this)."\n";
-				$class_oke = false;
+				$class_okay = false;
 			}
 			if (is_array($this->elements) == false) {
 				print "Elements not set in ".get_class($this)."\n";
-				$class_oke = false;
+				$class_okay = false;
 			} else foreach ($this->elements as $name => &$element) {
 				if (is_int($name)) {
 					print "Numeric element names are not allowed in ".get_class($this)."\n";
-					$class_oke = false;
+					$class_okay = false;
 				}
 
 				if (isset($element["label"]) == false) {
 					print "Label in element '".$name."' not set in ".get_class($this)."\n";
-					$class_oke = false;
+					$class_okay = false;
 				}
 
 				if (in_array($element["type"], $this->valid_types) == false) {
 					print "Unknown type in element '".$name."' in ".get_class($this)."\n";
-					$class_oke = false;
+					$class_okay = false;
 				}
 				switch ($element["type"]) {
 					case "enum":
 						if (is_array($element["options"]) == false) {
 							print "Options in element '".$name."' not set in ".get_class($this)."\n";
-							$class_oke = false;
+							$class_okay = false;
 						}
 						break;
 					case "foreignkey":
 						if ((isset($element["table"]) == false) || (isset($element["column"]) == false)) {
 							print "Table or column in element '".$name."' not set in ".get_class($this)."\n";
-							$class_oke = false;
+							$class_okay = false;
 						}
 						break;
 					case "ckeditor":
 						if (++$ckeditor > 1) {
 							print "More than one element of type 'ckeditor' in ".get_class($this).".\n";
-							$class_oke = false;
+							$class_okay = false;
 						}
 						break;
 				}
@@ -557,7 +557,7 @@
 				unset($element);
 			}
 
-			return $class_oke;
+			return $class_okay;
 		}
 	}
 ?>

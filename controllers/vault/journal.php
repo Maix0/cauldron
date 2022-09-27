@@ -1,33 +1,33 @@
 <?php
 	class vault_journal_controller extends Banshee\controller {
 		private function show_overview() {
-			if (($games = $this->model->get_games()) === false) {
+			if (($adventures = $this->model->get_adventures()) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if (count($games) == 0) {
-				$this->view->add_tag("result", "Create a game first.", array("url" => "vault/game/new"));
+			if (count($adventures) == 0) {
+				$this->view->add_tag("result", "Create an adventure first.", array("url" => "vault/adventure/new"));
 				return;
 			}
 
-			if (isset($_SESSION["edit_game_id"]) == false) {
-				$_SESSION["edit_game_id"] = $games[0]["id"];
+			if (isset($_SESSION["edit_adventure_id"]) == false) {
+				$_SESSION["edit_adventure_id"] = $adventures[0]["id"];
 			}
 
-			if (($journal = $this->model->get_journal($_SESSION["edit_game_id"])) === false) {
+			if (($journal = $this->model->get_journal($_SESSION["edit_adventure_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
 			$this->view->open_tag("overview");
 
-			$this->view->open_tag("games");
-			foreach ($games as $game) {
+			$this->view->open_tag("adventures");
+			foreach ($adventures as $adventure) {
 				$attr = array(
-					"id"	   => $game["id"],
-					"selected" => show_boolean($game["id"] == $_SESSION["edit_game_id"]));
-				$this->view->add_tag("game", $game["title"], $attr);
+					"id"	   => $adventure["id"],
+					"selected" => show_boolean($adventure["id"] == $_SESSION["edit_adventure_id"]));
+				$this->view->add_tag("adventure", $adventure["title"], $attr);
 			}
 			$this->view->close_tag();
 
@@ -44,7 +44,7 @@
 		private function show_entry_form($entry) {
 			$this->view->open_tag("edit");
 			if (isset($entry["id"])) {
-				unset($entry["game_id"]);
+				unset($entry["adventure_id"]);
 			}
 			$this->view->record($entry, "entry");
 			$this->view->close_tag();
@@ -52,11 +52,11 @@
 
 		public function execute() {
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				if ($_POST["submit_button"] == "Change game") {
-					/* Change game
+				if ($_POST["submit_button"] == "Change adventure") {
+					/* Change adventure 
 					 */
-					if ($this->model->is_my_game($_POST["game"])) {
-						$_SESSION["edit_game_id"] = $_POST["game"];
+					if ($this->model->is_my_adventure($_POST["adventure"])) {
+						$_SESSION["edit_adventure_id"] = $_POST["adventure"];
 					}
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save entry") {
@@ -109,7 +109,7 @@
 				/* New entry
 				 */
 				$entry = array(
-					"game_id"  => $_SESSION["edit_game_id"],
+					"adventure_id"  => $_SESSION["edit_adventure_id"],
 					"fullname" => $this->user->fullname);
 				$this->show_entry_form($entry);
 			} else if ($this->page->parameter_numeric(0)) {
