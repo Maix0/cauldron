@@ -52,12 +52,13 @@
 		}
 
 		public function create_organisation($organisation) {
-			$keys = array("id", "name", "resources_key", "max_resources");
+			$keys = array("id", "name", "resources_key", "max_resources", "invitation_code");
 
 			$resources_key = random_string(32);
 
 			$organisation["id"] = null;
 			$organisation["resources_key"] = $resources_key;
+			$organisation["invitation_code"] = null;
 
 			if (($this->db->insert("organisations", $organisation, $keys)) === false) {
 				return false;

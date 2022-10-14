@@ -24,6 +24,7 @@ html, body {
 div.wrapper {
 	min-height:100%;
 	position:relative;
+	background-image:url(/images/layout/background-bright.png);
 }
 
 h1 {

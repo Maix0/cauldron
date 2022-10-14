@@ -158,11 +158,7 @@ function object_dead(obj) {
 }
 
 function object_hide(obj) {
-	if (dungeon_master) {
-		obj.fadeTo(0, 0.5);
-	} else {
-		obj.hide(100);
-	}
+	obj.hide(100);
 	obj.attr('is_hidden', 'yes');
 }
 
@@ -190,10 +186,6 @@ function object_info(obj) {
 		if (obj.hasClass('character')) {
 			info += 'Initiative bonus: ' + obj.attr('initiative') + '<br />';
 		}
-	}
-
-	if (dungeon_master) {
-		info += 'Object ID: ' + obj.attr('id') + '<br />';
 	}
 
 	write_sidebar(info);
@@ -254,11 +246,7 @@ function object_rotate(obj, rotation, speed = 500) {
 }
 
 function object_show(obj) {
-	if (dungeon_master) {
-		obj.fadeTo(0, 1);
-	} else {
-		obj.show(100);
-	}
+	obj.show(100);
 	obj.attr('is_hidden', 'no');
 }
 
@@ -399,29 +387,17 @@ function door_show_open(door) {
 
 function door_show_locked(door) {
 	door_show_closed(door);
-	if (dungeon_master) {
-		door.css('background-color', '#c00000');
-	}
-
 	door.attr('state', 'locked');
 }
 
 function door_show_unlocked(door) {
-	if (dungeon_master) {
-		door_show_closed(door);
-	}
-
 	door.attr('state', 'closed');
 }
 
 /* Light functions
  */
 function light_create_object(instance_id, pos_x, pos_y, radius) {
-	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;">';
-	if (dungeon_master) {
-		light += '<img src="/images/light_on.png" style="width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px" />';
-	}
-	light += '</div>';
+	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;"></div>';
 
 	$('div.playarea div.lights').append(light);
 
@@ -468,9 +444,7 @@ function wall_position(wall) {
 		return;
 	}
 
-	if (dungeon_master == false) {
-		wall.css('display', 'none');
-	}
+	wall.css('display', 'none');
 
 	wall.css('left', pos_x + 'px');
 	wall.css('top', pos_y + 'px');
@@ -517,14 +491,6 @@ function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, gro
 	width *= grid_cell_size;
 	height *= grid_cell_size;
 
-	if (dungeon_master) {
-		if (opacity < 0.2) {
-			opacity = 0.2;
-		} else if (opacity > 0.8) {
-			opacity = 0.8;
-		}
-	}
-
 	var zone = $('<div id="' + id + '" class="zone" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + ';" />');
 
 	if (group != '') {
@@ -532,10 +498,6 @@ function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, gro
 	}
 
 	$('div.playarea div.zones').append(zone);
-
-	if (dungeon_master) {
-		$('div#' + id).append('<div class="script"></div>');
-	}
 }
 
 /* Marker functions
@@ -687,8 +649,6 @@ $(document).ready(function() {
 	user_id = parseInt($('div.playarea').attr('user_id'));
 	resources_key = $('div.playarea').attr('resources_key');
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
-	my_name = $('div.playarea').attr('name');
-	dungeon_master = ($('div.playarea').attr('is_dm') == 'yes');
 	fow_type = parseInt($('div.playarea').attr('fog_of_war'));
 	fow_default_distance = parseInt($('div.playarea').attr('fow_distance'));
 	var version = $('div.playarea').attr('version');
@@ -710,13 +670,11 @@ $(document).ready(function() {
 
 		write_sidebar('Connection established.');
 
-		if (dungeon_master == false) {
-			var data = {
-				action: 'effect_request',
-				map_id: map_id
-			};
-			websocket_send(data);
-		}
+		var data = {
+			action: 'effect_request',
+			map_id: map_id
+		};
+		websocket_send(data);
 
 		var data = {
 			action: 'draw_request',

@@ -1,5 +1,5 @@
 <?php
-	class vault_adventure_model extends Banshee\model {
+	class vault_adventure_model extends cauldron_model {
 		public function get_adventures() {
 			$query = "select *, (select count(*) from adventure_character where adventure_id=a.id) as players, ".
 			         "(select count(*) from maps where adventure_id=a.id) as maps ".

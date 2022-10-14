@@ -26,8 +26,8 @@
 <div class="well well-sm" onClick="javascript:document.location='/{/output/page}/{@id}'">
 <img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" class="icon" />
 <div class="name"><xsl:value-of select="name" /></div>
-<div>Width: <xsl:value-of select="width" /></div>
-<div>Height: <xsl:value-of select="height" /></div>
+<div>Size: <xsl:value-of select="width" /> &#215; <xsl:value-of select="height" /></div>
+<div>Hit points: <xsl:value-of select="hitpoints" /></div>
 </div>
 </div>
 </xsl:for-each>
@@ -48,11 +48,14 @@
 <form action="/{/output/page}" method="post" enctype="multipart/form-data">
 <xsl:if test="token/@id">
 <input type="hidden" name="id" value="{token/@id}" />
+<input type="hidden" name="extension" value="{token/extension}" />
 <img src="/resources/{/output/cauldron/resources_key}/tokens/{token/@id}.{token/extension}" class="token" />
 </xsl:if>
 
+<div class="row">
+<div class="col-sm-6">
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{token/name}" class="form-control" />
+<input type="text" id="name" name="name" value="{token/name}" placeholder="The name of this NPC/monster/object." class="form-control" />
 <label for="width">Width:</label>
 <input type="text" id="width" name="width" value="{token/width}" class="form-control" />
 <label for="height">Height:</label>
@@ -68,6 +71,10 @@
 <label for="hitpoints">Default hit points:</label>
 <input type="text" id="hitpoints" name="hitpoints" value="{token/hitpoints}" class="form-control" />
 <div><b>Available for shape change:</b><input type="checkbox" name="shape_change"><xsl:if test="token/shape_change='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
+</div>
+<div class="col-sm-6 monsters">
+</div>
+</div>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save token" class="btn btn-default" />

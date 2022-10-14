@@ -1,3 +1,4 @@
+const FOW_COLOR_SHADOW = '#181818';
 const CELL_PADDING = 0.25;
 const POINTS_VISIBLE = 2;
 
@@ -234,7 +235,7 @@ function fog_of_war_init(z_index) {
 		for (var x = 0; x < fog_of_war_map_width; x++) {
 			var left = x * grid_cell_size;
 			var top = y * grid_cell_size;
-			var fog = '<div id="fog_of_war_' + x + '_' + y +'" class="fow" style="position:absolute; z-index:' + z_index + '; left:' + left + 'px; top:' + top + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; background-color:#202020;" />';
+			var fog = '<div id="fog_of_war_' + x + '_' + y +'" class="fow" style="position:absolute; z-index:' + z_index + '; left:' + left + 'px; top:' + top + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; background-color:' + FOW_COLOR_SHADOW + ';" />';
 
 			$('div.fog_of_war').append(fog);
 		}

@@ -11,15 +11,37 @@
 		const MINIMUM_FULLNAME_LENGTH = 4;
 
 		protected $forms = array(
-			"email"   => array("email"),
-			"code"    => array("code"),
-			"account" => array("fullname", "username", "password", "organisation"));
+			"invitation" => array("invitation"),
+			"email"      => array("email"),
+			"code"       => array("code"),
+			"account"    => array("fullname", "username", "password", "organisation"));
 
 		public function reset_form_progress() {
 			unset($_SESSION["register_email"]);
 			unset($_SESSION["register_code"]);
 
 			parent::reset_form_progress();
+		}
+
+		public function validate_invitation($data) {
+			if (empty($data["invitation"])) {
+				return true;
+			}
+
+			if (strpos($data["invitation"], "-") === false) {
+				$this->view->add_message("Invalid invitation code.");
+				return false;
+			}
+
+			list($id, $code) = explode("-", $data["invitation"]);
+
+			$query = "select * from organisations where id=%d and invitation_code=%s";
+			if ($this->db->execute($query, $id, $code) == false) {
+				$this->view->add_message("Invalid invitation code.");
+				return false;
+			}
+
+			return true;
 		}
 
 		public function validate_email($data) {
@@ -51,7 +73,10 @@
 		public function validate_account($data) {
 			$result = true;
 
-			if ((strlen($data["username"]) < self::MINIMUM_USERNAME_LENGTH) || (valid_input($data["username"], VALIDATE_NONCAPITALS, VALIDATE_NONEMPTY) == false)) {
+			$length_okay = (strlen($data["username"]) >= self::MINIMUM_USERNAME_LENGTH);
+			$format_okay = valid_input($data["username"], VALIDATE_NONCAPITALS.VALIDATE_NUMBERS."@.-", VALIDATE_NONEMPTY);
+
+			if (($length_okay == false) || ($format_okay == false)) {
 				$this->view->add_message("Your username must consist of lowercase letters with a mimimum length of %d.", self::MINIMUM_USERNAME_LENGTH);
 				$result = false;
 			}
@@ -80,14 +105,22 @@
 				return false;
 			}
 
-			$organisation = array(
-				"name"          => "Group ".($result[0]["id"] + 1),
-				"max_resources" => $this->settings->default_max_resources);
+			if (empty($data["invitation"]) == false) {
+				list($organisation_id) = explode("-", $data["invitation"]);
 
-			if ($this->borrow("vault/organisation")->create_organisation($organisation) == false) {
-				return false;
+				$roles = array(PLAYER_ROLE_ID);
+			} else {
+				$organisation = array(
+					"name"		  => "Group ".($result[0]["id"] + 1),
+					"max_resources" => $this->settings->default_max_resources);
+
+				if ($this->borrow("vault/organisation")->create_organisation($organisation) == false) {
+					return false;
+				}
+				$organisation_id = $this->db->last_insert_id;
+
+				$roles = array(USER_MAINTAINER_ROLE_ID, PLAYER_ROLE_ID, DUNGEON_MASTER_ROLE_ID);
 			}
-			$organisation_id = $this->db->last_insert_id;
 
 			$user = array(
 				"organisation_id" => $organisation_id,
@@ -96,7 +129,7 @@
 			    "status"          => USER_STATUS_ACTIVE,
 				"fullname"        => $data["fullname"],
 				"email"           => $data["email"],
-				"roles"           => array(USER_MAINTAINER_ROLE_ID, PLAYER_ROLE_ID, DUNGEON_MASTER_ROLE_ID));
+				"roles"           => $roles);
 
 			if ($this->borrow("vault/user")->create_user($user, true) == false) {
 				$this->db->query("delete from organisations where id=%d", $organisation_id);

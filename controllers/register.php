@@ -9,6 +9,7 @@
 	class register_controller extends Banshee\splitform_controller {
 		protected $button_submit = "Register";
 		protected $back_page = "";
+		protected $ask_organisation = null;
 
 		protected function prepare_code($data) {
 			if (($_SESSION["register_email"] ?? null) == $data["email"]) {
@@ -19,14 +20,18 @@
 
 			$email = new \Banshee\Protocol\email("Verification code for the ".$this->settings->head_title." website",
 			                                     $this->settings->webmaster_email, "Cauldron VTT");
-			$email->set_message_fields(array(
-				"CODE"    => $_SESSION["register_code"],
-				"WEBSITE" => $this->settings->head_title));
+			$email->set_message_fields(array("CODE" => $_SESSION["register_code"]));
 			$email->message(file_get_contents("../extra/register.txt"));
 			$email->send($data["email"]);
 
 			$_SESSION["register_email"] = $data["email"];
 			$this->model->set_value("code", "");
+		}
+
+		protected function prepare_account($data) {
+			if (empty($data["username"])) {
+				$this->model->set_value("username", strtolower($data["email"]));
+			}
 		}
 
 		public function execute() {
@@ -37,7 +42,7 @@
 
 			if ($_SERVER["REQUEST_METHOD"] == "GET") {
 				$this->model->reset_form_progress();
-			} else if ($_POST["splitform_current"] == 2) {
+			} else if (($_POST["splitform_current"] == 2) && isset($_POST["username"])) {
 				$_POST["username"] = strtolower($_POST["username"]);
 			}
 

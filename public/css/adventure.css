@@ -322,6 +322,7 @@ div.playarea {
 	overflow:auto;
 	z-index:1;
 	transform-origin:top left;
+	background-color:#ffffff;
 }
 
 div.playarea video {
@@ -461,6 +462,14 @@ div.character span.conditions {
 	background-color:#ffa0a0;
 }
 
+/* Night mode
+ */
+div.night {
+	position:absolute;
+	top:0;
+	left:0;
+}
+
 /* Grid
  */
 div.grid {
@@ -500,10 +509,6 @@ div.zone div.script {
 
 	div.topbar {
 		top:40px;
-	}
-
-	div.topbar select.map-selector {
-		width:185px;
 	}
 }
 
@@ -548,6 +553,11 @@ table.combat-tracker input {
  */
 div.dark {
 	background-color:#202020;
+	background-image:url(/images/layout/background-dark.png);
+}
+
+div.dark div.playarea {
+	background-color:#101010;
 }
 
 div.dark div.sidebar p {

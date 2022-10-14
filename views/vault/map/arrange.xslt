@@ -103,8 +103,8 @@
 <div class="well well-sm">
 <img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" style="max-width:{../../@grid_cell_size}px; max-height:{../../@grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" />
 <div class="name"><xsl:value-of select="name" /></div>
-<div>Width: <xsl:value-of select="width" /></div>
-<div>Height: <xsl:value-of select="height" /></div>
+<div>Size: <xsl:value-of select="width" /> &#215; <xsl:value-of select="height" /></div>
+<div>HP: <xsl:value-of select="hitpoints" /></div>
 </div>
 </xsl:for-each>
 </div>

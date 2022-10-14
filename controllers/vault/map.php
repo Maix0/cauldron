@@ -69,7 +69,7 @@
 
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("vault/map.js");
-			$this->view->run_javascript("init_map_browser()");
+			$this->view->run_javascript("init_resource_browsers()");
 
 			$this->view->open_tag("edit");
 
@@ -102,22 +102,34 @@
 			$this->view->record($map, "grid");
 		}
 
-		private function show_local_maps() {
+		private function show_map_resources() {
 			if (($maps = $this->model->get_resources("maps")) == false) {
 				return false;
 			}
 
-			$this->view->open_tag("maps");
 			$this->view->add_tag("map", "files/empty_map.png");
 			foreach ($maps as $map) {
 				$this->view->add_tag("map", $map);
 			}
-			$this->view->close_tag();
+		}
+
+		private function show_audio_resources() {
+			if (($sounds = $this->model->get_resources("audio")) == false) {
+				return false;
+			}
+
+			foreach ($sounds as $sound) {
+				$this->view->add_tag("audio", $sound);
+			}
 		}
 
 		public function execute() {
 			if ($this->page->ajax_request) {
-				$this->show_local_maps();
+				if ($this->page->parameter_value(0, "maps")) {
+					$this->show_map_resources();
+				} else if ($this->page->parameter_value(0, "audio")) {
+					$this->show_audio_resources();
+				}
 			} else if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				if ($_POST["submit_button"] == "Change adventure") {
 					/* Change adventure

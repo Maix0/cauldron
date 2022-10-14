@@ -1,0 +1,101 @@
+#!/usr/bin/php
+<?php
+	chdir(__DIR__);
+
+	require "../libraries/banshee/protocol/http.php";
+
+	function get_copy($monsters, $monster) {
+		if (isset($monster["_copy"]) == false) {
+			return $monster;
+		}
+
+		$nam = strtolower($monster["_copy"]["name"]);
+		$src = $monster["_copy"]["source"];
+
+		$other = null;
+		foreach($monsters[$src] as $mon) {
+			if (strtolower($mon["name"]) == $nam) {
+				$mon = get_copy($monsters, $mon);
+
+				$monster["ac"] = $mon["ac"];
+				$monster["hp"] = $mon["hp"];
+				break;
+			}
+		}
+
+		return $monster;
+	}
+
+	$website = new \Banshee\Protocol\HTTPS("5e.tools");
+	$result = $website->GET("/data/bestiary/index.json");
+	$sources = json_decode($result["body"], true);
+
+	foreach ($sources as $idx => $source) {
+		$result = $website->GET("/data/bestiary/".$source);
+		$data = json_decode($result["body"], true);
+
+		$monsters[$idx] = $data["monster"];
+	}
+
+	$list = array();
+	foreach ($monsters as $section) {
+		foreach ($section as $monster) {
+			$name = trim($monster["name"], '"');
+			$source = $monster["source"];
+			$page = $monster["page"] ?? "?";
+
+			$monster = get_copy($monsters, $monster);
+
+			if (isset($monster["ac"]) == false) {
+				$ac = "?";
+			} else if (is_array($monster["ac"]) == false) {
+				$ac = $monster["ac"];
+			} else if (is_array($monster["ac"][0]) == false) {
+				$ac = $monster["ac"][0];
+			} else if (isset($monster["ac"][0]["ac"])) {
+				$ac = $monster["ac"][0]["ac"];
+			} else if (isset($monster["ac"]["special"])) {
+				list($ac) = explode(" ", $monster["ac"]["special"]);
+			} else {
+				$ac = "?";
+			}
+
+			if (isset($monster["hp"]) == false) {
+				$hp = "?";
+			} else if (is_array($monster["hp"]) == false) {
+				$hp = $monster["hp"];
+			} else if (isset($monster["hp"]["average"])) {
+				$hp = $monster["hp"]["average"];
+			} else if (isset($monster["hp"]["special"])) {
+				list($ac) = explode(" ", $monster["hp"]["special"]);
+			} else {
+				$hp = "?";
+			}
+
+			$monster = sprintf("%s:%s:%s:%s:%s", $name, $ac, $hp, $source, $page);
+			array_push($list, $monster);
+		}
+	}
+
+	$list = array_unique($list);
+	sort($list);
+
+	$max = count($list) - 1;
+
+	print "var monsters = [\n\t{\n";
+	foreach ($list as $i => $monster) {
+		list($name, $ac, $hp, $source, $page) = explode(":", str_replace("'", "\\'", $monster));
+
+		print "\t\tname: '".$name."',\n";
+		print "\t\thp: '".$hp."',\n";
+		print "\t\tac: '".$ac."',\n";
+		print "\t\tsource: '".$source."',\n";
+		print "\t\tpage: '".$page."'\n";
+		print "\t}";
+		if ($i < $max) {
+			print ",{";
+		}
+		print "\n";
+	}
+	print "];\n";
+?>

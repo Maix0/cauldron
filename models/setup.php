@@ -490,6 +490,12 @@
 				$this->settings->database_version = 25;
 			}
 
+			if ($this->settings->database_version == 25) {
+				$this->db_query("ALTER TABLE organisations ADD invitation_code VARCHAR(50) NULL AFTER name");
+
+				$this->settings->database_version = 26;
+			}
+
 			return true;
 		}
 

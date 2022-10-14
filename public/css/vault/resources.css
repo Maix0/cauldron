@@ -24,3 +24,7 @@ table.table th:nth-child(3) {
 div.input-group span input {
 	padding:6px 25px;
 }
+
+table.files td:nth-child(3) {
+	text-align:right;
+}

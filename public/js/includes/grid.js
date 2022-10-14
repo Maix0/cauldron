@@ -29,7 +29,7 @@ function grid_draw(cell_size) {
 		grid_ctx.stroke();
 	}
 
-	for (var i = 0; i < grid_width; i += cell_size) {
+	for (var i = 0; i < grid_height; i += cell_size) {
 		grid_ctx.beginPath();
 		grid_ctx.moveTo(0, i);
 		grid_ctx.lineTo(grid_width, i);

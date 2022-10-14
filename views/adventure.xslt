@@ -15,10 +15,14 @@
 </xsl:if>
 <xsl:if test="@is_dm='yes'">
 <img src="/images/cauldron.png" class="cauldron" />
-<p>This is the page where you and your players will see an overview of the adventures you have created.</p>
-<p>If this is your first time using Cauldron VTT, read the <a href="/manual">manual</a> first.</p>
-<p>Create a adventure by clicking the <a href="/vault">DM's Vault</a> link in the top menu bar and then the Adventures icon.</p>
-<p>On many pages, help is available by clicking the Help button in the top right corner of the page.</p>
+<p>This is the page where you and your players will see an overview of the adventures you have created. To create an adventure for your players, follow these steps:</p>
+<ul>
+<li>Go to the DM's Vault (see top menu bar) and click on the Adventures icon to create a new adventure.</li>
+<li>Add one or more maps to your adventure.</li>
+<li>Create accounts for your players via the DM's Vault Users section and let your players create their character.</li>
+<li>Add those characters to your adventure via the DM's Vault Players section.</li>
+<li>Start the adventure and have fun!</li>
+</ul>
 </xsl:if>
 </xsl:if>
 <div class="row">
@@ -165,6 +169,8 @@
 <xsl:if test="map/type='video'"><xsl:attribute name="style">width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute>
 <video width="{map/width}" height="{map/height}" autoplay="true" loop="true"><source src="{map/url}" /></video><xsl:text>
 </xsl:text></xsl:if>
+<!-- Night mode -->
+<div class="night"></div>
 <!-- Grid -->
 <div class="grid"></div>
 <!-- Drawing -->
@@ -257,14 +263,13 @@
 <div class="well well-sm">
 <img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" style="max-width:{../../@grid_cell_size}px; max-height:{../../@grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" />
 <div class="name"><xsl:value-of select="name" /></div>
-<div>Width: <xsl:value-of select="width" /></div>
-<div>Height: <xsl:value-of select="height" /></div>
+<div>Size: <xsl:value-of select="width" /> &#215; <xsl:value-of select="height" /></div>
+<div>HP: <xsl:value-of select="hitpoints" /></div>
 </div>
 </xsl:for-each>
 </div>
 </xsl:if>
-<div class="sidebar">
-</div>
+<div class="sidebar" name="{/output/user}"></div>
 <div class="input">
 <input type="text" class="form-control" placeholder="Enter command" />
 </div>

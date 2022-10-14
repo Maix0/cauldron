@@ -48,3 +48,12 @@ img.token {
 		max-width:200px;
 	}
 }
+
+div.monsters {
+	max-height:400px;
+	overflow-y:auto;
+}
+
+div.monsters div.well {
+	cursor:pointer;
+}

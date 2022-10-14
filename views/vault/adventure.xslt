@@ -50,11 +50,14 @@
 </xsl:if>
 
 <label for="title">Title:</label>
-<input type="text" id="title" name="title" value="{adventure/title}" class="form-control" />
+<input type="text" id="title" name="title" value="{adventure/title}" placeholder="The title of your adventure / campaign." class="form-control" />
 <label for="image">Title background image URL (optional):</label>
-<input type="text" id="image" name="image" value="{adventure/image}" class="form-control" />
+<div class="input-group">
+<input type="text" id="image" name="image" value="{adventure/image}" placeholder="The image to show in the Adventures page." class="form-control" />
+<span class="input-group-btn"><input type="button" value="Browse resources" class="btn btn-default browser" /></span>
+</div>
 <label for="story">Introduction story (optional):</label>
-<textarea id="story" name="story" class="form-control"><xsl:value-of select="adventure/story" /></textarea>
+<textarea id="story" name="story" class="form-control" placeholder="A story to introduce your adventure to your players."><xsl:value-of select="adventure/story" /></textarea>
 <label for="story">Access rights:</label>
 <select id="access" name="access" class="form-control">
 <xsl:for-each select="access/level">

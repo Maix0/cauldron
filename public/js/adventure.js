@@ -30,6 +30,7 @@ var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
 var dungeon_master = null;
 var my_name = null;
+var character_name = null;
 var my_character = null;
 var wf_collectables = null;
 var wf_effect_create = null;
@@ -50,6 +51,7 @@ var input_history = null;
 var input_index = -1;
 var mouse_x = 0;
 var mouse_y = 0;
+var night_level = 0;
 var effect_counter = 1;
 var effect_x = 0;
 var effect_y = 0;
@@ -79,6 +81,7 @@ function websocket_send(data) {
 	}
 
 	data.adventure_id = adventure_id;
+	data.map_id = map_id;
 	data.from_user_id = user_id;
 	data = JSON.stringify(data);
 
@@ -276,7 +279,7 @@ function roll_dice(dice, send_to_others = true) {
 
 	var message = 'Dice roll ' + dice_str + ':\n' + output + ' > ' + result;
 	if (send_to_others) {
-		send_message(message, my_name);
+		send_message(message, character_name);
 	} else {
 		write_sidebar(message);
 	}
@@ -350,7 +353,7 @@ function roll_d20(bonus, type = ROLL_NORMAL) {
 		}
 	}
 
-	send_message(message, my_name);
+	send_message(message, character_name);
 }
 
 function show_help() {
@@ -374,6 +377,7 @@ function show_help() {
 		'<b>/log &lt;message&gt;</b>: Add message to journal.<br />' +
 		(dungeon_master ?
 		'<b>/next [&lt;name&gt;]</b>: Next turn in combat.<br />' +
+		'<b>/night [0-4]</b>: Set map night mode.<br />' +
 		'<b>/ping</b>: See who\'s online in the session.<br />' +
 		'<b>/reload</b>: Reload current page.<br />' +
 		'<b>/remove &lt;name&gt;</b>: Remove one from the combat.<br />' : '') +
@@ -418,11 +422,11 @@ function interface_color(button, swap = true) {
 	var color = localStorage.getItem('interface_color');
 
 	if (color == undefined) {
-		color = 'light';
+		color = 'bright';
 	}
 
 	if (swap) {
-		color = (color == 'light') ? 'dark' : 'light';
+		color = (color == 'bright') ? 'dark' : 'bright';
 	}
 
 	if (color == 'dark') {
@@ -432,7 +436,7 @@ function interface_color(button, swap = true) {
 	} else {
 		$('div.wrapper').removeClass('dark');
 		$(button).text('Dark interface');
-		localStorage.setItem('interface_color', 'light');
+		localStorage.setItem('interface_color', 'bright');
 	}
 }
 
@@ -1065,8 +1069,11 @@ function object_view(obj, max_size = 300) {
 		var src = '/resources/' + resources_key + '/collectables/' + obj.attr('c_src');
 	}
 
+	var color = localStorage.getItem('interface_color');
+	var bgcolor = (color == 'dark') ? '64, 64, 64' : '160, 160, 160';
+
 	var onclick = 'javascript:$(this).remove();';
-	var div_style = 'position:absolute; z-index:' + LAYER_VIEW + '; top:0; left:0; right:0; bottom:0; background-color:rgba(255, 255, 255, 0.8);';
+	var div_style = 'position:absolute; z-index:' + LAYER_VIEW + '; top:0; left:0; right:0; bottom:0; background-color:rgba(' + bgcolor + ', 0.8);';
 	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%)';
 	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px;';
 
@@ -1091,7 +1098,7 @@ function object_view(obj, max_size = 300) {
 				collectable_id: collectable_id
 			});
 
-			send_message(my_name + ' has found an item! Check the inventory.', my_name, false);
+			send_message(character_name + ' has found an item! Check the inventory.', character_name, false);
 
 			if (obj.attr('c_hide') == 'yes') {
 				object_hide(obj);
@@ -1145,7 +1152,6 @@ function effect_create(template) {
 function effect_create_final(effect_id, src, width, height) {
 	var data = {
 		action: 'effect_create',
-		map_id: map_id,
 		instance_id: effect_id,
 		src: src,
 		pos_x: effect_x,
@@ -1957,8 +1963,8 @@ function journal_write() {
 		return;
 	}
 
-	journal_add_entry(my_name, content);
-	journal_save_entry(my_name, content);
+	journal_add_entry(character_name, content);
+	journal_save_entry(character_name, content);
 }
 
 /* Combat functions
@@ -2051,7 +2057,7 @@ function handle_input(input) {
 		if (input.substring(0, 4).toLowerCase() == "dice") {
 			return;
 		}
-		send_message(input, my_name);
+		send_message(input, character_name);
 		return;
 	}
 
@@ -2187,8 +2193,8 @@ function handle_input(input) {
 			break;
 		case 'log':
 			if (param != '') {
-				journal_add_entry(my_name, param);
-				journal_save_entry(my_name, param);
+				journal_add_entry(character_name, param);
+				journal_save_entry(character_name, param);
 				write_sidebar('Journal entry added.');
 			}
 			break;
@@ -2198,6 +2204,40 @@ function handle_input(input) {
 			}
 
 			combat_next(param);
+			break;
+		case 'night':
+			if (dungeon_master == false) {
+				break;
+			}
+
+			param = parseInt(param);
+			if (isNaN(param)) {
+				write_sidebar('Invalid level.');
+				break;
+			}
+
+			if ((param < 0) || (param > 4)) {
+				write_sidebar('Level out of range.');
+				break;
+			}
+
+			var levels = {
+				0: 0,
+				1: 0.3,
+				2: 0.5,
+				3: 0.65,
+				4: 0.8
+			};
+
+			night_level = levels[param];
+
+			$('div.night').css('background-color', 'rgba(0, 0, 0, ' + night_level + ')');
+
+			var data = {
+				action: 'night',
+				level: night_level
+			};
+			websocket_send(data);
 			break;
 		case 'ping':
 			if (dungeon_master == false) {
@@ -2399,7 +2439,7 @@ function context_menu_handler(key, options) {
 				message += 'miss';
 			}
 
-			send_message(message, my_name);
+			send_message(message, character_name);
 
 			if (dungeon_master) {
 				write_sidebar('&nbsp;&nbsp;&nbsp;&nbsp;Attack roll: ' + roll);
@@ -2759,7 +2799,7 @@ function context_menu_handler(key, options) {
 
 			var data = {
 				action: 'marker',
-				name: my_name,
+				name: character_name,
 				pos_x: mouse_x - 25,
 				pos_y: mouse_y - 69
 			};
@@ -2971,7 +3011,8 @@ $(document).ready(function() {
 	user_id = parseInt($('div.playarea').attr('user_id'));
 	resources_key = $('div.playarea').attr('resources_key');
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
-	my_name = $('div.playarea').attr('name');
+	my_name = $('div.sidebar').attr('name');
+	character_name = $('div.playarea').attr('name');
 	dungeon_master = ($('div.playarea').attr('is_dm') == 'yes');
 	fow_type = parseInt($('div.playarea').attr('fog_of_war'));
 	fow_default_distance = parseInt($('div.playarea').attr('fow_distance'));
@@ -2982,7 +3023,7 @@ $(document).ready(function() {
 	write_sidebar('<img src="/images/cauldron.png" style="max-width:80px; display:block; margin:0 auto" />');
 	write_sidebar('<b>Welcome to Cauldron v' + version + '</b>');
 	write_sidebar('Type /help for command information.');
-	write_sidebar('You are ' + my_name + '.');
+	write_sidebar('You are ' + character_name + '.');
 
 	/* Websocket
 	 */
@@ -3017,15 +3058,8 @@ $(document).ready(function() {
 		$('div.menu div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').trigger('click');
 
 		write_sidebar('Connection established.');
-		send_message(my_name + ' entered the session.', null, false);
-
-		if (dungeon_master == false) {
-			var data = {
-				action: 'effect_request',
-				map_id: map_id
-			};
-			websocket_send(data);
-		}
+		var role = (dungeon_master) ? 'being the' : 'playing';
+		send_message(my_name + ' entered the session, ' + role + ' ' + character_name + '.', null, false);
 
 		var parts = window.location.pathname.split('/');
 		if (parts.length == 4) {
@@ -3035,17 +3069,17 @@ $(document).ready(function() {
 			}
 		}
 
-		/* Unhide character
-		 */
 		if (my_character != null) {
+			/* Unhide character
+			 */
 			if (my_character.attr('is_hidden') == 'yes') {
 				object_show(my_character, true);
 			}
 
-			/* Request drawing update
+			/* Request map status from DM
 			 */
 			var data = {
-				action: 'draw_request',
+				action: 'request_init',
 				user_id: user_id
 			};
 			websocket_send(data);
@@ -3060,6 +3094,8 @@ $(document).ready(function() {
 		}
 
 		if (data.adventure_id != adventure_id) {
+			return;
+		} else if (data.map_id != map_id) {
 			return;
 		} else if (data.from_user_id == user_id) {
 			return;
@@ -3158,15 +3194,6 @@ $(document).ready(function() {
 				drawing_ctx.lineTo(data.draw_x, data.draw_y);
 				drawing_ctx.stroke();
 				break
-			case 'draw_request':
-				if (dungeon_master == false) {
-					break;
-				}
-				drawing_history.forEach(function(draw) {
-					draw.to_user_id = data.user_id;
-					websocket_send(draw);
-				});
-				break;
 			case 'draw_width':
 				drawing_ctx.beginPath();
 				drawing_ctx.lineWidth = data.width;
@@ -3181,29 +3208,6 @@ $(document).ready(function() {
 				break;
 			case 'effect_delete':
 				$('div#' + data.instance_id).remove();
-				break;
-			case 'effect_request':
-				if (dungeon_master == false) {
-					break;
-				}
-				if (data.map_id != map_id) {
-					break;
-				}
-				$('div.effect').each(function() {
-					var pos = object_position($(this));
-
-					var data = {
-						action: 'effect_create',
-						map_id: map_id,
-						instance_id: $(this).prop('id'),
-						src: $(this).find('img').prop('src'),
-						pos_x: pos.left,
-						pos_y: pos.top,
-						width: $(this).width() / grid_cell_size,
-						height: $(this).height() / grid_cell_size
-					};
-					websocket_send(data);
-				});
 				break;
 			case 'event':
 				if (dungeon_master) {
@@ -3382,20 +3386,60 @@ $(document).ready(function() {
 					}
 				}
 				break;
+			case 'night':
+				$('div.night').css('background-color', 'rgba(0, 0, 0, ' + data.level + ')');
+				break;
 			case 'ping':
 				var data = {
 					action: 'pong',
-					name: my_name
+					name: my_name + ' (' + character_name + ')'
 				};
 				websocket_send(data);
 				break;
 			case 'pong':
 				if (dungeon_master) {
-					write_sidebar('&nbsp;&nbsp;&nbsp;&nbsp;- ' + data.name);
+					write_sidebar('&ndash; ' + data.name);
 				}
 				break;
 			case 'reload':
 				document.location = '/adventure/' + adventure_id;
+				break;
+			case 'request_init':
+				if (dungeon_master == false) {
+					break;
+				} else if (data.map_id != map_id) {
+					break;
+				}
+
+				var to_user_id = data.user_id;
+
+				drawing_history.forEach(function(draw) {
+					draw.to_user_id = to_user_id;
+					websocket_send(draw);
+				});
+
+				$('div.effect').each(function() {
+					var pos = object_position($(this));
+
+					var data = {
+						action: 'effect_create',
+						to_user_id: to_user_id,
+						instance_id: $(this).prop('id'),
+						src: $(this).find('img').prop('src'),
+						pos_x: pos.left,
+						pos_y: pos.top,
+						width: $(this).width() / grid_cell_size,
+						height: $(this).height() / grid_cell_size
+					};
+					websocket_send(data);
+				});
+
+				var data = {
+					action: 'night',
+					to_user_id: to_user_id,
+					level: night_level
+				};
+				websocket_send(data);
 				break;
 			case 'rotate':
 				var obj = $('div#' + data.instance_id);
@@ -3523,6 +3567,17 @@ $(document).ready(function() {
 		$(this).css('box-shadow', '0 0 5px #0080ff');
 	});
 
+	var map = $('div.playarea > div');
+	var width = Math.round(map.width());
+	var height = Math.round(map.height());
+
+	/* Night mode
+	 */
+	$('div.night').css({
+		width:width,
+		height:height
+	});
+
 	/* Show grid
 	 */
 	if ($('div.playarea').attr('show_grid') == 'yes') {
@@ -3531,10 +3586,6 @@ $(document).ready(function() {
 
 	/* Drawing
 	 */
-	var map = $('div.playarea > div');
-	var width = Math.round(map.width());
-	var height = Math.round(map.height());
-
 	$('div.drawing').prepend('<canvas id="drawing" width="' + width + '" height="' + height + '" />');
 	drawing_canvas = document.getElementById('drawing');
 
@@ -4020,36 +4071,44 @@ $(document).ready(function() {
 
 		/* Audio dialog
 		 */
-		var audio_dialog = '<div><p>Select an audio file to play it.</p><ul class="audio"></ul></div>'
+		var audio_dialog = '<div></div>'
 		wf_play_audio = $(audio_dialog).windowframe({
 			activator: 'button.play_audio',
 			header: 'Audio files from Resources',
 			open: function() {
 				$.ajax('/adventure/audio').done(function(data) {
-					var audio = '';
-					$(data).find('audio sound').each(function() {
-						audio += '<li>/' + $(this).text() + '</li>';
-					});
+					var files = $(data).find('audio sound');
+					console.log(files);
 
-					$('ul.audio').append(audio);
+					if (files.length > 0) {
+						var audio = '<p>Select an audio file to play it.</p><ul class="audio">';
+						files.each(function() {
+							audio += '<li>/' + $(this).text() + '</li>';
+						});
+						audio += '</ul>';
 
-					$('ul.audio li').click(function() {
-						wf_play_audio.close();
+						wf_play_audio.append(audio);
 
-						$('div.input input').focus();
+						$('ul.audio li').click(function() {
+							wf_play_audio.close();
 
-						var filename = $(this).text();
-						filename = filename.substr(0, 11) + resources_key + filename.substr(10);
+							$('div.input input').focus();
 
-						var data = {
-							action: 'audio',
-							filename: filename
-						};
-						websocket_send(data);
+							var filename = $(this).text();
+							filename = filename.substr(0, 11) + resources_key + filename.substr(10);
 
-						var audio = new Audio(filename);
-						audio.play();
-					});
+							var data = {
+								action: 'audio',
+								filename: filename
+							};
+							websocket_send(data);
+
+							var audio = new Audio(filename);
+							audio.play();
+						});
+					} else {
+						wf_play_audio.append('<p>You have no audio files. Upload them to the \'audio\' directory in the DM\'s Vault Resources section.</p>');
+					}
 				});
 			},
 			close: function() {

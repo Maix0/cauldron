@@ -1,7 +1,9 @@
 <html>
 <body>
 <p>Hello,</p>
-<p>You are in the process of requesting an account at the [WEBSITE] website. You need the following code to proceed: [CODE]</p>
-<p>Kind regards,<br>the webmaster</p>
+<p>You are in the process of requesting an account at the Cauldron VTT website. You need the following code to proceed: [CODE]</p>
+<p>Kind regards,<br />
+Hugo Leisink<br />
+creater of Cauldron VTT</p>
 </body>
 </html>

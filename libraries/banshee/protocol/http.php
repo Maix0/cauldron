@@ -148,7 +148,7 @@
 			/* Perform request
 			 */
 			if (($result = $this->perform_request($method, $uri, $body)) !== false) {
-				if (is_array($result)) {
+				if (is_string($result)) {
 					if (($result = $this->parse_request_result($result)) !== false) {
 						/* Apply authentication
 						 */

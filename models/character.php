@@ -90,6 +90,11 @@
 				}
 			}
 
+			if (is_numeric($character["initiative"]) == false) {
+				$this->view->add_message("Invalid initiative bonus.");
+				$result = false;
+			}
+
 			return $result;
 		}
 

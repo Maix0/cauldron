@@ -1,4 +1,4 @@
-const FOW_COLOR_SHADOW = '#202020';
+const FOW_COLOR_SHADOW = '#181818';
 const FOW_LIGHT_EDGE = 0.75;
 const FOW_COVERED_CHECKS = 2;
 

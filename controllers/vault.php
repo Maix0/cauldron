@@ -11,6 +11,7 @@
 			$menu = array(
 				"Player accounts" => array(
 					"Users"         => array("vault/user", "users.png"),
+					"Invite"        => array("vault/invite", "invite.png"),
 					"Roles"         => array("vault/role", "roles.png"),
 					"Organisations" => array("vault/organisation", "organisations.png"),
 					"Access"        => array("vault/access", "access.png"),

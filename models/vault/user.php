@@ -141,7 +141,7 @@
 			if (($user["username"] == "") || (trim($user["fullname"]) == "")) {
 				$this->view->add_message("The username and full name cannot be empty.");
 				$result = false;
-			} else if (valid_input($user["username"], VALIDATE_LETTERS.VALIDATE_NUMBERS) == false) {
+			} else if (valid_input($user["username"], VALIDATE_NONCAPITALS.VALIDATE_NUMBERS."@.-") == false) {
 				$this->view->add_message("Invalid characters in username.");
 				$result = false;
 			} else if (($check = $this->db->entry("users", $user["username"], "username")) === false) {

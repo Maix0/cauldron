@@ -33,11 +33,11 @@ div.input-group {
 	max-width:500px;
 }
 
-ul.maps {
+ul.browse-list {
 	padding-left:15px;
 }
 
-ul.maps li:hover {
+ul.browse-list li:hover {
 	cursor:pointer;
 	background:#ffffa0;
 }

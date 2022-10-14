@@ -21,6 +21,8 @@
 		}
 
 		private function show_adventure_form($adventure) {
+			$this->view->add_javascript("vault/adventure.js");
+
 			$this->view->open_tag("edit");
 
 			$adventure_access_levels = array("Dungeon Master only", "Dungeon Master and players", "Dungeon Master, players and spectators");
@@ -35,8 +37,20 @@
 			$this->view->close_tag();
 		}
 
+		private function show_resources() {
+			if (($maps = $this->model->get_resources("", false)) == false) {
+				return false;
+			}
+
+			foreach ($maps as $map) {
+				$this->view->add_tag("image", $map);
+			}
+		}
+
 		public function execute() {
-			if ($_SERVER["REQUEST_METHOD"] == "POST") {
+			if ($this->page->ajax_request) {
+				$this->show_resources();
+			} else if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				if ($_POST["submit_button"] == "Save adventure") {
 					/* Save adventure
 					 */

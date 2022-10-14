@@ -6,7 +6,7 @@
 				return;
 			}
 
-			$this->view->add_javascript("vault/token.js");
+			$this->view->add_javascript("vault/token_list.js");
 
 			$this->view->open_tag("overview");
 
@@ -21,6 +21,10 @@
 
 		private function show_token_form($token) {
 			$token["shape_change"] = show_boolean($token["shape_change"] ?? false);
+
+			if (isset($token["id"]) == false) {
+				$this->view->add_javascript("vault/token_new.js");
+			}
 
 			$this->view->open_tag("edit");
 			$this->view->record($token, "token");

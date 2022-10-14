@@ -289,6 +289,13 @@
 		}
 
 		public function delete_map($map_id) {
+			$query = "select a.* from adventures a, maps m ".
+			         "where a.id=m.adventure_id and m.id=%d and a.dm_id=%d";
+			if (($adventures = $this->db->execute($query, $map_id, $this->user->id)) == false) {
+				return false;
+			}
+			$adventure = $adventures[0];
+
 			$queries = array(
 				array("delete from doors where map_id=%d", $map_id),
 				array("delete from walls where map_id=%d", $map_id),
@@ -298,7 +305,15 @@
 				array("update adventures set active_map_id=null where active_map_id=%d", $map_id),
 				array("delete from maps where id=%d", $map_id));
 
-			return $this->db->transaction($queries);
+			if ($this->db->transaction($queries) == false) {
+				return false;
+			}
+
+			if ($adventure["active_map_id"] == $map_id) {
+				if (($maps = $this->get_maps($adventure["id"])) != false) {
+					$this->db->update("adventures", $adventure["id"], array("active_map_id" => $maps[0]["id"]));
+				}
+			}
 		}
 	}
 ?>

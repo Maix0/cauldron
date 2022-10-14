@@ -17,3 +17,12 @@ table.table th:nth-child(5) {
 textarea.form-control {
 	height:150px;
 }
+
+ul.browse-list {
+	padding-left:15px;
+}
+
+ul.browse-list li:hover {
+	cursor:pointer;
+	background:#ffffa0;
+}

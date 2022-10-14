@@ -135,7 +135,7 @@
 			} else if ($this->page->parameter_value(0, "new")) {
 				/* New character
 				 */
-				$character = array();
+				$character = array("hitpoints" => 1, "armor_class" => 10, "initiative" => 0);
 				$this->show_character_form($character);
 			} else if ($this->page->parameter_numeric(0)) {
 				/* Edit character

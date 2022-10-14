@@ -1,3 +1,13 @@
+cauldron (2.6) stable; urgency=low
+
+  * Monster information for token creation.
+  * Map night mode.
+  * Let others join your group via invitation code.
+  * Small layout changes.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 14 Oct 2022 20:51:01 +0200
+
 cauldron (2.5) stable; urgency=low
 
   * Fog of War real-mode performance improvement.

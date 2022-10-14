@@ -58,7 +58,7 @@
 </xsl:if>
 
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{collectable/name}" class="form-control" />
+<input type="text" id="name" name="name" value="{collectable/name}" placeholder="The name of this collectable object." class="form-control" />
 <label for="image">Image:</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">

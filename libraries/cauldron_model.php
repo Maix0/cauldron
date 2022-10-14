@@ -1,6 +1,6 @@
 <?php
 	abstract class cauldron_model extends Banshee\model {
-		private function get_files($path) {
+		private function get_files($path, $recursive) {
 			if (($dp = opendir($path)) == false) {
 				return false;
 			}
@@ -14,8 +14,10 @@
 				$file = $path."/".$file;
 				if (is_dir($file) == false) {
 					array_push($files, $file);
-				} else if (($dir = $this->get_files($file)) != false) {
-					$files = array_merge($files, $dir);
+				} else if ($recursive) {
+					if (($dir = $this->get_files($file, $recursive)) != false) {
+						$files = array_merge($files, $dir);
+					}
 				}
 			}
 
@@ -26,13 +28,17 @@
 			return $files;
 		}
 
-		public function get_resources($directory) {
+		public function get_resources($directory, $recursive = true) {
 			if (strpos($directory, ".") !== false) {
 				return false;
 			}
 
-			$path = "resources/".$this->user->resources_key."/".$directory;
-			if (($files = $this->get_files($path)) === false) {
+			$path = "resources/".$this->user->resources_key;
+			if ($directory != "") {
+				$path .= "/".$directory;
+			}
+
+			if (($files = $this->get_files($path, $recursive)) === false) {
 				return false;
 			}
 

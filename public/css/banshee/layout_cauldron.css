@@ -24,6 +24,7 @@ html, body {
 div.wrapper {
 	min-height:100%;
 	position:relative;
+	background-image:url(/images/layout/background-bright.png);
 }
 
 h1 {
@@ -64,6 +65,10 @@ div.right {
 
 div.clear {
 	clear:both;
+}
+
+.table {
+	background-color:#ffffff;
 }
 
 @media (max-width:767px) {
@@ -134,8 +139,12 @@ div.content div.container {
 }
 
 input.form-control, textarea.form-control, select.form-control {
-	max-width:500px;
+	max-width:600px;
 	margin-bottom:5px;
+}
+
+div.input-group {
+	max-width:600px;
 }
 
 @media (max-width:767px) {
@@ -200,7 +209,7 @@ div.footer a {
 
 @media (max-width:767px) {
 	div.footer {
-		height:125px;
+		height:150px;
 	}
 	div.footer span {
 		display:block;

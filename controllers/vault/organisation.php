@@ -22,6 +22,8 @@
 			}
 			$this->view->close_tag();
 
+			$paging->show_browse_links();
+
 			$this->view->close_tag();
 		}
 

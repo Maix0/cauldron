@@ -27,11 +27,21 @@
 
 <!--
 //
+//  Invitation form template
+//
+//-->
+<xsl:template match="splitform/form_invitation">
+<p>If you've received an invitation code from your Dungeon Master to join an existing group, enter it here. If you don't specify an invitation code, a new group will be created and you will become the Dungeon Master for that group. Only people within the same group will be able to play together.</p>
+<label for="code">Invitation code:</label>
+<input type="text" name="invitation" value="{invitation}" class="form-control" />
+</xsl:template>
+
+<!--
+//
 //  E-mail form template
 //
 //-->
 <xsl:template match="splitform/form_email">
-<p>Only create a Cauldron VTT acount when you plan to be a Dungeon Master for your group. When creating an account, you gain the rights to create accounts for your players. Don't let your players create their own account via this form, otherwise they will create their own new group. Only people within the same group will be able to play together.</p>
 <label for="email">E-mail address:</label>
 <input type="input" id="email" name="email" value="{email}" class="form-control" />
 </xsl:template>
