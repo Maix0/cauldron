@@ -2,19 +2,6 @@
 	class vault_map_arrange_controller extends Banshee\controller {
 		protected $prevent_repost = false;
 
-		private function resource_path($path) {
-			if (substr($path, 0, 11) != "/resources/") {
-				return $path;
-			}
-
-			$len = strlen($this->user->resources_key);
-			if (substr($path, 11, $len) == $this->user->resources_key) {
-				return $path;
-			}
-
-			return "/resources/".$this->user->resources_key.substr($path, 10);
-		}
-
 		private function arrange_map($map_id) {
 			if (($map = $this->model->get_map($map_id)) == false) {
 				$this->view->add_tag("result", "Database error.", array("url" => "vault/map"));
@@ -106,7 +93,7 @@
 			$this->view->open_tag("adventure", $attr);
 			$this->view->record($adventure);
 
-			$map["url"] = $this->resource_path($map["url"]);
+			$map["url"] = $this->model->resource_path($map["url"]);
 			$map["show_grid"] = show_boolean($map["show_grid"]);
 			$map["start_x"] *= $grid_cell_size;
 			$map["start_y"] *= $grid_cell_size;

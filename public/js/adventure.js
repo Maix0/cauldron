@@ -2545,7 +2545,7 @@ function context_menu_handler(key, options) {
 			break;
 		case 'effect_duplicate':
 			var pos = object_position($(this));
-			effect_x = pos.left + grid_cell_size;
+			effect_x = pos.left + $(this).width();
 			effect_y = pos.top;
 
 			var src = $(this).find('img').prop('src');
@@ -3349,7 +3349,8 @@ $(document).ready(function() {
 							left: data.pos_x,
 							top: data.pos_y
 						}
-						zone_check_events(obj, pos);
+						// Recursive zone events
+						//zone_check_events(obj, pos);
 					} else if (obj.hasClass('zone') && (my_character != null)) {
 						var pos = object_position(my_character);
 						if (zone_covers_position(obj, pos)) {
@@ -3731,30 +3732,85 @@ $(document).ready(function() {
 		});
 
 		$('button#draw_clear').click(function() {
-			if (confirm('Clear all drawings?') == false) {
-				return;
+			var image = $('div#map_background').css('background-image');
+			image = image.substring(image.length - 15, image.length - 2);
+
+			var clear_dialog = '<div class="clear"><p>Remove drawings?</p>';
+			if (image == 'empty_map.png') {
+				clear_dialog +=
+					'<div><input type="checkbox" checked="checked" class="remove_effects"> Remove effects.</div>' +
+					'<div><input type="checkbox" checked="checked" class="remove_tokens"> Remove tokens.</div>' +
+					'<div><input type="checkbox" checked="checked" class="remove_zones"> Remove zones.</div>';
 			}
+			clear_dialog += '</div>';
 
-			var data = {
-				action: 'draw_clear'
-			};
-			websocket_send(data);
+			var clear_window = $(clear_dialog).windowframe({
+				header: 'Remove map items',
+				buttons: {
+					'Remove': function() {
+						/* Drawings
+						 */
+						var data = {
+							action: 'draw_clear'
+						};
+						websocket_send(data);
 
-			drawing_history = [];
+						drawing_history = [];
 
-			var data = {
-				action: 'draw_color',
-				color: drawing_ctx.strokeStyle
-			};
-			drawing_history.push(data);
+						var data = {
+							action: 'draw_color',
+							color: drawing_ctx.strokeStyle
+						};
+						drawing_history.push(data);
 
-			var data = {
-				action: 'draw_width',
-				width: drawing_ctx.lineWidth
-			};
-			drawing_history.push(data);
+						var data = {
+							action: 'draw_width',
+							width: drawing_ctx.lineWidth
+						};
+						drawing_history.push(data);
 
-			drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
+						drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
+
+						/* Effects
+						 */
+						if (clear_window.find('input.remove_effects').prop('checked')) {
+							$('div.effect').each(function() {
+								var data = {
+									action: 'effect_delete',
+									instance_id: $(this).prop('id')
+								};
+								websocket_send(data);
+
+								$(this).remove();
+							});
+						}
+
+						/* Tokens
+						 */
+						if (clear_window.find('input.remove_tokens').prop('checked')) {
+							$('div.token').each(function() {
+								object_delete($(this));
+							});
+						}
+
+						/* Zones
+						 */
+						if (clear_window.find('input.remove_zones').prop('checked')) {
+							$('div.zone').each(function() {
+								zone_delete($(this));
+							});
+						}
+						
+						$(this).close();
+					},
+					'Cancel': function() {
+						$(this).close();
+					}
+				}
+					
+			});
+
+			clear_window.open();
 		});
 	}
 
@@ -4374,7 +4430,14 @@ $(document).ready(function() {
 				}
 
 				zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
+				if (zone_x < 0) {
+					zone_x = 0;
+				}
+
 				zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
+				if (zone_y < 0) {
+					zone_y = 0;
+				}
 
 				zone_create(width, height, color, opacity, group, altitude);
 

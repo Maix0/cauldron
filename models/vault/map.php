@@ -39,7 +39,7 @@
 
 			if (isset($cache[$map_id]) == false) {
 				$query = "select m.* from maps m, adventures a ".
-						 "where m.adventure_id=a.id and m.id=%d and a.dm_id=%d";
+				         "where m.adventure_id=a.id and m.id=%d and a.dm_id=%d";
 
 				if (($maps = $this->db->execute($query, $map_id, $this->user->id)) == false) {
 					return false;
@@ -56,9 +56,9 @@
 
 		public function get_image_dimensions($map) {
 			if (substr($map["url"], 0, 1) == "/") {
-				$image = substr($map["url"], 1);
-				if (substr($image, 0, 10) == "resources/") {
-					$image = "resources/".$this->user->resources_key.substr($image, 9);
+				$image = $map["url"];
+				if (substr($image, 0, 11) == "/resources/") {
+					$image = "resources/".$this->user->resources_key.substr($image, 10);
 				}
 			} else {
 				list($protocol,, $hostname, $path) = explode("/", $map["url"], 4);
@@ -89,9 +89,9 @@
 
 		public function get_video_dimensions($map) {
 			if (substr($map["url"], 0, 1) == "/") {
-				$video = substr($map["url"], 1);
-				if (substr($video, 0, 10) == "resources/") {
-					$video = "resources/".$this->user->resources_key.substr($video, 9);
+				$video = $map["url"];
+				if (substr($video, 0, 11) == "/resources/") {
+					$video = "resources/".$this->user->resources_key.substr($video, 10);
 				}
 			} else {
 				$this->view->add_system_warning("AUtomatic dimension detection can only be done for local videos.");
@@ -129,6 +129,16 @@
 			if (trim($map["title"]) == "") {
 				$this->view->add_message("Give the map a title.");
 				$result = false;
+			}
+
+			if ($map["method"] == "upload") {
+				$directory = "resources/".$this->user->resources_key."/maps";
+				$warning = "That file already exists in your Resources maps directory. Rename the file or select 'Specify URL to online map file', click 'Browse resources' and select the file from the list.";
+				if ($this->borrow("vault/resources")->upload_okay($_FILES["file"], $directory, $warning) == false) {
+					return false;
+				}
+
+				$map["url"] = $_FILES["file"]["name"];
 			}
 
 			if (trim($map["url"]) == "") {
@@ -206,14 +216,33 @@
 			return true;
 		}
 
+		public function upload_to_url($map, $include_key = false) {
+			$url = array();
+
+			if ($include_key == false) {
+				array_push($url, "");
+			}
+			array_push($url, "resources");
+			if ($include_key) {
+				array_push($url, $this->user->resources_key);
+			}
+			array_push($url, "maps", $_FILES["file"]["name"]);
+
+			return implode("/", $url);
+		}
+
 		public function create_map($map) {
 			$keys = array("id", "adventure_id", "title", "url", "audio", "width", "height",
 			              "grid_size", "show_grid", "drag_character", "fog_of_war",
 			              "fow_distance", "start_x", "start_y", "dm_notes");
 
+			if ($map["method"] == "upload") {
+				copy($_FILES["file"]["tmp_name"], $this->upload_to_url($map, true));
+				$map["url"] = $this->upload_to_url($map);
+			}
+
 			$map["id"] = null;
 			$map["adventure_id"] = $_SESSION["edit_adventure_id"];
-			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["grid_size"] = 50;
 			$map["show_grid"] = NO;
 			$map["drag_character"] = is_true($map["drag_character"] ?? false) ? YES : NO;
@@ -255,10 +284,14 @@
 				return false;
 			}
 
+			if ($map["method"] == "upload") {
+				copy($_FILES["file"]["tmp_name"], $this->upload_to_url($map, true));
+				$map["url"] = $this->upload_to_url($map);
+			}
+
 			$keys = array("title", "url", "audio", "width", "height",
 			              "drag_character", "fog_of_war", "fow_distance", "dm_notes");
 
-			$map["url"] = str_replace(" ", "%20", $map["url"]);
 			$map["drag_character"] = is_true($map["drag_character"] ?? false) ? YES : NO;
 
 			return $this->db->update("maps", $map["id"], $map, $keys);
@@ -275,6 +308,97 @@
 			$map["show_grid"] = is_true($map["show_grid"] ?? false) ? YES : NO;
 
 			return $this->db->update("maps", $map["id"], $map, $keys);
+		}
+
+		public function generate_filename($str) {
+			$valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ ";
+
+			$result = "";
+			$len = strlen($str);
+			for ($i = 0; $i < $len; $i++) {
+				$c = substr($str, $i, 1);
+				if (strpos($valid, $c) !== false) {
+					$result .= $c;
+				}
+			}
+
+			return $result;
+		}
+
+		public function constructs_import($map_id, $file) {
+			if ($this->get_map($map_id) == false) {
+				return false;
+			} else if (($import = file_get_contents($file["tmp_name"])) == false) {
+				return false;
+			} else if (substr($import, 0, 2) != "\x1F\x8B") {
+				return false;
+			} else if (($import = @gzdecode($import)) == false) {
+				return false;
+			} else if (($import = json_decode($import, true)) == false) {
+				return false;
+			}
+
+			$tables = array(
+				"blinders" => array("pos1_x", "pos1_y", "pos2_x", "pos2_y"),
+				"doors"    => array("pos_x", "pos_y", "length", "direction", "state"),
+				"lights"   => array("pos_x", "pos_y", "radius", "state"),
+				"walls"    => array("pos_x", "pos_y", "length", "direction", "transparent"),
+				"zones"    => array("pos_x", "pos_y", "width", "height", "color", "opacity", "script", "group", "altitude"));
+
+			$this->db->query("begin");
+
+			$query = "delete from %S where map_id=%d";
+			foreach ($tables as $table => $columns) {
+				if ($this->db->query($query, $table, $map_id) === false) {
+					$this->db->query("rollback");
+					return false;
+				}
+				
+				if (is_array($import[$table] ?? null) == false) {
+					continue;
+				}
+
+				array_unshift($columns, "map_id");
+				array_unshift($columns, "id");
+				foreach ($import[$table] as $data) {
+					$data["id"] = null;
+					$data["map_id"] = $map_id;
+					if ($this->db->insert($table, $data, $columns) === false) {
+						$this->db->query("rollback");
+						return false;
+					}
+				}
+			}
+
+			return $this->db->query("commit") != false;
+		}
+
+		public function constructs_export($map) {
+			if ($this->get_map($map["id"]) == false) {
+				return false;
+			}
+
+			$tables = array("blinders", "doors", "lights", "walls", "zones");
+			$query = "select * from %S where map_id=%d";
+
+			$data = array(
+				"title" => $map["title"],
+				"url"   => $map["url"]);
+
+			foreach ($tables as $table) {
+				if (($items = $this->db->execute($query, $table, $map["id"])) === false) {
+					return false;
+				}
+
+				$data[$table] = array();
+				foreach ($items as $item) {
+					unset($item["id"]);
+					unset($item["map_id"]);
+					array_push($data[$table], $item);
+				}
+			}
+
+			return gzencode(json_encode($data));
 		}
 
 		public function delete_okay($map) {
@@ -297,7 +421,9 @@
 			$adventure = $adventures[0];
 
 			$queries = array(
+				array("delete from blinders where map_id=%d", $map_id),
 				array("delete from doors where map_id=%d", $map_id),
+				array("delete from lights where map_id=%d", $map_id),
 				array("delete from walls where map_id=%d", $map_id),
 				array("delete from zones where map_id=%d", $map_id),
 				array("delete from map_token where map_id=%d", $map_id),

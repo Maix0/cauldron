@@ -35,7 +35,7 @@
 </div>
 
 <div class="btn-group left">
-<a href="/{/output/page}/new" class="btn btn-default">New organisation</a>
+<a href="/{/output/page}/new" class="btn btn-default">New group</a>
 <a href="/vault" class="btn btn-default">Back</a>
 </div>
 </xsl:template>
@@ -63,15 +63,15 @@
 <input type="text" id="resources_key" readonly="readonly" value="{organisation/resources_key}" class="form-control" />
 
 <div class="btn-group">
-<input type="submit" name="submit_button" value="Save organisation" class="btn btn-default" />
+<input type="submit" name="submit_button" value="Save group" class="btn btn-default" />
 <a href="/{/output/page}" class="btn btn-default">Cancel</a>
 <xsl:if test="organisation/@id">
-<input type="submit" name="submit_button" value="Delete organisation" class="btn btn-default" onClick="javascript:return confirm('DELETE: Are you sure?')" />
+<input type="submit" name="submit_button" value="Delete group" class="btn btn-default" onClick="javascript:return confirm('DELETE: Are you sure?')" />
 </xsl:if>
 </div>
 </form>
 
-<h4>Users for this organisation:</h4>
+<h4>Users within this group:</h4>
 <table class="table table-striped table-condensed table-hover">
 <thead>
 <tr><th>Name</th><th>E-mail address</th></tr>
@@ -94,7 +94,7 @@
 //-->
 <xsl:template match="content">
 <img src="/images/icons/organisations.png" class="title_icon" />
-<h1>Organisation administration</h1>
+<h1>Group administration</h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="result" />

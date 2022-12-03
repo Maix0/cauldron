@@ -30,14 +30,14 @@ select#collectable {
 
 /* Menu
  */
-div.menu {
+div.topbar {
 	position:absolute;
 	top:5px;
 	right:15px;
 	margin:0;
 }
 
-div.menu span#infobar {
+div.topbar span#infobar {
 	margin-right:15px;
 	display:inline-block;
 	position:relative;
@@ -49,9 +49,32 @@ div.menu span#infobar {
 	text-align:right;
 }
 
-div.menu div.btn-group {
-	margin:0;
-	display:inline-block;
+div.menu {
+	display:none;
+	top:25px;
+	right:0;
+	position:absolute;
+	width:250px;
+	border:1px solid #808080;
+	background-color:#ffffff;
+	border-radius:4px;
+	box-shadow:10px 10px 10px;
+	padding:10px 10px 5px 10px;
+}
+
+div.menu h2 {
+	font-size:19px;
+	color:#5385c1;
+	margin-bottom:5px;
+	margin-top:10px;
+	border-top:1px solid #f06000;
+	padding-top:5px;
+}
+
+div.menu .btn {
+	display:block;
+	width:100%;
+	margin-bottom:5px;
 }
 
 /* Blinders
@@ -159,8 +182,8 @@ div.library {
 
 div.library img.icon {
 	float:left;
-	max-width:50px;
-	max-height:50px;
+	width:50px;
+	height:50px;
 	transform:rotate(180deg);
 	cursor:grab;
 }

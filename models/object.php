@@ -561,8 +561,8 @@
 			$data = array(
 				"id"       => null,
 				"map_id"   => (int)$zone["map_id"],
-				"pos_x"    => (int)$zone["pos_x"],
-				"pos_y"    => (int)$zone["pos_y"],
+				"pos_x"    => max((int)$zone["pos_x"], 0),
+				"pos_y"    => max((int)$zone["pos_y"], 0),
 				"width"    => (int)$zone["width"],
 				"height"   => (int)$zone["height"],
 				"color"    => $zone["color"],

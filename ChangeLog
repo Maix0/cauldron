@@ -1,3 +1,12 @@
+cauldron (2.7) stable; urgency=low
+
+  * Import and export map constructs.
+  * Upload new map file upon map creation.
+  * Map grid size fraction setting.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat,  3 Dec 2022 10:27:34 +0200
+
 cauldron (2.6) stable; urgency=low
 
   * Monster information for token creation.

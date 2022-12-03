@@ -108,7 +108,16 @@ div.menu {
 	background-color:#ffffff;
 	border-radius:4px;
 	box-shadow:10px 10px 10px;
-	padding:10px;
+	padding:10px 10px 5px 10px;
+}
+
+div.menu h2 {
+	font-size:19px;
+	color:#5385c1;
+	margin-bottom:5px;
+	margin-top:10px;
+	border-top:1px solid #f06000;
+	padding-top:5px;
 }
 
 div.menu .btn {
@@ -156,15 +165,6 @@ ul.audio li:hover {
 
 /* Drawing
  */
-div.menu h2 {
-	font-size:19px;
-	color:#5385c1;
-	margin-bottom:5px;
-	margin-top:10px;
-	border-top:1px solid #f06000;
-	padding-top:5px;
-}
-
 div.drawing {
 	position:absolute;
 	top:0;
@@ -353,8 +353,8 @@ div.library {
 
 div.library img.icon {
     float:left;
-    max-width:50px;
-    max-height:50px;
+    width:50px;
+    height:50px;
     transform:rotate(180deg);
     cursor:grab;
 }

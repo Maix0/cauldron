@@ -1,5 +1,5 @@
 <?php
-	class vault_map_arrange_model extends Banshee\model {
+	class vault_map_arrange_model extends cauldron_model {
 		public function get_adventure($adventure_id) {
 			$query = "select * from adventures where id=%d and dm_id=%d";
 

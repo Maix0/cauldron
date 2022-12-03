@@ -3,7 +3,7 @@ $(document).ready(function() {
 		return;
 	}
 
-	var help_button = $('<button type="button" class="btn btn-default btn-xs help" data-toggle="modal" data-target="#help_message">Help</button>');
+	var help_button = $('<button type="button" class="btn btn-primary btn-xs help" data-toggle="modal" data-target="#help_message">Help</button>');
 
 	$('div#help').windowframe({
 		activator: help_button,

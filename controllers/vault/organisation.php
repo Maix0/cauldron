@@ -52,7 +52,7 @@
 
 		public function execute() {
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				if ($_POST["submit_button"] == "Save organisation") {
+				if ($_POST["submit_button"] == "Save group") {
 					/* Save organisation
 					 */
 					if ($this->model->save_okay($_POST) == false) {
@@ -78,7 +78,7 @@
 							$this->show_overview();
 						}
 					}
-				} else if ($_POST["submit_button"] == "Delete organisation") {
+				} else if ($_POST["submit_button"] == "Delete group") {
 					/* Delete organisation
 					 */
 					if ($this->model->delete_organisation($_POST["id"]) === false) {

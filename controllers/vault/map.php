@@ -7,19 +7,6 @@
 			"On, night / dark (cell)",
 			"On, night / dark (real)");
 
-		private function resource_path($path) {
-			if (substr($path, 0, 11) != "/resources/") {
-				return $path;
-			}
-
-			$len = strlen($this->user->resources_key);
-			if (substr($path, 11, $len) == $this->user->resources_key) {
-				return $path;
-			}
-
-			return "/resources/".$this->user->resources_key.substr($path, 10);
-		}
-
 		private function show_overview() {
 			if (($adventures = $this->model->get_adventures()) === false) {
 				$this->view->add_tag("result", "Database error.");
@@ -67,9 +54,13 @@
 				$this->view->add_system_message("Adventure has been created. Now add the first map to this adventure.");
 			}
 
+			if ($map["method"] == "upload") {
+				$map["url"] = "";
+			}
+
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("vault/map.js");
-			$this->view->run_javascript("init_resource_browsers()");
+			$this->view->run_javascript("init_map_edit()");
 
 			$this->view->open_tag("edit");
 
@@ -97,9 +88,17 @@
 
 			$map["show_grid"] = show_boolean($map["show_grid"] ?? false);
 			$map["type"] = $this->model->get_map_type($map["url"]);
-			$map["url"] = $this->resource_path($map["url"]);
+			$map["url"] = $this->model->resource_path($map["url"]);
 
 			$this->view->record($map, "grid");
+		}
+
+		private function show_import_form($map) {
+			$this->view->record($map, "import");
+		}
+
+		private function show_export_form($map) {
+			$this->view->record($map, "export");
 		}
 
 		private function show_map_resources() {
@@ -139,9 +138,15 @@
 					}
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save map") {
-					if (($_POST["width"] == "") && ($_POST["height"] == "")) {
-						$parts = explode(".", $_POST["url"]);
-						$extension = array_pop($parts);
+					if (empty($_POST["width"]) && empty($_POST["height"])) {
+						if ($_POST["method"] == "upload") {
+							$parts = explode("/", $_FILES["file"]["type"] ?? "/");
+							$extension = $parts[1] ?? "";
+							$_POST["url"] = $_FILES["file"]["tmp_name"] ?? "";
+						} else {
+							$parts = explode(".", $_POST["url"]);
+							$extension = array_pop($parts);
+						}
 
 						if (in_array($extension, config_array(MAP_IMAGE_EXTENSIONS))) {
 							if (($result = $this->model->get_image_dimensions($_POST)) !== false) {
@@ -167,6 +172,9 @@
 						} else {
 							$_POST["id"] = $map_id;
 							$this->user->log_action("map %d created", $map_id);
+							if ($_POST["method"] == "upload") {
+								$_POST["url"] = $this->model->upload_to_url($_POST);
+							}
 							$this->show_grid_form($_POST);
 						}
 					} else {
@@ -181,6 +189,9 @@
 							$this->user->log_action("map %d updated", $_POST["id"]);
 
 							if ($map_changed) {
+								if ($_POST["method"] == "upload") {
+									$_POST["url"] = $this->model->upload_to_url($_POST);
+								}
 								$this->show_grid_form($_POST);
 							} else {
 								header("Location: /vault/map/arrange/".$_POST["id"]);
@@ -194,6 +205,32 @@
 						$this->show_grid_form($_POST);
 					} else {
 						header("Location: /vault/map/arrange/".$_POST["id"]);
+					}
+				} else if ($_POST["submit_button"] == "Import constructs") {
+					/* Import constructs
+					 */
+					if ($_FILES["file"]["error"] ?? null != 0) {
+						$this->view->add_message("Error uploading file.");
+						$this->show_import_form($_POST);
+					} else if ($this->model->constructs_import($_POST["id"], $_FILES["file"]) == false) {
+						$this->view->add_message("Error importing constructs.");
+						$this->show_import_form($_POST);
+					} else {
+						header("Location: /vault/map/arrange/".$_POST["id"]);
+					}
+				} else if ($_POST["submit_button"] == "Export constructs") {
+					/* Export constructs
+					 */
+					if (($export = $this->model->constructs_export($_POST)) == false) {
+						$this->view->add_message("Error exporting constructs.");
+						$this->show_export_form($_POST);
+					} else {
+						$this->view->disable();
+
+						$filename = $this->model->generate_filename($_POST["title"]).".cmc";
+						header("Content-Type: application/x-binary");
+						header("Content-Disposition: attachment; filename=\"".$filename."\"");
+						print $export;
 					}
 				} else if ($_POST["submit_button"] == "Delete map") {
 					/* Delete map
@@ -213,9 +250,11 @@
 			} else if ($this->page->parameter_value(0, "new")) {
 				/* New map
 				 */
-				$map = array("grid_size" => 50, "fow_distance" => 3);
+				$map = array("method" => "upload", "grid_size" => 50, "fow_distance" => 3);
 				$this->show_map_form($map);
 			} else if ($this->page->parameter_value(0, "grid") && $this->page->parameter_numeric(1)) {
+				/* Map grid
+				 */
 				if (($map = $this->model->get_map($this->page->parameters[1])) == false) {
 					$this->view->add_tag("result", "Map not found.");
 				} else {
@@ -228,7 +267,14 @@
 					$this->view->add_tag("result", "Map not found.");
 				} else if ($this->page->parameter_value(1, "grid")) {
 					$this->show_grid_form($map);
+				} else if ($this->page->parameter_value(1, "import")) {
+					$map["url"] = "";
+					$this->show_import_form($map);
+				} else if ($this->page->parameter_value(1, "export")) {
+					$map["url"] = "";
+					$this->show_export_form($map);
 				} else {
+					$map["method"] = "url";
 					$this->show_map_form($map);
 				}
 			} else {

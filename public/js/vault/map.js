@@ -1,7 +1,25 @@
 var grid_size_min = 20;
 var grid_size_max = 200;
 
-function init_resource_browsers() {
+function init_map_edit() {
+	$('div.method input').change(method_select);
+	method_select();
+
+	$('div.method-upload input[type=file]').change(function() {
+		var name = this.files[0].name;
+		$('#upload-file-info').val(name);
+
+		var title = $('input#title');
+		if (title.val() == '') {
+			name = name.split('.').shift();
+			name = name.charAt(0).toUpperCase() + name.substr(1);
+			name = name.replace(/_/g, ' ');
+			title.val(name);
+		}
+	});
+
+	/* Init resources browser
+	 */
 	$.ajax('/vault/map/maps').done(function(data) {
 		var list = '<div><ul class="browse-list">';
 		$(data).find('map').each(function() {
@@ -60,6 +78,12 @@ function init_resource_browsers() {
 	});
 }
 
+function method_select() {
+	var method = $('div.method input:checked').val();
+	$('div.method-option').hide();
+	$('div.method-' + method).show();
+}
+
 function reset_dimension() {
 	$('input#width').val('');
 	$('input#height').val('');
@@ -71,19 +95,47 @@ function reset_dimension() {
 function init_grid(grid_cell_size) {
 	grid_init(grid_cell_size, 'rgba(240, 0, 0, 0.6)');
 
-	var handle = $('#grid-handle');
-	$('#slider').slider({
-		value: grid_cell_size,
+	var grid_value = Math.floor(grid_cell_size);
+	var grid_fraction = (grid_cell_size % 1) * 100;
+
+	var handle_value = $('#grid-handle-value');
+	$('#slider1').slider({
+		value: grid_value,
 		min: grid_size_min,
 		max: grid_size_max,
 		create: function() {
-			handle.text($(this).slider('value'));
+			handle_value.text($(this).slider('value'));
 		},
 		slide: function(event, ui) {
-			handle.text(ui.value);
-			$('input[name="grid_size"]').val(ui.value);
+			handle_value.text(ui.value);
 
-			grid_draw(ui.value);
+			var value = ui.value;
+			var fraction = parseInt($('#grid-handle-fraction').text());
+			value += fraction / 100;
+
+			$('input[name="grid_size"]').val(value);
+
+			grid_draw(value);
+		}
+	});
+
+	var handle_fraction = $('#grid-handle-fraction');
+	$('#slider2').slider({
+		value: grid_fraction,
+		min: 0,
+		max: 99,
+		create: function() {
+			handle_fraction.text($(this).slider('value'));
+		},
+		slide: function(event, ui) {
+			handle_fraction.text(ui.value);
+
+			var value = parseInt($('#grid-handle-value').text());
+			value += ui.value / 100;
+
+			$('input[name="grid_size"]').val(value);
+
+			grid_draw(value);
 		}
 	});
 

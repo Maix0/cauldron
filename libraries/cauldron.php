@@ -1,5 +1,5 @@
 <?php
-	define("CAULDRON_VERSION", "2.6");
+	define("CAULDRON_VERSION", "2.7");
 
 	define("ADVENTURE_ACCESS_DM_ONLY", 0);
 	define("ADVENTURE_ACCESS_PLAYERS", 1);

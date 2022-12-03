@@ -149,14 +149,9 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 	grad.addColorStop(FOW_LIGHT_EDGE, 'rgba(0, 0, 0, ' + FOW_LIGHT_EDGE + ')');
 	grad.addColorStop(0, 'rgba(0, 0, 0, 1)');
 
-	var min_x = Math.min(pos_x - radius, 0);
-	var min_y = Math.min(pos_y - radius, 0);
-	var max_x = Math.max(pos_x + radius, l_canvas.width - 1);
-	var max_y = Math.max(pos_y + radius, l_canvas.height - 1);
-
 	l_ctx.globalCompositeOperation = 'xor';
 	l_ctx.fillStyle = grad;
-	l_ctx.fillRect(min_x, min_y, max_x, max_y);
+	l_ctx.fillRect(pos_x - radius, pos_y - radius, 2 * radius, 2 * radius);
 
 	l_ctx.globalCompositeOperation = 'source-over';
 	l_ctx.fillStyle = FOW_COLOR_SHADOW;

@@ -15,14 +15,16 @@
 </xsl:if>
 <xsl:if test="@is_dm='yes'">
 <img src="/images/cauldron.png" class="cauldron" />
-<p>This is the page where you and your players will see an overview of the adventures you have created. To create an adventure for your players, follow these steps:</p>
+<p>This is the page where you and your players will see an overview of the adventures you have created. All that's needed to create an adventure is explained in the <a href="/manual">manual</a>, but here's a short list to make it even more easy.</p>
 <ul>
 <li>Go to the DM's Vault (see top menu bar) and click on the Adventures icon to create a new adventure.</li>
 <li>Add one or more maps to your adventure.</li>
-<li>Create accounts for your players via the DM's Vault Users section and let your players create their character.</li>
-<li>Add those characters to your adventure via the DM's Vault Players section.</li>
+<li>Create accounts for your players via the <a href="/vault/user">DM's Vault Users section</a> or send them an <a href="/vault/invite">invite code</a> so they can create their account themselves.</li>
+<li>Let your players create their own character.</li>
+<li>Add those characters to your adventure via the <a href="/vault/players">DM's Vault Players section</a>.</li>
 <li>Start the adventure and have fun!</li>
 </ul>
+<p><a href="/vault/adventure/new" class="btn btn-primary">Create your adventure!</a></p>
 </xsl:if>
 </xsl:if>
 <div class="row">
@@ -56,9 +58,11 @@
 <!-- Menu -->
 <div class="topbar">
 <span id="infobar"></span>
+<xsl:if test="map">
 <div class="btn-group">
 <button class="btn btn-primary btn-xs open_menu">Menu</button>
 </div>
+</xsl:if>
 <div class="menu">
 <div class="row">
 <div class="col-sm-6">
@@ -123,6 +127,9 @@
 <xsl:if test="not(map)">
 <input id="adventure_id" type="hidden" name="adventure_id" value="{@id}" />
 <p class="nomap">This adventure has no maps yet. <xsl:if test="@is_dm='yes'">Add maps to this adventure via the <a href="/vault/map">Dungeon Masters' Vault Map Administration</a> page.</xsl:if></p>
+<div class="btn-group">
+<a href="/adventure" class="btn btn-default">Back</a>
+</div>
 </xsl:if>
 <!-- Windows -->
 <xsl:if test="map">

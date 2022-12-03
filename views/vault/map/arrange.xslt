@@ -10,14 +10,19 @@
 //-->
 <xsl:template match="adventure">
 <!-- Menu -->
-<div class="menu">
+<div class="topbar">
 <span id="infobar"></span>
-<div class="btn-group">
-<a href="/vault/map/{map/@id}" class="btn btn-primary btn-xs">Edit settings</a>
-<a href="/vault/map/{map/@id}/grid" class="btn btn-primary btn-xs">Edit grid</a>
-<button class="btn btn-default btn-xs" onClick="javascript:toggle_constructs()">Toggle constructs</button>
-<xsl:if test="map/type='video'"><button onClick="javascript:$('video').get(0).play()" class="btn btn-default btn-xs">Play</button></xsl:if>
-<a href="/vault/map" class="btn btn-default btn-xs">Back</a>
+<button class="btn btn-primary btn-xs open_menu">Menu</button>
+<div class="menu">
+<a href="/vault/map" class="btn btn-default btn-sm">Back</a>
+<button class="btn btn-default btn-sm" onClick="javascript:toggle_constructs()">Toggle constructs</button>
+<xsl:if test="map/type='video'"><button onClick="javascript:$('video').get(0).play()" class="btn btn-default btn-sm">Play</button></xsl:if>
+<h2>Settings</h2>
+<a href="/vault/map/{map/@id}" class="btn btn-default btn-sm">Edit settings</a>
+<a href="/vault/map/{map/@id}/grid" class="btn btn-default btn-sm">Edit grid</a>
+<h2>Import / export</h2>
+<a href="/vault/map/{map/@id}/import" class="btn btn-default btn-sm">Import constructs</a>
+<a href="/vault/map/{map/@id}/export" class="btn btn-default btn-sm">Export constructs</a>
 </div>
 </div>
 <div class="windows">

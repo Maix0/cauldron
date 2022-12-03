@@ -12,7 +12,7 @@
 <input type="text" id="invitation_code" name="invitation_code" value="{invitation_code}" readonly="readonly" class="form-control" />
 
 <div class="btn-group change">
-<a href="/{/output/page}/edit" class="btn btn-default">Change</a>
+<a href="/{/output/page}/edit" class="btn btn-default">Set code</a>
 <a href="/vault" class="btn btn-default">Back</a>
 </div>
 
@@ -50,7 +50,7 @@
 //
 //-->
 <xsl:template match="content">
-<h1>Invitation code administration</h1>
+<h1>Invitation code</h1>
 <xsl:apply-templates select="show" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="result" />

@@ -30,7 +30,7 @@ table.table th:nth-child(4) {
 }
 
 div.input-group {
-	max-width:500px;
+	max-width:600px;
 }
 
 ul.browse-list {
@@ -42,8 +42,23 @@ ul.browse-list li:hover {
 	background:#ffffa0;
 }
 
+div.method {
+	margin-top:-3px;
+	margin-bottom:5px;
+}
+div.method span:first-child {
+	margin-right:30px;
+}
+div.method span input {
+	margin-right:5px;
+}
+
 /* Grid
 */
+label span {	
+	font-weight:normal;
+}
+
 div.playarea {
 	border:1px solid #000000;
 	overflow:scroll;
@@ -65,11 +80,11 @@ div.grid canvas#grid {
 	left:0;
 }
 
-div#slider {
+div#slider1, div#slider2 {
 	margin-bottom:15px;
 }
 
-#grid-handle {
+#grid-handle-value, #grid-handle-fraction {
 	width: 3em;
 	height: 1.6em;
 	top: 50%;

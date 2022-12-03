@@ -496,6 +496,12 @@
 				$this->settings->database_version = 26;
 			}
 
+			if ($this->settings->database_version == 26) {
+				$this->db_query("ALTER TABLE map CHANGE grid_size grid_size DECIMAL(5,2) UNSIGNED NOT NULL");
+
+				$this->settings->database_version = 27;
+			}
+
 			return true;
 		}
 

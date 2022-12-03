@@ -9,11 +9,11 @@
 	class vault_controller extends Banshee\controller {
 		public function execute() {
 			$menu = array(
-				"Player accounts" => array(
+				"User accounts" => array(
 					"Users"         => array("vault/user", "users.png"),
 					"Invite"        => array("vault/invite", "invite.png"),
 					"Roles"         => array("vault/role", "roles.png"),
-					"Organisations" => array("vault/organisation", "organisations.png"),
+					"Groups"        => array("vault/organisation", "organisations.png"),
 					"Access"        => array("vault/access", "access.png"),
 					"User switch"   => array("vault/switch", "switch.png")),
 				"Adventure creation" => array(

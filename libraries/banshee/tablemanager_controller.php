@@ -295,7 +295,7 @@
 						if ($this->log_column != null) {
 							$name .= ":".$_POST[$this->log_column];
 						}
-						$this->user->log_action("%s %S created", strtolower($this->name), $name);
+						$this->user->log_action("%s %s created", strtolower($this->name), $name);
 
 						$this->show_overview();
 					}

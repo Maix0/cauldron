@@ -99,7 +99,7 @@
 			return $result;
 		}
 
-		public function upload_okay($file, $directory) {
+		public function upload_okay($file, $directory, $exists_warning = null) {
 			if ($file["error"] !== 0) {
 				$this->view->add_system_warning("Error while uploading file.");
 				return false;
@@ -125,7 +125,10 @@
 			}
 
 			if (file_exists($directory."/".$file["name"])) {
-				$this->view->add_message("File already exists.");
+				if ($exists_warning == null) {
+					$exists_warning = "File already exists.";
+				}
+				$this->view->add_message($exists_warning);
 				return false;
 			}
 

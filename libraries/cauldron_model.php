@@ -1,5 +1,28 @@
 <?php
 	abstract class cauldron_model extends Banshee\model {
+		public function resource_path($path, $resources_key = null) {
+			if ($path == "") {
+				return "/files/default.jpg";
+			}
+
+			if (substr($path, 0, 11) != "/resources/") {
+				return $path;
+			}
+
+			$path = str_replace(" ", "%20", $path);
+
+			if ($resources_key == null) {
+				$resources_key = $this->user->resources_key;
+			}
+
+			$len = strlen($resources_key);
+			if (substr($path, 11, $len) == $resources_key) {
+				return $path;
+			}
+
+			return "/resources/".$resources_key.substr($path, 10);
+		}
+
 		private function get_files($path, $recursive) {
 			if (($dp = opendir($path)) == false) {
 				return false;

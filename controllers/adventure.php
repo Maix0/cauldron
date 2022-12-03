@@ -14,23 +14,6 @@
 			return "<p>".$message->content."</p>";
 		}
 
-		private function resource_path($path) {
-			if ($path == "") {
-				return "/files/default.jpg";
-			}
-
-			if (substr($path, 0, 11) != "/resources/") {
-				return $path;
-			}
-
-			$len = strlen($this->user->resources_key);
-			if (substr($path, 11, $len) == $this->user->resources_key) {
-				return $path;
-			}
-
-			return "/resources/".$this->user->resources_key.substr($path, 10);
-		}
-
 		private function show_adventures() {
 			if (($adventures = $this->model->get_adventures()) === false) {
 				$this->view->add_tag("result", "Database error.");
@@ -48,7 +31,7 @@
 
 			$this->view->open_tag("adventures", array("is_dm" => $is_dm));
 			foreach ($adventures as $adventure) {
-				$adventure["image"] = $this->resource_path($adventure["image"]);
+				$adventure["image"] = $this->model->resource_path($adventure["image"]);
 				$adventure["story"] = $this->format_text($adventure["story"]);
 				$adventure["access"] = show_boolean($adventure["access"] >= ADVENTURE_ACCESS_PLAYERS);
 
@@ -238,9 +221,6 @@
 			 */
 			if (isset($maps)) {
 				$this->view->open_tag("maps");
-				if ($active_map == null) {
-					$this->view->add_tag("map", "-", array("id" => 0));
-				}
 				foreach ($maps as $map) {
 					$attr = array("id" => $map["id"]);
 					if ($active_map != null) {
@@ -275,7 +255,8 @@
 
 				$active_map["show_grid"] = show_boolean($active_map["show_grid"]);
 				$active_map["drag_character"] = show_boolean($active_map["drag_character"]);
-				$active_map["url"] = $this->resource_path($active_map["url"]);
+				$active_map["url"] = $this->model->resource_path($active_map["url"]);
+				$active_map["url"] = str_replace(" ", "%20", $active_map["url"]);
 
 				$this->view->record($active_map, "map");
 
