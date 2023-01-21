@@ -1,3 +1,11 @@
+cauldron (2.8) stable; urgency=low
+
+  * Roll dice window.
+  * Open and close windows.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 21 Jan 2023 13:11:27 +0100
+
 cauldron (2.7) stable; urgency=low
 
   * Import and export map constructs.
@@ -5,7 +13,7 @@ cauldron (2.7) stable; urgency=low
   * Map grid size fraction setting.
   * Small bugfixes and improvements.
 
- -- Hugo Leisink <hugo@leisink.net>  Sat,  3 Dec 2022 10:27:34 +0200
+ -- Hugo Leisink <hugo@leisink.net>  Sat,  3 Dec 2022 10:27:34 +0100
 
 cauldron (2.6) stable; urgency=low
 
@@ -15,7 +23,7 @@ cauldron (2.6) stable; urgency=low
   * Small layout changes.
   * Small bugfixes and improvements.
 
- -- Hugo Leisink <hugo@leisink.net>  Fri, 14 Oct 2022 20:51:01 +0200
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 14 Oct 2022 20:51:01 +0100
 
 cauldron (2.5) stable; urgency=low
 

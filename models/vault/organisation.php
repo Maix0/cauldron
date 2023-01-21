@@ -25,9 +25,10 @@
 		}
 
 		public function get_users($organisation_id) {
-			$query = "select * from users where organisation_id=%d order by fullname";
+			$query = "select u.*, r.role_id from users u left join user_role r on u.id=r.user_id and r.role_id=%d ".
+			         "where u.organisation_id=%d order by fullname";
 
-			return $this->db->execute($query, $organisation_id);
+			return $this->db->execute($query, DUNGEON_MASTER_ROLE_ID, $organisation_id);
 		}
 
 		public function save_okay($organisation) {

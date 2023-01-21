@@ -17,6 +17,8 @@ const LAYER_MARKER = DEFAULT_Z_INDEX + 5;
 const LAYER_MENU = DEFAULT_Z_INDEX + 6;
 const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
 
+const INPUT_HISTORY_SIZE = 20;
+
 const DRAW_DEFAULT_COLOR = 1;
 const DRAW_DEFAULT_WIDTH = 1;
 
@@ -33,6 +35,7 @@ var my_name = null;
 var character_name = null;
 var my_character = null;
 var wf_collectables = null;
+var wf_dice_roll = null;
 var wf_effect_create = null;
 var wf_journal = null;
 var wf_script_editor = null;
@@ -223,7 +226,24 @@ function send_message(message, name, write_to_sidebar = true) {
 	}
 }
 
+function input_history_add(input) {
+	input_history = jQuery.grep(input_history, function(value) {
+		return value != input;
+	});
+
+	input_history.unshift(input);
+	input_history = input_history.slice(0, INPUT_HISTORY_SIZE);
+	input_index = -1;
+
+	localStorage.setItem('input_history', JSON.stringify(input_history));
+}
+
 function roll_dice(dice, send_to_others = true) {
+	if (dice == '') {
+		wf_dice_roll.open();
+		return;
+	}
+
 	var dice_str = dice.replace(/ /g, '');
 	dice = dice_str.replace(/\+-/g, '-');
 	dice = dice.replace(/-/g, '+-');
@@ -233,7 +253,7 @@ function roll_dice(dice, send_to_others = true) {
 	var output = '';
 	var result = 0;
 
-	if (parts.length > 5) {
+	if (parts.length > 7) {
 		return false;
 	}
 
@@ -357,37 +377,45 @@ function roll_d20(bonus, type = ROLL_NORMAL) {
 }
 
 function show_help() {
-	var help =
-		(dungeon_master ?
-		'<b>/add &lt;name&gt;</b>: Add NPC to the combat and make it its turn.<br />' : '') +
-		'<b>/clear</b>: Clear this sidebar.<br />' +
-		(dungeon_master ?
-		'<b>/combat</b>: Start a new combat.<br />' : '') +
-		'<b>/d20 [&lt;bonus&gt]</b>: Roll d20 dice.<br />' +
-		'<b>/d20a [&lt;bonus&gt]</b>: Roll d20 dice with advantage.<br />' +
-		'<b>/d20d [&lt;bonus&gt]</b>: Roll d20 dice with disadvantage.<br />' +
-		(dungeon_master ? '' :
-		'<b>/damage &lt;points&gt;</b>: Damage your character.<br />') +
-		(dungeon_master ?
-		'<b>/dmroll &lt;dice&gt;</b>: Privately roll dice.<br />' +
-		'<b>/done</b>: End the combat.<br />' : '') +
-		(dungeon_master ? '' :
-		'<b>/heal &lt;points&gt;</b>: Heal your character.<br />') +
-		'<b>/labels [hide|show]</b>: Manage character name labels and health bars visibility.<br />' +
-		'<b>/log &lt;message&gt;</b>: Add message to journal.<br />' +
-		(dungeon_master ?
-		'<b>/next [&lt;name&gt;]</b>: Next turn in combat.<br />' +
-		'<b>/night [0-4]</b>: Set map night mode.<br />' +
-		'<b>/ping</b>: See who\'s online in the session.<br />' +
-		'<b>/reload</b>: Reload current page.<br />' +
-		'<b>/remove &lt;name&gt;</b>: Remove one from the combat.<br />' : '') +
-		'<b>/roll &lt;dice&gt;</b>: Roll dice.<br />' +
-		(dungeon_master ?
-		'<b>/walls [hide|show]</b>: Manage walls and windows visibility.<br />' : '') +
-		'<b>&lt;message&gt;</b>: Send text message.<br />' +
-		'<br />Right-click an icon or the map for a menu with options. Move a character via w, a, s and d and rotate via q and e.';
+	var commands = {
+		'clear':                 'Clear this sidebar.',
+		'd20 [&lt;bonus&gt]':    'Roll d20 dice.',
+		'd20a [&lt;bonus&gt]':   'Roll d20 dice with advantage.',
+		'd20d [&lt;bonus&gt]':   'Roll d20 dice with disadvantage.',
+		'history [clear]':       'Show or clear your input history.',
+		'labels [hide|show]':    'Manage character name labels and health bars visibility.',
+		'log &lt;message&gt;':   'Add message to journal.',
+		'roll &lt;dice&gt;':     'Roll dice.',
+	};
 
-	write_sidebar(help);
+	var extra = dungeon_master ? {
+		'add &lt;name&gt;':      'Add NPC to the combat and make it its turn.',
+		'combat':                'Start a new combat.',
+		'dmroll &lt;dice&gt;':   'Privately roll dice.',
+		'done':                  'End the combat.',
+		'next [&lt;name&gt;]':   'Next turn in combat.',
+		'night [0-4]':           'Set map night mode.',
+		'ping':                  'See who\'s online in the session.',
+		'reload':                'Reload current page.',
+		'remove &lt;name&gt;':   'Remove one from the combat.',
+		'walls [hide|show]':     'Manage walls and windows visibility.',
+	} : {
+		'damage &lt;points&gt;': 'Damage your character.',
+		'heal &lt;points&gt;':   'Heal your character.',
+	};
+
+	var help = [];
+	Object.assign(commands, extra);
+	for (const [key, value] of Object.entries(commands)) {
+		help.push('<b>/' + key + '</b>: ' + value + '<br />');
+	}
+
+	help.sort();
+
+	help.push('<b>&lt;message&gt;</b>: Send text message.<br />');
+	help.push('<br />Right-click an icon or the map for a menu with options. Move a character via w, a, s and d and rotate via q and e.');
+
+	write_sidebar(help.join('\n'));
 }
 
 function coord_to_grid(coord, edge = true) {
@@ -1631,6 +1659,65 @@ function wall_collision(x1, y1, x2, y2) {
 	return result;
 }
 
+/* Window functions
+ */
+function window_make_closed(wind) {
+	if (wind.attr('transparent') != 'yes') {
+		return;
+	}
+
+	write_sidebar('The window is now closed.');
+	window_show_closed(wind);
+	window_send_state(wind);
+}
+
+function window_show_closed(wind) {
+	wind.attr('transparent', 'no');
+
+	wind.css('background-color', '#0000a0');
+
+	/* Fog of War
+	 */
+	if ((fow_type != FOW_OFF) && (my_character != null)) {
+		fog_of_war_update(my_character);
+	} else if (fow_obj != null) {
+		fog_of_war_update(fow_obj);
+	}
+}
+
+function window_make_open(wind) {
+	if (wind.attr('transparent') != 'no') {
+		return;
+	}
+
+	write_sidebar('The window is now open.');
+	window_show_open(wind);
+	window_send_state(wind);
+}
+
+function window_show_open(wind) {
+	wind.attr('transparent', 'yes');
+
+	wind.css('background-color', '');
+
+	/* Fog of War
+	 */
+	if ((fow_type != FOW_OFF) && (my_character != null)) {
+		fog_of_war_update(my_character);
+	} else if (fow_obj != null) {
+		fog_of_war_update(fow_obj);
+	}
+}
+
+function window_send_state(wind) {
+	var data = {
+		action: 'window_state',
+		window_id: wind.prop('id'),
+		transparent: wind.attr('transparent')
+	};
+	websocket_send(data);
+}
+
 /* Blinder functions
  */
 function points_angle(pos1_x, pos1_y, pos2_x, pos2_y) {
@@ -2058,6 +2145,7 @@ function handle_input(input) {
 			return;
 		}
 		send_message(input, character_name);
+		input_history_add(input);
 		return;
 	}
 
@@ -2068,12 +2156,13 @@ function handle_input(input) {
 	switch (command) {
 		case 'add':
 			if (dungeon_master == false) {
-				break;
+				return;
 			}
 
 			if (param.trim() == '') {
 				write_sidebar('Specify a name.');
 				$('div.input input').val(input);
+				return;
 			} else {
 				combat_add(param);
 			}
@@ -2089,7 +2178,7 @@ function handle_input(input) {
 			break;
 		case 'combat':
 			if (dungeon_master == false) {
-				break;
+				return;
 			}
 
 			combat_start();
@@ -2107,14 +2196,14 @@ function handle_input(input) {
 		case 'dmg':
 			if (my_character == null) {
 				write_sidebar('You have no character.');
-				break;
+				return;
 			}
 
 			points = parseInt(param);
 			if (isNaN(points)) {
 				write_sidebar('Invalid damage points.');
 				$('div.input input').val(input);
-				break;
+				return;
 			}
 
 			object_damage(my_character, points);
@@ -2127,11 +2216,12 @@ function handle_input(input) {
 			if (roll_dice(param, false) == false) {
 				write_sidebar('Invalid dice roll.');
 				$('div.input input').val(input);
+				return;
 			}
 			break;
 		case 'done':
 			if (dungeon_master == false) {
-				break;
+				return;
 			}
 
 			combat_done();
@@ -2145,13 +2235,13 @@ function handle_input(input) {
 			if (my_character == null) {
 				write_sidebar('You have no character.');
 				$('div.input input').val(input);
-				break;
+				return;
 			}
 
 			points = parseInt(param);
 			if (isNaN(points)) {
 				write_sidebar('Invalid healing points');
-				break;
+				return;
 			}
 
 			object_damage(my_character, -points);
@@ -2160,11 +2250,22 @@ function handle_input(input) {
 			show_help();
 			break;
 		case 'history':
+			if (param == 'clear') {
+				input_history = null;
+				input_index = -1;
+				localStorage.removeItem('input_history');
+				write_sidebar('History cleared.');
+				return;
+			}
+
 			var history = 'Input history:<br />\n';
 			input_history.forEach(function(value) {
-				history += value + '<br />\n';
+				history += '<span class="history" style="display:block">' + value + '</span>\n';
 			});
 			write_sidebar(history);
+			$('div.sidebar span.history').off('click').on('click', function() {
+				handle_input($(this).text());
+			});
 			break;
 		case 'inventory':
 			wf_collectables.open();
@@ -2192,33 +2293,34 @@ function handle_input(input) {
 			}
 			break;
 		case 'log':
-			if (param != '') {
-				journal_add_entry(character_name, param);
-				journal_save_entry(character_name, param);
-				write_sidebar('Journal entry added.');
+			if (param == '') {
+				return;
 			}
-			break;
+			journal_add_entry(character_name, param);
+			journal_save_entry(character_name, param);
+			write_sidebar('Journal entry added.');
+			return;
 		case 'next':
 			if (dungeon_master == false) {
-				break;
+				return;
 			}
 
 			combat_next(param);
 			break;
 		case 'night':
 			if (dungeon_master == false) {
-				break;
+				return;
 			}
 
 			param = parseInt(param);
 			if (isNaN(param)) {
 				write_sidebar('Invalid level.');
-				break;
+				return;
 			}
 
 			if ((param < 0) || (param > 4)) {
 				write_sidebar('Level out of range.');
-				break;
+				return;
 			}
 
 			var levels = {
@@ -2241,7 +2343,7 @@ function handle_input(input) {
 			break;
 		case 'ping':
 			if (dungeon_master == false) {
-				break;
+				return;
 			}
 
 			write_sidebar('Present in this session:');
@@ -2253,7 +2355,7 @@ function handle_input(input) {
 			break;
 		case 'reload':
 			if (dungeon_master == false) {
-				break;
+				return;
 			}
 
 			var data = {
@@ -2265,20 +2367,22 @@ function handle_input(input) {
 			break;
 		case 'remove':
 			if (dungeon_master == false) {
-				break;
+				return;
 			}
 
 			if (param == '') {
 				write_sidebar('Specify a name.');
 				$('div.input input').val(input);
-			} else {
-				combat_remove(param);
+				return;
 			}
+
+			combat_remove(param);
 			break;
 		case 'roll':
 			if (roll_dice(param) == false) {
 				write_sidebar('Invalid dice roll.');
 				$('div.input input').val(input);
+				return;
 			}
 			break;
 		case 'version':
@@ -2301,7 +2405,10 @@ function handle_input(input) {
 		default:
 			write_sidebar('Unknown command.');
 			$('div.input input').val(input);
+			return;
 	}
+
+	input_history_add(input);
 }
 
 function context_menu_handler(key, options) {
@@ -2946,6 +3053,12 @@ function context_menu_handler(key, options) {
 		case 'view':
 			object_view(obj);
 			break;
+		case 'window_open':
+			window_make_open(obj);
+			break;
+		case 'window_close':
+			window_make_closed(obj);
+			break;
 		case 'zone_create':
 			object_unfocus();
 
@@ -2985,6 +3098,8 @@ function key_down(event) {
 		ctrl_down = true;
 	} else if (event.which == 18) {
 		alt_down = true;
+	} else if (event.which == 19) {
+		wf_dice_roll.open();
 	}
 }
 
@@ -3441,6 +3556,10 @@ $(document).ready(function() {
 					level: night_level
 				};
 				websocket_send(data);
+
+				$('div.window[transparent=no]').each(function() {
+					window_send_state($(this));
+				});
 				break;
 			case 'rotate':
 				var obj = $('div#' + data.instance_id);
@@ -3482,6 +3601,13 @@ $(document).ready(function() {
 			case 'travel':
 				if (data.instance_id == my_character.prop('id')) {
 					document.location = '/adventure/' + adventure_id + '/' + data.map_id;
+				}
+				break;
+			case 'window_state':
+				var obj = $('div#' + data.window_id);
+				switch (data.transparent) {
+					case 'no': window_show_closed(obj); break;
+					case 'yes': window_show_open(obj); break;
 				}
 				break;
 			case 'zone_create':
@@ -3850,6 +3976,19 @@ $(document).ready(function() {
 		wall_position($(this));
 	});
 
+	$('div.wall[transparent=yes').contextmenu(function(event) {
+		var menu_entries = {};
+
+		if ($(this).attr('transparent') == 'yes') {
+			menu_entries['window_close'] = { name:'Close', icon:'fa-toggle-off' };
+		} else {
+			menu_entries['window_open'] = { name:'Open', icon:'fa-toggle-on' };
+		}
+
+		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+		return false;
+	});
+
 	/* Lights
 	 */
 	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
@@ -4113,9 +4252,21 @@ $(document).ready(function() {
 		 */
 		$('div.library img.icon').draggable({
 			helper: 'clone',
-			appendTo: 'div.playarea',
+			appendTo: 'div.content',
+			scroll: false,
+			start: function(event, ui) {
+				var width = parseInt($(this).attr('obj_width')) * grid_cell_size;
+				var height = parseInt($(this).attr('obj_height')) * grid_cell_size;
+				ui.helper.css('width', width + 'px');
+				ui.helper.css('max-width', width + 'px');
+				ui.helper.css('height', height + 'px');
+				ui.helper.css('max-height', height + 'px');
+				ui.helper.css('z-index', '1');
+			},
 			stop: function(event, ui) {
-				object_create($(this), event.pageX, event.pageY);
+				var x = (event.pageX > 0) ? event.pageX : 0;
+				var y = (event.pageY > 0) ? event.pageY : 0;
+				object_create($(this), x, y);
 			}
 		});
 
@@ -4134,7 +4285,6 @@ $(document).ready(function() {
 			open: function() {
 				$.ajax('/adventure/audio').done(function(data) {
 					var files = $(data).find('audio sound');
-					console.log(files);
 
 					if (files.length > 0) {
 						var audio = '<p>Select an audio file to play it.</p><ul class="audio">';
@@ -4288,10 +4438,6 @@ $(document).ready(function() {
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
-
-		/* No token library, so enlarge sidebar.
-		 */
-		$('div.sidebar').css('top', '40px');
 	}
 
 	/* Input field
@@ -4309,15 +4455,6 @@ $(document).ready(function() {
 			var input = $(this).val();
 			$(this).val('');
 			handle_input(input);
-
-			input_history = jQuery.grep(input_history, function(value) {
-				return value != input;
-			});
-
-			input_history.unshift(input);
-			input_index = -1;
-
-			localStorage.setItem('input_history', JSON.stringify(input_history));
 		}
 
 		if ((e.key === 'ArrowUp') || (e.keyCode === 38)) {
@@ -4468,6 +4605,159 @@ $(document).ready(function() {
 
 	$('button.playvideo').click(function() {
 		$('video').get(0).play();
+	});
+
+	/* Dice roll window
+	 */
+	var dice_window = '<div><div class="dicerolls_defined"></div><div class="diceroll">';
+	[ 4, 6, 8, 10, 12, 20 ].forEach(function(dice) {
+		dice = dice.toString();
+		dice_window += '<div class="dice"><img src="/images/d' + dice + '.png" title="d' + dice + '" /><select sides="' + dice + '" class="form-control">';
+		for (let d = 0; d <= 10; d++) {
+			dice_window += '<option>' + d.toString() + '</option>';
+		}
+		dice_window += '</select></div>';
+	});
+	dice_window += '<div class="dice"><img src="/images/plus.png" /><input type="text" class="form-control" /></div>'
+	dice_window += '</div>';
+
+	dice_roll_get = function() {
+		var roll = '';
+		$('div.diceroll select').each(function() {
+			var value = parseInt($(this).val());
+			if (value != 0) {
+				if (roll != '') {
+					roll += '+';
+				}
+				roll += value + 'd' + $(this).attr('sides');
+			}
+
+		});
+
+		if (roll == '') {
+			alert('Select at least one dice.');
+			return false;
+		}
+
+		var plus = $('div.diceroll input').val();
+		if (isNaN(parseInt(plus))) {
+			alert('Enter a number in the plus input field.');
+			return false;
+		}
+
+		if (plus.substr(0, 1) == '-') {
+			roll += plus;
+		} else if (plus != '0') {
+			roll += '+' + plus;
+		}
+
+		return roll;
+	}
+
+	dice_roll_init = function() {
+		$('div.diceroll select').each(function() {
+			$(this).val('0');
+		});
+		$('div.diceroll input').val('0');
+
+		var defined = $('div.dicerolls_defined');
+		defined.empty();
+		var rolls = localStorage.getItem('dicerolls');
+		if (rolls == undefined) {
+			return;
+		}
+
+		rolls = JSON.parse(rolls);
+		for ([key, value] of Object.entries(rolls)) {
+			var buttons = $('<div class="btn-group"><input type="button" value="' + key + '" title="' + value + '" class="btn btn-default roll" /><input type="button" value="X" class="btn btn-default remove" /></div>');
+			buttons.find('input.roll').click(function() {
+				wf_dice_roll.close();
+
+				write_sidebar('Rolling for ' + $(this).attr('value').toLowerCase() + '.');
+				var dice = $(this).attr('title');
+				roll_dice(dice, dungeon_master == false);
+				input_history_add('/roll ' + dice);
+			});
+			buttons.find('input.remove').click(function() {
+				if (confirm('Delete dice?') == false) {
+					return;
+				}
+
+				var key = $(this).parent().find('input.roll').attr('value');
+				var rolls = localStorage.getItem('dicerolls');
+				rolls = JSON.parse(rolls);
+				delete rolls[key];
+				localStorage.setItem('dicerolls', JSON.stringify(rolls));
+
+				dice_roll_init();
+			});
+			defined.append(buttons);
+		};
+	}
+
+	wf_dice_roll = $(dice_window).windowframe({
+		activator: 'button.show_dice',
+		header: 'Roll dice',
+		width: 665,
+		open: function() {
+			dice_roll_init();
+		},
+		buttons: {
+			'Roll': function() {
+				$(this).close();
+
+				var roll = dice_roll_get();
+				if (roll === false) {
+					return;
+				}
+
+				roll_dice(roll, dungeon_master == false);
+				input_history_add('/roll ' + roll);
+			},
+			'Save': function() {
+				var roll = dice_roll_get();
+				if (roll === false) {
+					return;
+				}
+
+				var name = prompt('Name this dice roll:');
+				if (name == null) {
+					return;
+				}
+
+				if (name.trim() == '') {
+					return;
+				}
+
+				var rolls = localStorage.getItem('dicerolls');
+				if (rolls == undefined) {
+					rolls = {};
+				} else {
+					rolls = JSON.parse(rolls);
+				}
+
+				rolls[name] = roll;
+
+				rolls = Object.keys(rolls).sort().reduce((accumulator, key) => {
+					accumulator[key] = rolls[key];
+					return accumulator;
+				}, {});
+
+				localStorage.setItem('dicerolls', JSON.stringify(rolls));
+
+				dice_roll_init();
+			}
+		}
+	});
+
+	wf_dice_roll.find('div.dice img').dblclick(function() {
+		var dice = $(this).attr('title');
+		if (dice == undefined) {
+			return;
+		}
+
+		wf_dice_roll.close();
+		roll_dice('1' + dice, dungeon_master == false);
 	});
 
 	/* Other stuff

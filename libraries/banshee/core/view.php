@@ -63,7 +63,7 @@
 			/* Mobile devices
 			 */
 			if (isset($_SERVER["HTTP_USER_AGENT"])) {
-				$mobiles = array("iPhone", "Android");
+				$mobiles = array("iPhone", "iPad", "Android");
 				foreach ($mobiles as $mobile) {
 					if (strpos($_SERVER["HTTP_USER_AGENT"], $mobile) !== false) {
 						$this->mobile = true;

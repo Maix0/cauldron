@@ -1000,23 +1000,4 @@ $(document).ready(function() {
 		audio.loop = true;
 		audio.play();
 	}
-
-/*
-	$('div.sidebar').css({
-		'top': '40px',
-		'bottom': '15px'
-	});
-
-	$('select.map-selector').css({
-		'display': 'inline-block',
-		'margin-right': '15px',
-		'display': 'inline-block',
-		'width': '200px',
-		'height': '20px',
-		'padding': '0',
-		'position': 'relative',
-		'top': '1px',
-		'font-size': '12px'
-	});
-*/
 });

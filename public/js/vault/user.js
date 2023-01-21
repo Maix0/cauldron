@@ -1,11 +1,3 @@
-$(document).ready(function() {
-	if ($('input#secret').length > 0) {
-		if ($('input#secret').val() != '') {
-			secret_change();
-		}
-	}
-});
-
 function password_field() {
 	if ($('input#generate:checked').length > 0) {
 		$('input#password').val('');

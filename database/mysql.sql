@@ -572,7 +572,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','27'),(3,'default_language','string','en'),(4,'head_description','string','A free virtual tabletop for D&D 5e.'),(5,'head_keywords','string','cauldron, virtual tabletop, vtt, free, roleplaying, dungeons & dragons, D&D'),(6,'head_title','string','Cauldron VTT'),(7,'hiawatha_cache_default_time','integer','3600'),(8,'hiawatha_cache_enabled','boolean','false'),(9,'page_after_login','string','adventure'),(10,'secret_website_code','string',''),(11,'session_persistent','boolean','true'),(12,'session_timeout','integer','86400'),(13,'start_page','string',''),(14,'screen_grid_size','integer','50'),(15,'webmaster_email','string','root@localhost'),(16,'default_max_resources','string','50');
+INSERT INTO `settings` VALUES (1,'admin_page_size','integer','25'),(2,'database_version','integer','28'),(3,'default_language','string','en'),(4,'head_description','string','A free virtual tabletop for D&D 5e.'),(5,'head_keywords','string','cauldron, virtual tabletop, vtt, free, roleplaying, dungeons & dragons, D&D'),(6,'head_title','string','Cauldron VTT'),(7,'hiawatha_cache_default_time','integer','3600'),(8,'hiawatha_cache_enabled','boolean','false'),(9,'page_after_login','string','adventure'),(10,'secret_website_code','string',''),(11,'session_persistent','boolean','true'),(12,'session_timeout','integer','86400'),(13,'start_page','string',''),(14,'screen_grid_size','integer','50'),(15,'webmaster_email','string','root@localhost'),(16,'default_max_resources','string','50');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 

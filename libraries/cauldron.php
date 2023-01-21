@@ -1,5 +1,9 @@
 <?php
-	define("CAULDRON_VERSION", "2.7");
+	define("CAULDRON_VERSION", "2.8");
+
+    define("PLAYER_ROLE_ID", 2);
+	define("DUNGEON_MASTER_ROLE_ID", 3);
+	define("USER_MAINTAINER_ROLE_ID", 4);
 
 	define("ADVENTURE_ACCESS_DM_ONLY", 0);
 	define("ADVENTURE_ACCESS_PLAYERS", 1);

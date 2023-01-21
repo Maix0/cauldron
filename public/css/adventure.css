@@ -253,6 +253,39 @@ div.image_overlay {
 	z-index:20000;
 }
 
+/* Dice rolling
+ */
+div.diceroll div.dice {
+	display:inline-block;
+	margin-right:15px;
+	margin-top:15px;
+}
+
+div.diceroll div.dice img {
+	width:75px;
+	display:block;
+	margin-bottom:5px;
+	cursor:pointer;
+}
+
+div.diceroll div.dice:last-child img {
+	cursor:default;
+}
+
+div.diceroll div.dice select {
+	width:75px;
+	text-align:center;
+}
+
+div.diceroll div.dice input {
+	width:75px;
+	text-align:center;
+}
+
+div.dicerolls_defined input.remove {
+	padding:6px 10px;
+}
+
 /* DM notes
  */
 div.notes div.panel-body {
@@ -397,6 +430,26 @@ div.input {
 	bottom:5px;
 	width:195px;
 	height:45px;
+}
+
+div.sidebar span.history {
+	cursor:pointer;
+}
+div.sidebar span.history:before {
+	content:"-";
+	margin:0 5px;
+}
+
+@media (max-width:991px) {
+	div.playarea + div.sidebar {
+		top:60px;
+	}
+}
+
+@media (min-width:992px) {
+	div.playarea + div.sidebar {
+		top:40px;
+	}
 }
 
 /* Conditions

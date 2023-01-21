@@ -8,9 +8,6 @@
 
 	define("BANSHEE_VERSION", "7.2");
 	define("ADMIN_ROLE_ID", 1);
-	define("PLAYER_ROLE_ID", 2);
-	define("DUNGEON_MASTER_ROLE_ID", 3);
-	define("USER_MAINTAINER_ROLE_ID", 4);
 	define("YES", 1);
 	define("NO", 0);
 	define("USER_STATUS_DISABLED", 0);

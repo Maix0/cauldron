@@ -1,5 +1,5 @@
 var grid_size_min = 20;
-var grid_size_max = 200;
+var grid_size_max = 300;
 
 function init_map_edit() {
 	$('div.method input').change(method_select);

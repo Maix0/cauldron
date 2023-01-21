@@ -43,6 +43,7 @@
 
 			$this->view->open_tag("users");
 			foreach ($users as $user) {
+				$user["dm"] = show_boolean($user["role_id"] == DUNGEON_MASTER_ROLE_ID);
 				$this->view->record($user, "user");
 			}
 			$this->view->close_tag();

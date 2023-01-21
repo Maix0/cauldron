@@ -452,6 +452,10 @@
 		}
 
 		public function execute() {
+			if ($this->view->mobile) {
+				$this->view->add_javascript("webui/jquery.ui.touch-punch.js");
+			}
+
 			$this->view->title = "Adventures";
 
 			if ($this->page->ajax_request) {

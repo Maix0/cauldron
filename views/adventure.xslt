@@ -15,7 +15,7 @@
 </xsl:if>
 <xsl:if test="@is_dm='yes'">
 <img src="/images/cauldron.png" class="cauldron" />
-<p>This is the page where you and your players will see an overview of the adventures you have created. All that's needed to create an adventure is explained in the <a href="/manual">manual</a>, but here's a short list to make it even more easy.</p>
+<p>This is the page where you and your players will see an overview of the adventures you have created. All that's needed to create an adventure is explained in the <a href="/manual">manual</a>, but here's a short list to make it even more easy to get you started.</p>
 <ul>
 <li>Go to the DM's Vault (see top menu bar) and click on the Adventures icon to create a new adventure.</li>
 <li>Add one or more maps to your adventure.</li>
@@ -66,6 +66,7 @@
 <div class="menu">
 <div class="row">
 <div class="col-sm-6">
+<button class="btn btn-default btn-sm show_dice">Roll dice</button>
 <button class="btn btn-default btn-sm show_journal">Journal</button>
 <button class="btn btn-default btn-sm show_collectables">Inventory</button>
 <xsl:if test="@is_dm='yes'">

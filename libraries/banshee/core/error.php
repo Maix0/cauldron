@@ -117,11 +117,12 @@
 		 * ERROR:  -
 		 */
 		private function send_via_email($errors) {
+			$username = $this->user->username;
 			$message =
 				"Date, time: ".date("j F Y, H:i:s")."\n".
 				"Used URL  : ".$_SERVER["REQUEST_URI"]."\n".
 				"IP address: ".$_SERVER["REMOTE_ADDR"]."\n".
-				"Username  : ".($this->user->username != null ? $this->user->username."\n" : "-\n").
+				"Username  : ".(isset($username) ? $username : "-")."\n".
 				"User-Agent: ".$_SERVER["HTTP_USER_AGENT"]."\n".
 				"\n".$errors;
 

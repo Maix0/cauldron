@@ -9,7 +9,7 @@
 //
 //-->
 <xsl:template match="overview">
-<table class="table table-condensed table-striped table-hover">
+<table class="table table-condensed table-striped table-hover groups">
 <thead>
 <tr>
 <th>Name</th><th>Users</th><th>Tokens</th><th>Adventures</th><th>Maps</th><th>Max resources (MB)</th><th>Days idle</th>
@@ -72,15 +72,16 @@
 </form>
 
 <h4>Users within this group:</h4>
-<table class="table table-striped table-condensed table-hover">
+<table class="table table-striped table-condensed table-hover users">
 <thead>
-<tr><th>Name</th><th>E-mail address</th></tr>
+<tr><th>Name</th><th>E-mail address</th><th>DM</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="users/user">
 <tr onClick="javascript:location='/vault/user/{@id}'">
 <td><xsl:value-of select="fullname" /></td>
 <td><xsl:value-of select="email" /></td>
+<td><xsl:value-of select="dm" /></td>
 </tr>
 </xsl:for-each>
 </tbody>

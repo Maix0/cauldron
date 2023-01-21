@@ -1404,7 +1404,8 @@ function context_menu_handler(key, options) {
 			wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
 
 			var type = (key == 'wall_create') ? 'wall' : 'wall window';
-			var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" />';
+			var transparent = (key == 'wall_create') ? 'no' : 'yes';
+			var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" transparent="' + transparent + '" />';
 			$('div.playarea div.walls').append(wall);
 			$('div#new_wall').each(function() {
 				wall_position($(this));
@@ -1830,9 +1831,20 @@ $(document).ready(function() {
 	 */
 	$('div.library img.icon').draggable({
 		helper: 'clone',
-		appendTo: 'div.playarea',
+		appendTo: 'div.content',
+		scroll: false,
+		start: function(event, ui) {
+			var width = parseInt($(this).attr('obj_width')) * grid_cell_size;
+			var height = parseInt($(this).attr('obj_height')) * grid_cell_size;
+			ui.helper.css('width', width + 'px');
+			ui.helper.css('max-width', width + 'px');
+			ui.helper.css('height', height + 'px');
+			ui.helper.css('max-height', height + 'px');
+		},
 		stop: function(event, ui) {
-			object_create($(this), event.pageX, event.pageY);
+			var x = (event.pageX > 0) ? event.pageX : 0;
+			var y = (event.pageY > 0) ? event.pageY : 0;
+			object_create($(this), x, y);
 		}
 	});
 

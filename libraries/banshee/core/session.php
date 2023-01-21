@@ -66,7 +66,7 @@
 			}
 
 			$session_data = array("content" => json_encode($_SESSION));
-			if ($this->settings->session_persistent == false) {
+			if (($this->settings->session_persistent == false) && ($this->user_id !== null)) {
 				$session_data["expire"] = date("Y-m-d H:i:s", time() + $this->settings->session_timeout);
 			}
 
@@ -124,7 +124,7 @@
 			}
 
 			if ($session["user_id"] !== null) {
-				if ($_COOKIE[self::SESSION_LOGIN] != $session["login_id"]) {
+				if (($_COOKIE[self::SESSION_LOGIN] ?? null) != $session["login_id"]) {
 					$this->deny_session($session["user_id"]);
 					return false;
 				}
