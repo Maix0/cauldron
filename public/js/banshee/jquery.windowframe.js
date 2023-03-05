@@ -63,6 +63,9 @@
 		windowframe = $('div.windowframe_overlay div#windowframe' + id);
 
 		windowframe.find('span.glyphicon-remove').click(windowframe_close);
+		windowframe.find('span.glyphicon-remove').mousedown(function(event) {
+			event.stopPropagation();
+		});
 
 		/* Add body
 		 */

@@ -93,7 +93,7 @@
 					} else {
 						$this->user->log_action("adventure %d deleted", $_POST["id"]);
 						$this->show_overview();
-						if ($_POST["id"] == $_SESSION["edit_adventure_id"]) {
+						if ($_POST["id"] == ($_SESSION["edit_adventure_id"] ?? null)) {
 							unset($_SESSION["edit_adventure_id"]);
 						}
 					}

@@ -12,6 +12,7 @@
 
 			$this->view->open_tag("tokens");
 			foreach ($tokens as $token) {
+				$token["shape_change"] = show_boolean($token["shape_change"]);
 				$this->view->record($token, "token");
 			}
 			$this->view->close_tag();

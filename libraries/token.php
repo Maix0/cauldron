@@ -94,7 +94,9 @@
 				return false;
 			}
 
+			ob_start();
 			unlink("resources/".$this->resources_key."/tokens/".$token_id.".".$current["extension"]);
+			ob_end_clean();
 
 			return true;
 		}

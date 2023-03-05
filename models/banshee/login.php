@@ -35,7 +35,7 @@
 
 			$login_successful = true;
 		} else {
-			if (valid_input($_POST["username"], VALIDATE_LETTERS, VALIDATE_NONEMPTY)) {
+			if (valid_input($_POST["username"], VALIDATE_LETTERS."@.", VALIDATE_NONEMPTY)) {
 				$_user->log_action("login failed for username %s", $_POST["username"]);
 			} else {
 				$_user->log_action("login failed, possibly the password was entered as the username");

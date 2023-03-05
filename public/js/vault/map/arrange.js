@@ -147,7 +147,7 @@ function set_condition(obj, condition) {
 function object_armor_class(obj) {
 	var armor_class = obj.attr('armor_class');
 
-	if ((armor_class = window.prompt('Armor class:', armor_class)) == undefined) {
+	if ((armor_class = prompt('Armor class:', armor_class)) == undefined) {
 		return;
 	}
 
@@ -334,7 +334,7 @@ function object_hide(obj) {
 function object_hitpoints(obj) {
 	var hitpoints = obj.attr('hitpoints');
 
-	if ((hitpoints = window.prompt('Hitpoints:', hitpoints)) == undefined) {
+	if ((hitpoints = prompt('Hitpoints:', hitpoints)) == undefined) {
 		return;
 	}
 
@@ -491,7 +491,7 @@ function object_move(obj) {
 
 function object_name(obj) {
 	var name = $(obj).attr('name');
-	if ((name = window.prompt('Name:', name)) == undefined) {
+	if ((name = prompt('Name:', name)) == undefined) {
 		return;
 	}
 
@@ -596,7 +596,7 @@ function blinder_create(pos1_x, pos1_y, pos2_x, pos2_y) {
 		}
 	}).fail(function(data) {
 		$('div.playarea div#new_blinder').remove();
-		alert('Blinder create error');
+		cauldron_alert('Blinder create error');
 	});
 }
 
@@ -676,7 +676,7 @@ function door_create(pos_x, pos_y, length, direction, state) {
 		}
 	}).fail(function(data) {
 		$('div.playarea div#new_door').remove();
-		alert('Door create error');
+		cauldron_alert('Door create error');
 	});
 }
 
@@ -761,7 +761,7 @@ function light_create(pos_x, pos_y, radius) {
 			return false;
 		});
 	}).fail(function(data) {
-		alert('Light create error');
+		cauldron_alert('Light create error');
 	});
 }
 
@@ -795,7 +795,7 @@ function wall_create(pos_x, pos_y, length, direction, transparent) {
 		}
 	}).fail(function(data) {
 		$('div.playarea div#new_wall').remove();
-		alert('Wall create error');
+		cauldron_alert('Wall create error');
 	});
 }
 
@@ -916,7 +916,7 @@ function zone_create(width, height, color, opacity, group, altitude) {
 			return false;
 		});
 	}).fail(function(data) {
-		alert('Zone create error');
+		cauldron_alert('Zone create error');
 	});
 }
 
@@ -1096,7 +1096,7 @@ function context_menu_handler(key, options) {
 			write_sidebar('Coordinates: ' + pos_x + ', ' + pos_y);
 			break;
 		case 'delete':
-			if (confirm('Delete object?')) {
+			cauldron_confirm('Delete object?', function() {
 				var group = obj.attr('group');
 				if (group != undefined) {
 					if (confirm('Delete all zones in group ' + group + '?')) {
@@ -1109,7 +1109,7 @@ function context_menu_handler(key, options) {
 				} else {
 					object_delete(obj);
 				}
-			}
+			});
 			break;
 		case 'distance':
 			blinder_stop();
@@ -1250,7 +1250,7 @@ function context_menu_handler(key, options) {
 			if (fow_obj == null) {
 				fog_of_war_set_distance(0);
 				var distance = null;
-				if ((distance = window.prompt('Fog of War distance (leave empty for unlimited distance):')) != undefined) {
+				if ((distance = prompt('Fog of War distance (leave empty for unlimited distance):')) != undefined) {
 					if (distance != '') {
 						distance = parseInt(distance);
 						if (isNaN(distance)) {

@@ -59,6 +59,8 @@
 				$image = $map["url"];
 				if (substr($image, 0, 11) == "/resources/") {
 					$image = "resources/".$this->user->resources_key.substr($image, 10);
+				} else {
+					$image = substr($image, 1);
 				}
 			} else {
 				list($protocol,, $hostname, $path) = explode("/", $map["url"], 4);
@@ -92,9 +94,11 @@
 				$video = $map["url"];
 				if (substr($video, 0, 11) == "/resources/") {
 					$video = "resources/".$this->user->resources_key.substr($video, 10);
+				} else {
+					$video = substr($video, 1);
 				}
 			} else {
-				$this->view->add_system_warning("AUtomatic dimension detection can only be done for local videos.");
+				$this->view->add_system_warning("Automatic dimension detection can only be done for local videos.");
 				return false;
 			}
 
@@ -158,7 +162,7 @@
 
 			$min_size = 2 * $this->settings->screen_grid_size;
 
-			if (((int)$map["width"] < $min_size) || ((int)$map["height"] < $min_size)) {
+			if ((($map["width"] ?? 0) < $min_size) || (($map["height"] ?? 0) < $min_size)) {
 				$this->view->add_message("The map must be at least %sx%s pixels. Does the map file exists?", $min_size, $min_size);
 				$result = false;
 			}
@@ -382,8 +386,9 @@
 			$query = "select * from %S where map_id=%d";
 
 			$data = array(
-				"title" => $map["title"],
-				"url"   => $map["url"]);
+				"version" => 2,
+				"title"   => $map["title"],
+				"url"     => $map["url"]);
 
 			foreach ($tables as $table) {
 				if (($items = $this->db->execute($query, $table, $map["id"])) === false) {

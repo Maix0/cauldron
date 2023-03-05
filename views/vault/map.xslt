@@ -77,17 +77,15 @@
 <span class="input-group-btn"><input type="button" value="Browse resources" class="btn btn-default map_browser" /></span>
 </div>
 </div>
+<label for="width">Map width:</label>
+<input type="text" id="width" name="width" value="{map/width}" placeholder="Leave empty for automatic detection." class="form-control" />
+<label for="height">Map height:</label>
+<input type="text" id="height" name="height" value="{map/height}" placeholder="Leave empty for automatic detection." class="form-control" />
 <label for="audio">Background audio URL (optional):</label>
 <div class="input-group">
 <input type="text" id="audio" name="audio" value="{map/audio}" placeholder="URL to an audio file." class="form-control" />
 <span class="input-group-btn"><input type="button" value="Browse resources" class="btn btn-default audio_browser" /></span>
 </div>
-<!--
-<label for="width">Width:</label>
-<input type="text" id="width" name="width" value="{map/width}" placeholder="Leave empty for automatic detection." class="form-control" />
-<label for="height">Height:</label>
-<input type="text" id="height" name="height" value="{map/height}" placeholder="Leave empty for automatic detection." class="form-control" />
--->
 <div><b>Players can drag their own character with the mouse:</b><input type="checkbox" name="drag_character"><xsl:if test="map/drag_character='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
 <label for="url">Fog of war:</label>
 <select name="fog_of_war" class="form-control">

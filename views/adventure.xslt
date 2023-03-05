@@ -54,7 +54,6 @@
 //
 //-->
 <xsl:template match="adventure">
-<div class="loading"><span>Loading...</span></div>
 <!-- Menu -->
 <div class="topbar">
 <span id="infobar"></span>
@@ -97,6 +96,7 @@
 </div>
 <xsl:if test="@is_dm='yes'">
 <h2>Drawing</h2>
+<div class="draw-explain">Hold CTRL to draw, SHIFT to erase and ALT to align to grid.</div>
 <div class="draw-colors">
 <span style="background-color:#000000"></span>
 <span style="background-color:#808080"></span>
@@ -134,6 +134,7 @@
 </xsl:if>
 <!-- Windows -->
 <xsl:if test="map">
+<div class="loading"><span>Loading...</span></div>
 <!-- Journal -->
 <div class="journal" style="display:none">
 <div class="entries">

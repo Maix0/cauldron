@@ -170,7 +170,6 @@
 				$this->view->title .= " - ".$active_map["title"];
 			}
 			$this->view->set_layout("adventure");
-			$this->view->run_javascript("$('div.loading').remove()");
 
 			if ($active_map != null) {
 				$this->view->add_javascript("webui/jquery-ui.js");
@@ -179,6 +178,7 @@
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("includes/combat.js");
+				$this->view->add_javascript("../dice-box/loader.js");
 				if (is_true($active_map["show_grid"])) {
 					$this->view->add_javascript("includes/grid.js");
 				}
@@ -195,8 +195,6 @@
 				$this->view->add_css("webui/jquery-ui.css");
 				$this->view->add_css("banshee/font-awesome.css");
 				$this->view->add_css("includes/context_menu.css");
-			} else {
-				$this->view->add_javascript("adventure_no_map.js");
 			}
 
 			$group_key = hash_hmac("sha256", $adventure["title"], $this->settings->secret_website_code);

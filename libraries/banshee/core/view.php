@@ -618,7 +618,7 @@
 						header("X-XSS-Protection: 1; mode=block");
 						header("X-Content-Type-Options: nosniff");
 						if (HEADER_CSP != "") {
-							header("Content-Security-Policy: ".HEADER_CSP);
+#							header("Content-Security-Policy: ".HEADER_CSP);
 						}
 						if (HEADER_FP != "") {
 							header("Feature-Policy: ".HEADER_FP);

@@ -180,7 +180,11 @@
 			}
 			$file = $directory."/".$file;
 
-			return is_dir($file) ? @rmdir($file) : @unlink($file);
+			ob_start();
+			$result = is_dir($file) ? @rmdir($file) : @unlink($file);
+			ob_end_clean();
+
+			return $result;
 		}
 
 		public function directory_empty($subdir, $directory) {

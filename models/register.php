@@ -105,13 +105,11 @@
 				return false;
 			}
 
-			if (empty($data["invitation"]) == false) {
-				list($organisation_id) = explode("-", $data["invitation"]);
+			$user_is_dm = empty($data["invitation"]);
 
-				$roles = array(PLAYER_ROLE_ID);
-			} else {
+			if ($user_is_dm) {
 				$organisation = array(
-					"name"		  => "Group ".($result[0]["id"] + 1),
+					"name"          => "Group ".($result[0]["id"] + 1),
 					"max_resources" => $this->settings->default_max_resources);
 
 				if ($this->borrow("vault/organisation")->create_organisation($organisation) == false) {
@@ -120,6 +118,10 @@
 				$organisation_id = $this->db->last_insert_id;
 
 				$roles = array(USER_MAINTAINER_ROLE_ID, PLAYER_ROLE_ID, DUNGEON_MASTER_ROLE_ID);
+			} else {
+				list($organisation_id) = explode("-", $data["invitation"]);
+
+				$roles = array(PLAYER_ROLE_ID);
 			}
 
 			$user = array(
@@ -147,7 +149,8 @@
 				"EMAIL"    => $data["email"],
 				"USERNAME" => $data["username"],
 				"WEBSITE"  => $this->settings->head_title,
-				"IP_ADDR"  => $_SERVER["REMOTE_ADDR"]));
+				"IP_ADDR"  => $_SERVER["REMOTE_ADDR"],
+				"DM"       => show_boolean($user_is_dm)));
 			$email->message(file_get_contents("../extra/account_registered.txt"));
 			$email->send($this->settings->webmaster_email, "Cauldron VTT");
 

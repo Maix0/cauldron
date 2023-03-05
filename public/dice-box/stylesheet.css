@@ -1,0 +1,12 @@
+div#dice-box {
+	position:fixed;
+	top:40px;
+	left:15px;
+	right:215px;
+	bottom:15px;
+}
+
+div#dice-box canvas {
+   	width:100%;
+   	height:100%;
+}

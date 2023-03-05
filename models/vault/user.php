@@ -148,7 +148,7 @@
 				$this->view->add_message("Database error.");
 				$result = false;
 			} else if ($check != false) {
-				if ($check["id"] != $user["id"]) {
+				if ($check["id"] != ($user["id"] ?? null)) {
 					$this->view->add_message("Username already exists.");
 					$result = false;
 				}
@@ -169,7 +169,7 @@
 				$this->view->add_message("Invalid e-mail address.");
 				$result = false;
 			} else if (($check = $this->db->entry("users", $user["email"], "email")) != false) {
-				if ($check["id"] != $user["id"]) {
+				if ($check["id"] != ($user["id"] ?? null)) {
 					$this->view->add_message("E-mail address already exists.");
 					$result = false;
 				}
@@ -293,7 +293,7 @@
 				array_push($keys, "organisation_id");
 			}
 
-			if (is_array($user["roles"]) == false) {
+			if (is_array($user["roles"] ?? null) == false) {
 				$user["roles"] = array();
 			}
 
@@ -338,8 +338,10 @@
 				return false;
 			}
 
-			if (($user["status"] == USER_STATUS_DISABLED) && ($this->user->id != $user["id"])) {
-				$this->db->query("delete from sessions where user_id=%d", $user["id"]);
+			if ($this->user->id != $user["id"]) {
+				if ($user["status"] == USER_STATUS_DISABLED) {
+					$this->db->query("delete from sessions where user_id=%d", $user["id"]);
+				}
 			}
 
 			return $this->db->query("commit") != false;

@@ -34,6 +34,18 @@
 		}
 
 		protected function handle_submit() {
+			if (is_false(DEBUG_MODE)) {
+				if (isset($_POST["id"]) == false) {
+					return;
+				}
+				if (($item = $this->model->get_item($_POST["id"])) == false) {
+					return;
+				}
+
+				$_POST["key"] = $item["key"];
+				$_POST["type"] = $item["type"];
+			}
+
 			parent::handle_submit();
 
 			$cache = new \Banshee\Core\cache($this->db, "banshee_settings");

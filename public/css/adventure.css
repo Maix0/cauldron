@@ -42,6 +42,10 @@ div.row div.well div.btn-group {
 	right:15px;
 }
 
+div.row div.well div.btn-group .btn {
+	font-size:13px;
+}
+
 /* Running an adventure
  */
 div.loading {
@@ -124,6 +128,12 @@ div.menu .btn {
 	display:block;
 	width:100%;
 	margin-bottom:5px;
+}
+
+div.menu div.draw-explain {
+	float:right;
+	font-size:10px;
+	margin-top:-20px;
 }
 
 div.menu div.draw-colors {
@@ -406,7 +416,7 @@ img.ui-draggable-dragging {
 /* Sidebar
  */
 div.sidebar {
-	font-size:12px;
+	font-size:13px;
 	position:absolute;
 	top:375px;
 	right:0px;

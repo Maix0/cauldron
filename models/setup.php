@@ -506,6 +506,10 @@
 				$this->settings->database_version = 28;
 			}
 
+			if ($this->settings->database_version == 28) {
+				$this->settings->database_version = 29;
+			}
+
 			return true;
 		}
 

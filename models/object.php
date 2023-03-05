@@ -715,7 +715,7 @@
 		/* Alternate functions
 		 */
 		public function set_alternate($adventure_id, $character_id, $alternate_id) {
-			$query = "select * from adventure_character g, characters c ".
+			$query = "select * from adventure_character a, characters c ".
 			         "where a.adventure_id=%d and a.character_id=c.id and c.id=%d and c.user_id=%d";
 			if (($character = $this->db->execute($query, $adventure_id, $character_id, $this->user->id)) == false) {
 				return false;

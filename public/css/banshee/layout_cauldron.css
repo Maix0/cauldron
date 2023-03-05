@@ -1,12 +1,6 @@
 @font-face {
-	font-family:Raleway;
-	src:url(/fonts/Raleway-200.woff);
-	font-weight:200;
-}
-
-@font-face {
-	font-family:Raleway;
-	src:url(/fonts/Raleway-400.woff);
+	font-family:Quicksand;
+	src:url(/fonts/Quicksand-Regular.ttf);
 	font-weight:400;
 }
 
@@ -17,7 +11,7 @@
 
 html, body {
 	height:100%;
-	font-family:Raleway;
+	font-family:Quicksand;
 	font-weight:400;
 }
 
@@ -98,7 +92,6 @@ div.header {
 div.header div.title {
 	color:#ffffff;
 	font-size:40px;
-	font-face:Raleway;
 	font-weight:bold;
 	margin-top:30px;
 	text-align:center;
@@ -112,16 +105,8 @@ div.header img.logo {
 	margin-right:15px;
 }
 
-div.header nav.navbar {
-	margin-bottom:0;
-	border-radius:0;
-	position:relative;
-}
-
-div.header nav.navbar .btn-navbar {
-	border:2px solid #000000;
-	background-color:red;
-	background:red;
+nav.navbar a {
+	font-size:15px;
 }
 
 /* Content

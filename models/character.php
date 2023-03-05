@@ -141,7 +141,10 @@
 					$this->view->add_message("Character not found.");
 					$result = false;
 				}
+
+				ob_start();
 				unlink("resources/".$this->user->resources_key."/characters/".$current["id"].".".$current["extension"]);
+				ob_end_clean();
 
 				if ($this->save_icon($icon, $character["id"])) {
 					array_push($keys, "extension");
@@ -195,11 +198,12 @@
 				return false;
 			}
 
+			ob_start();
 			foreach ($alternates as $alternate) {
 				unlink("resources/".$this->user->resources_key."/characters/".$character_id."_".$alternate["id"].".".$alternate["extension"]);
 			}
-
 			unlink("resources/".$this->user->resources_key."/characters/".$character_id.".".$current["extension"]);
+			ob_end_clean();
 
 			return true;
 		}
@@ -279,7 +283,9 @@
 				return false;
 			}
 
+			ob_start();
 			unlink("resources/".$this->user->resources_key."/characters/".$current["character_id"]."_".$icon_id.".".$current["extension"]);
+			ob_end_clean();
 
 			return $current["character_id"];
 		}

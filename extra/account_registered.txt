@@ -5,6 +5,7 @@
 <li>[FULLNAME] &lt;[EMAIL]&gt;</li>
 <li>Username: [USERNAME]</li>
 <li>IP address: [IP_ADDR]</li>
+<li>Dungeon Master: [DM]</li>
 </ul>
 <body>
 </html>

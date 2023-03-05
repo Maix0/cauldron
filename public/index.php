@@ -57,7 +57,7 @@
 			$_view->add_tag("session_timeout", $_settings->session_timeout);
 		}
 		$_view->close_tag();
-		$_view->add_tag("website_url", $_SERVER["SERVER_NAME"]);
+		$_view->add_tag("hostname", $_SERVER["SERVER_NAME"]);
 
 		$background = (substr($_page->url, 0, 6) != "/vault") ? HEADER_BACKGROUND_WEBSITE : HEADER_BACKGROUND_DM_SECTION;
 

@@ -41,7 +41,7 @@
 </xsl:text></xsl:for-each>
 </head>
 
-<body>
+<body hostname="{/output/hostname}">
 <xsl:if test="javascripts/@onload">
 	<xsl:attribute name="onLoad">javascript:<xsl:value-of select="javascripts/@onload" /></xsl:attribute>
 </xsl:if>

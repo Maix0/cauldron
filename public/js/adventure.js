@@ -75,6 +75,7 @@ var alt_down = false;
 var drawing_canvas = null;
 var drawing_ctx = null;
 var drawing_history = [];
+var attack_bonus = 0;
 
 /* Websocket
  */
@@ -179,6 +180,7 @@ function scroll_to_my_character(speed = 1000) {
 
 function write_sidebar(message) {
 	var sidebar = $('div.sidebar');
+	message = message.replace(/\n/g, '<br />');
 	sidebar.append('<p>' + message + '</p>');
 	sidebar.prop('scrollTop', sidebar.prop('scrollHeight'));
 }
@@ -238,38 +240,69 @@ function input_history_add(input) {
 	localStorage.setItem('input_history', JSON.stringify(input_history));
 }
 
-function roll_dice(dice, send_to_others = true) {
+function dice_roll(dice, addition, callback) {
+	if ((localStorage.getItem('dice_type') == 'animated') && (typeof dice_roll_3d == 'function')) {
+		return dice_roll_3d(dice, addition, callback);
+	} else {
+		return dice_roll_quick(dice, addition, callback);
+	}
+}
+
+function dice_roll_quick(dice, addition, callback) {
+	var result = [];
+
+	for (i = 0; i < dice.length; i++) {
+		var parts = dice[i].split('d');
+		var count = parseInt(parts[0]);
+		var sides = parseInt(parts[1]);
+		var roll = Math.floor(Math.random() * sides) + 1;
+
+		result.push(roll);
+	}
+
+	callback(result, addition);
+}
+
+function roll_dice(dice_input, send_to_others = true) {
 	if (dice == '') {
 		wf_dice_roll.open();
 		return;
 	}
 
-	var dice_str = dice.replace(/ /g, '');
-	dice = dice_str.replace(/\+-/g, '-');
-	dice = dice.replace(/-/g, '+-');
+	dice_str = dice_input.replace(/ /g, '');
+	dice_str = dice_str.replace(/\+-/g, '-');
+	dice_str = dice_str.replace(/-/g, '+-');
 
-	var dices = [2, 4, 6, 8, 10, 12, 20, 100];
-	var parts = dice.split('+');
-	var output = '';
-	var result = 0;
+	var valid_dice = [2, 4, 6, 8, 10, 12, 20, 100];
+	var parts = dice_str.split('+');
 
 	if (parts.length > 7) {
 		return false;
 	}
 
+	var dice = [];
+	var addition = 0;
+
 	for (i = 0; i < parts.length; i++) {
-		var roll = parts[i].trim().split('d');
+		var roll = parts[i].split('d');
 		if (roll.length > 2) {
 			return false;
 		} else if (roll.length == 2) {
 			if (roll[0] == '') {
-				var count = 1;
+				parts[i] = '1' + parts[i];
 			} else {
 				var count = parseInt(roll[0]);
+				if (isNaN(count)) {
+					return false;
+				}
 			}
-			var sides = parseInt(roll[1]);
 
-			if (dices.includes(sides) == false) {
+			var sides = parseInt(roll[1]);
+			if (isNaN(sides)) {
+				return false;
+			}
+
+			if (valid_dice.includes(sides) == false) {
 				return false;
 			}
 
@@ -277,32 +310,38 @@ function roll_dice(dice, send_to_others = true) {
 				return false;
 			}
 
-			if (isNaN(count) || isNaN(sides)) {
-				return false;
-			}
-
-			for (r = 0; r < count; r++) {
-				var roll = Math.floor(Math.random() * sides) + 1;
-				output += '[' + roll + '] ';
-				result += roll;
-			}
+			dice.push(parts[i]);
 		} else {
 			var value = parseInt(roll[0]);
 			if (isNaN(value)) {
 				return false
 			}
 
-			output += roll.toString() + ' ';
-			result += value;
+			addition += value;
 		}
 	}
 
-	var message = 'Dice roll ' + dice_str + ':\n' + output + ' > ' + result;
-	if (send_to_others) {
-		send_message(message, character_name);
-	} else {
-		write_sidebar(message);
-	}
+	dice_roll(dice, addition, function(result, addition) {
+		var message = 'Dice roll: ' + dice_input + '\n';
+		var total = addition;
+
+		result.forEach(function(roll) {
+			total += roll;
+		});
+
+		message += '[' + result.join('] + [') + ']';
+		if (addition > 0) {
+			message += ' + ' + addition;
+		}
+		message += ' = ' + total;
+
+
+		if (send_to_others) {
+			send_message(message, character_name);
+		} else {
+			write_sidebar(message);
+		}
+	});
 
 	return true;
 }
@@ -314,66 +353,81 @@ function roll_d20(bonus, type = ROLL_NORMAL) {
 		bonus = parseInt(bonus);
 		if (isNaN(bonus)) {
 			write_sidebar('Invalid roll bonus.');
-			return;
+			return false;
 		}
 	}
 
-	var roll = Math.floor(Math.random() * 20) + 1;
-
-	switch (type) {
-		case ROLL_ADVANTAGE:
-			var message = 'Advantage d';
-			break;
-		case ROLL_DISADVANTAGE:
-			var message = 'Disadvantage d';
-			break;
-		default:
-			var message = 'D';
-			break;
-	}
-
-	message += 'ice roll 1d20';
-	if (bonus > 0) {
-		message += '+' + bonus;
-	} else if (bonus < 0) {
-		message += bonus;
-	}
-	message += ':\n';
+	dice = [ '1d20' ];
 
 	if (type != ROLL_NORMAL) {
-		var extra = Math.floor(Math.random() * 20) + 1;
-		message += '[' + roll + '] [' + extra + '] > ';
-		if (type == ROLL_ADVANTAGE) {
-			if (extra > roll) {
-				roll = extra;
-			}
-		} else {
-			if (extra < roll) {
-				roll = extra;
-			}
-		}
-		message += '[' + roll + ']';
+		dice.push('1d20');
+	}
 
-		if ((roll == 20) && (bonus == 0)) {
-			message += ' CRIT!';
+	dice_roll(dice, bonus, function(result, bonus) {
+		var roll = result[0];
+
+		switch (type) {
+			case ROLL_ADVANTAGE:
+				var message = 'Advantage d';
+				break;
+			case ROLL_DISADVANTAGE:
+				var message = 'Disadvantage d';
+				break;
+			default:
+				var message = 'D';
+				break;
 		}
 
+		message += 'ice roll: 1d20';
+		if (bonus > 0) {
+			message += ' + ' + bonus;
+		} else if (bonus < 0) {
+			message += bonus;
+		}
 		message += '\n';
-	}
 
-	if ((type == ROLL_NORMAL) || (bonus != 0)) {
-		message += '[' + roll + '] ';
-		if (bonus != 0) {
-			message += bonus + ' ';
+		if (type != ROLL_NORMAL) {
+			var extra = result[1];
+
+			message += '[' + roll + '] [' + extra + '] > ';
+			if (type == ROLL_ADVANTAGE) {
+				if (extra > roll) {
+					roll = extra;
+				}
+			} else {
+				if (extra < roll) {
+					roll = extra;
+				}
+			}
+			message += '[' + roll + ']';
+
+			if ((roll == 20) && (bonus == 0)) {
+				message += ' CRIT!';
+			}
+
+			message += '\n';
 		}
-		message += '> ' + (roll + bonus);
 
-		if (roll == 20) {
-			message += ' CRIT!';
+		if ((type == ROLL_NORMAL) || (bonus != 0)) {
+			message += '[' + roll + '] ';
+			if (bonus != 0) {
+				message += '+ ' + bonus + ' ';
+			}
+			message += '= ' + (roll + bonus);
+
+			if (roll == 20) {
+				message += ' CRIT!';
+			}
 		}
-	}
 
-	send_message(message, character_name);
+		if (dungeon_master == false) {
+			send_message(message, character_name);
+		} else {
+			write_sidebar(message);
+		}
+	});
+
+	return true;
 }
 
 function show_help() {
@@ -385,7 +439,7 @@ function show_help() {
 		'history [clear]':       'Show or clear your input history.',
 		'labels [hide|show]':    'Manage character name labels and health bars visibility.',
 		'log &lt;message&gt;':   'Add message to journal.',
-		'roll &lt;dice&gt;':     'Roll dice.',
+		'roll &lt;dice&gt;':     'Roll dice.'
 	};
 
 	var extra = dungeon_master ? {
@@ -398,10 +452,10 @@ function show_help() {
 		'ping':                  'See who\'s online in the session.',
 		'reload':                'Reload current page.',
 		'remove &lt;name&gt;':   'Remove one from the combat.',
-		'walls [hide|show]':     'Manage walls and windows visibility.',
+		'walls [hide|show]':     'Manage walls and windows visibility.'
 	} : {
 		'damage &lt;points&gt;': 'Damage your character.',
-		'heal &lt;points&gt;':   'Heal your character.',
+		'heal &lt;points&gt;':   'Heal your character.'
 	};
 
 	var help = [];
@@ -1524,13 +1578,13 @@ function light_create(pos_x, pos_y, radius) {
 			}
 
 			menu_entries['light_attach'] = { name:'Attach to character', icon:'fa-compress' };
-			menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
+			menu_entries['light_delete'] = { name:'Delete', icon:'fa-trash' };
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
 	}).fail(function(data) {
-		alert('Light create error');
+		cauldron_alert('Light create error');
 	});
 }
 
@@ -1932,7 +1986,7 @@ function zone_create(width, height, color, opacity, group, altitude) {
 			return false;
 		});
 	}).fail(function(data) {
-		alert('Zone create error');
+		cauldron_alert('Zone create error');
 	});
 }
 
@@ -2184,13 +2238,22 @@ function handle_input(input) {
 			combat_start();
 			break;
 		case 'd20':
-			roll_d20(param);
+			if (roll_d20(param) == false) {
+				$('div.input input').val(input);
+				return;
+			}
 			break;
 		case 'd20a':
-			roll_d20(param, ROLL_ADVANTAGE);
+			if (roll_d20(param, ROLL_ADVANTAGE) == false) {
+				$('div.input input').val(input);
+				return;
+			}
 			break;
 		case 'd20d':
-			roll_d20(param, ROLL_DISADVANTAGE);
+			if (roll_d20(param, ROLL_DISADVANTAGE) == false) {
+				$('div.input input').val(input);
+				return;
+			}
 			break;
 		case 'damage':
 		case 'dmg':
@@ -2477,80 +2540,81 @@ function context_menu_handler(key, options) {
 			}
 
 			var armor_class = my_character.attr('armor_class');
-			var points = window.prompt('Armor class:', armor_class);
-			if (points == undefined) {
-				break;
-			}
-
-			points = parseInt(points);
-			if (isNaN(points)) {
-				write_sidebar('Invalid armor class.');
-				break;
-			}
-
-			var data = {
-				action: 'armor',
-				instance_id: my_character.prop('id'),
-				points: points
-			};
-			websocket_send(data);
-
-			$.post('/object/armor_class', {
-				instance_id: my_character.prop('id'),
-				armor_class: points
-			});
-
-			my_character.attr('armor_class', points);
-			break;
-		case 'attack':
-			var bonus = 0;
-			if ((bonus = window.prompt('Attack bonus:', bonus)) == undefined) {
-				break;
-			}
-
-			bonus = parseInt(bonus);
-			if (isNaN(bonus)) {
-				write_sidebar('Invalid attack bonus.');
-				break;
-			}
-
-			var armor_class = parseInt(obj.attr('armor_class'));
-
-			var message = '';
-			var name = obj.find('span.name').text();
-			if (name != '') {
-				message += 'Target: ' + name + '\n';
-			} else {
-				message += 'Target: ' + obj.prop('id') + '\n';
-			}
-
-			var roll = Math.floor(Math.random() * 20) + 1;
-
-			if (dungeon_master == false) {
-				message += 'Attack roll: [' + roll + ']';
-
-				if (bonus > 0) {
-					message += ' ' + bonus + ' > ' + (roll + bonus);
+			cauldron_prompt('Armor class:', armor_class, function(points) {
+				points = parseInt(points);
+				if (isNaN(points)) {
+					write_sidebar('Invalid armor class.');
+					return;
 				}
 
-				message += '\n';
-			}
+				var data = {
+					action: 'armor',
+					instance_id: my_character.prop('id'),
+					points: points
+				};
+				websocket_send(data);
 
-			message += 'Result: ';
+				$.post('/object/armor_class', {
+					instance_id: my_character.prop('id'),
+					armor_class: points
+				});
 
-			if (roll == 20) {
-				message += 'CRIT!';
-			} else if (((roll + bonus) >= armor_class) && (roll > 1)) {
-				message += 'hit!';
-			} else {
-				message += 'miss';
-			}
+				my_character.attr('armor_class', points);
+			});
+			break;
+		case 'attack':
+			cauldron_prompt('Attack bonus:', attack_bonus.toString(), function(bonus) {
+				bonus = parseInt(bonus);
+				if (isNaN(bonus)) {
+					write_sidebar('Invalid attack bonus.');
+					return;
+				}
 
-			send_message(message, character_name);
+				attack_bonus = bonus;
+				var armor_class = parseInt(obj.attr('armor_class'));
 
-			if (dungeon_master) {
-				write_sidebar('&nbsp;&nbsp;&nbsp;&nbsp;Attack roll: ' + roll);
-			}
+				var message = '';
+				var name = obj.find('span.name').text();
+				if (name != '') {
+					message += 'Target: ' + name + '\n';
+				} else {
+					message += 'Target: ' + obj.prop('id') + '\n';
+				}
+
+				dice_roll(['1d20'], bonus, function(result, extra) {
+					var roll = result[0];
+
+					if (dungeon_master == false) {
+						message += 'Attack roll: [' + roll + ']';
+
+						if (bonus > 0) {
+							message += ' + ' + bonus + ' = ' + (roll + bonus);
+						}
+
+						message += '\n';
+					}
+
+					message += 'Result: ';
+
+					if (roll == 20) {
+						message += 'CRIT!';
+					} else if (((roll + bonus) >= armor_class) && (roll > 1)) {
+						message += 'hit!';
+					} else {
+						message += 'miss';
+					}
+
+					send_message(message, character_name);
+
+					if (dungeon_master) {
+						message = 'Attack roll: [' + roll + ']';
+						if (bonus > 0) {
+							message += ' + ' + bonus + ' = ' + (roll + bonus);
+						}
+						write_sidebar(message);
+					}
+				});
+			});
 			break;
 		case 'condition':
 			if (condition_id > 0) {
@@ -2566,23 +2630,20 @@ function context_menu_handler(key, options) {
 			write_sidebar('Coordinates: ' + pos_x + ', ' + pos_y);
 			break;
 		case 'damage':
-			var points = window.prompt('Points:');
-			if (points == undefined) {
-				break;
-			}
+			cauldron_prompt('Points:', '', function(points) {
+				points = parseInt(points);
+				if (isNaN(points)) {
+					write_sidebar('Invalid damage points.');
+					return;
+				}
 
-			points = parseInt(points);
-			if (isNaN(points)) {
-				write_sidebar('Invalid damage points.');
-				break;
-			}
-
-			object_damage(obj, points);
+				object_damage(obj, points);
+			});
 			break;
 		case 'delete':
-			if (confirm('Delete object?')) {
+			cauldron_confirm('Delete object?', function() {
 				object_delete(obj);
-			}
+			});
 			break;
 		case 'distance':
 			measuring_stop();
@@ -2702,33 +2763,31 @@ function context_menu_handler(key, options) {
 			}
 			break;
 		case 'fow_distance':
-			var distance = fow_char_distances[obj.prop('id')];
-			if ((distance = window.prompt('Distance:', distance)) == undefined) {
-				return;
-			}
+			var distance = fow_char_distances[obj.prop('id')].toString();
+			cauldron_prompt('Distance:', distance, function(distance) {
+				distance = parseInt(distance);
+				if (isNaN(distance)) {
+					write_sidebar('Invalid distance.');
+					return;
+				} else if (distance < 1) {
+					write_sidebar('Invalid distance.');
+					return;
+				}
 
-			distance = parseInt(distance);
-			if (isNaN(distance)) {
-				write_sidebar('Invalid distance.');
-				break;
-			} else if (distance < 1) {
-				write_sidebar('Invalid distance.');
-				break;
-			}
+				fow_char_distances[obj.prop('id')] = distance;
 
-			fow_char_distances[obj.prop('id')] = distance;
+				if (obj.is(fow_obj)) {
+					fog_of_war_set_distance(distance);
+					fog_of_war_update(fow_obj);
+				}
 
-			if (obj.is(fow_obj)) {
-				fog_of_war_set_distance(distance);
-				fog_of_war_update(fow_obj);
-			}
-
-			var data = {
-				action: 'fow_distance',
-				instance_id: obj.prop('id'),
-				distance: distance
-			};
-			websocket_send(data);
+				var data = {
+					action: 'fow_distance',
+					instance_id: obj.prop('id'),
+					distance: distance
+				};
+				websocket_send(data);
+			});
 			break;
 		case 'handover':
 			if (focus_obj == null) {
@@ -2749,18 +2808,15 @@ function context_menu_handler(key, options) {
 			websocket_send(data);
 			break;
 		case 'heal':
-			var points = window.prompt('Points:');
-			if (points == undefined) {
-				break;
-			}
+			cauldron_prompt('Points:', '', function(points) {
+				points = parseInt(points);
+				if (isNaN(points)) {
+					write_sidebar('Invalid healing points.');
+					return;
+				}
 
-			points = parseInt(points);
-			if (isNaN(points)) {
-				write_sidebar('Invalid healing points.');
-				break;
-			}
-
-			object_damage(obj, -points);
+				object_damage(obj, -points);
+			});
 			break;
 		case 'info':
 			object_info(obj);
@@ -2804,7 +2860,7 @@ function context_menu_handler(key, options) {
 			wf_light_create.open();
 			break;
 		case 'light_delete':
-			if (confirm('Delete light?')) {
+			cauldron_confirm('Delete light?', function() {
 				$.post('/object/delete', {
 					instance_id: obj.prop('id'),
 				}).done(function() {
@@ -2816,7 +2872,7 @@ function context_menu_handler(key, options) {
 
 					light_delete(obj);
 				});
-			}
+			});
 			break;
 		case 'light_attach':
 			if (focus_obj == null) {
@@ -2849,28 +2905,26 @@ function context_menu_handler(key, options) {
 			}
 			break;
 		case 'light_remove':
-			if (confirm('Remove light?') == false) {
-				break;
-			}
+			cauldron_confirm('Remove light?', function() {
+				for (var [key, value] of Object.entries(fow_light_char)) {
+					if (obj.attr('id') == value) {
+						delete fow_light_char[key];
 
-			for (var [key, value] of Object.entries(fow_light_char)) {
-				if (obj.attr('id') == value) {
-					delete fow_light_char[key];
+						$.post('/object/delete', {
+							instance_id: key,
+						}).done(function() {
+							var data = {
+								action: 'light_delete',
+								instance_id: key
+							};
+							websocket_send(data);
 
-					$.post('/object/delete', {
-						instance_id: key,
-					}).done(function() {
-						var data = {
-							action: 'light_delete',
-							instance_id: key
-						};
-						websocket_send(data);
-
-						var light = $('div#' + key);
-						light_delete(light);
-					});
+							var light = $('div#' + key);
+							light_delete(light);
+						});
+					}
 				}
-			}
+			});
 			break;
 		case 'light_toggle':
 			var toggle = { on:'off', off:'on' };
@@ -2918,31 +2972,28 @@ function context_menu_handler(key, options) {
 			}
 
 			var max_hp = my_character.attr('hitpoints');
-			var points = window.prompt('Maximum hit points:', max_hp);
-			if (points == undefined) {
-				break;
-			}
+			cauldron_prompt('Maximum hit points:', max_hp, function(points) {
+				points = parseInt(points);
+				if (isNaN(points)) {
+					write_sidebar('Invalid hit points.');
+					return;
+				}
 
-			points = parseInt(points);
-			if (isNaN(points)) {
-				write_sidebar('Invalid hit points.');
-				break;
-			}
+				var data = {
+					action: 'maxhp',
+					instance_id: my_character.prop('id'),
+					points: points
+				};
+				websocket_send(data);
 
-			var data = {
-				action: 'maxhp',
-				instance_id: my_character.prop('id'),
-				points: points
-			};
-			websocket_send(data);
+				$.post('/object/hitpoints', {
+					instance_id: my_character.prop('id'),
+					hitpoints: points
+				});
 
-			$.post('/object/hitpoints', {
-				instance_id: my_character.prop('id'),
-				hitpoints: points
+				my_character.attr('hitpoints', points);
+				object_damage(my_character, points - max_hp);
 			});
-
-			my_character.attr('hitpoints', points);
-			object_damage(my_character, points - max_hp);
 			break;
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
@@ -3020,18 +3071,15 @@ function context_menu_handler(key, options) {
 			websocket_send(data);
 			break;
 		case 'temphp':
-			var points = window.prompt('Temporary hit points:', temporary_hitpoints);
-			if (points == undefined) {
-				break;
-			}
+			cauldron_prompt('Temporary hit points:', temporary_hitpoints.toString(), function(points) {
+				points = parseInt(points);
+				if (isNaN(points)) {
+					write_sidebar('Invalid hit points.');
+					return;
+				}
 
-			points = parseInt(points);
-			if (isNaN(points)) {
-				write_sidebar('Invalid hit points.');
-				break;
-			}
-
-			temporary_hitpoints = points;
+				temporary_hitpoints = points;
+			});
 			break;
 		case 'travel':
 			var data = {
@@ -3071,7 +3119,7 @@ function context_menu_handler(key, options) {
 			$('div.zone_create div.panel-body').prop('scrollTop', 0);
 			break;
 		case 'zone_delete':
-			if (confirm('Delete zone?')) {
+			cauldron_confirm('Delete zone?', function() {
 				var group = obj.attr('group');
 				if (group != undefined) {
 					if (confirm('Delete all zones in group ' + group + '?')) {
@@ -3084,7 +3132,7 @@ function context_menu_handler(key, options) {
 				} else {
 					zone_delete(obj);
 				}
-			}
+			});
 			break;
 		default:
 			write_sidebar('Unknown menu option: ' + key);
@@ -3238,7 +3286,7 @@ $(document).ready(function() {
 		switch (data.action) {
 			case 'alternate':
 				var img_size = data.size * grid_cell_size;
-				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/characters/' + data.src);
+				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/' + data.src);
 				$('div#' + data.char_id).find('img').css('width', img_size + 'px');
 				$('div#' + data.char_id).find('img').css('height', img_size + 'px');
 				break;
@@ -4627,34 +4675,37 @@ $(document).ready(function() {
 			var value = parseInt($(this).val());
 			if (value != 0) {
 				if (roll != '') {
-					roll += '+';
+					roll += ' + ';
 				}
 				roll += value + 'd' + $(this).attr('sides');
 			}
-
 		});
 
 		if (roll == '') {
-			alert('Select at least one dice.');
+			cauldron_alert('Select at least one dice.');
 			return false;
 		}
 
 		var plus = $('div.diceroll input').val();
 		if (isNaN(parseInt(plus))) {
-			alert('Enter a number in the plus input field.');
+			cauldron_alert('Enter a number in the plus input field.');
 			return false;
 		}
 
 		if (plus.substr(0, 1) == '-') {
 			roll += plus;
 		} else if (plus != '0') {
-			roll += '+' + plus;
+			roll += ' + ' + plus;
 		}
 
 		return roll;
 	}
 
 	dice_roll_init = function() {
+		if (typeof dice_roll_3d == 'undefined') {
+			wf_dice_roll.parent().find('select.dice-type').remove();
+		}
+
 		$('div.diceroll select').each(function() {
 			$(this).val('0');
 		});
@@ -4679,17 +4730,15 @@ $(document).ready(function() {
 				input_history_add('/roll ' + dice);
 			});
 			buttons.find('input.remove').click(function() {
-				if (confirm('Delete dice?') == false) {
-					return;
+				if (confirm('Delete dice?')) {
+					var key = $(this).parent().find('input.roll').attr('value');
+					var rolls = localStorage.getItem('dicerolls');
+					rolls = JSON.parse(rolls);
+					delete rolls[key];
+					localStorage.setItem('dicerolls', JSON.stringify(rolls));
+
+					dice_roll_init();
 				}
-
-				var key = $(this).parent().find('input.roll').attr('value');
-				var rolls = localStorage.getItem('dicerolls');
-				rolls = JSON.parse(rolls);
-				delete rolls[key];
-				localStorage.setItem('dicerolls', JSON.stringify(rolls));
-
-				dice_roll_init();
 			});
 			defined.append(buttons);
 		};
@@ -4710,7 +4759,6 @@ $(document).ready(function() {
 				if (roll === false) {
 					return;
 				}
-
 				roll_dice(roll, dungeon_master == false);
 				input_history_add('/roll ' + roll);
 			},
@@ -4750,6 +4798,15 @@ $(document).ready(function() {
 		}
 	});
 
+	var dice_type_selector = $('<select style="float:right; width:110px; margin-top:15px" class="form-control dice-type"><option value="quick">Quick</option><option value="animated">Animated</option></select>');
+	if (localStorage.getItem('dice_type') == 'animated') {
+		dice_type_selector.find('option:last-child').attr('selected', 'selected');
+	}
+	dice_type_selector.on('change', function() {
+		localStorage.setItem('dice_type', $(this).val());
+	});
+	wf_dice_roll.parent().find('div.btn-group').before(dice_type_selector);
+
 	wf_dice_roll.find('div.dice img').dblclick(function() {
 		var dice = $(this).attr('title');
 		if (dice == undefined) {
@@ -4757,6 +4814,7 @@ $(document).ready(function() {
 		}
 
 		wf_dice_roll.close();
+
 		roll_dice('1' + dice, dungeon_master == false);
 	});
 
@@ -4829,4 +4887,8 @@ $(document).ready(function() {
 	if (color == 'dark') {
 		interface_color($('button#itfcol'), false);
 	}
+});
+
+$(window).on('load', function() {
+	$('div.loading').remove();
 });

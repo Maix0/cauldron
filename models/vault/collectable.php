@@ -117,7 +117,9 @@
 					return false;
 				}
 
+				ob_start();
 				unlink("resources/".$this->user->resources_key."/collectables/".$current["image"]);
+				ob_end_clean();
 
 				$collectable["image"] = $this->make_filename($collectable["id"], $image["name"]);
 				if ($this->save_image($image, $collectable["image"])) {
@@ -153,7 +155,9 @@
 				return false;
 			}
 
+			ob_start();
 			unlink("resources/".$this->user->resources_key."/collectables/".$current["image"]);
+			ob_end_clean();
 
 			return true;
 		}

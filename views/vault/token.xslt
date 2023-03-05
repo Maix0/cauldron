@@ -25,7 +25,7 @@
 <div class="col-xs-12 col-sm-4 col-md-3 token">
 <div class="well well-sm" onClick="javascript:document.location='/{/output/page}/{@id}'">
 <img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" class="icon" />
-<div class="name"><xsl:value-of select="name" /></div>
+<div class="name"><xsl:value-of select="name" /><xsl:if test="shape_change='yes'"><span class="shape_change">(sc)</span></xsl:if></div>
 <div>Size: <xsl:value-of select="width" /> &#215; <xsl:value-of select="height" /></div>
 <div>Hit points: <xsl:value-of select="hitpoints" /></div>
 </div>
@@ -35,6 +35,7 @@
 
 <div id="help">
 <p>Here you maintain your tokens, which can represent an NPC or a player's enemy. These tokens are available for all your adventures.</p>
+<p>A <span class="shape_change">(cs)</span> after the name of a token means that that token is available for shape change.</p>
 </div>
 </xsl:template>
 

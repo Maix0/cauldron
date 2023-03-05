@@ -125,7 +125,7 @@ function draw_fow_shape_for_construct(ctx, obj_x, obj_y, construct) {
 	draw_fow_shape(ctx, obj_x, obj_y, pos1_x, pos1_y, pos2_x, pos2_y);
 }
 
-function remove_fog_of_war() {
+function fog_of_war_remove() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -273,7 +273,7 @@ function fog_of_war_update(obj) {
 			draw_light_sphere(light[0] + half_cell, light[1] + half_cell, light[2] * grid_cell_size);
 		}
 	} else {
-		remove_fog_of_war();
+		fog_of_war_remove();
 	}
 
 	/* Walls
@@ -357,5 +357,5 @@ function fog_of_war_update(obj) {
 }
 
 function fog_of_war_destroy() {
-	remove_fog_of_war();
+	fog_of_war_remove();
 }
