@@ -4024,7 +4024,7 @@ $(document).ready(function() {
 		wall_position($(this));
 	});
 
-	$('div.wall[transparent=yes').contextmenu(function(event) {
+	$('div.wall[transparent=yes]').contextmenu(function(event) {
 		var menu_entries = {};
 
 		if ($(this).attr('transparent') == 'yes') {
