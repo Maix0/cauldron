@@ -24,8 +24,8 @@
 </thead>
 <tbody>
 <xsl:for-each select="maps/map">
-<tr class="click">
-<td onClick="javascript:document.location='/{/output/page}/arrange/{@id}'"><xsl:value-of select="title" /></td>
+<tr class="click" onClick="javascript:document.location='/{/output/page}/arrange/{@id}'">
+<td><xsl:value-of select="title" /></td>
 <td><xsl:value-of select="tokens" /></td>
 <td><xsl:value-of select="type" /></td>
 <td><xsl:value-of select="fog_of_war" /></td>
@@ -38,6 +38,11 @@
 <a href="/{/output/page}/new" class="btn btn-default">New map</a>
 <a href="/vault" class="btn btn-default">Back</a>
 </div>
+<xsl:if test="@market='yes'">
+<div class="btn-group right">
+<a href="/vault/map/market" class="btn btn-primary">Browse map market</a>
+</div>
+</xsl:if>
 </xsl:template>
 
 <!--
@@ -56,7 +61,7 @@
 <xsl:if test="map/show_grid='yes'"><input type="hidden" name="show_grid" value="on" /></xsl:if>
 
 <label for="title">Map title:</label>
-<input type="text" id="title" name="title" value="{map/title}" placeholder="The name of what this map represents." class="form-control" />
+<input type="text" id="title" name="title" value="{map/title}" maxlength="50" placeholder="The name of what this map represents." class="form-control" />
 <label for="method">Method:</label>
 <div class="method">
 <span><input type="radio" name="method" value="upload"><xsl:if test="map/method='upload'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Upload new map file</span>
@@ -196,9 +201,9 @@
 <form action="/{/output/page}" method="post" enctype="multipart/form-data">
 <input type="hidden" name="id" value="{@id}" />
 <label for="title">Map title:</label>
-<input type="text" id="title" name="title" value="{title}" placeholder="The name of what this map represents." class="form-control" />
-<label for="url">URL to map file:</label>
-<input type="text" id="url" name="url" value="{url}" placeholder="The URL to where the map file can be downloaded." class="form-control" />
+<input type="text" id="title" name="title" value="{title}" placeholder="Map title:" class="form-control" />
+<label for="dm_notes">Dungeon Master notes:</label>
+<textarea id="dm_notes" name="dm_notes" class="form-control"><xsl:value-of select="dm_notes" /></textarea>
 
 <div class="btn-group left">
 <input type="submit" name="submit_button" value="Export constructs" class="btn btn-default" />
@@ -213,17 +218,65 @@
 
 <!--
 //
+//  Market template
+//
+//-->
+<xsl:template match="market">
+<div class="filter">Filter by category:
+<select class="form-control filter" onChange="javacript:filter_category()">
+<option value="">none</option>
+<xsl:for-each select="map/category[not(.=preceding::*)]">
+<xsl:sort selet="." />
+<option value="{.}"><xsl:value-of select="." /></option>
+</xsl:for-each>
+</select></div>
+
+<xsl:call-template name="show_messages" />
+<div class="row market">
+<xsl:for-each select="map">
+<div class="col-lg-4 col-md-6 col-xs-12 map" category="{category}">
+<div class="panel panel-primary">
+<div class="panel-heading"><xsl:value-of select="title" /></div>
+<div class="panel-body">
+<img src="/files/market/{category}/{thumbnail}" full="/files/market/{category}/{background}" />
+</div>
+<div class="panel-footer">
+<xsl:if test="source!=''">
+<a href="{source}" target="_blank">Source</a>
+</xsl:if>
+<form action="/vault/map" method="post">
+<input type="hidden" name="map" value="{category}/{constructs}" />
+<input type="submit" name="submit_button" value="Import map" class="btn btn-xs btn-primary" />
+</form>
+</div>
+</div>
+</div>
+</xsl:for-each>
+</div>
+
+<div class="btn-group left">
+<a href="/vault/map" class="btn btn-default">Back</a>
+</div>
+
+<div id="help">
+<p>In this market, you browse through and import maps that can be found for free on the internet. A map can contain constructs like walls, doors and windows. This allows you to quickly use Cauldron's fog of war and dynamic lighting features.</p>
+</div>
+</xsl:template>
+
+<!--
+//
 //  Content template
 //
 //-->
 <xsl:template match="content">
 <img src="/images/icons/map.png" class="title_icon" />
-<h1>Adventure maps</h1>
+<h1><xsl:value-of select="/output/layout/title/@page" /></h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="grid" />
 <xsl:apply-templates select="import" />
 <xsl:apply-templates select="export" />
+<xsl:apply-templates select="market" />
 <xsl:apply-templates select="result" />
 </xsl:template>
 

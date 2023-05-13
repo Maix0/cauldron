@@ -222,7 +222,7 @@
 			if (file_exists($filename) == false) {
 				return false;
 			}
-			if (($content = file_get_contents($filename, FILE_BINARY)) == false) {
+			if (($content = file_get_contents($filename)) == false) {
 				return false;
 			}
 

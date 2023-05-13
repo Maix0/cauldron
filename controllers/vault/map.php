@@ -5,7 +5,8 @@
 			"On, day / illuminated (cell)",
 			"On, day / illuminated (real)",
 			"On, night / dark (cell)",
-			"On, night / dark (real)");
+			"On, night / dark (real)",
+			"On, manually erase");
 
 		private function show_overview() {
 			if (($adventures = $this->model->get_adventures()) === false) {
@@ -27,7 +28,7 @@
 				return;
 			}
 
-			$this->view->open_tag("overview");
+			$this->view->open_tag("overview", array("market" => show_boolean(ENABLE_MARKET)));
 
 			$this->view->open_tag("adventures");
 			foreach ($adventures as $adventure) {
@@ -93,6 +94,19 @@
 			$this->view->record($map, "grid");
 		}
 
+        private function show_market() {
+            $this->view->title = "Map market";
+			$this->view->add_javascript("vault/market.js");
+
+            $maps = $this->model->get_market();
+
+            $this->view->open_tag("market");
+            foreach ($maps as $map) {
+                $this->view->record($map, "map");
+            }
+            $this->view->close_tag();
+        }
+
 		private function show_import_form($map) {
 			$this->view->record($map, "import");
 		}
@@ -123,6 +137,8 @@
 		}
 
 		public function execute() {
+			$this->view->title = "Adventure maps";
+
 			if ($this->page->ajax_request) {
 				if ($this->page->parameter_value(0, "maps")) {
 					$this->show_map_resources();
@@ -212,7 +228,7 @@
 					if ($_FILES["file"]["error"] ?? null != 0) {
 						$this->view->add_message("Error uploading file.");
 						$this->show_import_form($_POST);
-					} else if ($this->model->constructs_import($_POST["id"], $_FILES["file"]) == false) {
+					} else if ($this->model->constructs_import_file($_POST["id"], $_FILES["file"]) == false) {
 						$this->view->add_message("Error importing constructs.");
 						$this->show_import_form($_POST);
 					} else {
@@ -227,7 +243,7 @@
 					} else {
 						$this->view->disable();
 
-						$filename = $this->model->generate_filename($_POST["title"]).".cmc";
+						$filename = $this->model->generate_filename($_POST["title"]).".cvm";
 						header("Content-Type: application/x-binary");
 						header("Content-Disposition: attachment; filename=\"".$filename."\"");
 						print $export;
@@ -243,6 +259,15 @@
 					} else {
 						$this->user->log_action("map %d deleted", $_POST["id"]);
 						$this->show_overview();
+					}
+				} else if (($_POST["submit_button"] == "Import map") && is_true(ENABLE_MARKET)) {
+					/* Import map
+					 */
+					if (($map_id = $this->model->import_map($_POST["map"])) == false) {
+						$this->show_market();
+					} else {
+						$this->user->log_action("market map %s imported", $_POST["map"]);
+						header("Location: /vault/map/arrange/".$map_id);
 					}
 				} else {
 					$this->show_overview();
@@ -260,6 +285,10 @@
 				} else {
 					$this->show_grid_form($map);
 				}
+			} else if ($this->page->parameter_value(0, "market") && is_true(ENABLE_MARKET)) {
+				/* Show market
+				 */
+				$this->show_market();
 			} else if ($this->page->parameter_numeric(0)) {
 				/* Edit map
 				 */

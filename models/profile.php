@@ -36,7 +36,12 @@
 			$result = array();
 
 			while (($line = fgets($fp)) !== false) {
-				list($ip, $timestamp, $user_id, $message) = explode("|", chop($line));
+				$parts = explode("|", chop($line));
+				if (count($parts) < 4) {
+					continue;
+				}
+
+				list($ip, $timestamp, $user_id, $message) = $parts;
 
 				if ($user_id == "-") {
 					continue;

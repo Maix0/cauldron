@@ -26,3 +26,44 @@ ul.browse-list li:hover {
 	cursor:pointer;
 	background:#ffffa0;
 }
+
+/* Market
+ */
+div.panel div.panel-footer span:after {
+	content:"|";
+	margin:0 15px;
+	color:#337ab7;
+}
+
+div.panel div.panel-footer span:last-of-type:after {
+	content:none;
+	margin:0;
+}
+
+@media (min-width:768px) {
+	div.panel div.panel-footer form {
+		display:inline-block;
+		float:right;
+	}
+}
+
+@media (max-width:767px) {
+	div.panel div.panel-footer form {
+		text-align:right;
+	}
+}
+
+div.market div.adventure div.panel-body {
+	height:150px;
+	overflow:auto;
+}
+
+div.filter {
+	text-align:right;
+}
+
+div.filter select {
+	display:inline-block;
+	width:200px;
+	margin-left:5px;
+}

@@ -6,7 +6,7 @@
 				return;
 			}
 
-			$this->view->open_tag("overview");
+			$this->view->open_tag("overview", array("market" => show_boolean(ENABLE_MARKET)));
 
 			$adventure_access_levels = array("DM", "Players", "Spectators");
 
@@ -37,6 +37,20 @@
 			$this->view->close_tag();
 		}
 
+		private function show_market() {
+			$this->view->title = "Adventure market";
+			$this->view->add_javascript("vault/market.js");
+
+			$adventures = $this->model->get_market();
+
+			$this->view->open_tag("market");
+			foreach ($adventures as $adventure) {
+				$adventure["summary"] = explode("\\n", $adventure["summary"]);
+				$this->view->record($adventure, "adventure", array(), true);
+			}
+			$this->view->close_tag();
+		}
+
 		private function show_resources() {
 			if (($maps = $this->model->get_resources("", false)) == false) {
 				return false;
@@ -48,6 +62,8 @@
 		}
 
 		public function execute() {
+			$this->view->title = "Your adventures";
+
 			if ($this->page->ajax_request) {
 				$this->show_resources();
 			} else if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -97,6 +113,29 @@
 							unset($_SESSION["edit_adventure_id"]);
 						}
 					}
+				} else if ($_POST["submit_button"] == "Export adventure") {
+					/* Export adventure
+					 */
+					if (($export = $this->model->export_adventure($_POST["id"])) === false) {
+						$this->view->add_message("Error exporting adventure.");
+						$this->show_overview();
+					} else {
+						$this->view->disable();
+
+						$filename = $this->model->generate_filename($_POST["title"]).".cva";
+						header("Content-Type: application/x-binary");
+						header("Content-Disposition: attachment; filename=\"".$filename."\"");
+						print $export;
+					}
+				} else if (($_POST["submit_button"] == "Import adventure") && is_true(ENABLE_MARKET)) {
+					/* Import adventure
+					 */
+					if ($this->model->import_adventure($_POST["adventure"]) == false) {
+						$this->show_market();
+					} else {
+						$this->user->log_action("market adventure %s imported", $_POST["adventure"]);
+						$this->show_overview();
+					}
 				} else {
 					$this->show_overview();
 				}
@@ -105,6 +144,10 @@
 				 */
 				$adventure = array();
 				$this->show_adventure_form($adventure);
+			} else if ($this->page->parameter_value(0, "market") && is_true(ENABLE_MARKET)) {
+				/* Show market
+				 */
+				$this->show_market();
 			} else if ($this->page->parameter_numeric(0)) {
 				/* Edit adventure 
 				 */

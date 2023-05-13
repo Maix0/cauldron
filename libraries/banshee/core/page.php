@@ -13,7 +13,7 @@
 		private $settings = null;
 		private $user = null;
 		private $module = null;
-		private $url = null;
+		private $url = "";
 		private $page = null;
 		private $type = "";
 		private $http_code = 200;

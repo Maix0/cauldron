@@ -17,8 +17,8 @@
 <img src="/images/cauldron.png" class="cauldron" />
 <p>This is the page where you and your players will see an overview of the adventures you have created. All that's needed to create an adventure is explained in the <a href="/manual">manual</a>, but here's a short list to make it even more easy to get you started.</p>
 <ul>
-<li>Go to the DM's Vault (see top menu bar) and click on the Adventures icon to create a new adventure.</li>
-<li>Add one or more maps to your adventure.</li>
+<li>Go to the DM's Vault (see top menu bar) and click on the Adventures icon to create a new adventure or import one from the Adventure Market.</li>
+<li>If you created a new adventure, add one or more maps to your adventure.</li>
 <li>Create accounts for your players via the <a href="/vault/user">DM's Vault Users section</a> or send them an <a href="/vault/invite">invite code</a> so they can create their account themselves.</li>
 <li>Let your players create their own character.</li>
 <li>Add those characters to your adventure via the <a href="/vault/players">DM's Vault Players section</a>.</li>
@@ -65,7 +65,7 @@
 <div class="menu">
 <div class="row">
 <div class="col-sm-6">
-<button class="btn btn-default btn-sm show_dice">Roll dice</button>
+<button class="btn btn-default btn-sm show_dice">Roll dice (~)</button>
 <button class="btn btn-default btn-sm show_journal">Journal</button>
 <button class="btn btn-default btn-sm show_collectables">Inventory</button>
 <xsl:if test="@is_dm='yes'">
@@ -75,12 +75,14 @@
 </xsl:if>
 <button class="btn btn-default btn-sm start_combat">Combat</button>
 <button class="btn btn-default btn-sm play_audio">Audio</button>
+<button class="btn btn-default btn-sm draw_clear">Remove drawings</button>
 </xsl:if>
 </div>
 <div class="col-sm-6">
 <a href="/{/output/page}" class="btn btn-default btn-sm">Leave session</a>
 <button id="center_char" class="btn btn-primary btn-sm center_character">Center character</button>
 <button id="itfcol" class="btn btn-default btn-sm interface_color">Dark interface</button>
+<button id="fullscreen" class="btn btn-default btn-sm fullscreen">Fullscreen map (TAB)</button>
 <xsl:if test="map/type='video'"><button class="btn btn-default btn-sm playvideo">Play video</button></xsl:if>
 <xsl:if test="@is_dm='yes'">
 <h2>Map switching</h2>
@@ -94,35 +96,6 @@
 </xsl:if>
 </div>
 </div>
-<xsl:if test="@is_dm='yes'">
-<h2>Drawing</h2>
-<div class="draw-explain">Hold CTRL to draw, SHIFT to erase and ALT to align to grid.</div>
-<div class="draw-colors">
-<span style="background-color:#000000"></span>
-<span style="background-color:#808080"></span>
-<span style="background-color:#ffffff"></span>
-<span style="background-color:#804000"></span>
-<span style="background-color:#ff0000"></span>
-<span style="background-color:#ff8000"></span>
-<span style="background-color:#ffff00"></span>
-<span style="background-color:#00ff00"></span>
-<span style="background-color:#00a000"></span>
-<span style="background-color:#005000"></span>
-<span style="background-color:#00ffff"></span>
-<span style="background-color:#0000ff"></span>
-<span style="background-color:#0000a0"></span>
-<span style="background-color:#ff00ff"></span>
-<span style="background-color:#800080"></span>
-</div>
-<div class="row">
-<div class="col-sm-6">
-<div id="draw_width"><div class="ui-slider-handle"></div></div>
-</div>
-<div class="col-sm-6">
-<button id="draw_clear" class="btn btn-default btn-sm">Remove drawings</button>
-</div>
-</div>
-</xsl:if>
 </div>
 </div>
 <xsl:if test="not(map)">
@@ -140,7 +113,7 @@
 <div class="entries">
 <xsl:for-each select="journal/entry">
 <xsl:if test="session"><div class="session"><xsl:value-of select="session" /></div></xsl:if>
-<xsl:if test="content"><div class="entry"><span class="writer"><xsl:value-of select="writer" /></span><span class="content"><xsl:value-of select="content" /></span></div></xsl:if>
+<xsl:if test="content"><div class="entry"><span class="writer"><xsl:value-of select="writer" /></span><span class="content"><xsl:value-of select="content" disable-output-escaping="yes" /></span></div></xsl:if>
 </xsl:for-each>
 </div>
 <div class="row">
@@ -170,7 +143,7 @@
 </xsl:text></xsl:for-each>
 </div>
 <!-- Play area -->
-<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" adventure_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
+<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" adventure_id="{@id}" map_id="{map/@id}" start_x="{map/start_x}" start_y="{map/start_y}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div id="map_background">
@@ -257,13 +230,49 @@
 <!-- Markers -->
 <div class="markers"></div>
 </div>
-<!-- Alternate icons -->
+<!-- Character alternate icons -->
 <div class="alternates">
 <xsl:for-each select="alternates/alternate">
 <div icon_id="{@id}" size="{size}" filename="{filename}"><xsl:value-of select="name" /></div>
 </xsl:for-each>
 </div>
+<!-- Character weapons -->
+<div class="weapons">
+<xsl:for-each select="weapons/weapon">
+<div roll="{roll}"><xsl:value-of select="name" /></div>
+</xsl:for-each>
 </div>
+</div>
+<!-- Drawing tools -->
+<xsl:if test="@is_dm='yes'">
+<div class="draw-tools">
+<div class="draw-width"><div id="draw_width"><div class="ui-slider-handle"></div></div></div>
+<div class="draw-explain">Hold CTRL to draw, SHIFT to erase and ALT to snap to grid.</div>
+<div class="draw-colors">
+<span style="background-color:#000000"></span>
+<span style="background-color:#ffffff"></span>
+<span style="background-color:#804000"></span>
+<span style="background-color:#ff8000"></span>
+<span style="background-color:#005000"></span>
+<span style="background-color:#00a000"></span>
+<span style="background-color:#00ff00"></span>
+<span style="background-color:#800080"></span>
+<span style="background-color:#606060"></span>
+<span style="background-color:#c0c0c0"></span>
+<span style="background-color:#ff0000"></span>
+<span style="background-color:#ffff00"></span>
+<span style="background-color:#0000a0"></span>
+<span style="background-color:#0000ff"></span>
+<span style="background-color:#00ffff"></span>
+<span style="background-color:#ff00ff"></span>
+</div>
+<div class="draw-brushes">
+<xsl:for-each select="brushes/brush">
+<span class="brush" brush="/{.}" title="{@name}" style="background-image:url(/{.})"></span>
+</xsl:for-each>
+</div>
+</div>
+</xsl:if>
 <!-- Right bar -->
 <xsl:if test="@is_dm='yes'">
 <div class="filter"><input class="form-control" placeholder="Filter" /></div>

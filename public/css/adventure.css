@@ -130,31 +130,6 @@ div.menu .btn {
 	margin-bottom:5px;
 }
 
-div.menu div.draw-explain {
-	float:right;
-	font-size:10px;
-	margin-top:-20px;
-}
-
-div.menu div.draw-colors {
-	margin-bottom:5px;
-}
-div.menu div.draw-colors span {
-	display:inline-block;
-	width:25px;
-	height:25px;
-	border:1px solid #404040;
-	margin:7px 7px 0 0;
-	cursor:pointer;
-}
-div.menu div.draw-colors span:last-child {
-	margin-right:0;
-}
-div.menu div.draw-colors span:before {
-	font-size:20px;
-	position:absolute;
-}
-
 ul.map_image {
 	padding-left:15px;
 }
@@ -344,6 +319,12 @@ div.journal div.entry {
 	margin-bottom:10px;
 }
 
+div.journal div.entry img {
+	display:block;
+	max-width:100%;
+	margin:0 auto;
+}
+
 div.journal span.writer {
 	font-weight:bold;
 	margin-left:-30px;
@@ -462,15 +443,87 @@ div.sidebar span.history:before {
 	}
 }
 
+/* Draw tools
+ */
+div.draw-tools {
+	position:absolute;
+	bottom:10px;
+	left:15px;
+	right:200px;
+	height:70px;
+	overflow:hidden;
+}
+
+div.draw-tools div.draw-width {	
+	position:absolute;
+	top:0;
+	left:0;
+	width:200px;
+}
+
+div.draw-tools div.draw-explain {	
+	position:absolute;
+	top:30px;
+	left:5px;
+	width:200px;
+	font-size:13px;
+}
+
+div.draw-tools div.draw-colors {
+	position:absolute;
+	top:5px;
+	left:210px;
+	width:240px;
+}
+
+div.draw-tools div.draw-colors span {
+	display:inline-block;
+	width:25px;
+	height:25px;
+	border:1px solid #404040;
+	margin:0 0 5px 5px;
+	cursor:pointer;
+}
+
+div.draw-tools div.draw-colors span:last-child {
+	margin-right:0;
+}
+
+div.draw-tools div.draw-colors span:before {
+	font-size:20px;
+	position:absolute;
+}
+
+div.draw-tools div.draw-brushes {
+	position:absolute;
+	top:5px;
+	left:470px;
+}
+
+div.draw-tools div.draw-brushes span.brush {
+	display:inline-block;
+	width:60px;
+	height:60px;
+	margin-right:5px;
+	margin-bottom:5px;
+	border:1px solid #000000;
+}
+
 /* Conditions
  */
 div.conditions {
 	display:none;
 }
 
-/* Alternates
+/* Character alternate icons
  */
 div.alternates {
+	display:none;
+}
+
+/* Character weapons
+ */
+div.weapons {
 	display:none;
 }
 
@@ -644,4 +697,8 @@ div.dark div.library div.well {
 
 div.dark div.menu {
 	background-color:#d0d0d0;
+}
+
+div.dark div.draw-explain {
+	color:#e0e0e0;
 }

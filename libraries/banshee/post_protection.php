@@ -142,11 +142,6 @@
 				$this->view->add_system_warning($message, $referer);
 				$this->user->log_action($message, $referer);
 				$this->user->logout();
-			} else {
-				/* You're probably just dealing with a spam bot
-				 */
-				$logfile = new logfile("spam");
-				$logfile->add_entry("POST without token.");
 			}
 
 			$_SERVER["REQUEST_METHOD"] = "GET";

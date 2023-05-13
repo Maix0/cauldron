@@ -30,6 +30,11 @@
 <a href="/{/output/page}/new" class="btn btn-default">New adventure</a>
 <a href="/vault" class="btn btn-default">Back</a>
 </div>
+<xsl:if test="@market='yes'">
+<div class="btn-group right">
+<a href="/vault/adventure/market" class="btn btn-primary">Browse adventure market</a>
+</div>
+</xsl:if>
 
 <div id="help">
 <p>All your adventures are listed here.</p>
@@ -50,7 +55,7 @@
 </xsl:if>
 
 <label for="title">Title:</label>
-<input type="text" id="title" name="title" value="{adventure/title}" placeholder="The title of your adventure / campaign." class="form-control" />
+<input type="text" id="title" name="title" value="{adventure/title}" maxlength="50" placeholder="The title of your adventure / campaign." class="form-control" />
 <label for="image">Title background image URL (optional):</label>
 <div class="input-group">
 <input type="text" id="image" name="image" value="{adventure/image}" placeholder="The image to show in the Adventures page." class="form-control" />
@@ -70,6 +75,9 @@
 <a href="/{/output/page}" class="btn btn-default">Cancel</a>
 <xsl:if test="adventure/@id">
 <input type="submit" name="submit_button" value="Delete adventure" class="btn btn-default" onClick="javascript:return confirm('DELETE: Are you sure?')" />
+<xsl:if test="/output/user/@admin='yes'">
+<input type="submit" name="submit_button" value="Export adventure" class="btn btn-default" />
+</xsl:if>
 </xsl:if>
 </div>
 </form>
@@ -81,14 +89,65 @@
 
 <!--
 //
+//  Market template
+//
+//-->
+<xsl:template match="market">
+<div class="filter">Filter by level:
+<select class="form-control filter" onChange="javacript:filter_level()">
+<option value="">none</option>
+<xsl:for-each select="adventure/level[not(.=preceding::*)]">
+<option value="{.}"><xsl:value-of select="." /></option>
+</xsl:for-each>
+</select></div>
+
+<xsl:call-template name="show_messages" />
+<div class="row market">
+<xsl:for-each select="adventure">
+<div class="col-md-6 col-sm-12 adventure" level="{level}">
+<div class="panel panel-primary">
+<div class="panel-heading"><xsl:value-of select="title" /></div>
+<div class="panel-body"><xsl:for-each select="summary/item"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+<div class="panel-footer">
+<xsl:if test="level">
+<span>Average party level: <xsl:value-of select="level" /></span>
+</xsl:if>
+<xsl:if test="guide">
+<span><a href="{guide}">Adventure guide</a></span>
+</xsl:if>
+<xsl:if test="source">
+<span><a href="{source}">Source</a></span>
+</xsl:if>
+<form action="/vault/adventure" method="post">
+<input type="hidden" name="adventure" value="{adventure}" />
+<input type="submit" name="submit_button" value="Import adventure" class="btn btn-xs btn-primary" />
+</form>
+</div>
+</div>
+</div>
+</xsl:for-each>
+</div>
+
+<div class="btn-group left">
+<a href="/vault/adventure" class="btn btn-default">Back</a>
+</div>
+
+<div id="help">
+<p>In the market, you browse through and import adventures that can be found for free on the internet. An adventure contains one or more maps and each map can contain constructs like walls, doors and windows. This allows you to quickly use Cauldron's fog of war and dynamic lighting features. Due to copyright restrictions, the maps don't contain any tokens. It's up to you to place the right tokens from your own collection on the map according to the adventure guide.</p>
+</div>
+</xsl:template>
+
+<!--
+//
 //  Content template
 //
 //-->
 <xsl:template match="content">
 <img src="/images/icons/adventure.png" class="title_icon" />
-<h1>Your adventures</h1>
+<h1><xsl:value-of select="/output/layout/title/@page" /></h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
+<xsl:apply-templates select="market" />
 <xsl:apply-templates select="result" />
 </xsl:template>
 

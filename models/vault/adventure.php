@@ -50,6 +50,7 @@
 			$keys = array("id", "title", "image", "story", "dm_id", "access");
 
 			$adventure["id"] = null;
+			$adventure["title"] = substr($adventure["title"], 0, 50);
 			$adventure["dm_id"] = $this->user->id;
 			$adventure["active_map_id"] = null;
 
@@ -58,6 +59,8 @@
 
 		public function update_adventure($adventure) {
 			$keys = array("title", "image", "story", "access");
+
+			$adventure["title"] = substr($adventure["title"], 0, 50);
 
 			return $this->db->update("adventures", $adventure["id"], $adventure, $keys) !== false;
 		}
@@ -110,6 +113,143 @@
 			}
 
 			return true;
+		}
+
+		public function export_adventure($adventure_id) {
+			if (($adventure = $this->get_adventure($adventure_id)) == false) {
+				$this->view->add_message("Adventure not found.");
+				return false;
+			}
+
+			unset($adventure["id"]);
+			unset($adventure["dm_id"]);
+			unset($adventure["timestamp"]);
+			unset($adventure["active_map_id"]);
+
+			$query = "select id from maps where adventure_id=%d";
+			if (($maps = $this->db->execute($query, $adventure_id)) === false) {
+				$this->view->add_message("Error retrieving adventure.");
+				return false;
+			}
+
+			$adventure["maps"] = array();
+
+			foreach ($maps as $map) {
+				if (($map = $this->borrow("vault/map")->map_export($map["id"])) == false) {
+					$this->view->add_message("Error retrieving maps.");
+					return false;
+				}
+
+				array_push($adventure["maps"], $map);
+			}
+
+			return gzencode(json_encode($adventure));
+		}
+
+		public function get_market() {
+			if (($dp = opendir(MARKET_DIRECTORY)) == false) {
+				return false;
+			}
+
+			$adventures = array();
+			while (($dir = readdir($dp)) !== false) {
+				if (substr($dir, 0, 1) == ".") {	
+					continue;
+				}
+
+				$file = MARKET_DIRECTORY.$dir."/adventure.txt";
+				if (file_exists($file) == false) {
+					continue;
+				}
+				$index = file($file);
+
+				$adventure = array();
+				foreach ($index as $line) {
+					if (substr($line, 0, 1) == "#") {
+						continue;
+					}
+					list($key, $value) = explode(":", trim($line), 2);
+					$adventure[$key] = $value;
+				}
+
+				$adventure["adventure"] = $dir."/".$adventure["adventure"];
+				if (isset($adventure["guide"])) {
+					if (substr($adventure["guide"], 0, 4) != "http") {
+            	        $adventure["guide"] = "/files/market/".$dir."/".$adventure["guide"];
+					}
+				}
+
+				array_push($adventures, $adventure);
+			}
+
+			closedir($dp);
+
+			$sorting = function($a, $b) {
+				$al = (int)$a["level"];
+				$bl = (int)$b["level"];
+
+				return $al < $bl ? -1 : ($al > $bl ? 1 : strcmp($a["title"], $b["title"]));
+			};
+
+			usort($adventures, $sorting);
+
+			return $adventures;
+		}
+
+		public function import_adventure($file) {
+			if (strpos($file, "..") !== false) {
+				$this->view->add_message("Invalid adventure reference.");
+				return false;
+			}
+
+			$file = MARKET_DIRECTORY.$file;
+
+			if (file_exists($file) == false) {
+				$this->view->add_message("An adventure not found.");
+				return false;
+			}
+
+			$adventure = json_decode(gzdecode(file_get_contents($file)), true);
+
+			$query = "select count(*) as count from adventures where title=%s and dm_id=%d";
+			if (($result = $this->db->execute($query, $adventure["title"], $this->user->id)) == false) {
+				$this->view->add_message("Adventure query error.");
+				return false;
+			}
+
+			if ($result[0]["count"] > 0) {
+				$this->view->add_message("An adventure with that name already exists.");
+				return false;
+			}
+
+			$maps = $adventure["maps"];
+			unset($adventure["maps"]);
+
+			$this->db->query("begin");
+
+			if ($this->create_adventure($adventure) == false) {
+				$this->view->add_message("Error creating adventure.");
+				return false;
+			}
+			$_SESSION["edit_adventure_id"] = $this->db->last_insert_id;
+
+			foreach ($maps as $map) {
+				if ($this->borrow("vault/map")->create_map($map) == false) {
+					$this->view->add_message("Error creating map.");
+					$this->db->query("rollback");
+					return false;
+				}
+
+				$map_id = $this->db->last_insert_id;
+
+				if ($this->borrow("vault/map")->constructs_import($map_id, $map) == false) {
+					$this->view->add_message("Error creating constructs.");
+					$this->db->query("rollback");
+					return false;
+				}
+			}
+
+			return $this->db->query("commit") !== false;
 		}
 	}
 ?>

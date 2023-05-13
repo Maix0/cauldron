@@ -64,3 +64,9 @@ div.alternate span {
 div.alternate input.btn {
 	width:100%;
 }
+
+/* Weapons
+ */
+table.weapons th:nth-child(3) {
+	width:80px;
+}

@@ -18,7 +18,7 @@
 
 			$_SESSION["register_code"] = random_string(20);
 
-			$email = new \Banshee\Protocol\email("Verification code for the ".$this->settings->head_title." website",
+			$email = new cauldron_email("Verification code for the ".$this->settings->head_title." website",
 			                                     $this->settings->webmaster_email, "Cauldron VTT");
 			$email->set_message_fields(array("CODE" => $_SESSION["register_code"]));
 			$email->message(file_get_contents("../extra/register.txt"));

@@ -35,7 +35,7 @@
 					"ip"        => $entry[0],
 					"timestamp" => $entry[1],
 					"user_id"   => $entry[2],
-					"event"     => $entry[3]));
+					"event"     => $entry[3] ?? ""));
 
 				if ($count >= $size + $offset) {
 					array_pop($log);

@@ -143,7 +143,7 @@
 			unset($_SESSION["register_email"]);
 			unset($_SESSION["register_code"]);
 
-			$email = new \Banshee\Protocol\email("New account registered at ".$_SERVER["SERVER_NAME"], $this->settings->webmaster_email);
+			$email = new cauldron_email("New account registered at ".$_SERVER["SERVER_NAME"], $this->settings->webmaster_email);
 			$email->set_message_fields(array(
 				"FULLNAME" => $data["fullname"],
 				"EMAIL"    => $data["email"],

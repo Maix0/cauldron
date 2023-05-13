@@ -96,3 +96,51 @@ div#slider1, div#slider2 {
 span.sizes {
 	margin-left:5px;
 }
+
+/* Market
+ */
+div.panel div.panel-footer {
+	height:41px;
+}
+
+div.panel div.panel-footer span:after {
+	content:"|";
+	margin:0 15px;
+	color:#337ab7;
+}
+
+div.panel div.panel-footer span:last-of-type:after {
+	content:none;
+	margin:0;
+}
+
+div.panel div.panel-footer form {
+	display:inline-block;
+	float:right;
+}
+
+div.market div.map div.panel-body {
+	height:286px;
+	overflow:auto;
+}
+
+div.market div.map div.panel-body img {
+	display:block;
+	margin:0 auto;
+	cursor:pointer;
+}
+
+div.filter {
+	text-align:right;
+}
+
+div.filter select {
+	display:inline-block;
+	width:200px;
+	margin-left:5px;
+}
+
+div.preview img {
+	max-width:100%;
+	max-height:100%;
+}

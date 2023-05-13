@@ -21,6 +21,8 @@
 			$this->db_errno         = "mysqli_errno";
 			$this->id_delim         = "`";
 
+			mysqli_report(MYSQLI_REPORT_ERROR);
+
 			if ($database != "") {
 				if (($this->link = mysqli_connect($hostname, $username, $password, $database, $port)) == false) {
 					$this->link = null;

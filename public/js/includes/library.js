@@ -6,6 +6,10 @@ function array_remove(arr, val) {
 	return arr;
 }
 
+function sleep(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /* Dialogs windows
  */
 function cauldron_alert(message, title = 'Cauldron alert', callback_close = undefined) {

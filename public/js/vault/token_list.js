@@ -17,8 +17,15 @@ function filter_tokens() {
 	});
 }
 
+function filter_clear() {
+}
+
 $(document).ready(function() {
 	$('input#filter').val(localStorage.getItem('vault_token_filter'));
+	$('span.input-group-btn button.btn').click(function() {
+		$('input#filter').val('');
+		filter_tokens();
+	});
 
 	filter_tokens();
 });

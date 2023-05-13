@@ -31,8 +31,8 @@
 //
 //-->
 <xsl:template match="splitform/form_invitation">
-<p>If you've received an invitation code from your Dungeon Master to join an existing group, enter it here. If you don't specify an invitation code, a new group will be created and you will become the Dungeon Master for that group. Only people within the same group will be able to play together.</p>
-<label for="code">Invitation code:</label>
+<p>If you've received an invitation code from your dungeon master to join an existing group, enter it here. If you don't specify an invitation code, a new group will be created and you will become the dungeon master for that group. Only people within the same group will be able to play together.</p>
+<label for="code">Invitation code (optional):</label>
 <input type="text" name="invitation" value="{invitation}" class="form-control" />
 </xsl:template>
 

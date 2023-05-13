@@ -162,6 +162,10 @@ table.table-hover tbody tr:hover {
 	cursor:pointer;
 }
 
+table.table thead th {
+	background-color:#e0e8f0;
+}
+
 /* Footer
  */
 div.footer {

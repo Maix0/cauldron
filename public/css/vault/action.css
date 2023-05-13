@@ -1,3 +1,5 @@
-table.table th:first-child {
-	width:190px;
+@media (min-width:768px) {
+	table.table th:first-child {
+		width:190px;
+	}
 }

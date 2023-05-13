@@ -1,8 +1,2 @@
-<html>
-<body>
 <p>Dear [FULLNAME],</p>
 <p>Your account at the <a href="[PROTOCOL]://[HOSTNAME]/">[TITLE]</a> website has been updated. You can use the following credentials to login:</p>
-<p>Username: [USERNAME]<br />Password: [PASSWORD]</p>
-<p>Kind regards,<br />the Cauldron VTT webmaster</p>
-</body>
-</html>

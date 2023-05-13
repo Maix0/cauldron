@@ -29,7 +29,7 @@
 				"PROTOCOL" => $_SERVER["HTTP_SCHEME"],
 				"KEY"      => $key);
 
-			$email = new \Banshee\Protocol\email("Reset password at ".$_SERVER["SERVER_NAME"], $this->settings->webmaster_email);
+			$email = new cauldron_email("Reset password at ".$_SERVER["SERVER_NAME"], $this->settings->webmaster_email);
 			$email->set_message_fields($replace);
 			$email->message($message);
 			$email->send($user["email"], $user["fullname"]);

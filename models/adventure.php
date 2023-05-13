@@ -99,10 +99,49 @@
 			return $this->db->execute($query, $character_id);
 		}
 
+		public function get_weapons($character_id) {
+			$query = "select * from character_weapons where character_id=%d order by name";
+
+			return $this->db->execute($query, $character_id);
+		}
+
 		public function get_blinders($map_id) {
 			$query = "select * from blinders where map_id=%d";
 
 			return $this->db->execute($query, $map_id);
+		}
+
+		public function get_brushes() {
+			$result = array();
+
+			if (($dp = opendir(BRUSH_DIRECTORY)) !== false) {
+				while (($file = readdir($dp)) !== false) {
+					if (substr($file, 0, 1) == ".") {
+						continue;
+					}
+
+					array_push($result, BRUSH_DIRECTORY.$file);
+				}
+
+				closedir($dp);
+			}
+
+			$brush_dir = "resources/".$this->user->resources_key."/brushes/";
+			if (($dp = opendir($brush_dir)) !== false) {
+				while (($file = readdir($dp)) !== false) {
+					if (substr($file, 0, 1) == ".") {
+						continue;
+					}
+
+					array_push($result, $brush_dir.$file);
+				}
+
+				closedir($dp);
+			}
+
+			sort($result);
+
+			return $result;
 		}
 
 		public function get_characters($map_id) {

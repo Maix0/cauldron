@@ -33,13 +33,13 @@
 
 				if (($user_id != "-") && isset($users[$user_id]) == false) {
 					if (($user = $this->model->get_user($user_id)) !== false) {
-						$users[$user_id] = $user["username"];
+						$users[$user_id] = $user["username"] ?? "?";
 					}
 				}
 
 				if (isset($switch_id) && isset($users[$switch_id]) == false) {
 					if (($switch = $this->model->get_user($switch_id)) !== false) {
-						$users[$switch_id] = $switch["username"];
+						$users[$switch_id] = $switch["username"] ?? "?";
 					}
 				}
 

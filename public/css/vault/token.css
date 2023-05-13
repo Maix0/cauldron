@@ -28,11 +28,6 @@ div.token div div {
     white-space:nowrap;
 }
 
-input.form-control,
-div.input-group {
-	max-width:450px;
-}
-
 span.input-group-btn label {
 	padding:6px 25px;
 }

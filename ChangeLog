@@ -1,3 +1,15 @@
+cauldron (2.10) stable; urgency=low
+
+  * Fullscreen map.
+  * Added texture brushes for drawing.
+  * Moved drawing options to bottom bar.
+  * Character weapons for dice rolls.
+  * Added 'manually erase' Fog of War mode.
+  * Added adventure and map market.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 13 May 2023 08:16:09 +0100
+
 cauldron (2.9) stable; urgency=low
 
   * In-game 3D dice (https://github.com/3d-dice/dice-box).

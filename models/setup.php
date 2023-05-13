@@ -8,7 +8,6 @@
 
 	class setup_model extends Banshee\model {
 		private $required_php_extensions = array("gd", "libxml", "mysqli", "xsl");
-		private $directories = array("audio", "characters", "collectables", "effects", "maps", "tokens");
 
 		/* Determine next step
 		 */
@@ -510,6 +509,16 @@
 				$this->settings->database_version = 29;
 			}
 
+			if ($this->settings->database_version == 29) {
+				$this->db_query("UPDATE settings SET type=%s WHERE %S=%s", "float", "key", "database_version");
+				$this->db_query("CREATE TABLE character_weapons (id int(10) unsigned NOT NULL, character_id int(10) unsigned NOT NULL, ".
+				                "name varchar(25) NOT NULL, roll varchar(25) NOT NULL, PRIMARY KEY (id), KEY character_id (character_id), ".
+				                "CONSTRAINT character_weapons_ibfk_1 FOREIGN KEY (character_id) REFERENCES characters (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+				$this->settings->database_version = 2.10;
+			}
+
 			return true;
 		}
 
@@ -553,7 +562,7 @@
 				return false;
 			}
 
-			foreach ($this->directories as $directory) {
+			foreach (USER_SUB_DIRECTORIES as $directory) {
 				if (is_dir("resources/".$organisation["resources_key"]."/".$directory) == false) {
 					return false;
 				}
@@ -568,7 +577,7 @@
 			}
 
 			mkdir("resources/".$organisation["resources_key"], 0755);
-			foreach ($this->directories as $directory) {
+			foreach (USER_SUB_DIRECTORIES as $directory) {
 				mkdir("resources/".$organisation["resources_key"]."/".$directory, 0755);
 			}
 		}

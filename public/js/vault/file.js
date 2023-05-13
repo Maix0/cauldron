@@ -13,7 +13,8 @@ function rename_file(filename_current) {
 				if ($(this).text() == filename_current) {
 					$(this).text(filename_new);
 					var parts = $(this).prop('href').split('/');
-					parts[parts.length - 1] = encodeURIComponent(filename_new);
+					var pos = (parts[parts.length - 1] == '') ? 2 : 1;
+					parts[parts.length - pos] = encodeURIComponent(filename_new);
 					$(this).prop('href', parts.join('/'));
 				}
 			});

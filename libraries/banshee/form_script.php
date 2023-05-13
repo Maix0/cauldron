@@ -217,7 +217,7 @@
 			$result .= "</table>\n";
 
 			$subject = sprintf("Submit at %s form at %s website", $page_title, $this->settings->head_title);
-			$mail = new Protocol\email($subject, $sender_email, $sender_name);
+			$mail = new \cauldron_email($subject, $sender_email, $sender_name);
 			$message = file_get_contents("../extra/form_submit.txt");
 			$mail->set_message_fields(array(
 				"RESULT"  => $result,

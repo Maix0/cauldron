@@ -6,6 +6,7 @@ const FOW_DAY_CELL = 1;
 const FOW_DAY_REAL = 2;
 const FOW_NIGHT_CELL = 3;
 const FOW_NIGHT_REAL = 4;
+const FOW_ERASE = 5;
 
 const DEFAULT_Z_INDEX = 10000;
 const LAYER_TOKEN = DEFAULT_Z_INDEX;
@@ -20,7 +21,9 @@ const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
 const INPUT_HISTORY_SIZE = 20;
 
 const DRAW_DEFAULT_COLOR = 1;
-const DRAW_DEFAULT_WIDTH = 1;
+const DRAW_DEFAULT_WIDTH = 5;
+const DRAW_ERASE_THIN = 25;
+const DRAW_ERASE_THICK = 75;
 
 var websocket;
 var group_key = null;
@@ -76,6 +79,8 @@ var drawing_canvas = null;
 var drawing_ctx = null;
 var drawing_history = [];
 var attack_bonus = 0;
+var fullscreen = false
+var fullscreen_backup = undefined;
 
 /* Websocket
  */
@@ -152,22 +157,25 @@ function screen_scroll() {
 }
 
 function scroll_to_my_character(speed = 1000) {
+	var pos_x = -($('div.playarea').width() >> 1);
+	var pos_y = -($('div.playarea').height() >> 1);
+
 	if (my_character != null) {
 		var spot = my_character;
 	} else if (focus_obj != null) {
 		var spot = focus_obj;
-	} else {
+	} else if ($('div.character').length > 0) {
 		var spot = $('div.character').first();
-		if (spot.length == 0) {
-			write_sidebar('No characters on this map!');
-			return;
-		}
 	}
 
-	var pos_x = -($('div.playarea').width() >> 1);
-	var pos_y = -($('div.playarea').height() >> 1);
-
-	var pos = object_position(spot);
+	if (typeof spot !== 'undefined') {
+		var pos = object_position(spot);
+	} else {
+		var pos = {
+			left: parseInt($('div.playarea').attr('start_x')) * grid_cell_size,
+			top:  parseInt($('div.playarea').attr('start_y')) * grid_cell_size
+		};
+	}
 
 	pos_x += pos.left + (grid_cell_size >> 1);
 	pos_y += pos.top + (grid_cell_size >> 1);
@@ -176,6 +184,32 @@ function scroll_to_my_character(speed = 1000) {
 		scrollLeft: pos_x,
 		scrollTop:  pos_y
 	}, speed);
+}
+
+function toggle_fullscreen() {
+	var playarea = $('div.playarea');
+
+	if (fullscreen == false) {
+		fullscreen_backup = playarea.css('bottom');
+		playarea.css({
+			top: 0,
+			right: 0,
+			bottom: 0,
+			left: 0
+		});
+		$('div.draw-tools').hide();
+
+		fullscreen = true;
+	} else {
+		playarea.removeAttr('style');
+		if (fullscreen_backup != undefined) {
+			playarea.css('bottom', fullscreen_backup);
+		}
+		$('div.draw-tools').show();
+
+		fullscreen = false;
+		fullscreen_backup = undefined;
+	}
 }
 
 function write_sidebar(message) {
@@ -266,7 +300,11 @@ function dice_roll_quick(dice, addition, callback) {
 function roll_dice(dice_input, send_to_others = true) {
 	if (dice == '') {
 		wf_dice_roll.open();
-		return;
+		return true;
+	}
+
+	if (dice_input.indexOf('d') == -1) {
+		return false;
 	}
 
 	dice_str = dice_input.replace(/ /g, '');
@@ -461,13 +499,13 @@ function show_help() {
 	var help = [];
 	Object.assign(commands, extra);
 	for (const [key, value] of Object.entries(commands)) {
-		help.push('<b>/' + key + '</b>: ' + value + '<br />');
+		help.push('<b>/' + key + '</b>: ' + value);
 	}
 
 	help.sort();
 
 	help.push('<b>&lt;message&gt;</b>: Send text message.<br />');
-	help.push('<br />Right-click an icon or the map for a menu with options. Move a character via w, a, s and d and rotate via q and e.');
+	help.push('Right-click an icon or the map for a menu with options. Move a character via w, a, s and d and rotate via q and e.');
 
 	write_sidebar(help.join('\n'));
 }
@@ -1795,9 +1833,9 @@ function points_distance(pos1_x, pos1_y, pos2_x, pos2_y) {
 
 function blinder_position(blinder) {
 	var pos1_x = parseInt(blinder.attr('pos1_x'));
-	var pos1_y = parseInt(blinder.attr('pos1_y'));
+	var pos1_y = parseInt(blinder.attr('pos1_y')) - 2;
 	var pos2_x = parseInt(blinder.attr('pos2_x'));
-	var pos2_y = parseInt(blinder.attr('pos2_y'));
+	var pos2_y = parseInt(blinder.attr('pos2_y')) - 2;
 	var angle = points_angle(pos1_x, pos1_y, pos2_x, pos2_y);
 	var distance = points_distance(pos1_x, pos1_y, pos2_x, pos2_y);
 
@@ -2825,7 +2863,7 @@ function context_menu_handler(key, options) {
 			var pos_x = coord_to_grid(mouse_x, false);
 			var pos_y = coord_to_grid(mouse_y, false);
 
-			wf_light_create = $('<p><input id="light_new" type="text" value="3" class="form-control" /></p>').windowframe({
+			wf_light_create = $('<div><label for="light_new">Light radius:</label><input id="light_new" type="text" value="3" class="form-control" /></div>').windowframe({
 				width: 530,
 				style: 'danger',
 				header: 'Create light',
@@ -3141,26 +3179,40 @@ function context_menu_handler(key, options) {
 
 function key_down(event) {
 	if (event.which == 16) {
+		// Shift
 		shift_down = true;
 	} else if (event.which == 17) {
+		// CTRL
 		ctrl_down = true;
 	} else if (event.which == 18) {
+		// ALT
 		alt_down = true;
-	} else if (event.which == 19) {
-		wf_dice_roll.open();
+	} else if (event.which == 192) {
+		// back-quote
+		if ($('div.diceroll').is(':visible') == false) {
+			wf_dice_roll.open();
+		} else {
+			wf_dice_roll.close();
+		}
+	} else if (event.which == 9) {
+		// TAB
+		toggle_fullscreen();
 	}
 }
 
 function key_up(event) {
 	if (event.which == 16) {
+		// Shift
 		shift_down = false;
 		$('canvas#drawing').off('mousemove');
 	} else if (event.which == 17) {
+		// CTRL
 		ctrl_down = false;
 		if (shift_down == false) {
 			$('canvas#drawing').off('mousemove');
 		}
 	} else if (event.which == 18) {
+		// ALT
 		alt_down = false;
 	}
 }
@@ -3199,7 +3251,7 @@ $(document).ready(function() {
 		websocket_send(data);
 
 		if (dungeon_master) {
-			var color = $('div.menu div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').css('background-color');
+			var color = $('div.draw-tools div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').css('background-color');
 			var data = {
 				action: 'draw_color',
 				color: color
@@ -3218,7 +3270,7 @@ $(document).ready(function() {
 			websocket_send(data);
 		}
 
-		$('div.menu div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').trigger('click');
+		$('div.draw-tools div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').trigger('click');
 
 		write_sidebar('Connection established.');
 		var role = (dungeon_master) ? 'being the' : 'playing';
@@ -3339,8 +3391,22 @@ $(document).ready(function() {
 					case 'unlocked': door_show_unlocked(obj); break;
 				}
 				break;
+			case 'draw_brush':
+				drawing_ctx.beginPath();
+				var img = new Image();
+				img.src = data.brush;
+				img.onload = function() {
+					var pattern = drawing_ctx.createPattern(img, 'repeat');
+					drawing_ctx.strokeStyle = pattern;
+				};
+				sleep(250);
+				break
 			case 'draw_clear':
 				drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
+
+				if (fow_type == FOW_ERASE) {
+					fog_of_war_reset(false);
+				}
 				break
 			case 'draw_color':
 				drawing_ctx.beginPath();
@@ -3711,36 +3777,16 @@ $(document).ready(function() {
 		});
 		event.stopPropagation();
 	});
+
 	$('div.menu').on('click', function(event) {
 		event.stopPropagation();
 	});
+
 	$('div.menu button').on('click', function(event) {
 		$('div.menu').hide();
 	});
-	$('div.menu span').on('click', function(event) {
-		$('div.menu').hide();
-	});
-	$('div.menu div.ui-slider-handle').on('mousedown', function(event) {
-		$('body').one('mouseup', function() {
-			$('div.menu').hide();
-		});
-	});
+
 	$('div.menu').css('z-index', LAYER_MENU);
-	$('div.menu div.draw-colors span').click(function() {
-		var color = $(this).css('background-color');
-
-		drawing_ctx.strokeStyle = color;
-
-		var data = {
-			action: 'draw_color',
-			color: color
-		};
-		websocket_send(data);
-		drawing_history.push(data);
-
-		$('div.menu div.draw-colors span').css('box-shadow', '');
-		$(this).css('box-shadow', '0 0 5px #0080ff');
-	});
 
 	var map = $('div.playarea > div');
 	var width = Math.round(map.width());
@@ -3773,6 +3819,7 @@ $(document).ready(function() {
 	if (dungeon_master) {	
 		var handle = $('div#draw_width div');
 		$('div#draw_width').slider({
+			value: DRAW_DEFAULT_WIDTH,
 			min: 1,
 			max: grid_cell_size,
 			create: function() {
@@ -3800,7 +3847,13 @@ $(document).ready(function() {
 
 			if (shift_down) {
 				drawing_ctx.globalCompositeOperation = 'destination-out';
-				drawing_ctx.lineWidth = ctrl_down ? 50 : 15;
+				if (ctrl_down == false) {
+					drawing_ctx.lineWidth = DRAW_ERASE_THIN;
+				} else if (alt_down) {
+					drawing_ctx.lineWidth = grid_cell_size;
+				} else {
+					drawing_ctx.lineWidth = DRAW_ERASE_THICK;
+				}
 			} else if (ctrl_down) {
 				drawing_ctx.globalCompositeOperation = 'source-over';
 				drawing_ctx.lineWidth = parseInt($('div#draw_width div').text());
@@ -3905,7 +3958,44 @@ $(document).ready(function() {
 			});
 		});
 
-		$('button#draw_clear').click(function() {
+		$('div.draw-tools div.draw-colors span').click(function() {
+			var color = $(this).css('background-color');
+
+			drawing_ctx.strokeStyle = color;
+
+			var data = {
+				action: 'draw_color',
+				color: color
+			};
+			websocket_send(data);
+			drawing_history.push(data);
+
+			$('div.draw-tools div.draw-colors span').css('box-shadow', '');
+			$('div.draw-tools div.draw-brushes span').css('box-shadow', '');
+			$(this).css('box-shadow', '0 0 5px 2px #0080ff');
+		});
+
+		$('div.draw-tools div.draw-brushes span').click(function() {
+			var img = new Image();
+			img.src = $(this).attr('brush');
+			img.onload = function() {
+				var pattern = drawing_ctx.createPattern(img, 'repeat');
+				drawing_ctx.strokeStyle = pattern;
+			};
+
+			var data = {
+				action: 'draw_brush',
+				brush: $(this).attr('brush')
+			};
+			websocket_send(data);
+			drawing_history.push(data);
+
+			$('div.draw-tools div.draw-colors span').css('box-shadow', '');
+			$('div.draw-tools div.draw-brushes span').css('box-shadow', '');
+			$(this).css('box-shadow', '0 0 5px 2px #0080ff');
+		});
+
+		$('button.draw_clear').click(function() {
 			var image = $('div#map_background').css('background-image');
 			image = image.substring(image.length - 15, image.length - 2);
 
@@ -3944,6 +4034,10 @@ $(document).ready(function() {
 						drawing_history.push(data);
 
 						drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
+
+						if (fow_type == FOW_ERASE) { 
+							fog_of_war_reset(true);
+						}
 
 						/* Effects
 						 */
@@ -4202,7 +4296,7 @@ $(document).ready(function() {
 			menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
 			menu_entries['sep2'] = '-';
 
-			if (fow_type != FOW_OFF) {
+			if ((fow_type != FOW_OFF) && (fow_type != FOW_ERASE)) {
 				if ($(this).parent().is(fow_obj)) {
 					menu_entries['fow_show'] = { name:'Remove Fog of War', icon:'fa-mixcloud' };
 				} else {
@@ -4369,6 +4463,14 @@ $(document).ready(function() {
 				$('ul.audio').empty();
 			}
 		});
+
+		if (fow_type == FOW_ERASE) {
+			fog_of_war_init(LAYER_FOG_OF_WAR, true);
+		}
+
+		/* Draw tools
+		 */
+		$('div.playarea').css('bottom', '90px');
 	} else {
 		/* Player settings
 		 /*/
@@ -4446,7 +4548,9 @@ $(document).ready(function() {
 
 			/* Fog of war
 			 */
-			if (fow_type != FOW_OFF) {
+			if (fow_type == FOW_ERASE) {
+				fog_of_war_init(LAYER_FOG_OF_WAR, false);
+			} else if (fow_type != FOW_OFF) {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
 				if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
 					fog_of_war_set_distance(fow_default_distance);
@@ -4643,6 +4747,10 @@ $(document).ready(function() {
 		interface_color($(this));
 	});
 
+	$('button.fullscreen').click(function() {
+		toggle_fullscreen();
+	});
+
 	$('select.map-selector').on('change', function() {
 		map_switch();
 	});
@@ -4717,11 +4825,38 @@ $(document).ready(function() {
 		if (rolls == undefined) {
 			return;
 		}
-
 		rolls = JSON.parse(rolls);
+
 		for ([key, value] of Object.entries(rolls)) {
-			var buttons = $('<div class="btn-group"><input type="button" value="' + key + '" title="' + value + '" class="btn btn-default roll" /><input type="button" value="X" class="btn btn-default remove" /></div>');
-			buttons.find('input.roll').click(function() {
+			rolls[key] = {
+				roll: value,
+				global: true
+			};
+		};
+
+		$('div.weapons div').each(function() {
+			rolls[$(this).text()] = {
+				roll: $(this).attr('roll'),
+				global: false
+			};
+		});
+
+		rolls = Object.keys(rolls).sort().reduce((accumulator, key) => {
+			accumulator[key] = rolls[key];
+			return accumulator;
+		}, {});
+
+		for ([key, value] of Object.entries(rolls)) {
+			var roll = value['roll'];
+			var global = value['global'];
+
+			if (global) {
+				var button = $('<div class="btn-group"><input type="button" value="' + key + '" title="' + roll + '" class="btn btn-default roll" /><input type="button" value="X" class="btn btn-default remove" /></div>');
+			} else {
+				var button = $('<div class="btn-group"><input type="button" value="' + key + '" title="' + roll + '" class="btn btn-primary roll" /></div>');
+			}
+
+			button.find('input.roll').click(function() {
 				wf_dice_roll.close();
 
 				write_sidebar('Rolling for ' + $(this).attr('value').toLowerCase() + '.');
@@ -4729,7 +4864,7 @@ $(document).ready(function() {
 				roll_dice(dice, dungeon_master == false);
 				input_history_add('/roll ' + dice);
 			});
-			buttons.find('input.remove').click(function() {
+			button.find('input.remove').click(function() {
 				if (confirm('Delete dice?')) {
 					var key = $(this).parent().find('input.roll').attr('value');
 					var rolls = localStorage.getItem('dicerolls');
@@ -4740,7 +4875,7 @@ $(document).ready(function() {
 					dice_roll_init();
 				}
 			});
-			defined.append(buttons);
+			defined.append(button);
 		};
 	}
 
@@ -4785,11 +4920,6 @@ $(document).ready(function() {
 				}
 
 				rolls[name] = roll;
-
-				rolls = Object.keys(rolls).sort().reduce((accumulator, key) => {
-					accumulator[key] = rolls[key];
-					return accumulator;
-				}, {});
 
 				localStorage.setItem('dicerolls', JSON.stringify(rolls));
 

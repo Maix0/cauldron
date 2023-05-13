@@ -222,6 +222,10 @@
 				return false;
 			}
 
+			if (($blinder["pos1_x"] == $blinder["pos2_x"]) && ($blinder["pos1_y"] == $blinder["pos2_y"])) {
+				return false;
+			}
+
 			$query = "select * from maps where id=%d";
 			if (($maps = $this->db->execute($query, $blinder["map_id"])) == false) {
 				return false;
@@ -389,6 +393,10 @@
 				return false;
 			}
 
+			if ($door["length"] == 0) {
+				return false;
+			}
+
 			$data = array(
 				"id"        => null,
 				"map_id"    => (int)$door["map_id"],
@@ -510,6 +518,10 @@
 
 		public function wall_create($wall) {
 			if ($this->valid_map_id($wall["map_id"]) == false) {
+				return false;
+			}
+
+			if ($wall["length"] == 0) {
 				return false;
 			}
 

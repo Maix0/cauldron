@@ -448,7 +448,7 @@
 				"PROTOCOL" => $_SERVER["HTTP_SCHEME"],
 				"TITLE"    => $this->settings->head_title);
 
-			$email = new \Banshee\Protocol\email("Account ".$type." at ".$_SERVER["SERVER_NAME"], $this->settings->webmaster_email);
+			$email = new cauldron_email("Account ".$type." at ".$_SERVER["SERVER_NAME"], $this->settings->webmaster_email);
 			$email->set_message_fields($replace);
 			$email->message($message);
 

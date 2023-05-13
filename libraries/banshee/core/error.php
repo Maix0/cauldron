@@ -19,13 +19,13 @@
 
 		header("Content-Type: text/html");
 		print "<!DOCTYPE html><html><body>\n";
-		print "<h1>Banshee exception</h1>\n";
+		print "<h1>Cauldron VTT exception</h1>\n";
 
 		if (is_true(DEBUG_MODE)) {
 			printf("<p style=\"white-space:pre-wrap\">%s</p>\n", $error->getMessage());
 			printf("<p>line %d in %s.</p>\n",  $error->getLine(), $error->getFile());
 		} else {
-			printf("<p>Contact your website administrator to solve this issue.</p>\n");
+			printf("<p>I'm sorry you encountered this error. The website administrator has been notified about the problem. It will be solved soon.</p>\n");
 			$message = sprintf("%s=> %s\nline %d in %s\n", $previous, $error->getMessage(), $error->getLine(), $error->getFile());
 			$error_handler = new website_error_handler($GLOBALS["_view"], $GLOBALS["_settings"], $GLOBALS["_user"]);
 			$error_handler->execute($message);

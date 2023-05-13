@@ -43,10 +43,7 @@
 			if (substr($image, 0, 6) == "GIF89a") {
 				$this->set_image_format("gif");
 				$this->from_string($image);
-			} else if (substr($image, 6, 4) == "JFIF") {
-				$this->set_image_format("jpeg");
-				$this->from_string($image);
-			} else if (substr($image, 6, 4) == "Exif") {
+			} else if (substr($image, 0, 3) == "\xFF\xD8\xFF") {
 				$this->set_image_format("jpeg");
 				$this->from_string($image);
 			} else if (substr($image, 1, 3) == "PNG") {

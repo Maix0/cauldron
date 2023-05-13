@@ -14,6 +14,7 @@
 <div class="panel panel-default">
 <div class="panel-heading">
 <xsl:value-of select="name" />
+<a href="{/output/page}/weapon/{@id}" title="Weapons"><span class="fa fa-legal" aria-hidden="true"></span></a>
 <a href="{/output/page}/alternate/{@id}" title="Alternate icons"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></a>
 <a href="{/output/page}/{@id}" title="Edit character"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
 </div>
@@ -84,12 +85,12 @@
 <div class="row">
 
 <div class="col-sm-4">
-<form action="/{/output/page}" method="post"  enctype="multipart/form-data">
+<form action="/{/output/page}" method="post" enctype="multipart/form-data">
 <input type="hidden" name="char_id" value="{@char_id}" />
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{character/name}" maxlength="25" class="form-control" />
+<input type="text" id="name" name="name" value="{../name}" maxlength="25" class="form-control" />
 <label for="size">Size:</label>
-<select name="size" class="form-control"><xsl:for-each select="sizes/size"><option value="{@value}"><xsl:value-of select="." /></option></xsl:for-each></select>
+<select name="size" class="form-control"><xsl:for-each select="sizes/size"><option value="{@value}"><xsl:if test="../../../size=@value"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option></xsl:for-each></select>
 <label for="icon">Alternate icon (make sure the token is facing down):</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
@@ -114,7 +115,57 @@
 
 </div>
 </div>
+</xsl:template>
 
+<!--
+//
+//  Weapons template
+//
+//-->
+<xsl:template match="weapons">
+<xsl:call-template name="show_messages" />
+<p>Weapons for <xsl:value-of select="@character" />.</p>
+<div class="row">
+
+<div class="col-sm-4">
+<form action="/{/output/page}" method="post">
+<input type="hidden" name="char_id" value="{@char_id}" />
+<label for="name">Name:</label>
+<input type="text" id="name" name="name" value="{../name}" maxlength="25" class="form-control" />
+<label for="name">Roll:</label>
+<input type="text" id="roll" name="roll" value="{../roll}" maxlength="25" class="form-control" />
+
+<div class="btn-group">
+<input type="submit" name="submit_button" value="Add weapon" class="btn btn-default" />
+<a href="/character" class="btn btn-default">Back</a>
+</div>
+</form>
+</div>
+
+<div class="col-sm-8">
+
+<div class="row">
+<table class="table table-striped table-condensed weapons">
+<thead><tr><th>Weapon</th><th>Roll</th><th></th></tr></thead>
+<tbody>
+<xsl:for-each select="weapon">
+<tr>
+<td><xsl:value-of select="name" /></td>
+<td><xsl:value-of select="roll" /></td>
+<td><form action="/{/output/page}" method="post"><input type="hidden" name="weapon_id" value="{@id}" /><input type="submit" name="submit_button" value="remove" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></td>
+</tr>
+</xsl:for-each>
+</tbody>
+</table>
+</div>
+
+</div>
+</div>
+
+<div id="help">
+<p>The weapons and their dice rolls will be added to the Dice roll window of the adventure page.</p>
+<p>The roll field must contain a valid dice roll string, like '1d8+2' or '3d6'.</p>
+</div>
 </xsl:template>
 
 <!--
@@ -123,10 +174,11 @@
 //
 //-->
 <xsl:template match="content">
-<h1>Characters</h1>
+<h1><xsl:value-of select="/output/layout/title/@page" /></h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="alternates" />
+<xsl:apply-templates select="weapons" />
 <xsl:apply-templates select="result" />
 </xsl:template>
 

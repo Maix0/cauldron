@@ -79,12 +79,16 @@
 				return false;
 			}
 
-			$query = "select count(*) as count from map_token where token_id=%d";
-			if (($tokens = $this->db->execute($query, $token["id"])) === false) {
+			$query = "select distinct m.title from maps m, map_token t where m.id=t.map_id and token_id=%d order by title";
+			if (($maps = $this->db->execute($query, $token["id"])) === false) {
 				$this->view->add_message("Database error.");
 				$result = false;
-			} else if ($tokens[0]["count"] > 0) {
-				$this->view->add_message("This token is being used.");
+			} else if (count($maps) > 0) {
+				$titles = array();
+				foreach ($maps as $map) {
+					array_push($titles, $map["title"]);
+				}
+				$this->view->add_message("This token is being used in the following maps: ".implode(", ", $titles));
 				$result = false;
 			}
 

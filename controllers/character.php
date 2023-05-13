@@ -6,6 +6,8 @@
 				return;
 			}
 
+			$this->view->add_css("banshee/font-awesome.css");
+
 			$this->view->open_tag("overview");
 
 			$this->view->open_tag("characters");
@@ -27,6 +29,8 @@
 		}
 
 		private function show_alternate_form($character_id) {
+			$this->view->title = "Character alternate icons";
+
 			if (($character = $this->model->get_character($character_id)) == false) {
 				$this->view->add_tag("result", "Character not found.");
 				return;
@@ -57,6 +61,34 @@
 			
 			$this->view->close_tag();
 		}
+
+		private function show_weapon_form($character_id) {
+			$this->view->title = "Character weapons";
+
+			if (($character = $this->model->get_character($character_id)) == false) {
+				$this->view->add_tag("result", "Character not found.");
+				return;
+			}
+
+			if (($weapons = $this->model->get_weapons($character_id)) === false) {
+				$this->view->add_tag("result", "Database error.");
+				return;
+			}
+
+			$this->view->add_help_button();
+
+			$attr = array(
+				"char_id"   => $character["id"],
+				"character" => $character["name"]);
+			$this->view->open_tag("weapons", $attr);
+
+			foreach ($weapons as $weapon) {
+				$this->view->record($weapon, "weapon");
+			}
+
+			$this->view->close_tag();
+		}
+
 
 		public function execute() {
 			$this->view->title = "Characters";
@@ -112,23 +144,57 @@
 						if ($this->model->add_icon($_POST, $_FILES["icon"]) == false) {
 							$this->view->add_message("Error adding alternate icon.");
 						}
+					} else {
+						$this->view->add_tag("name", $_POST["name"]);
+						$this->view->add_tag("size", $_POST["size"]);
 					}
 					$this->show_alternate_form($_POST["char_id"]);
 				} else if ($_POST["submit_button"] == "delete") {
 					/* Delete alternate icon
 					 */
 					if (($char_id = $this->model->delete_icon($_POST["icon_id"])) == false) {
-						$this->view->add_system_warning("Portrait not found.");
+						$this->view->add_system_warning("Icon not found.");
 						$this->show_overview();
 					} else {
 						$this->show_alternate_form($char_id);
+					}
+				} else if ($_POST["submit_button"] == "Add weapon") {
+					/* Add weapon
+					 */
+					if ($this->model->weapon_okay($_POST) != false) {
+						if ($this->model->add_weapon($_POST) == false) {
+							$this->view->add_message("Error adding alternate icon.");
+						}
+					} else {
+						$this->view->add_tag("name", $_POST["name"]);
+						$this->view->add_tag("roll", $_POST["roll"]);
+					}
+					$this->show_weapon_form($_POST["char_id"]);
+				} else if ($_POST["submit_button"] == "remove") {
+					/* Delete alternate icon
+					 */
+					if (($char_id = $this->model->delete_weapon($_POST["weapon_id"])) == false) {
+						$this->view->add_system_warning("Weapon not found.");
+						$this->show_overview();
+					} else {
+						$this->show_weapon_form($char_id);
 					}
 				} else {
 					$this->show_overview();
 				}
 			} else if ($this->page->parameter_value(0, "alternate")) {
+				/* Alternate icon
+				 */
 				if (valid_input($this->page->parameters[1], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
 					$this->show_alternate_form($this->page->parameters[1]);
+				} else {
+					$this->show_overview();
+				}
+			} else if ($this->page->parameter_value(0, "weapon")) {
+				/* Weapon
+				 */
+				if (valid_input($this->page->parameters[1], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
+					$this->show_weapon_form($this->page->parameters[1]);
 				} else {
 					$this->show_overview();
 				}

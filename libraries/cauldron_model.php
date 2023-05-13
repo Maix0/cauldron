@@ -72,5 +72,20 @@
 
 			return $files;
 		}
+
+		public function generate_filename($str) {
+			$valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ ";
+
+			$result = "";
+			$len = strlen($str);
+			for ($i = 0; $i < $len; $i++) {
+				$c = substr($str, $i, 1);
+				if (strpos($valid, $c) !== false) {
+					$result .= $c;
+				}
+			}
+
+			return $result;
+		}
 	}
 ?>

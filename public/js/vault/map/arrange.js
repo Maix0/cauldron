@@ -9,6 +9,8 @@ var adventure_id = null;
 var map_id = null;
 var resources_key = null;
 var grid_cell_size = null;
+var grid_size = null;
+var grid_factor = null;
 var z_index = DEFAULT_Z_INDEX;
 var constructs_visible = true;
 var wf_script_editor = null;
@@ -125,6 +127,7 @@ function key_down(event) {
 		blinder_stop();
 		door_stop();
 		wall_stop();
+		measuring_stop();
 	}
 }
 
@@ -744,7 +747,7 @@ function light_create(pos_x, pos_y, radius) {
 			}
 		});
 
-		$('div#light' + instance_id).contextmenu(function(event) {
+		$('img#light' + instance_id).contextmenu(function(event) {
 			var menu_entries = {};
 
 			menu_entries['light_radius'] = { name:'Radius', icon:'fa-dot-circle-o' };
@@ -1059,14 +1062,23 @@ function context_menu_handler(key, options) {
 			});
 
 			$('div.playarea').on('click', function(event) {
+				var pos1_x = parseInt($('div.playarea div#new_blinder').attr('pos1_x'));
+				var pos1_y = parseInt($('div.playarea div#new_blinder').attr('pos1_y'));
+				var pos2_x = parseInt($('div.playarea div#new_blinder').attr('pos2_x'));
+				var pos2_y = parseInt($('div.playarea div#new_blinder').attr('pos2_y'));
+
+				if ((pos1_x == pos2_x) && (pos1_y == pos2_y)) {
+					return;
+				}
+
 				if (ctrl_down == false) {
 					blinder_stop(false);
 				}
 
-				var pos1_x = $('div.playarea div#new_blinder').attr('pos1_x');
-				var pos1_y = $('div.playarea div#new_blinder').attr('pos1_y');
-				var pos2_x = $('div.playarea div#new_blinder').attr('pos2_x');
-				var pos2_y = $('div.playarea div#new_blinder').attr('pos2_y');
+				pos1_x *= grid_factor;
+				pos1_y *= grid_factor;
+				pos2_x *= grid_factor;
+				pos2_y *= grid_factor;
 
 				blinder_create(pos1_x, pos1_y, pos2_x, pos2_y);
 
@@ -1215,11 +1227,15 @@ function context_menu_handler(key, options) {
 			});
 
 			$('div.playarea').on('click', function(event) {
+				var length = parseInt($('div.playarea div#new_door').attr('length'));
+				if (length == 0) {
+					return;
+				}
+
 				door_stop(false);
 
 				var pos_x = $('div.playarea div#new_door').attr('pos_x');
 				var pos_y = $('div.playarea div#new_door').attr('pos_y');
-				var length = $('div.playarea div#new_door').attr('length');
 				var direction = $('div.playarea div#new_door').attr('direction');
 
 				door_create(pos_x, pos_y, length, direction, 'closed');
@@ -1281,7 +1297,7 @@ function context_menu_handler(key, options) {
 			var pos_x = coord_to_grid(mouse_x, false) / grid_cell_size;
 			var pos_y = coord_to_grid(mouse_y, false) / grid_cell_size;
 
-			wf_light_create = $('<p><input id="light_new" type="text" value="3" class="form-control" /></p>').windowframe({
+			wf_light_create = $('<div><label for="light_new">Light radius:</label><input id="light_new" type="text" value="3" class="form-control" /></div>').windowframe({
 				width: 530,
 				style: 'danger',
 				header: 'Create light',
@@ -1318,10 +1334,10 @@ function context_menu_handler(key, options) {
 		case 'light_radius':
 			var radius = obj.attr('radius');
 			
-			wf_light_edit = $('<p><input id="light_edit" type="text" value="' + radius + '" class="form-control" /></p>').windowframe({
+			wf_light_edit = $('<div><label for="light_edit">Light radius:</label><input id="light_edit" type="text" value="' + radius + '" class="form-control" /></div>').windowframe({
 				width: 530,
 				style: 'danger',
-				header: 'Create light',
+				header: 'Edit light',
 				buttons: {
 					'Create': function() {
 						var radius = parseInt($('input#light_edit').val());
@@ -1446,13 +1462,17 @@ function context_menu_handler(key, options) {
 			});
 
 			$('div.playarea').on('click', function(event) {
+				var length = parseInt($('div.playarea div#new_wall').attr('length'));
+				if (length == 0) {
+					return;
+				}
+
 				if (ctrl_down == false) {
 					wall_stop(false);
 				}
 
 				var pos_x = $('div.playarea div#new_wall').attr('pos_x');
 				var pos_y = $('div.playarea div#new_wall').attr('pos_y');
-				var length = $('div.playarea div#new_wall').attr('length');
 				var direction = $('div.playarea div#new_wall').attr('direction');
 
 				if ((length == 0) || (length == undefined)) {
@@ -1508,6 +1528,8 @@ $(document).ready(function() {
 	map_id = parseInt($('div.playarea').attr('map_id'));
 	resources_key = parseInt($('div.playarea').attr('resources_key'));
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
+	grid_size = parseFloat($('div.playarea').attr('grid_size'));
+	grid_factor = grid_size / Math.floor(grid_size);
 
 	/* Show grid
 	 */

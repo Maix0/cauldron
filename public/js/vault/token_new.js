@@ -24,13 +24,13 @@ var monsters = [
 		source: 'BAM',
 		page: '8'
 	},{
-		name: 'Aartuk Priest',
+		name: 'Aartuk Starhorror',
 		hp: '52',
 		ac: '14',
 		source: 'BAM',
 		page: '9'
 	},{
-		name: 'Aartuk Warrior',
+		name: 'Aartuk Weedling',
 		hp: '38',
 		ac: '15',
 		source: 'BAM',
@@ -276,6 +276,12 @@ var monsters = [
 		source: 'MM',
 		page: '101'
 	},{
+		name: 'Aegisaur',
+		hp: '68',
+		ac: '15',
+		source: 'PSX',
+		page: '28'
+	},{
 		name: 'Aeorian Absorber',
 		hp: '171',
 		ac: '15',
@@ -300,17 +306,29 @@ var monsters = [
 		source: 'PotA',
 		page: '192'
 	},{
+		name: 'Aerosaur (Large)',
+		hp: '30',
+		ac: '13',
+		source: 'PSX',
+		page: '29'
+	},{
+		name: 'Aerosaur (Small)',
+		hp: '13',
+		ac: '13',
+		source: 'PSX',
+		page: '29'
+	},{
 		name: 'Afsoun Ghorbani',
 		hp: '99',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '162'
 	},{
 		name: 'Agathe Silverspoon',
 		hp: '15',
 		ac: '13',
 		source: 'CRCotN',
-		page: '?'
+		page: '21'
 	},{
 		name: 'Agdon Longscarf',
 		hp: '36',
@@ -347,6 +365,12 @@ var monsters = [
 		ac: '15',
 		source: 'MM',
 		page: '124'
+	},{
+		name: 'Air Totem Elemental',
+		hp: '90',
+		ac: '15',
+		source: 'PSX',
+		page: '38'
 	},{
 		name: 'Akroan Hoplite',
 		hp: '52',
@@ -466,7 +490,7 @@ var monsters = [
 		hp: '66',
 		ac: '12',
 		source: 'CRCotN',
-		page: '?'
+		page: '61'
 	},{
 		name: 'Alseid',
 		hp: '22',
@@ -514,7 +538,7 @@ var monsters = [
 		hp: '27',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '127'
 	},{
 		name: 'Amarith Coppervein',
 		hp: '58',
@@ -540,6 +564,12 @@ var monsters = [
 		source: 'HotDQ',
 		page: '88'
 	},{
+		name: 'Amelia Ghallen',
+		hp: '58',
+		ac: '17',
+		source: 'DSotDQ',
+		page: '180'
+	},{
 		name: 'Amethyst Dragon Wyrmling',
 		hp: '75',
 		ac: '17',
@@ -556,7 +586,7 @@ var monsters = [
 		hp: '27',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '108'
 	},{
 		name: 'Amidor the Dandelion',
 		hp: '28',
@@ -798,6 +828,12 @@ var monsters = [
 		source: 'MM',
 		page: '100'
 	},{
+		name: 'Andir Valmakos',
+		hp: '11',
+		ac: '12',
+		source: 'DSotDQ',
+		page: '210'
+	},{
 		name: 'Andras',
 		hp: '78',
 		ac: '15',
@@ -819,6 +855,12 @@ var monsters = [
 		name: 'Angel',
 		hp: '136',
 		ac: '17',
+		source: 'PSK',
+		page: '27'
+	},{
+		name: 'Angel',
+		hp: '136',
+		ac: '17',
 		source: 'PSZ',
 		page: '21'
 	},{
@@ -827,6 +869,12 @@ var monsters = [
 		ac: '18',
 		source: 'MPMM',
 		page: '222'
+	},{
+		name: 'Anhkolox',
+		hp: '157',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '192'
 	},{
 		name: 'Animated Armor',
 		hp: '33',
@@ -960,6 +1008,12 @@ var monsters = [
 		source: 'WDMM',
 		page: '299'
 	},{
+		name: 'Animatronic Allosaurus',
+		hp: '51',
+		ac: '13',
+		source: 'KftGV',
+		page: '22'
+	},{
 		name: 'Ankheg',
 		hp: '39',
 		ac: '14',
@@ -1054,7 +1108,7 @@ var monsters = [
 		hp: '127',
 		ac: '13',
 		source: 'CRCotN',
-		page: '?'
+		page: '82'
 	},{
 		name: 'Arasta',
 		hp: '300',
@@ -1158,6 +1212,24 @@ var monsters = [
 		source: 'BGDIA',
 		page: '111'
 	},{
+		name: 'Arlo Kettletoe (Levels 1-4)',
+		hp: '65',
+		ac: '15',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Arlo Kettletoe (Levels 5-8)',
+		hp: '52',
+		ac: '18',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Arlo Kettletoe (Levels 9-11)',
+		hp: '40',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Armanite',
 		hp: '84',
 		ac: '16',
@@ -1169,6 +1241,12 @@ var monsters = [
 		ac: '16',
 		source: 'MPMM',
 		page: '50'
+	},{
+		name: 'Armasaur',
+		hp: '76',
+		ac: '13',
+		source: 'PSX',
+		page: '28'
 	},{
 		name: 'Armored Saber-Toothed Tiger',
 		hp: '52',
@@ -1222,7 +1300,7 @@ var monsters = [
 		hp: '66',
 		ac: '12',
 		source: 'CRCotN',
-		page: '?'
+		page: '115'
 	},{
 		name: 'Asharra',
 		hp: '31',
@@ -1236,35 +1314,71 @@ var monsters = [
 		source: 'TftYP',
 		page: '158'
 	},{
+		name: 'Ashen Animated Armor',
+		hp: '33',
+		ac: '18',
+		source: 'KftGV',
+		page: '157'
+	},{
+		name: 'Ashen Flying Sword',
+		hp: '17',
+		ac: '17',
+		source: 'KftGV',
+		page: '157'
+	},{
 		name: 'Ashen Heir Anarchist',
 		hp: '27',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '158'
 	},{
 		name: 'Ashen Heir Assassin',
 		hp: '78',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '158'
 	},{
 		name: 'Ashen Heir Mage',
 		hp: '40',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '158'
 	},{
 		name: 'Ashen Heir Veteran',
 		hp: '58',
 		ac: '17',
 		source: 'JttRC',
-		page: '?'
+		page: '158'
+	},{
+		name: 'Ashen Knight',
+		hp: '52',
+		ac: '18',
+		source: 'KftGV',
+		page: '158'
 	},{
 		name: 'Ashen Rider',
 		hp: '178',
 		ac: '18',
 		source: 'MOT',
 		page: '213'
+	},{
+		name: 'Ashen Shambling Mound',
+		hp: '136',
+		ac: '15',
+		source: 'KftGV',
+		page: '158'
+	},{
+		name: 'Ashen Veteran',
+		hp: '58',
+		ac: '17',
+		source: 'KftGV',
+		page: '154'
+	},{
+		name: 'Ashen Warhorse',
+		hp: '19',
+		ac: '11',
+		source: 'KftGV',
+		page: '158'
 	},{
 		name: 'Ashtyrranthor',
 		hp: '256',
@@ -1360,13 +1474,13 @@ var monsters = [
 		hp: '243',
 		ac: '21',
 		source: 'JttRC',
-		page: '?'
+		page: '166'
 	},{
 		name: 'Atiba-Pa',
 		hp: '27',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '171'
 	},{
 		name: 'Atropal',
 		hp: '225',
@@ -1384,7 +1498,13 @@ var monsters = [
 		hp: '4',
 		ac: '10',
 		source: 'JttRC',
-		page: '?'
+		page: '36'
+	},{
+		name: 'Aurak Draconian',
+		hp: '67',
+		ac: '17',
+		source: 'DSotDQ',
+		page: '196'
 	},{
 		name: 'Aurelia',
 		hp: '287',
@@ -1471,7 +1591,7 @@ var monsters = [
 		page: '269'
 	},{
 		name: 'Avatar of Death',
-		hp: '7',
+		hp: '13',
 		ac: 'half',
 		source: 'DMG',
 		page: '164'
@@ -1486,7 +1606,7 @@ var monsters = [
 		hp: '4',
 		ac: '10',
 		source: 'JttRC',
-		page: '?'
+		page: '95'
 	},{
 		name: 'Awakened Brown Bear',
 		hp: '34',
@@ -1511,6 +1631,12 @@ var monsters = [
 		ac: '10',
 		source: 'WDH',
 		page: '102'
+	},{
+		name: 'Awakened Shrub Totem Elemental',
+		hp: '10',
+		ac: '9',
+		source: 'PSX',
+		page: '38'
 	},{
 		name: 'Awakened Shrub',
 		hp: '10',
@@ -1547,6 +1673,12 @@ var monsters = [
 		ac: '17',
 		source: 'SKT',
 		page: '98'
+	},{
+		name: 'Ayik Ur',
+		hp: '11',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '211'
 	},{
 		name: 'Ayo Jabe (Tier 1)',
 		hp: '65',
@@ -1588,7 +1720,7 @@ var monsters = [
 		hp: '9',
 		ac: '10',
 		source: 'JttRC',
-		page: '?'
+		page: '74'
 	},{
 		name: 'B\'rohg',
 		hp: '92',
@@ -1601,6 +1733,12 @@ var monsters = [
 		ac: '19',
 		source: 'MaBJoV',
 		page: '91'
+	},{
+		name: 'Baaz Draconian',
+		hp: '22',
+		ac: '14',
+		source: 'DSotDQ',
+		page: '197'
 	},{
 		name: 'Baba Lysaga\'s Creeping Hut',
 		hp: '263',
@@ -1661,6 +1799,18 @@ var monsters = [
 		ac: '17',
 		source: 'CM',
 		page: '168'
+	},{
+		name: 'Bakaris Uth Estide',
+		hp: '9',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '54'
+	},{
+		name: 'Bakaris the Younger',
+		hp: '9',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '57'
 	},{
 		name: 'Bakunawa',
 		hp: '150',
@@ -1896,6 +2046,12 @@ var monsters = [
 		source: 'MaBJoV',
 		page: '133'
 	},{
+		name: 'Becklin Uth Viharin',
+		hp: '52',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '55'
+	},{
 		name: 'Behir',
 		hp: '168',
 		ac: '17',
@@ -1943,6 +2099,12 @@ var monsters = [
 		ac: '22',
 		source: 'SCC',
 		page: '186'
+	},{
+		name: 'Belephaion',
+		hp: '152',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '157'
 	},{
 		name: 'Bepis Honeymaker',
 		hp: '4',
@@ -2020,7 +2182,7 @@ var monsters = [
 		hp: '157',
 		ac: '15',
 		source: 'LoX',
-		page: '?'
+		page: '29'
 	},{
 		name: 'Big Water Slurpent',
 		hp: '156',
@@ -2147,6 +2309,18 @@ var monsters = [
 		ac: '17',
 		source: 'HotDQ',
 		page: '89'
+	},{
+		name: 'Blaze',
+		hp: '75',
+		ac: '13',
+		source: 'MCV3MC',
+		page: '3'
+	},{
+		name: 'Blight Totem Elemental',
+		hp: '26',
+		ac: '12',
+		source: 'PSX',
+		page: '38'
 	},{
 		name: 'Blind Artist',
 		hp: '22',
@@ -2442,6 +2616,12 @@ var monsters = [
 		source: 'PSZ',
 		page: '30'
 	},{
+		name: 'Bozak Draconian',
+		hp: '40',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '198'
+	},{
 		name: 'Brackish Trudge',
 		hp: '68',
 		ac: '12',
@@ -2538,6 +2718,12 @@ var monsters = [
 		source: 'CoS',
 		page: '98'
 	},{
+		name: 'Brontodon',
+		hp: '121',
+		ac: '15',
+		source: 'PSX',
+		page: '27'
+	},{
 		name: 'Brontosaurus',
 		hp: '121',
 		ac: '15',
@@ -2590,7 +2776,7 @@ var monsters = [
 		hp: '11',
 		ac: '11',
 		source: 'JttRC',
-		page: '?'
+		page: '178'
 	},{
 		name: 'Brown Bear',
 		hp: '34',
@@ -2760,6 +2946,12 @@ var monsters = [
 		source: 'CM',
 		page: '179'
 	},{
+		name: 'Captain Hask',
+		hp: '67',
+		ac: '17',
+		source: 'DSotDQ',
+		page: '148'
+	},{
 		name: 'Captain N\'ghathrod',
 		hp: '71',
 		ac: '15',
@@ -2777,6 +2969,12 @@ var monsters = [
 		ac: '13',
 		source: 'GoS',
 		page: '14'
+	},{
+		name: 'Caradoc',
+		hp: '110',
+		ac: '14',
+		source: 'DSotDQ',
+		page: '193'
 	},{
 		name: 'Carnivorous Flower',
 		hp: '114',
@@ -2890,7 +3088,7 @@ var monsters = [
 		hp: '45',
 		ac: '11',
 		source: 'CRCotN',
-		page: '?'
+		page: '150'
 	},{
 		name: 'Celestial Spirit',
 		hp: '256',
@@ -2915,6 +3113,12 @@ var monsters = [
 		ac: '12',
 		source: 'MM',
 		page: '38'
+	},{
+		name: 'Ceratops',
+		hp: '95',
+		ac: '13',
+		source: 'PSX',
+		page: '28'
 	},{
 		name: 'Cerodon',
 		hp: '126',
@@ -2969,6 +3173,12 @@ var monsters = [
 		ac: '17',
 		source: 'IDRotF',
 		page: '281'
+	},{
+		name: 'Charmayne Daymore',
+		hp: '123',
+		ac: '12',
+		source: 'KftGV',
+		page: '159'
 	},{
 		name: 'Chasme',
 		hp: '84',
@@ -3180,6 +3390,12 @@ var monsters = [
 		source: 'MPMM',
 		page: '79'
 	},{
+		name: 'Clockwork Defender',
+		hp: '42',
+		ac: '17',
+		source: 'KftGV',
+		page: '85'
+	},{
 		name: 'Clockwork Dragon',
 		hp: '22',
 		ac: '16',
@@ -3215,6 +3431,12 @@ var monsters = [
 		ac: '16',
 		source: 'MPMM',
 		page: '80'
+	},{
+		name: 'Clockwork Observer',
+		hp: '7',
+		ac: '14',
+		source: 'KftGV',
+		page: '85'
 	},{
 		name: 'Clockwork Stone Defender',
 		hp: '105',
@@ -3270,6 +3492,18 @@ var monsters = [
 		source: 'NRH-CoI',
 		page: '7'
 	},{
+		name: 'Clystran',
+		hp: '16',
+		ac: '13',
+		source: 'DSotDQ',
+		page: '126'
+	},{
+		name: 'Coatl',
+		hp: '97',
+		ac: '19',
+		source: 'PSX',
+		page: '35'
+	},{
 		name: 'Cockatrice',
 		hp: '27',
 		ac: '11',
@@ -3304,7 +3538,7 @@ var monsters = [
 		hp: '75',
 		ac: '12',
 		source: 'LoX',
-		page: '?'
+		page: '22'
 	},{
 		name: 'Commoner',
 		hp: '4',
@@ -3330,11 +3564,41 @@ var monsters = [
 		source: 'VGM',
 		page: '212'
 	},{
+		name: 'Conservatory Student',
+		hp: '9',
+		ac: '15',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Constrictor Snake',
 		hp: '13',
 		ac: '12',
 		source: 'MM',
 		page: '320'
+	},{
+		name: 'Construct (Animated Armor)',
+		hp: '33',
+		ac: '18',
+		source: 'PSK',
+		page: '32'
+	},{
+		name: 'Construct (Helmed Horror)',
+		hp: '60',
+		ac: '20',
+		source: 'PSK',
+		page: '32'
+	},{
+		name: 'Construct (Modron)',
+		hp: '5',
+		ac: '15',
+		source: 'PSK',
+		page: '32'
+	},{
+		name: 'Construct (Shield Guardian)',
+		hp: '142',
+		ac: '17',
+		source: 'PSK',
+		page: '32'
 	},{
 		name: 'Construct Spirit',
 		hp: '256',
@@ -3365,6 +3629,12 @@ var monsters = [
 		ac: '13',
 		source: 'WDMM',
 		page: '30'
+	},{
+		name: 'Coral',
+		hp: '135',
+		ac: '17',
+		source: 'MisMV1',
+		page: '4'
 	},{
 		name: 'Core Spawn Crawler',
 		hp: '21',
@@ -3504,6 +3774,12 @@ var monsters = [
 		source: 'MM',
 		page: '44'
 	},{
+		name: 'Creeper',
+		hp: '19',
+		ac: '12',
+		source: 'MCV3MC',
+		page: '4'
+	},{
 		name: 'Creepy Doll',
 		hp: '21',
 		ac: '12',
@@ -3600,6 +3876,12 @@ var monsters = [
 		source: 'LLK',
 		page: '4'
 	},{
+		name: 'Cudgel Ironsmile',
+		hp: '58',
+		ac: '17',
+		source: 'DSotDQ',
+		page: '58'
+	},{
 		name: 'Cult Fanatic',
 		hp: '33',
 		ac: '13',
@@ -3654,6 +3936,12 @@ var monsters = [
 		source: 'MaBJoV',
 		page: '110'
 	},{
+		name: 'Dalamar',
+		hp: '40',
+		ac: '12',
+		source: 'DSotDQ',
+		page: '111'
+	},{
 		name: 'Damaged Flesh Golem',
 		hp: '93',
 		ac: '9',
@@ -3677,6 +3965,12 @@ var monsters = [
 		ac: 'equal',
 		source: 'UA2020SubclassesPt2',
 		page: '2'
+	},{
+		name: 'Dandylion',
+		hp: '90',
+		ac: '14',
+		source: 'MisMV1',
+		page: '6'
 	},{
 		name: 'Danika Dorakova',
 		hp: '31',
@@ -3761,6 +4055,12 @@ var monsters = [
 		ac: '11',
 		source: 'MM',
 		page: '46'
+	},{
+		name: 'Darrett Highwater',
+		hp: '52',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '59'
 	},{
 		name: 'Darz Helgar',
 		hp: '27',
@@ -3963,7 +4263,19 @@ var monsters = [
 		name: 'Deinonychus',
 		hp: '26',
 		ac: '13',
+		source: 'PSX',
+		page: '30'
+	},{
+		name: 'Deinonychus',
+		hp: '26',
+		ac: '13',
 		source: 'VGM',
+		page: '139'
+	},{
+		name: 'Demelin',
+		hp: '99',
+		ac: '12',
+		source: 'DSotDQ',
 		page: '139'
 	},{
 		name: 'Demilich',
@@ -4007,6 +4319,18 @@ var monsters = [
 		ac: '22',
 		source: 'MPMM',
 		page: '90'
+	},{
+		name: 'Demon',
+		hp: '104',
+		ac: '15',
+		source: 'PSX',
+		page: '36'
+	},{
+		name: 'Demon',
+		hp: '153',
+		ac: '18',
+		source: 'PSK',
+		page: '27'
 	},{
 		name: 'Demonlord of Ashmouth',
 		hp: '178',
@@ -4228,13 +4552,13 @@ var monsters = [
 		hp: '78',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '71'
 	},{
 		name: 'Diva',
 		hp: '16',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '72'
 	},{
 		name: 'Diviner Wizard',
 		hp: '90',
@@ -4252,7 +4576,7 @@ var monsters = [
 		hp: '40',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '173'
 	},{
 		name: 'Djinni',
 		hp: '161',
@@ -4326,11 +4650,23 @@ var monsters = [
 		source: 'MM',
 		page: '82'
 	},{
+		name: 'Doric',
+		hp: '104',
+		ac: '14',
+		source: 'HAT-TG',
+		page: '?'
+	},{
 		name: 'Doru',
 		hp: '82',
 		ac: '15',
 		source: 'CoS',
 		page: '47'
+	},{
+		name: 'Dr. Cassee Dannell',
+		hp: '4',
+		ac: '10',
+		source: 'KftGV',
+		page: '?'
 	},{
 		name: 'Dracohydra',
 		hp: '218',
@@ -4386,6 +4722,12 @@ var monsters = [
 		source: 'FTD',
 		page: '21'
 	},{
+		name: 'Dracophage Subject',
+		hp: '39',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '118'
+	},{
 		name: 'Draegloth',
 		hp: '123',
 		ac: '15',
@@ -4403,6 +4745,24 @@ var monsters = [
 		ac: '10',
 		source: 'MM',
 		page: '321'
+	},{
+		name: 'Dragon Army Dragonnel',
+		hp: '58',
+		ac: '16',
+		source: 'DSotDQ',
+		page: '201'
+	},{
+		name: 'Dragon Army Officer',
+		hp: '65',
+		ac: '19',
+		source: 'DSotDQ',
+		page: '200'
+	},{
+		name: 'Dragon Army Soldier',
+		hp: '22',
+		ac: '17',
+		source: 'DSotDQ',
+		page: '200'
 	},{
 		name: 'Dragon Blessed',
 		hp: '75',
@@ -4445,6 +4805,12 @@ var monsters = [
 		ac: '20',
 		source: 'MM',
 		page: '119'
+	},{
+		name: 'Dragon',
+		hp: '256',
+		ac: '19',
+		source: 'PSK',
+		page: '29'
 	},{
 		name: 'Dragonbait',
 		hp: '120',
@@ -4533,8 +4899,20 @@ var monsters = [
 		name: 'Drake (Large)',
 		hp: '26',
 		ac: '13',
+		source: 'PSK',
+		page: '29'
+	},{
+		name: 'Drake (Large)',
+		hp: '26',
+		ac: '13',
 		source: 'PSZ',
 		page: '24'
+	},{
+		name: 'Drake (Small)',
+		hp: '13',
+		ac: '13',
+		source: 'PSK',
+		page: '29'
 	},{
 		name: 'Drake (Small)',
 		hp: '13',
@@ -4577,6 +4955,12 @@ var monsters = [
 		ac: '18',
 		source: 'TftYP',
 		page: '233'
+	},{
+		name: 'Dream Eater',
+		hp: '77',
+		ac: '15',
+		source: 'MCV2DC',
+		page: '3'
 	},{
 		name: 'Dretch',
 		hp: '18',
@@ -4824,6 +5208,12 @@ var monsters = [
 		source: 'MM',
 		page: '121'
 	},{
+		name: 'Dryad',
+		hp: '22',
+		ac: '11',
+		source: 'PSX',
+		page: '38'
+	},{
 		name: 'Duchess Brimskarda',
 		hp: '162',
 		ac: '18',
@@ -4990,7 +5380,7 @@ var monsters = [
 		hp: '120',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '124'
 	},{
 		name: 'Dullahan',
 		hp: '135',
@@ -5022,11 +5412,23 @@ var monsters = [
 		source: 'TftYP',
 		page: '25'
 	},{
+		name: 'Durstan Rial',
+		hp: '52',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '97'
+	},{
 		name: 'Dusk Hag',
 		hp: '82',
 		ac: '17',
 		source: 'ERLW',
 		page: '292'
+	},{
+		name: 'Duskwalker',
+		hp: '138',
+		ac: '16',
+		source: 'DSotDQ',
+		page: '150'
 	},{
 		name: 'Dust Mephit',
 		hp: '17',
@@ -5076,12 +5478,6 @@ var monsters = [
 		source: 'IDRotF',
 		page: '270'
 	},{
-		name: 'Dzaan',
-		hp: '49',
-		ac: '10',
-		source: 'IDRotF',
-		page: '270'
-	},{
 		name: 'Eagle',
 		hp: '3',
 		ac: '12',
@@ -5106,6 +5502,12 @@ var monsters = [
 		source: 'MM',
 		page: '124'
 	},{
+		name: 'Earth Totem Elemental',
+		hp: '126',
+		ac: '17',
+		source: 'PSX',
+		page: '38'
+	},{
 		name: 'East Wind',
 		hp: '60',
 		ac: '16',
@@ -5128,6 +5530,12 @@ var monsters = [
 		hp: '225',
 		ac: '15',
 		source: 'DC',
+		page: '?'
+	},{
+		name: 'Edgin Darvis',
+		hp: '110',
+		ac: '14',
+		source: 'HAT-TG',
 		page: '?'
 	},{
 		name: 'Edwin Odesseiron',
@@ -5194,7 +5602,7 @@ var monsters = [
 		hp: '65',
 		ac: '15',
 		source: 'LoX',
-		page: '?'
+		page: '11'
 	},{
 		name: 'Elder Black Pudding',
 		hp: '85',
@@ -5304,6 +5712,12 @@ var monsters = [
 		source: 'OotA',
 		page: '6'
 	},{
+		name: 'Eldritch Horror Hatchling',
+		hp: '39',
+		ac: '14',
+		source: 'KftGV',
+		page: '24'
+	},{
 		name: 'Eldritch Lich',
 		hp: '165',
 		ac: '17',
@@ -5327,6 +5741,12 @@ var monsters = [
 		ac: '12',
 		source: 'MM',
 		page: '322'
+	},{
+		name: 'Eliphas Adulare',
+		hp: '135',
+		ac: '10',
+		source: 'KftGV',
+		page: '188'
 	},{
 		name: 'Elise',
 		hp: '93',
@@ -5375,6 +5795,12 @@ var monsters = [
 		ac: '1',
 		source: 'WDH',
 		page: '115'
+	},{
+		name: 'Ember',
+		hp: '270',
+		ac: '20',
+		source: 'MCV2DC',
+		page: '5'
 	},{
 		name: 'Emberhorn Minotaur',
 		hp: '76',
@@ -5460,6 +5886,18 @@ var monsters = [
 		source: 'WBtW',
 		page: '217'
 	},{
+		name: 'Ender Dragon',
+		hp: '350',
+		ac: '22',
+		source: 'MCV3MC',
+		page: '5'
+	},{
+		name: 'Enderman',
+		hp: '78',
+		ac: '14',
+		source: 'MCV3MC',
+		page: '6'
+	},{
 		name: 'Engineer',
 		hp: '7',
 		ac: '10',
@@ -5471,6 +5909,24 @@ var monsters = [
 		ac: '15',
 		source: 'IMR',
 		page: '47'
+	},{
+		name: 'Enna Galakiir (Levels 1-4)',
+		hp: '11',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Enna Galakiir (Levels 5-8)',
+		hp: '27',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Enna Galakiir (Levels 9-11)',
+		hp: '78',
+		ac: '15',
+		source: 'KftGV',
+		page: '?'
 	},{
 		name: 'Enormous Tentacle',
 		hp: '60',
@@ -5722,7 +6178,7 @@ var monsters = [
 		hp: '9',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '36'
 	},{
 		name: 'Faroul',
 		hp: '16',
@@ -5758,7 +6214,7 @@ var monsters = [
 		hp: '33',
 		ac: '13',
 		source: 'LoX',
-		page: '?'
+		page: '23'
 	},{
 		name: 'Fel\'rekt Lafeen',
 		hp: '84',
@@ -5820,11 +6276,23 @@ var monsters = [
 		source: 'BGDIA',
 		page: '130'
 	},{
+		name: 'Ferocidon',
+		hp: '51',
+		ac: '13',
+		source: 'PSX',
+		page: '30'
+	},{
 		name: 'Ferol Sal',
 		hp: '45',
 		ac: '14',
 		source: 'EGW',
 		page: '249'
+	},{
+		name: 'Fewmaster Gholcag',
+		hp: '59',
+		ac: '14',
+		source: 'DSotDQ',
+		page: '74'
 	},{
 		name: 'Fey Spirit',
 		hp: '256',
@@ -5869,8 +6337,8 @@ var monsters = [
 		page: '97'
 	},{
 		name: 'Fiendish Orc',
-		hp: '15',
-		ac: '13',
+		hp: '93',
+		ac: '16',
 		source: 'CRCotN',
 		page: '71'
 	},{
@@ -5933,6 +6401,12 @@ var monsters = [
 		ac: '18',
 		source: 'MM',
 		page: '154'
+	},{
+		name: 'Fire Guardian',
+		hp: '102',
+		ac: '13',
+		source: 'PSX',
+		page: '38'
 	},{
 		name: 'Fire Snake',
 		hp: '22',
@@ -6184,13 +6658,31 @@ var monsters = [
 		hp: '27',
 		ac: '13',
 		source: 'CRCotN',
-		page: '?'
+		page: '58'
 	},{
 		name: 'Fomorian',
 		hp: '149',
 		ac: '14',
 		source: 'MM',
 		page: '136'
+	},{
+		name: 'Forest Master',
+		hp: '105',
+		ac: '16',
+		source: 'MCV2DC',
+		page: '6'
+	},{
+		name: 'Foresworn',
+		hp: '82',
+		ac: '18',
+		source: 'MCV2DC',
+		page: '7'
+	},{
+		name: 'Forge Fitzwilliam',
+		hp: '110',
+		ac: '17',
+		source: 'HAT-TG',
+		page: '?'
 	},{
 		name: 'Forlarren',
 		hp: '45',
@@ -6234,6 +6726,12 @@ var monsters = [
 		source: 'MCV1SC',
 		page: '7'
 	},{
+		name: 'Fragment of Krokulmar',
+		hp: '10',
+		ac: '13',
+		source: 'KftGV',
+		page: '53'
+	},{
 		name: 'Fraz-Urb\'luu',
 		hp: '337',
 		ac: '18',
@@ -6251,6 +6749,12 @@ var monsters = [
 		ac: '13',
 		source: 'PSX',
 		page: '30'
+	},{
+		name: 'Frody Dartwild',
+		hp: '22',
+		ac: '8',
+		source: 'KftGV',
+		page: '?'
 	},{
 		name: 'Frog',
 		hp: '1',
@@ -6442,7 +6946,7 @@ var monsters = [
 		hp: '4',
 		ac: '10',
 		source: 'JttRC',
-		page: '?'
+		page: '20'
 	},{
 		name: 'Gar Shatterkeel',
 		hp: '97',
@@ -6953,6 +7457,12 @@ var monsters = [
 		ac: '15',
 		source: 'AitFR-DN',
 		page: '11'
+	},{
+		name: 'Giant',
+		hp: '126',
+		ac: '17',
+		source: 'PSK',
+		page: '30'
 	},{
 		name: 'Gibbering Mouther',
 		hp: '67',
@@ -7512,6 +8022,12 @@ var monsters = [
 		source: 'TftYP',
 		page: '42'
 	},{
+		name: 'Greater Death Dragon',
+		hp: '230',
+		ac: '16',
+		source: 'DSotDQ',
+		page: '195'
+	},{
 		name: 'Greater Shadow Horror',
 		hp: '170',
 		ac: '13',
@@ -7572,6 +8088,24 @@ var monsters = [
 		source: 'MM',
 		page: '277'
 	},{
+		name: 'Gregir Fendelsohn (Levels 1-4)',
+		hp: '11',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Gregir Fendelsohn (Levels 5-8)',
+		hp: '32',
+		ac: '11',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Gregir Fendelsohn (Levels 9-11)',
+		hp: '58',
+		ac: '17',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Grell',
 		hp: '55',
 		ac: '12',
@@ -7620,6 +8154,12 @@ var monsters = [
 		source: 'PSZ',
 		page: '22'
 	},{
+		name: 'Griffin',
+		hp: '59',
+		ac: '12',
+		source: 'PSX',
+		page: '39'
+	},{
 		name: 'Griffon Cavalry Rider',
 		hp: '58',
 		ac: '17',
@@ -7642,7 +8182,7 @@ var monsters = [
 		hp: '85',
 		ac: '15',
 		source: 'LoX',
-		page: '?'
+		page: '32'
 	},{
 		name: 'Grinda Garloth',
 		hp: '40',
@@ -7732,7 +8272,7 @@ var monsters = [
 		hp: '82',
 		ac: '12',
 		source: 'CRCotN',
-		page: '?'
+		page: '81'
 	},{
 		name: 'Guard Drake',
 		hp: '52',
@@ -7816,6 +8356,12 @@ var monsters = [
 		hp: '16',
 		ac: '16',
 		source: 'BAM',
+		page: '29'
+	},{
+		name: 'Hadrosaur',
+		hp: '19',
+		ac: '11',
+		source: 'PSX',
 		page: '29'
 	},{
 		name: 'Hadrosaurus',
@@ -7902,6 +8448,12 @@ var monsters = [
 		source: 'AitFR-DN',
 		page: '11'
 	},{
+		name: 'Hammerskull',
+		hp: '19',
+		ac: '11',
+		source: 'PSX',
+		page: '29'
+	},{
 		name: 'Hangry Otyugh',
 		hp: '156',
 		ac: '114',
@@ -7972,7 +8524,7 @@ var monsters = [
 		hp: '82',
 		ac: '19',
 		source: 'LoX',
-		page: '?'
+		page: '25'
 	},{
 		name: 'Haungharassk',
 		hp: '52',
@@ -7986,8 +8538,14 @@ var monsters = [
 		source: 'MM',
 		page: '330'
 	},{
+		name: 'Headless Body',
+		hp: '52',
+		ac: '18',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Headless Iron Golem',
-		hp: '150',
+		hp: '210',
 		ac: '20',
 		source: 'IDRotF',
 		page: '244'
@@ -8039,6 +8597,18 @@ var monsters = [
 		ac: '18',
 		source: 'MTF',
 		page: '165'
+	},{
+		name: 'Hellion (Huge)',
+		hp: '195',
+		ac: '17',
+		source: 'PSK',
+		page: '31'
+	},{
+		name: 'Hellion (Large)',
+		hp: '93',
+		ac: '14',
+		source: 'PSK',
+		page: '31'
 	},{
 		name: 'Hellion',
 		hp: '195',
@@ -8202,6 +8772,12 @@ var monsters = [
 		source: 'MM',
 		page: '186'
 	},{
+		name: 'Holga Kilgore',
+		hp: '120',
+		ac: '15',
+		source: 'HAT-TG',
+		page: '?'
+	},{
 		name: 'Hollow Dragon',
 		hp: '241',
 		ac: '19',
@@ -8262,6 +8838,12 @@ var monsters = [
 		source: 'MM',
 		page: '74'
 	},{
+		name: 'Horned Frog',
+		hp: '18',
+		ac: '11',
+		source: 'PSX',
+		page: '39'
+	},{
 		name: 'Horned Sister',
 		hp: '40',
 		ac: '12',
@@ -8304,6 +8886,12 @@ var monsters = [
 		source: 'WDH',
 		page: '205'
 	},{
+		name: 'Hrigg Roundrook',
+		hp: '11',
+		ac: '16',
+		source: 'DSotDQ',
+		page: '211'
+	},{
 		name: 'Huge Giant Crab',
 		hp: '161',
 		ac: '15',
@@ -8345,6 +8933,12 @@ var monsters = [
 		ac: '17',
 		source: 'SKT',
 		page: '240'
+	},{
+		name: 'Hulking Shadow',
+		hp: '133',
+		ac: '14',
+		source: 'DSotDQ',
+		page: '174'
 	},{
 		name: 'Hundred-Handed One',
 		hp: '243',
@@ -8435,6 +9029,12 @@ var monsters = [
 		ac: '15',
 		source: 'MM',
 		page: '190'
+	},{
+		name: 'Hydra',
+		hp: '172',
+		ac: '15',
+		source: 'PSK',
+		page: '30'
 	},{
 		name: 'Hydroloth',
 		hp: '135',
@@ -8538,6 +9138,18 @@ var monsters = [
 		source: 'WBtW',
 		page: '205'
 	},{
+		name: 'Ignatius Inkblot',
+		hp: '71',
+		ac: '15',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Ignia',
+		hp: '178',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '184'
+	},{
 		name: 'Illithilich',
 		hp: '135',
 		ac: '17',
@@ -8597,6 +9209,12 @@ var monsters = [
 		ac: '16',
 		source: 'SKT',
 		page: '209'
+	},{
+		name: 'Incomplete Dragon Skeleton',
+		hp: '58',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '138'
 	},{
 		name: 'Incubus',
 		hp: '66',
@@ -8682,11 +9300,29 @@ var monsters = [
 		source: 'PSZ',
 		page: '21'
 	},{
+		name: 'Irda Seeker',
+		hp: '27',
+		ac: '12',
+		source: 'MCV2DC',
+		page: '8'
+	},{
+		name: 'Irda Veil Keeper',
+		hp: '49',
+		ac: '13',
+		source: 'MCV2DC',
+		page: '9'
+	},{
 		name: 'Ireena Kolyana',
 		hp: '9',
 		ac: '15',
 		source: 'CoS',
 		page: '44'
+	},{
+		name: 'Iriad',
+		hp: '11',
+		ac: '14',
+		source: 'DSotDQ',
+		page: '212'
 	},{
 		name: 'Irisoth',
 		hp: '4',
@@ -8772,6 +9408,12 @@ var monsters = [
 		source: 'EGW',
 		page: '231'
 	},{
+		name: 'Ishvern',
+		hp: '16',
+		ac: '13',
+		source: 'DSotDQ',
+		page: '114'
+	},{
 		name: 'Iskander',
 		hp: '40',
 		ac: '12',
@@ -8795,6 +9437,12 @@ var monsters = [
 		ac: '17',
 		source: 'GGR',
 		page: '227'
+	},{
+		name: 'Istarian Drone',
+		hp: '127',
+		ac: '17',
+		source: 'DSotDQ',
+		page: '202'
 	},{
 		name: 'Istrid Horn',
 		hp: '117',
@@ -8860,7 +9508,7 @@ var monsters = [
 		hp: '178',
 		ac: '17',
 		source: 'JttRC',
-		page: '?'
+		page: '195'
 	},{
 		name: 'Jade Tigress',
 		hp: '71',
@@ -8880,17 +9528,23 @@ var monsters = [
 		source: 'WDH',
 		page: '205'
 	},{
+		name: 'Jalynvyr Nir\'Thinn',
+		hp: '22',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'James Cryon',
 		hp: '82',
 		ac: '12',
 		source: 'CRCotN',
-		page: '?'
+		page: '81'
 	},{
 		name: 'Jamil A\'alithiya',
 		hp: '130',
 		ac: '19',
 		source: 'CRCotN',
-		page: '?'
+		page: '83'
 	},{
 		name: 'Jammer Leech',
 		hp: '27',
@@ -8915,6 +9569,12 @@ var monsters = [
 		ac: '17',
 		source: 'GGR',
 		page: '235'
+	},{
+		name: 'Jarazoun',
+		hp: '200',
+		ac: '17',
+		source: 'KftGV',
+		page: '?'
 	},{
 		name: 'Jarl Grugnur',
 		hp: '200',
@@ -8970,6 +9630,12 @@ var monsters = [
 		source: 'ToA',
 		page: '26'
 	},{
+		name: 'Jeyev Veldrews',
+		hp: '65',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '75'
+	},{
 		name: 'Jiangshi',
 		hp: '119',
 		ac: '16',
@@ -9012,6 +9678,12 @@ var monsters = [
 		source: 'MaBJoV',
 		page: '72'
 	},{
+		name: 'Joster Mareet',
+		hp: '66',
+		ac: '15',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Jot',
 		hp: '7',
 		ac: '13',
@@ -9035,6 +9707,12 @@ var monsters = [
 		ac: '13',
 		source: 'WDMM',
 		page: '149'
+	},{
+		name: 'Juvenile Eldritch Horror',
+		hp: '168',
+		ac: '17',
+		source: 'KftGV',
+		page: '24'
 	},{
 		name: 'Juvenile Hook Horror',
 		hp: '75',
@@ -9100,13 +9778,19 @@ var monsters = [
 		hp: '27',
 		ac: '11',
 		source: 'JttRC',
-		page: '?'
+		page: '70'
 	},{
 		name: 'Kalain',
 		hp: '44',
 		ac: '15',
 		source: 'WDH',
 		page: '89'
+	},{
+		name: 'Kalaman Soldier',
+		hp: '16',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '202'
 	},{
 		name: 'Kalaraq Quori',
 		hp: '161',
@@ -9132,6 +9816,24 @@ var monsters = [
 		source: 'ToA',
 		page: '225'
 	},{
+		name: 'Kansaldi Fire-Eyes',
+		hp: '172',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '203'
+	},{
+		name: 'Kapak Draconian',
+		hp: '39',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '198'
+	},{
+		name: 'Karavarix',
+		hp: '230',
+		ac: '16',
+		source: 'DSotDQ',
+		page: '183'
+	},{
 		name: 'Karkethzerethzerus, the Sable Despoiler',
 		hp: '487',
 		ac: '22',
@@ -9148,7 +9850,7 @@ var monsters = [
 		hp: '9',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '21'
 	},{
 		name: 'Kasimir Velikov',
 		hp: '40',
@@ -9162,6 +9864,12 @@ var monsters = [
 		source: 'WDMM',
 		page: '205'
 	},{
+		name: 'Kavoda',
+		hp: '16',
+		ac: '15',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Kavu Predator',
 		hp: '75',
 		ac: '15',
@@ -9172,7 +9880,7 @@ var monsters = [
 		hp: '27',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '96'
 	},{
 		name: 'Keeper of the Feather',
 		hp: '31',
@@ -9209,6 +9917,12 @@ var monsters = [
 		ac: '10',
 		source: 'TftYP',
 		page: '132'
+	},{
+		name: 'Kender Skirmisher',
+		hp: '14',
+		ac: '14',
+		source: 'DSotDQ',
+		page: '204'
 	},{
 		name: 'Kenku',
 		hp: '13',
@@ -9262,7 +9976,7 @@ var monsters = [
 		hp: '4',
 		ac: '10',
 		source: 'JttRC',
-		page: '?'
+		page: '42'
 	},{
 		name: 'Kiddywidget',
 		hp: '15',
@@ -9299,6 +10013,12 @@ var monsters = [
 		ac: '16',
 		source: 'SKT',
 		page: '222'
+	},{
+		name: 'King Jhaeros',
+		hp: '133',
+		ac: '14',
+		source: 'KftGV',
+		page: '158'
 	},{
 		name: 'King Robbit the Slimy',
 		hp: '27',
@@ -9466,7 +10186,7 @@ var monsters = [
 		hp: '16',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '26'
 	},{
 		name: 'Kol\'daan',
 		hp: '13',
@@ -9478,7 +10198,7 @@ var monsters = [
 		hp: '78',
 		ac: '15',
 		source: 'CRCotN',
-		page: '?'
+		page: '106'
 	},{
 		name: 'Korred',
 		hp: '102',
@@ -9580,7 +10300,7 @@ var monsters = [
 		hp: '9',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '81'
 	},{
 		name: 'Kuo-toa Archpriest',
 		hp: '97',
@@ -9622,7 +10342,7 @@ var monsters = [
 		hp: '9',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '20'
 	},{
 		name: 'Kwayothé',
 		hp: '27',
@@ -9652,7 +10372,7 @@ var monsters = [
 		hp: '16',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '37'
 	},{
 		name: 'Lady Fiona Wachter',
 		hp: '27',
@@ -9700,13 +10420,13 @@ var monsters = [
 		hp: '16',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '156'
 	},{
 		name: 'Lamai Tyenmo',
 		hp: '4',
 		ac: '10',
 		source: 'JttRC',
-		page: '?'
+		page: '20'
 	},{
 		name: 'Lamia',
 		hp: '97',
@@ -9736,7 +10456,7 @@ var monsters = [
 		hp: '58',
 		ac: '12',
 		source: 'RMBRE',
-		page: '122'
+		page: '24'
 	},{
 		name: 'Large Mimic',
 		hp: '58',
@@ -9786,6 +10506,12 @@ var monsters = [
 		source: 'GGR',
 		page: '232'
 	},{
+		name: 'Leedara',
+		hp: '45',
+		ac: '11',
+		source: 'DSotDQ',
+		page: '58'
+	},{
 		name: 'Lemure',
 		hp: '13',
 		ac: '7',
@@ -9803,6 +10529,12 @@ var monsters = [
 		ac: '16',
 		source: 'HotDQ',
 		page: '87'
+	},{
+		name: 'Lesser Death Dragon',
+		hp: '199',
+		ac: '15',
+		source: 'DSotDQ',
+		page: '195'
 	},{
 		name: 'Lesser Mummy Lord',
 		hp: '97',
@@ -9839,6 +10571,12 @@ var monsters = [
 		ac: '17',
 		source: 'MTF',
 		page: '198'
+	},{
+		name: 'Levna Drakehorn',
+		hp: '13',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '213'
 	},{
 		name: 'Lhammaruntosz',
 		hp: '212',
@@ -10038,6 +10776,12 @@ var monsters = [
 		source: 'GoS',
 		page: '243'
 	},{
+		name: 'Lohezet',
+		hp: '137',
+		ac: '12',
+		source: 'DSotDQ',
+		page: '205'
+	},{
 		name: 'Lonely Sorrowsworn',
 		hp: '112',
 		ac: '16',
@@ -10049,6 +10793,12 @@ var monsters = [
 		ac: '12',
 		source: 'IDRotF',
 		page: '81'
+	},{
+		name: 'Lord Soth',
+		hp: '228',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '206'
 	},{
 		name: 'Lords\' Alliance Guard',
 		hp: '11',
@@ -10086,6 +10836,12 @@ var monsters = [
 		source: 'SCC',
 		page: '198'
 	},{
+		name: 'Lorry Wanwillow',
+		hp: '144',
+		ac: '16',
+		source: 'DSotDQ',
+		page: '177'
+	},{
 		name: 'Lorthuun',
 		hp: '180',
 		ac: '18',
@@ -10120,7 +10876,7 @@ var monsters = [
 		hp: '27',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '189'
 	},{
 		name: 'Ludmilla Vilisevic',
 		hp: '82',
@@ -10150,7 +10906,7 @@ var monsters = [
 		hp: '22',
 		ac: '11',
 		source: 'JttRC',
-		page: '?'
+		page: '136'
 	},{
 		name: 'Luvash',
 		hp: '65',
@@ -10175,6 +10931,12 @@ var monsters = [
 		ac: '12',
 		source: 'PotA',
 		page: '110'
+	},{
+		name: 'Macaw',
+		hp: '1',
+		ac: '12',
+		source: 'PSX',
+		page: '39'
 	},{
 		name: 'Maccath the Crimson',
 		hp: '40',
@@ -10210,7 +10972,7 @@ var monsters = [
 		hp: '9',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '27'
 	},{
 		name: 'Maddgoth\'s Homunculus',
 		hp: '5',
@@ -10396,13 +11158,19 @@ var monsters = [
 		hp: '45',
 		ac: '11',
 		source: 'CRCotN',
-		page: '?'
+		page: '150'
 	},{
 		name: 'Markham Southwell',
 		hp: '58',
 		ac: '17',
 		source: 'SKT',
 		page: '248'
+	},{
+		name: 'Markos Delphi',
+		hp: '44',
+		ac: '12',
+		source: 'KftGV',
+		page: '53'
 	},{
 		name: 'Marlos Urnrayle',
 		hp: '136',
@@ -10590,6 +11358,12 @@ var monsters = [
 		source: 'VGM',
 		page: '170'
 	},{
+		name: 'Meera Raheer',
+		hp: '4',
+		ac: '10',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Meeseeks',
 		hp: '4',
 		ac: '10',
@@ -10684,7 +11458,7 @@ var monsters = [
 		hp: '45',
 		ac: '11',
 		source: 'CRCotN',
-		page: '?'
+		page: '150'
 	},{
 		name: 'Merregon',
 		hp: '45',
@@ -11194,13 +11968,13 @@ var monsters = [
 		hp: '10',
 		ac: '12',
 		source: 'DoSI',
-		page: '?'
+		page: '9'
 	},{
 		name: 'Myx Nargis Ruba',
 		hp: '9',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '71'
 	},{
 		name: 'Môrgæn',
 		hp: '66',
@@ -11237,6 +12011,12 @@ var monsters = [
 		ac: '18',
 		source: 'MaBJoV',
 		page: '42'
+	},{
+		name: 'Naevys Tharesso',
+		hp: '52',
+		ac: '18',
+		source: 'KftGV',
+		page: '?'
 	},{
 		name: 'Nagpa',
 		hp: '187',
@@ -11338,7 +12118,7 @@ var monsters = [
 		hp: '200',
 		ac: '17',
 		source: 'JttRC',
-		page: '?'
+		page: '159'
 	},{
 		name: 'Naxene Drathkala',
 		hp: '27',
@@ -11410,7 +12190,7 @@ var monsters = [
 		hp: '1',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '205'
 	},{
 		name: 'Neo-Otyugh',
 		hp: '150',
@@ -11519,6 +12299,18 @@ var monsters = [
 		ac: '12',
 		source: 'WDMM',
 		page: '131'
+	},{
+		name: 'Nevermind Gnome Inventor',
+		hp: '36',
+		ac: '14',
+		source: 'MCV2DC',
+		page: '10'
+	},{
+		name: 'Nevermind Gnome Mastermind',
+		hp: '82',
+		ac: '15',
+		source: 'MCV2DC',
+		page: '11'
 	},{
 		name: 'Nezznar the Black Spider',
 		hp: '27',
@@ -11638,7 +12430,7 @@ var monsters = [
 		hp: '40',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '136'
 	},{
 		name: 'Nine-Fingers Keene',
 		hp: '84',
@@ -11663,6 +12455,12 @@ var monsters = [
 		ac: '14',
 		source: 'GGR',
 		page: '216'
+	},{
+		name: 'Nixylanna Vidorant',
+		hp: '78',
+		ac: '15',
+		source: 'KftGV',
+		page: '?'
 	},{
 		name: 'Noble',
 		hp: '9',
@@ -11962,7 +12760,7 @@ var monsters = [
 		hp: '27',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '109'
 	},{
 		name: 'Omin Dran',
 		hp: '65',
@@ -12268,7 +13066,7 @@ var monsters = [
 		hp: '78',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '52'
 	},{
 		name: 'Panopticus Wizard',
 		hp: '9',
@@ -12286,7 +13084,7 @@ var monsters = [
 		hp: '58',
 		ac: '17',
 		source: 'JttRC',
-		page: '?'
+		page: '138'
 	},{
 		name: 'Paper Bird',
 		hp: '1',
@@ -12317,6 +13115,12 @@ var monsters = [
 		ac: '16',
 		source: 'CoS',
 		page: '43'
+	},{
+		name: 'Parrot',
+		hp: '1',
+		ac: '12',
+		source: 'PSX',
+		page: '39'
 	},{
 		name: 'Parson Pellinost',
 		hp: '27',
@@ -12376,7 +13180,7 @@ var monsters = [
 		hp: '136',
 		ac: '17',
 		source: 'CRCotN',
-		page: '?'
+		page: '168'
 	},{
 		name: 'Peryton',
 		hp: '33',
@@ -12485,6 +13289,12 @@ var monsters = [
 		ac: '13',
 		source: 'RMBRE',
 		page: '28'
+	},{
+		name: 'Piranha',
+		hp: '1',
+		ac: '13',
+		source: 'PSX',
+		page: '40'
 	},{
 		name: 'Pirate Bosun',
 		hp: '27',
@@ -12676,7 +13486,7 @@ var monsters = [
 		hp: '103',
 		ac: '16',
 		source: 'LoX',
-		page: '?'
+		page: '48'
 	},{
 		name: 'Princeps Kovik',
 		hp: '85',
@@ -12700,7 +13510,7 @@ var monsters = [
 		hp: '103',
 		ac: '16',
 		source: 'LoX',
-		page: '?'
+		page: '60'
 	},{
 		name: 'Prismari Apprentice',
 		hp: '44',
@@ -12726,6 +13536,12 @@ var monsters = [
 		source: 'SCC',
 		page: '206'
 	},{
+		name: 'Prisoner 13',
+		hp: '102',
+		ac: '17',
+		source: 'KftGV',
+		page: '68'
+	},{
 		name: 'Prisoner 237',
 		hp: '32',
 		ac: '11',
@@ -12736,7 +13552,7 @@ var monsters = [
 		hp: '22',
 		ac: '11',
 		source: 'CRCotN',
-		page: '?'
+		page: '54'
 	},{
 		name: 'Prophetess Dran',
 		hp: '27',
@@ -12936,6 +13752,12 @@ var monsters = [
 		source: 'CoS',
 		page: '237'
 	},{
+		name: 'Rain',
+		hp: '60',
+		ac: '15',
+		source: 'MisMV1',
+		page: '8'
+	},{
 		name: 'Rak Tulkhesh',
 		hp: '478',
 		ac: '23',
@@ -13002,6 +13824,12 @@ var monsters = [
 		source: 'HotDQ',
 		page: '92'
 	},{
+		name: 'Raven Uth Vogler',
+		hp: '16',
+		ac: '13',
+		source: 'DSotDQ',
+		page: '53'
+	},{
 		name: 'Raven',
 		hp: '1',
 		ac: '12',
@@ -13061,6 +13889,12 @@ var monsters = [
 		ac: '14',
 		source: 'VGM',
 		page: '158'
+	},{
+		name: 'Red Ruin',
+		hp: '150',
+		ac: '20',
+		source: 'DSotDQ',
+		page: '208'
 	},{
 		name: 'Red Slaad',
 		hp: '93',
@@ -13446,6 +14280,12 @@ var monsters = [
 		source: 'MM',
 		page: '336'
 	},{
+		name: 'Rilago',
+		hp: '45',
+		ac: '11',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Rilsa Rael',
 		hp: '52',
 		ac: '15',
@@ -13516,7 +14356,7 @@ var monsters = [
 		hp: '1',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '206'
 	},{
 		name: 'Roper',
 		hp: '93',
@@ -13638,6 +14478,24 @@ var monsters = [
 		source: 'MM',
 		page: '336'
 	},{
+		name: 'Sabrina Kilgore (Levels 1-4)',
+		hp: '11',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Sabrina Kilgore (Levels 5-8)',
+		hp: '32',
+		ac: '11',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Sabrina Kilgore (Levels 9-11)',
+		hp: '58',
+		ac: '17',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Sacred Statue',
 		hp: '95',
 		ac: '19',
@@ -13740,6 +14598,12 @@ var monsters = [
 		source: 'MM',
 		page: '263'
 	},{
+		name: 'Sailback',
+		hp: '85',
+		ac: '14',
+		source: 'PSX',
+		page: '30'
+	},{
 		name: 'Salamander',
 		hp: '90',
 		ac: '15',
@@ -13768,7 +14632,7 @@ var monsters = [
 		hp: '27',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '68'
 	},{
 		name: 'Sanbalet',
 		hp: '27',
@@ -13823,6 +14687,12 @@ var monsters = [
 		ac: '15',
 		source: 'OotA',
 		page: '7'
+	},{
+		name: 'Sarlamir',
+		hp: '112',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '102'
 	},{
 		name: 'Satyr Reveler',
 		hp: '33',
@@ -13914,6 +14784,12 @@ var monsters = [
 		source: 'TftYP',
 		page: '147'
 	},{
+		name: 'Scrapper',
+		hp: '126',
+		ac: '18',
+		source: 'MisMV1',
+		page: '10'
+	},{
 		name: 'Screaming Devilkin',
 		hp: '18',
 		ac: '17',
@@ -13924,7 +14800,7 @@ var monsters = [
 		hp: '22',
 		ac: '11',
 		source: 'CRCotN',
-		page: '?'
+		page: '126'
 	},{
 		name: 'Scufflecup Teacup',
 		hp: '5',
@@ -13937,6 +14813,12 @@ var monsters = [
 		ac: '17',
 		source: 'CRCotN',
 		page: '208'
+	},{
+		name: 'Sea Elf Scout',
+		hp: '16',
+		ac: '13',
+		source: 'DSotDQ',
+		page: '114'
 	},{
 		name: 'Sea Elf',
 		hp: '11',
@@ -14026,7 +14908,7 @@ var monsters = [
 		hp: '78',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '61'
 	},{
 		name: 'Sergeant',
 		hp: '11',
@@ -14063,6 +14945,12 @@ var monsters = [
 		ac: '16',
 		source: 'MOT',
 		page: '229'
+	},{
+		name: 'Seth the Shapeshifting Dragon',
+		hp: '153',
+		ac: '17',
+		source: 'MisMV1',
+		page: '12'
 	},{
 		name: 'Severin',
 		hp: '150',
@@ -14190,6 +15078,12 @@ var monsters = [
 		source: 'SKT',
 		page: '250'
 	},{
+		name: 'Shambling Mound Totem Elemental',
+		hp: '136',
+		ac: '15',
+		source: 'PSX',
+		page: '38'
+	},{
 		name: 'Shambling Mound',
 		hp: '136',
 		ac: '15',
@@ -14243,6 +15137,12 @@ var monsters = [
 		ac: '10',
 		source: 'SKT',
 		page: '142'
+	},{
+		name: 'Sheldon the Blueberry Dragon',
+		hp: '142',
+		ac: '16',
+		source: 'MisMV1',
+		page: '14'
 	},{
 		name: 'Shell Shark',
 		hp: '32',
@@ -14314,7 +15214,7 @@ var monsters = [
 		hp: '297',
 		ac: '20',
 		source: 'JttRC',
-		page: '?'
+		page: '14'
 	},{
 		name: 'Shoosuva',
 		hp: '110',
@@ -14406,6 +15306,12 @@ var monsters = [
 		source: 'GGR',
 		page: '187'
 	},{
+		name: 'Simon Aumar',
+		hp: '99',
+		ac: '12',
+		source: 'HAT-TG',
+		page: '?'
+	},{
 		name: 'Sinensa',
 		hp: '60',
 		ac: '13',
@@ -14472,6 +15378,12 @@ var monsters = [
 		source: 'MaBJoV',
 		page: '145'
 	},{
+		name: 'Sivak Draconian',
+		hp: '57',
+		ac: '16',
+		source: 'DSotDQ',
+		page: '199'
+	},{
 		name: 'Skaab',
 		hp: '93',
 		ac: '9',
@@ -14520,6 +15432,12 @@ var monsters = [
 		source: 'GoS',
 		page: '253'
 	},{
+		name: 'Skeletal Knight',
+		hp: '112',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '208'
+	},{
 		name: 'Skeletal Owlbear',
 		hp: '59',
 		ac: '13',
@@ -14537,6 +15455,12 @@ var monsters = [
 		ac: '10',
 		source: 'BGDIA',
 		page: '23'
+	},{
+		name: 'Skeletal Riding Horse',
+		hp: '13',
+		ac: '10',
+		source: 'DIP',
+		page: '21'
 	},{
 		name: 'Skeletal Swarm',
 		hp: '60',
@@ -14801,6 +15725,12 @@ var monsters = [
 		ac: '16',
 		source: 'TftYP',
 		page: '53'
+	},{
+		name: 'Sofina',
+		hp: '161',
+		ac: '14',
+		source: 'HAT-TG',
+		page: '?'
 	},{
 		name: 'Solar Dragon Wyrmling',
 		hp: '51',
@@ -15372,6 +16302,30 @@ var monsters = [
 		source: 'MM',
 		page: '170'
 	},{
+		name: 'Stone Guardian (Animated Armor)',
+		hp: '33',
+		ac: '18',
+		source: 'PSX',
+		page: '40'
+	},{
+		name: 'Stone Guardian (Helmed Horror)',
+		hp: '60',
+		ac: '20',
+		source: 'PSX',
+		page: '40'
+	},{
+		name: 'Stone Guardian (Shield Guardian)',
+		hp: '142',
+		ac: '17',
+		source: 'PSX',
+		page: '40'
+	},{
+		name: 'Stone Guardian (Stone Golem)',
+		hp: '178',
+		ac: '17',
+		source: 'PSX',
+		page: '40'
+	},{
 		name: 'Stone Juggernaut',
 		hp: '157',
 		ac: '15',
@@ -15606,6 +16560,12 @@ var monsters = [
 		source: 'WDH',
 		page: '143'
 	},{
+		name: 'Swarm of Piranhas',
+		hp: '28',
+		ac: '13',
+		source: 'PSX',
+		page: '40'
+	},{
 		name: 'Swarm of Poisonous Snakes',
 		hp: '36',
 		ac: '14',
@@ -15744,6 +16704,12 @@ var monsters = [
 		source: 'ToA',
 		page: '8'
 	},{
+		name: 'Sythian Skalderang',
+		hp: '99',
+		ac: '15',
+		source: 'KftGV',
+		page: '117'
+	},{
 		name: 'Szikzith',
 		hp: '11',
 		ac: '13',
@@ -15852,6 +16818,12 @@ var monsters = [
 		source: 'MaBJoV',
 		page: '153'
 	},{
+		name: 'Tatina Rookledust',
+		hp: '9',
+		ac: '10',
+		source: 'DSotDQ',
+		page: '87'
+	},{
 		name: 'Tau',
 		hp: '33',
 		ac: '13',
@@ -15869,6 +16841,12 @@ var monsters = [
 		ac: '15',
 		source: 'IDRotF',
 		page: '244'
+	},{
+		name: 'Tem Temble',
+		hp: '11',
+		ac: '13',
+		source: 'DSotDQ',
+		page: '213'
 	},{
 		name: 'Terastodon',
 		hp: '126',
@@ -15899,6 +16877,12 @@ var monsters = [
 		ac: '17',
 		source: 'SKT',
 		page: '153'
+	},{
+		name: 'Thanoi Hunter',
+		hp: '32',
+		ac: '14',
+		source: 'MCV2DC',
+		page: '12'
 	},{
 		name: 'Thavius Kreeg',
 		hp: '40',
@@ -15984,6 +16968,12 @@ var monsters = [
 		source: 'OotA',
 		page: '233'
 	},{
+		name: 'The Stranger',
+		hp: '99',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'The Weevil',
 		hp: '65',
 		ac: '15',
@@ -16061,6 +17051,54 @@ var monsters = [
 		ac: '11',
 		source: 'RMBRE',
 		page: '28'
+	},{
+		name: 'Thopter (Bat)',
+		hp: '1',
+		ac: '12',
+		source: 'PSK',
+		page: '33'
+	},{
+		name: 'Thopter (Blood Hawk)',
+		hp: '7',
+		ac: '12',
+		source: 'PSK',
+		page: '33'
+	},{
+		name: 'Thopter (Eagle)',
+		hp: '3',
+		ac: '12',
+		source: 'PSK',
+		page: '33'
+	},{
+		name: 'Thopter (Hawk)',
+		hp: '1',
+		ac: '13',
+		source: 'PSK',
+		page: '33'
+	},{
+		name: 'Thopter (Owl)',
+		hp: '1',
+		ac: '11',
+		source: 'PSK',
+		page: '33'
+	},{
+		name: 'Thopter (Pseudodragon)',
+		hp: '7',
+		ac: '13',
+		source: 'PSK',
+		page: '33'
+	},{
+		name: 'Thopter (Raven)',
+		hp: '1',
+		ac: '12',
+		source: 'PSK',
+		page: '33'
+	},{
+		name: 'Thopter (Vulture)',
+		hp: '5',
+		ac: '10',
+		source: 'PSK',
+		page: '33'
 	},{
 		name: 'Thorn Slinger',
 		hp: '32',
@@ -16182,6 +17220,12 @@ var monsters = [
 		source: 'MaBJoV',
 		page: '44'
 	},{
+		name: 'Tiefling Acrobat',
+		hp: '4',
+		ac: '10',
+		source: 'KftGV',
+		page: '?'
+	},{
 		name: 'Tiefling Muralist',
 		hp: '9',
 		ac: '12',
@@ -16229,6 +17273,18 @@ var monsters = [
 		ac: '20',
 		source: 'MPMM',
 		page: '242'
+	},{
+		name: 'Tixie Tockworth',
+		hp: '75',
+		ac: '17',
+		source: 'KftGV',
+		page: '85'
+	},{
+		name: 'Tixie\'s Shield Guardian',
+		hp: '142',
+		ac: '17',
+		source: 'KftGV',
+		page: '?'
 	},{
 		name: 'Tlacatecolo',
 		hp: '78',
@@ -16288,7 +17344,7 @@ var monsters = [
 		hp: '27',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '110'
 	},{
 		name: 'Tooth-N-Claw',
 		hp: '45',
@@ -16318,7 +17374,7 @@ var monsters = [
 		hp: '40',
 		ac: '12',
 		source: 'LoX',
-		page: '?'
+		page: '27'
 	},{
 		name: 'Topsy',
 		hp: '33',
@@ -16331,6 +17387,24 @@ var monsters = [
 		ac: '15',
 		source: 'WDMM',
 		page: '115'
+	},{
+		name: 'Torgja Stonecrusher (Levels 1-4)',
+		hp: '11',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Torgja Stonecrusher (Levels 5-8)',
+		hp: '32',
+		ac: '11',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Torgja Stonecrusher (Levels 9-11)',
+		hp: '58',
+		ac: '17',
+		source: 'KftGV',
+		page: '?'
 	},{
 		name: 'Torlin Silvershield',
 		hp: '45',
@@ -16374,6 +17448,30 @@ var monsters = [
 		source: 'MTF',
 		page: '242'
 	},{
+		name: 'Tosh Starling (Levels 1-4)',
+		hp: '16',
+		ac: '13',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Tosh Starling (Levels 5-8)',
+		hp: '27',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Tosh Starling (Levels 9-11)',
+		hp: '58',
+		ac: '17',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Traag Draconian',
+		hp: '68',
+		ac: '14',
+		source: 'MCV2DC',
+		page: '13'
+	},{
 		name: 'Transmuter Wizard',
 		hp: '49',
 		ac: '12',
@@ -16409,6 +17507,12 @@ var monsters = [
 		ac: '14',
 		source: 'WBtW',
 		page: '36'
+	},{
+		name: 'Treant Totem Elemental',
+		hp: '138',
+		ac: '16',
+		source: 'PSX',
+		page: '38'
 	},{
 		name: 'Treant',
 		hp: '138',
@@ -16458,7 +17562,7 @@ var monsters = [
 		source: 'ToA',
 		page: '234'
 	},{
-		name: 'Tribal Warrior Spore Servants',
+		name: 'Tribal Warrior Spore Servant',
 		hp: '11',
 		ac: '12',
 		source: 'IDRotF',
@@ -16481,6 +17585,18 @@ var monsters = [
 		ac: '15',
 		source: 'MM',
 		page: '225'
+	},{
+		name: 'Trilobite (Giant)',
+		hp: '13',
+		ac: '15',
+		source: 'PSX',
+		page: '40'
+	},{
+		name: 'Trilobite',
+		hp: '2',
+		ac: '11',
+		source: 'PSX',
+		page: '40'
 	},{
 		name: 'Triton Master of Waves',
 		hp: '105',
@@ -16546,7 +17662,7 @@ var monsters = [
 		hp: '9',
 		ac: '10',
 		source: 'JttRC',
-		page: '?'
+		page: '38'
 	},{
 		name: 'Turlang',
 		hp: '138',
@@ -16620,6 +17736,12 @@ var monsters = [
 		source: 'ToA',
 		page: '241'
 	},{
+		name: 'Tyrant',
+		hp: '136',
+		ac: '13',
+		source: 'PSX',
+		page: '31'
+	},{
 		name: 'Tyreus, Illusionist',
 		hp: '156',
 		ac: '13',
@@ -16691,6 +17813,12 @@ var monsters = [
 		ac: '15',
 		source: 'WDMM',
 		page: '142'
+	},{
+		name: 'Undead Soldier',
+		hp: '45',
+		ac: '14',
+		source: 'DSotDQ',
+		page: '96'
 	},{
 		name: 'Undead Spirit',
 		hp: '16',
@@ -16786,7 +17914,7 @@ var monsters = [
 		hp: '11',
 		ac: '16',
 		source: 'JttRC',
-		page: '?'
+		page: '94'
 	},{
 		name: 'Vaal',
 		hp: '200',
@@ -17043,6 +18171,12 @@ var monsters = [
 		name: 'Velociraptor',
 		hp: '10',
 		ac: '13',
+		source: 'PSX',
+		page: '30'
+	},{
+		name: 'Velociraptor',
+		hp: '10',
+		ac: '13',
 		source: 'VGM',
 		page: '140'
 	},{
@@ -17088,6 +18222,12 @@ var monsters = [
 		source: 'CRCotN',
 		page: '51'
 	},{
+		name: 'Verminaard',
+		hp: '143',
+		ac: '20',
+		source: 'MCV2DC',
+		page: '15'
+	},{
 		name: 'Vertrand Shadowdusk',
 		hp: '99',
 		ac: '12',
@@ -17110,7 +18250,7 @@ var monsters = [
 		hp: '9',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '28'
 	},{
 		name: 'Viari',
 		hp: '65',
@@ -17170,13 +18310,19 @@ var monsters = [
 		hp: '18',
 		ac: '5',
 		source: 'DoSI',
-		page: '?'
+		page: '48'
 	},{
 		name: 'Violet Fungus',
 		hp: '18',
 		ac: '5',
 		source: 'MM',
 		page: '138'
+	},{
+		name: 'Virruza',
+		hp: '127',
+		ac: '16',
+		source: 'DSotDQ',
+		page: '119'
 	},{
 		name: 'Vistana Assassin',
 		hp: '78',
@@ -17236,7 +18382,7 @@ var monsters = [
 		hp: '75',
 		ac: '13',
 		source: 'LoX',
-		page: '?'
+		page: '42'
 	},{
 		name: 'Void Scavver',
 		hp: '157',
@@ -17434,7 +18580,13 @@ var monsters = [
 		hp: '75',
 		ac: '12',
 		source: 'LoX',
-		page: '?'
+		page: '39'
+	},{
+		name: 'Wasteland Dragonnel',
+		hp: '65',
+		ac: '13',
+		source: 'DSotDQ',
+		page: '201'
 	},{
 		name: 'Wastrilith',
 		hp: '157',
@@ -17466,6 +18618,12 @@ var monsters = [
 		source: 'MM',
 		page: '125'
 	},{
+		name: 'Water Totem Elemental',
+		hp: '114',
+		ac: '14',
+		source: 'PSX',
+		page: '38'
+	},{
 		name: 'Water Weird',
 		hp: '58',
 		ac: '13',
@@ -17482,7 +18640,7 @@ var monsters = [
 		hp: '99',
 		ac: '12',
 		source: 'JttRC',
-		page: '?'
+		page: '188'
 	},{
 		name: 'Werebat',
 		hp: '24',
@@ -17538,6 +18696,12 @@ var monsters = [
 		source: 'MM',
 		page: '211'
 	},{
+		name: 'Wersten Kern',
+		hp: '178',
+		ac: '18',
+		source: 'DSotDQ',
+		page: '209'
+	},{
 		name: 'West Wind',
 		hp: '60',
 		ac: '16',
@@ -17584,7 +18748,7 @@ var monsters = [
 		hp: '9',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '197'
 	},{
 		name: 'White Maw',
 		hp: '217',
@@ -17754,6 +18918,12 @@ var monsters = [
 		source: 'MOT',
 		page: '247'
 	},{
+		name: 'Wolf of the Overworld',
+		hp: '11',
+		ac: '13',
+		source: 'MCV3MC',
+		page: '7'
+	},{
 		name: 'Wolf',
 		hp: '11',
 		ac: '13',
@@ -17841,8 +19011,20 @@ var monsters = [
 		name: 'Wurm',
 		hp: '247',
 		ac: '18',
+		source: 'PSK',
+		page: '31'
+	},{
+		name: 'Wurm',
+		hp: '247',
+		ac: '18',
 		source: 'PSZ',
 		page: '32'
+	},{
+		name: 'Wyhan',
+		hp: '40',
+		ac: '12',
+		source: 'DSotDQ',
+		page: '79'
 	},{
 		name: 'Wyllow',
 		hp: '132',
@@ -17892,6 +19074,12 @@ var monsters = [
 		source: 'OotA',
 		page: '142'
 	},{
+		name: 'Xenk Yendar',
+		hp: '157',
+		ac: '15',
+		source: 'HAT-TG',
+		page: '?'
+	},{
 		name: 'Xill',
 		hp: '33',
 		ac: '16',
@@ -17908,7 +19096,7 @@ var monsters = [
 		hp: '162',
 		ac: '18',
 		source: 'JttRC',
-		page: '?'
+		page: '112'
 	},{
 		name: 'Xolkin Alassandar',
 		hp: '65',
@@ -17926,7 +19114,7 @@ var monsters = [
 		hp: '67',
 		ac: '16',
 		source: 'CRCotN',
-		page: '?'
+		page: '126'
 	},{
 		name: 'Xvart Speaker',
 		hp: '7',
@@ -18034,7 +19222,7 @@ var monsters = [
 		hp: '16',
 		ac: '13',
 		source: 'JttRC',
-		page: '?'
+		page: '204'
 	},{
 		name: 'Yarnspinner',
 		hp: '138',
@@ -18259,19 +19447,19 @@ var monsters = [
 		page: '94'
 	},{
 		name: 'Young Griffon (Medium)',
-		hp: '32',
+		hp: '59',
 		ac: '12',
 		source: 'IDRotF',
 		page: '163'
 	},{
 		name: 'Young Griffon (Small)',
-		hp: '13',
+		hp: '59',
 		ac: '12',
 		source: 'IDRotF',
 		page: '163'
 	},{
 		name: 'Young Griffon (Tiny)',
-		hp: '5',
+		hp: '59',
 		ac: '12',
 		source: 'IDRotF',
 		page: '163'
@@ -18412,7 +19600,7 @@ var monsters = [
 		hp: '9',
 		ac: '15',
 		source: 'JttRC',
-		page: '?'
+		page: '85'
 	},{
 		name: 'Yuan-ti Abomination',
 		hp: '127',
@@ -18539,6 +19727,12 @@ var monsters = [
 		ac: '18',
 		source: 'ERLW',
 		page: '309'
+	},{
+		name: 'Zala Morphus',
+		hp: '45',
+		ac: '15',
+		source: 'KftGV',
+		page: '?'
 	},{
 		name: 'Zalkoré',
 		hp: '127',
@@ -18673,7 +19867,7 @@ var monsters = [
 		page: '209'
 	},{
 		name: 'Zilchyn Q\'Leptin',
-		hp: '40',
+		hp: '45',
 		ac: '12',
 		source: 'OotA',
 		page: '137'
@@ -18694,7 +19888,7 @@ var monsters = [
 		hp: '11',
 		ac: '11',
 		source: 'JttRC',
-		page: '?'
+		page: '177'
 	},{
 		name: 'Zodar',
 		hp: '200',
@@ -18755,6 +19949,18 @@ var monsters = [
 		ac: '10',
 		source: 'ToA',
 		page: '241'
+	},{
+		name: 'Zorhanna Adulare',
+		hp: '99',
+		ac: '12',
+		source: 'KftGV',
+		page: '?'
+	},{
+		name: 'Zorhanna\'s Simulacrum',
+		hp: '99',
+		ac: '12',
+		source: 'KftGV',
+		page: '184'
 	},{
 		name: 'Zox Clammersham',
 		hp: '99',

@@ -59,7 +59,7 @@
 				$image = $map["url"];
 				if (substr($image, 0, 11) == "/resources/") {
 					$image = "resources/".$this->user->resources_key.substr($image, 10);
-				} else {
+				} else if (substr($image, 0, 7) == "/files/") {
 					$image = substr($image, 1);
 				}
 			} else {
@@ -94,7 +94,7 @@
 				$video = $map["url"];
 				if (substr($video, 0, 11) == "/resources/") {
 					$video = "resources/".$this->user->resources_key.substr($video, 10);
-				} else {
+				} else if (substr($video, 0, 7) == "/files/") {
 					$video = substr($video, 1);
 				}
 			} else {
@@ -163,7 +163,7 @@
 			$min_size = 2 * $this->settings->screen_grid_size;
 
 			if ((($map["width"] ?? 0) < $min_size) || (($map["height"] ?? 0) < $min_size)) {
-				$this->view->add_message("The map must be at least %sx%s pixels. Does the map file exists?", $min_size, $min_size);
+				$this->view->add_message("The map must be at least %sx%s pixels. Does the map file exists? Try specifying the dimension manually.", $min_size, $min_size);
 				$result = false;
 			}
 
@@ -240,18 +240,23 @@
 			              "grid_size", "show_grid", "drag_character", "fog_of_war",
 			              "fow_distance", "start_x", "start_y", "dm_notes");
 
-			if ($map["method"] == "upload") {
+			if (($map["method"] ?? null) == "upload") {
 				copy($_FILES["file"]["tmp_name"], $this->upload_to_url($map, true));
 				$map["url"] = $this->upload_to_url($map);
 			}
 
 			$map["id"] = null;
 			$map["adventure_id"] = $_SESSION["edit_adventure_id"];
-			$map["grid_size"] = 50;
+			$map["title"] = substr($map["title"], 0, 50);
+			if (isset($map["grid_size"]) == false) {
+				$map["grid_size"] = 50;
+			}
+			if (isset($map["start_x"]) == false) {
+				$map["start_x"] = 2;
+				$map["start_y"] = 2;
+			}
 			$map["show_grid"] = NO;
 			$map["drag_character"] = is_true($map["drag_character"] ?? false) ? YES : NO;
-			$map["start_x"] = 2;
-			$map["start_y"] = 2;
 
 			if ($this->db->query("begin") === false) {
 				return false;
@@ -288,6 +293,8 @@
 				return false;
 			}
 
+			$map["title"] = substr($map["title"], 0, 50);
+
 			if ($map["method"] == "upload") {
 				copy($_FILES["file"]["tmp_name"], $this->upload_to_url($map, true));
 				$map["url"] = $this->upload_to_url($map);
@@ -314,22 +321,7 @@
 			return $this->db->update("maps", $map["id"], $map, $keys);
 		}
 
-		public function generate_filename($str) {
-			$valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ ";
-
-			$result = "";
-			$len = strlen($str);
-			for ($i = 0; $i < $len; $i++) {
-				$c = substr($str, $i, 1);
-				if (strpos($valid, $c) !== false) {
-					$result .= $c;
-				}
-			}
-
-			return $result;
-		}
-
-		public function constructs_import($map_id, $file) {
+		public function constructs_import_file($map_id, $file) {
 			if ($this->get_map($map_id) == false) {
 				return false;
 			} else if (($import = file_get_contents($file["tmp_name"])) == false) {
@@ -342,6 +334,10 @@
 				return false;
 			}
 
+			return $this->constructs_import($map_id, $import);
+		}
+
+		public function constructs_import($map_id, $import) {
 			$tables = array(
 				"blinders" => array("pos1_x", "pos1_y", "pos2_x", "pos2_y"),
 				"doors"    => array("pos_x", "pos_y", "length", "direction", "state"),
@@ -377,31 +373,42 @@
 			return $this->db->query("commit") != false;
 		}
 
-		public function constructs_export($map) {
-			if ($this->get_map($map["id"]) == false) {
+		public function map_export($map_id) {
+			if (($map = $this->get_map($map_id)) == false) {
 				return false;
 			}
+
+			unset($map["id"]);
+			unset($map["adventure_id"]);
 
 			$tables = array("blinders", "doors", "lights", "walls", "zones");
 			$query = "select * from %S where map_id=%d";
 
-			$data = array(
-				"version" => 2,
-				"title"   => $map["title"],
-				"url"     => $map["url"]);
-
 			foreach ($tables as $table) {
-				if (($items = $this->db->execute($query, $table, $map["id"])) === false) {
+				if (($items = $this->db->execute($query, $table, $map_id)) === false) {
 					return false;
 				}
 
-				$data[$table] = array();
+				$map[$table] = array();
 				foreach ($items as $item) {
 					unset($item["id"]);
 					unset($item["map_id"]);
-					array_push($data[$table], $item);
+					array_push($map[$table], $item);
 				}
 			}
+
+			return $map;
+		}
+
+		public function constructs_export($override) {
+			if (($map = $this->map_export($override["id"])) == false) {
+				return false;
+			}
+
+			$data = array("version" => 3);
+			$data = array_merge($data, $map);
+			$data["title"] = $override["title"];
+			$data["dm_notes"] = $override["dm_notes"];
 
 			return gzencode(json_encode($data));
 		}
@@ -445,6 +452,108 @@
 					$this->db->update("adventures", $adventure["id"], array("active_map_id" => $maps[0]["id"]));
 				}
 			}
+		}
+
+		public function get_market() {
+			if (($dp = opendir(MARKET_DIRECTORY)) == false) {
+				return false;
+			}
+
+			$maps = array();
+			while (($dir = readdir($dp)) !== false) {
+				if (substr($dir, 0, 1) == ".") {
+					continue;
+				}
+
+				$file = MARKET_DIRECTORY.$dir."/maps.txt";
+				if (file_exists($file) == false) {
+					continue;
+				}
+				$index = file($file);
+
+				foreach ($index as $line) {
+					list($title, $file, $source) = explode(":", trim($line), 3);
+					list($base) = explode(".", $file, 2);
+
+					array_push($maps, array(
+						"title"      => $title,
+						"category"   => $dir,
+						"background" => $file,
+						"constructs" => $base.".cvm",
+						"thumbnail"  => $base."_thumbnail.jpg",
+						"source"     => $source));
+				}
+			}
+
+			closedir($dp);
+
+			$sorting = function($a, $b) {
+				return strcmp($a["title"], $b["title"]);
+			};
+
+			usort($maps, $sorting);
+
+			return $maps;
+		}
+
+		public function import_map($map) {
+			if (isset($_SESSION["edit_adventure_id"]) == false) {
+				$this->view->add_message("No adventure selected.");
+				return false;
+			}
+
+			if (strpos($map, "..") !== false) {
+				$this->view->add_message("Invalid map reference.");
+				return false;
+			}
+
+			if (($map = file_get_contents(MARKET_DIRECTORY.$map)) == false) {
+				return false;
+			} else if (substr($map, 0, 2) != "\x1F\x8B") {
+				return false;
+			} else if (($map = @gzdecode($map)) == false) {
+				return false;
+			} else if (($map = json_decode($map, true)) == false) {
+				return false;
+			}
+
+			$query = "select count(*) as count from maps where adventure_id=%d and title=%s";
+			if (($result = $this->db->execute($query, $_SESSION["edit_adventure_id"], $map["title"])) == false) {
+				$this->view->add_message("Adventure query error.");
+				return false;
+			}
+
+			if ($result[0]["count"] > 0) {
+				$this->view->add_message("A map with that name already exists in this adventure.");
+				return false;
+			}
+
+			$this->db->query("begin");
+
+			if (($map_id = $this->create_map($map)) == false) {
+				$this->view->add_message("Error while importing map.");
+				$this->db->query("rollback");
+				return false;
+			}
+
+			if (is_true($map["show_grid"])) {
+				$keys = array("show_grid");
+				if ($this->db->update("maps", $map_id, $map, $keys) == false) {
+					$this->view->add_message("Error while updating maps setting.");
+					$this->db->query("rollback");
+					return false;
+				}
+			}
+
+			if ($this->constructs_import($map_id, $map) == false) {
+				$this->view->add_message("Error while importing map constructs.");
+				$this->db->query("rollback");
+				return false;
+			}
+
+			$this->db->query("commit");
+
+			return $map_id;
 		}
 	}
 ?>

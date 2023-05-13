@@ -66,12 +66,9 @@
 			}
 
 			mkdir("resources/".$resources_key, 0755);
-			mkdir("resources/".$resources_key."/audio", 0755);
-			mkdir("resources/".$resources_key."/characters", 0755);
-			mkdir("resources/".$resources_key."/collectables", 0755);
-			mkdir("resources/".$resources_key."/effects", 0755);
-			mkdir("resources/".$resources_key."/maps", 0755);
-			mkdir("resources/".$resources_key."/tokens", 0755);
+			foreach (USER_SUB_DIRECTORIES as $directory) {
+				mkdir("resources/".$resources_key."/".$directory, 0755);
+			}
 
 			return true;
 		}

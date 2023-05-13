@@ -9,14 +9,17 @@
 //-->
 <xsl:template match="overview">
 <div class="row filter">
-<div class="col-md-3 col-sm-4 col-xs-6">
+<div class="col-sm-6 col-xs-12">
 <div class="btn-group">
 <a href="/{/output/page}/new" class="btn btn-default">New token</a>
 <a href="/vault" class="btn btn-default">Back</a>
 </div>
 </div>
-<div class="col-md-9 col-sm-8 col-xs-6">
+<div class="col-sm-6 col-xs-12">
+<div class="input-group">
 <input id="filter" type="text" placeholder="Filter tokens" class="form-control" onKeyUp="javascript:filter_tokens()" />
+<span class="input-group-btn"><button class="btn btn-default" type="button">X</button></span>
+</div>
 </div>
 </div>
 

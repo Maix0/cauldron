@@ -151,12 +151,19 @@
 								$this->view->add_tag("result", "Database error.");
 								return;
 							}
+
+							if (($weapons = $this->model->get_weapons($character["id"])) === false) {
+								$this->view->add_tag("result", "Database error.");
+								return;
+							}
 							break;
 						}
 					}
 				} else {
 					$my_name = "Dungeon Master";
 				}
+
+				$brushes = $this->model->get_brushes();
 
 				$factor = 1 / $active_map["grid_size"] * $grid_cell_size;
 				$active_map["width"] = round($active_map["width"] * $factor);
@@ -182,9 +189,12 @@
 				if (is_true($active_map["show_grid"])) {
 					$this->view->add_javascript("includes/grid.js");
 				}
+
 				$this->view->add_javascript("adventure.js");
 				if ($active_map["fog_of_war"] > 0) {
-					if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
+					if ($active_map["fog_of_war"] == FOW_ERASE) {
+						$type = "erase";
+					} else if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
 						$type = "real";
 					} else {
 						$type = "cell";
@@ -384,13 +394,23 @@
 				}
 				$this->view->close_tag();
 
-				/* Alternates
+				/* Character alternate icons
 				 */
-				if (is_array($alternates ?? null)) {
+				if (isset($alternates)) {
 					$this->view->open_tag("alternates");
 					foreach ($alternates as $alternate) {
 						$alternate["filename"] = $alternate["character_id"]."_".$alternate["id"].".".$alternate["extension"];
 						$this->view->record($alternate, "alternate");
+					}
+					$this->view->close_tag();
+				}
+
+				/* Character weapons
+				 */
+				if (isset($weapons)) {
+					$this->view->open_tag("weapons");
+					foreach ($weapons as $weapon) {
+						$this->view->record($weapon, "weapon");
 					}
 					$this->view->close_tag();
 				}
@@ -413,11 +433,26 @@
 						$entry["session"] = "Session ".$session;
 						$session++;
 					}
+
+					$message = new \Banshee\message($entry["content"]);
+					$entry["content"] = $message->unescaped_output();
+
+					$entry["content"] = preg_replace('/(http(s?):\/\/([^ ]+)\.(gif|jpg|png))/', '<img src="$1" />', $entry["content"]);
+
 					$this->view->record($entry, "entry");
 					$timestamp = $entry["timestamp"];
 				}
 				if (time() - $timestamp > 6 * HOUR) {
 					$this->view->record(array("session" => "Session ".$session), "entry");
+				}
+				$this->view->close_tag();
+
+				/* Brushes
+				 */
+				$this->view->open_tag("brushes");
+				foreach ($brushes as $brush) {
+					$info = pathinfo($brush);
+					$this->view->add_tag("brush", $brush, array("name" => $info["filename"]));
 				}
 				$this->view->close_tag();
 			}

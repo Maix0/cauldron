@@ -225,12 +225,22 @@
 			}
 
 			if (trim($info["name"]) == "") {
-				$this->view->add_message("Invalid name");
+				$this->view->add_message("Invalid name.");
 				$result = false;
+			} else {
+				$query = "select count(*) as count from character_icons where name=%s and character_id=%d";
+				if (($result = $this->db->execute($query, $info["name"], $info["char_id"])) === false) {
+					$this->view->add_message("Database error.");
+					$result = false;
+				}
+				if ($result[0]["count"] > 0) {
+					$this->view->add_message("An icon with that name already exists.");
+					$result = false;
+				}
 			}
 
 			if (in_array($info["size"], array(1, 2)) == false) {
-				$this->view->add_message("Invalid size");
+				$this->view->add_message("Invalid size.");
 				$result = false;
 			}
 
@@ -286,6 +296,105 @@
 			ob_start();
 			unlink("resources/".$this->user->resources_key."/characters/".$current["character_id"]."_".$icon_id.".".$current["extension"]);
 			ob_end_clean();
+
+			return $current["character_id"];
+		}
+
+		/* Weapons
+		 */
+		public function get_weapons($character_id) {
+			$query = "select * from character_weapons where character_id=%d order by name";
+
+			return $this->db->execute($query, $character_id);
+		}
+
+		public function weapon_okay($weapon) {
+			$result = true;
+
+			if ($this->get_character($weapon["char_id"]) == false) {
+				$this->view->add_message("Unknown character.");
+				$result = false;
+			}
+
+			if (trim($weapon["name"]) == "") {
+				$this->view->add_message("Invalid name.");
+				$result = false;
+			} else {
+				$query = "select count(*) as count from character_weapons where name=%s and character_id=%d";
+				if (($result = $this->db->execute($query, $weapon["name"], $weapon["char_id"])) === false) {
+					$this->view->add_message("Database error.");
+					$result = false;
+				}
+				if ($result[0]["count"] > 0) {
+					$this->view->add_message("A weapon with that name already exists.");
+					$result = false;
+				}
+			}
+
+			if (trim($weapon["roll"]) == "") {
+				$this->view->add_message("Invalid roll.");
+				$result = false;
+			} else {
+				$roll = preg_replace('/ +/', "", $weapon["roll"]);
+				$parts = explode("+", $roll);
+
+				foreach ($parts as $part) {
+					if (strlen($part) == 0) {
+						$this->view->add_message("Invalid roll.");
+						$result = false;
+						break;
+					}
+
+					if (valid_input($part, VALIDATE_NUMBERS)) {
+						continue;
+					}
+
+					$dice = explode("d", $part);
+
+					if (count($dice) != 2) {
+						$this->view->add_message("Invalid dice.");
+						$result = false;
+						break;
+					}
+
+					if (valid_input($dice[0], VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {
+						$this->view->add_message("Invalid dice count.");
+						$result = false;
+						break;
+					}
+
+					if (in_array($dice[1], array("4", "6", "8", "10", "12", "20", "100")) == false) {
+						$this->view->add_message("Invalid dice sides.");
+						$result = false;
+						break;
+					}
+				}
+			}
+
+			return $result;
+		}
+
+		public function add_weapon($weapon) {
+			$data = array(
+				"id"           => null,
+				"character_id" => $weapon["char_id"],
+				"name"         => $weapon["name"],
+				"roll"         => $weapon["roll"]);
+
+			return $this->db->insert("character_weapons", $data) != false;
+		}
+
+		public function delete_weapon($weapon_id) {
+			$query = "select * from character_weapons w, characters c ".
+			         "where w.character_id=c.id and w.id=%d and c.user_id=%d";
+			if (($character = $this->db->execute($query, $weapon_id, $this->user->id)) == false) {
+				return false;
+			}
+			$current = $character[0];
+
+			if ($this->db->delete("character_weapons", $weapon_id) === false) {
+				return false;
+			}
 
 			return $current["character_id"];
 		}
