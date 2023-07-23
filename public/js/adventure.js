@@ -6,7 +6,7 @@ const FOW_DAY_CELL = 1;
 const FOW_DAY_REAL = 2;
 const FOW_NIGHT_CELL = 3;
 const FOW_NIGHT_REAL = 4;
-const FOW_ERASE = 5;
+const FOW_MAN_REV = 5;
 
 const DEFAULT_Z_INDEX = 10000;
 const LAYER_TOKEN = DEFAULT_Z_INDEX;
@@ -17,6 +17,12 @@ const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 4;
 const LAYER_MARKER = DEFAULT_Z_INDEX + 5;
 const LAYER_MENU = DEFAULT_Z_INDEX + 6;
 const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
+
+const DOOR_SECRET = '#a0a000';
+const DOOR_OPEN = '#40c040';
+const DOOR_OPACITY = '0.6';
+
+const OBJECT_HIDDEN_FADE = 0.6;
 
 const INPUT_HISTORY_SIZE = 20;
 
@@ -81,6 +87,7 @@ var drawing_history = [];
 var attack_bonus = 0;
 var fullscreen = false
 var fullscreen_backup = undefined;
+var pause = false;
 
 /* Websocket
  */
@@ -372,7 +379,6 @@ function roll_dice(dice_input, send_to_others = true) {
 			message += ' + ' + addition;
 		}
 		message += ' = ' + total;
-
 
 		if (send_to_others) {
 			send_message(message, character_name);
@@ -773,6 +779,10 @@ function object_delete(obj) {
 	$.post('/object/delete', {
 		instance_id: obj.prop('id')
 	}).done(function() {
+		if (obj.is(focus_obj)) {
+			focus_obj = null;
+		}
+
 		obj.remove();
 
 		var data = {
@@ -785,7 +795,7 @@ function object_delete(obj) {
 
 function object_hide(obj, send = true) {
 	if (dungeon_master) {
-		obj.fadeTo(0, 0.5);
+		obj.fadeTo(0, OBJECT_HIDDEN_FADE);
 	} else {
 		obj.hide(100);
 	}
@@ -1089,6 +1099,14 @@ function object_step(obj, x, y) {
 }
 
 function object_steer(event) {
+	if ((dungeon_master == false) && pause) {
+		return;
+	}
+
+	if ($('div.input input:focus').length > 0) {
+		return;
+	}
+
 	if (my_character != null) {
 		var hitpoints = parseInt(my_character.attr('hitpoints'));
 		var damage = parseInt(my_character.attr('damage'));
@@ -1160,13 +1178,6 @@ function object_turn(obj, direction) {
 	}
 
 	object_rotate(obj, rotation, true, 100);
-}
-
-function object_unfocus() {
-	if (focus_obj != null) {
-		focus_obj.find('img').css('border', '');
-		focus_obj = null;
-	}
 }
 
 function object_view(obj, max_size = 300) {
@@ -1321,7 +1332,6 @@ function door_position(door) {
 	var pos_y = parseInt(door.attr('pos_y')) * grid_cell_size;
 	var length = parseInt(door.attr('length')) * grid_cell_size;
 	var direction = door.attr('direction');
-	var state = door.attr('state');
 
 	if (direction == 'horizontal') {
 		var width = length;
@@ -1341,10 +1351,16 @@ function door_position(door) {
 	door.css('width', width + 'px');
 	door.css('height', height + 'px');
 
-	if (state == 'open') {
+	if (door.attr('secret') == 'yes') {
+		if (dungeon_master) {
+			door.css('background-color', DOOR_SECRET);
+		} else {
+			door.hide();
+		}
+	}
+
+	if (door.attr('state') == 'open') {
 		door_show_open(door);
-	} else if (state == 'locked') {
-		door_show_locked(door);
 	}
 }
 
@@ -1398,81 +1414,12 @@ function door_send_state(door) {
 	});
 }
 
-function door_nearby(door) {
-	if (my_character == null) {
-		return false;
-	}
-
-	var door_x = parseInt(door.attr('pos_x'));
-	var door_y = parseInt(door.attr('pos_y'));
-	var length = parseInt(door.attr('length'));
-	var direction = door.attr('direction');
-
-	if (direction == 'horizontal') {
-		door_y -= 0.5;
-	} else if (direction == 'vertical') {
-		door_x -= 0.5;
-	}
-
-	var my_pos = object_position(my_character);
-	var my_x = my_pos.left / grid_cell_size;
-	var my_y = my_pos.top / grid_cell_size;
-
-	var my_size = my_character.width() / grid_cell_size;
-	if (door_x > my_x) {
-		my_x += (my_size - 1);
-	}
-	if (door_y > my_y) {
-		my_y += (my_size - 1);
-	}
-
-	while (length > 0) {
-		var dist_x = Math.abs(door_x - my_x);
-		var dist_y = Math.abs(door_y - my_y);
-		var distance = Math.max(dist_x, dist_y);
-
-		if (distance <= 1.5) {
-			return true;
-		}
-
-		if (direction == 'horizontal') {
-			door_x++;
-		} else if (direction == 'vertical') {
-			door_y++;
-		} else {
-			write_sidebar('Invalid door');
-		}
-
-		length--;
-	}
-
-	return false;
-}
-
 function door_make_closed(door) {
 	if (door.attr('state') != 'open') {
 		return;
 	}
 
-	if (dungeon_master == false) {
-		if (door_nearby(door) == false) {
-			write_sidebar('You are too far away.');
-			return;
-		}
-	}
-
-	write_sidebar('The door is now closed.');
 	door_show_closed(door);
-	door_send_state(door);
-}
-
-function door_make_locked(door) {
-	if ((dungeon_master == false) || (door.attr('state') == 'locked')) {
-		return;
-	}
-
-	write_sidebar('The door is now locked.');
-	door_show_locked(door);
 	door_send_state(door);
 }
 
@@ -1481,30 +1428,7 @@ function door_make_open(door) {
 		return;
 	}
 
-	if (dungeon_master == false) {
-		if (door_nearby(door) == false) {
-			write_sidebar('You are too far away.');
-			return;
-		}
-
-		if (door.attr('state') == 'locked') {
-			write_sidebar('The door won\'t go open.');
-			return;
-		}
-	}
-
-	write_sidebar('The door is now open.');
 	door_show_open(door);
-	door_send_state(door);
-}
-
-function door_make_unlocked(door) {
-	if ((dungeon_master == false) || (door.attr('state') != 'locked')) {
-		return;
-	}
-
-	write_sidebar('The door is now unlocked.');
-	door_show_unlocked(door);
 	door_send_state(door);
 }
 
@@ -1512,7 +1436,12 @@ function door_show_closed(door) {
 	door.attr('state', 'closed');
 
 	door.css('opacity', '1');
-	door.css('background-color', '');
+	if (dungeon_master) {
+		door.css('background-color', door.attr('secret') == 'yes' ? DOOR_SECRET : '');
+	} else if (door.attr('secret') == 'no') {
+		door.show();
+	}
+	door.css('opacity', DOOR_OPACITY);
 
 	/* Fog of War
 	 */
@@ -1526,8 +1455,12 @@ function door_show_closed(door) {
 function door_show_open(door) {
 	door.attr('state', 'open');
 
-	door.css('opacity', '0.6');
-	door.css('background-color', '#40c040');
+	if (dungeon_master) {
+		door.css('background-color', DOOR_OPEN);
+		door.css('opacity', DOOR_OPACITY);
+	} else {
+		door.hide();
+	}
 
 	/* Fog of War
 	 */
@@ -1536,23 +1469,6 @@ function door_show_open(door) {
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
 	}
-}
-
-function door_show_locked(door) {
-	door_show_closed(door);
-	if (dungeon_master) {
-		door.css('background-color', '#c00000');
-	}
-
-	door.attr('state', 'locked');
-}
-
-function door_show_unlocked(door) {
-	if (dungeon_master) {
-		door_show_closed(door);
-	}
-
-	door.attr('state', 'closed');
 }
 
 /* Light functions
@@ -2127,8 +2043,6 @@ function journal_save_entry(name, content) {
 }
 
 function journal_show() {
-	object_unfocus();
-
 	var panel = $('div.journal').parent();
 	panel.prop('scrollTop', panel.prop('scrollHeight'));
 }
@@ -2263,7 +2177,7 @@ function handle_input(input) {
 			wf_play_audio.open();
 			break;
 		case 'cauldron':
-			write_sidebar('<img src="/images/cauldron.png" />');
+			write_sidebar('<img src="/images/cauldron.png" draggable="false" />');
 			break;
 		case 'clear':
 			$('div.sidebar').empty();
@@ -2735,14 +2649,8 @@ function context_menu_handler(key, options) {
 		case 'door_close':
 			door_make_closed(obj);
 			break;
-		case 'door_lock':
-			door_make_locked(obj);
-			break;
 		case 'door_open':
 			door_make_open(obj);
-			break;
-		case 'door_unlock':
-			door_make_unlocked(obj);
 			break;
 		case 'effect_create':
 			effect_x = coord_to_grid(mouse_x, false);
@@ -3146,8 +3054,6 @@ function context_menu_handler(key, options) {
 			window_make_closed(obj);
 			break;
 		case 'zone_create':
-			object_unfocus();
-
 			zone_x = coord_to_grid(mouse_x, false);
 			zone_y = coord_to_grid(mouse_y, false);
 
@@ -3178,6 +3084,26 @@ function context_menu_handler(key, options) {
 }
 
 function key_down(event) {
+	if ((dungeon_master == false) && pause) {
+		return;
+	}
+
+	if (event.which == 192) {
+		// back-quote
+		if ($('div.diceroll').is(':visible') == false) {
+			wf_dice_roll.open();
+		} else {
+			wf_dice_roll.close();
+		}
+	}
+
+	if ($('div.windowframe_overlay > div:visible').length > 0) {
+		return;
+	} else if ($('div.input input:focus').length > 0) {
+		return;
+	}
+
+
 	if (event.which == 16) {
 		// Shift
 		shift_down = true;
@@ -3187,13 +3113,6 @@ function key_down(event) {
 	} else if (event.which == 18) {
 		// ALT
 		alt_down = true;
-	} else if (event.which == 192) {
-		// back-quote
-		if ($('div.diceroll').is(':visible') == false) {
-			wf_dice_roll.open();
-		} else {
-			wf_dice_roll.close();
-		}
 	} else if (event.which == 9) {
 		// TAB
 		toggle_fullscreen();
@@ -3235,10 +3154,36 @@ $(document).ready(function() {
 	var ws_host = $('div.playarea').attr('ws_host');
 	var ws_port = $('div.playarea').attr('ws_port');
 
-	write_sidebar('<img src="/images/cauldron.png" style="max-width:80px; display:block; margin:0 auto" />');
+	write_sidebar('<img src="/images/cauldron.png" style="max-width:80px; display:block; margin:0 auto" draggable="false" />');
 	write_sidebar('<b>Welcome to Cauldron v' + version + '</b>');
 	write_sidebar('Type /help for command information.');
 	write_sidebar('You are ' + character_name + '.');
+
+	if (dungeon_master) {
+		/* Pauze button
+		 */
+		$('div.menu button.pause').on('click', function() {
+			pause = (pause == false);
+
+			if (pause) {
+				$(this).addClass('btn-primary');
+				$(this).removeClass('btn-default');
+				write_sidebar('The game is paused.');
+			} else {
+				$(this).addClass('btn-default');
+				$(this).removeClass('btn-primary');
+				write_sidebar('The game is continued.');
+			}
+
+			var data = {
+				action: 'pause',
+				pause: pause
+			};
+			websocket_send(data);
+
+			localStorage.setItem('pause', pause);
+		});
+	}
 
 	/* Websocket
 	 */
@@ -3251,6 +3196,10 @@ $(document).ready(function() {
 		websocket_send(data);
 
 		if (dungeon_master) {
+			if (localStorage.getItem('pause') == 'true') {
+				$('div.menu button.pause').trigger('click');
+			}
+
 			var color = $('div.draw-tools div.draw-colors span:nth-child(' + DRAW_DEFAULT_COLOR + ')').css('background-color');
 			var data = {
 				action: 'draw_color',
@@ -3386,9 +3335,7 @@ $(document).ready(function() {
 				var obj = $('div#' + data.door_id);
 				switch (data.state) {
 					case 'closed': door_show_closed(obj); break;
-					case 'locked': door_show_locked(obj); break;
 					case 'open': door_show_open(obj); break;
-					case 'unlocked': door_show_unlocked(obj); break;
 				}
 				break;
 			case 'draw_brush':
@@ -3404,7 +3351,7 @@ $(document).ready(function() {
 			case 'draw_clear':
 				drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
 
-				if (fow_type == FOW_ERASE) {
+				if (fow_type == FOW_MAN_REV) {
 					fog_of_war_reset(false);
 				}
 				break
@@ -3619,6 +3566,16 @@ $(document).ready(function() {
 			case 'night':
 				$('div.night').css('background-color', 'rgba(0, 0, 0, ' + data.level + ')');
 				break;
+			case 'pause':
+				pause = data.pause;
+
+				if (data.pause) {
+					$('div.pause').show();
+					$('div.input input').trigger('blur');
+				} else {
+					$('div.pause').hide();
+				}
+				break;
 			case 'ping':
 				var data = {
 					action: 'pong',
@@ -3642,6 +3599,14 @@ $(document).ready(function() {
 				}
 
 				var to_user_id = data.user_id;
+
+				if (pause) {
+					var data = {
+						action: 'pause',
+						pause: true
+					};
+					websocket_send(data);
+				}
 
 				drawing_history.forEach(function(draw) {
 					draw.to_user_id = to_user_id;
@@ -4035,7 +4000,7 @@ $(document).ready(function() {
 
 						drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
 
-						if (fow_type == FOW_ERASE) { 
+						if (fow_type == FOW_MAN_REV) { 
 							fog_of_war_reset(true);
 						}
 
@@ -4088,27 +4053,20 @@ $(document).ready(function() {
 		door_position($(this));
 	});
 
+	if (dungeon_master) {
+		$('div.door').contextmenu(function(event) {
+			var menu_entries = {};
 
-	$('div.door').contextmenu(function(event) {
-		var menu_entries = {};
-
-		if ($(this).attr('state') == 'open') {
-			menu_entries['door_close'] = { name:'Close', icon:'fa-toggle-off' };
-		} else {
-			menu_entries['door_open'] = { name:'Open', icon:'fa-toggle-on' };
-		}
-
-		if (dungeon_master) {
-			if ($(this).attr('state') == 'locked') {
-				menu_entries['door_unlock'] = { name:'Unlock', icon:'fa-unlock' };
+			if ($(this).attr('state') == 'open') {
+				menu_entries['door_close'] = { name:'Close', icon:'fa-toggle-off' };
 			} else {
-				menu_entries['door_lock'] = { name:'Lock', icon:'fa-lock' };
+				menu_entries['door_open'] = { name:'Open', icon:'fa-toggle-on' };
 			}
-		}
 
-		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
-		return false;
-	});
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			return false;
+		});
+	}
 
 	/* Walls
 	 */
@@ -4217,7 +4175,7 @@ $(document).ready(function() {
 		});
 
 		$('div.token[is_hidden=yes]').each(function() {
-			$(this).fadeTo(0, 0.5);
+			$(this).fadeTo(0, OBJECT_HIDDEN_FADE);
 		});
 
 		
@@ -4296,7 +4254,7 @@ $(document).ready(function() {
 			menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
 			menu_entries['sep2'] = '-';
 
-			if ((fow_type != FOW_OFF) && (fow_type != FOW_ERASE)) {
+			if ((fow_type != FOW_OFF) && (fow_type != FOW_MAN_REV)) {
 				if ($(this).parent().is(fow_obj)) {
 					menu_entries['fow_show'] = { name:'Remove Fog of War', icon:'fa-mixcloud' };
 				} else {
@@ -4464,7 +4422,7 @@ $(document).ready(function() {
 			}
 		});
 
-		if (fow_type == FOW_ERASE) {
+		if (fow_type == FOW_MAN_REV) {
 			fog_of_war_init(LAYER_FOG_OF_WAR, true);
 		}
 
@@ -4548,7 +4506,7 @@ $(document).ready(function() {
 
 			/* Fog of war
 			 */
-			if (fow_type == FOW_ERASE) {
+			if (fow_type == FOW_MAN_REV) {
 				fog_of_war_init(LAYER_FOG_OF_WAR, false);
 			} else if (fow_type != FOW_OFF) {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
@@ -4594,13 +4552,6 @@ $(document).ready(function() {
 
 	/* Input field
 	 */
-	$('div.input input').focusout(function() {
-		$('body').keyup(object_steer);
-	});
-
-	$('div.input input').focusin(function() {
-		$('body').off('keyup');
-	});
 
 	$('div.input input').on('keyup', function (e) {
 		if ((e.key === 'Enter') || (e.keyCode === 13)) {
@@ -4997,12 +4948,11 @@ $(document).ready(function() {
 		input_history = [];
 	}
 
-	$('body').keyup(object_steer);
-
 	scroll_to_my_character();
 
 	$('body').keydown(key_down);
 	$('body').keyup(key_up);
+	$('body').keyup(object_steer);
 
 	$(window).focus(function() {
 		ctrl_down = false;

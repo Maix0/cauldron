@@ -51,6 +51,48 @@
 			$this->view->close_tag();
 		}
 
+		private function show_adventure_token_selector($adventure) {
+			if (($library = $this->model->get_tokens()) == false) {
+				return false;
+			}
+
+			if (($placed = $this->model->get_placed_tokens($_POST["adventure"])) == false) {
+				return false;
+			}
+
+			$this->view->open_tag("token_selector");
+			$this->view->add_tag("adventure", $adventure);
+
+			$this->view->open_tag("placed");
+
+			foreach ($placed as $token) {
+				$match = $library[0]["id"];
+				$distance = PHP_INT_MAX;
+
+				foreach ($library as $t) {
+					$dist = levenshtein($token["type"], $t["name"]);
+					if ($dist < $distance) {
+						$match = $t["id"];
+						$distance = $dist;
+					}
+				}
+
+				$token["match"] = $match;
+				$this->view->record($token, "token");
+			}
+			$this->view->close_tag();
+
+			$this->view->open_tag("library");
+			foreach ($library as $token) {
+				$this->view->record($token, "token");
+			}
+			$this->view->close_tag();
+
+			$this->view->close_tag();
+
+			return true;
+		}
+
 		private function show_resources() {
 			if (($maps = $this->model->get_resources("", false)) == false) {
 				return false;
@@ -130,7 +172,15 @@
 				} else if (($_POST["submit_button"] == "Import adventure") && is_true(ENABLE_MARKET)) {
 					/* Import adventure
 					 */
-					if ($this->model->import_adventure($_POST["adventure"]) == false) {
+					if (isset($_POST["tokens"]) == false) {
+						$token_selector = $this->show_adventure_token_selector($_POST["adventure"]);
+					} else {
+						$token_selector = false;
+					}
+
+					if ($token_selector) {
+						/* Do nothing else */
+					} else if ($this->model->import_adventure($_POST) == false) {
 						$this->show_market();
 					} else {
 						$this->user->log_action("market adventure %s imported", $_POST["adventure"]);

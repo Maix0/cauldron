@@ -131,6 +131,7 @@
 			 */
 			$this->view->open_tag("doors");
 			foreach ($doors as $door) {
+				$door["secret"] = show_boolean($door["secret"]);
 				$this->view->record($door, "door");
 			}
 			$this->view->close_tag();

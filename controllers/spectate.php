@@ -134,6 +134,8 @@
 				$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 			}
 
+			$this->view->add_tag("back", $this->user->is_admin ? "spectate" : "adventure");
+
 			$this->view->add_css("banshee/font-awesome.css");
 			$this->view->add_css("includes/context_menu.css");
 

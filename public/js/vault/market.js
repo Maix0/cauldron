@@ -19,9 +19,15 @@ function filter_category() {
 }
 
 $(document).ready(function() {
+	if ($('div.adventures').length > 0) {
+		filter_level();
+	}
+
 	if ($('div.market div.map').length == 0) {
 		return;
 	}
+
+	filter_category();
 
 	var preview_window = $('<div class="preview"><img src="" /></div>').windowframe({
 		header: 'Map preview',

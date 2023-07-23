@@ -105,10 +105,10 @@
 			foreach ($this->elements as $name => $element) {
 				switch ($element["type"]) {
 					case "boolean":
-						$item[$name] = is_true($item[$name]) ? YES : NO;
+						$item[$name] = is_true($item[$name] ?? false) ? YES : NO;
 						break;
 					case "integer":
-						$item[$name] = (int)$item[$name];
+						$item[$name] = (int)($item[$name] ?? 0);
 						break;
 				}
 			}
@@ -433,7 +433,7 @@
 					}
 				}
 
-				if (($element["null"] === true) && ($item[$key] == "")) {
+				if ((($element["null"] ?? null) === true) && ($item[$key] == "")) {
 					$item[$key] = null;
 				}
 			}

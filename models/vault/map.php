@@ -235,7 +235,7 @@
 			return implode("/", $url);
 		}
 
-		public function create_map($map) {
+		public function create_map($map, $transaction = true) {
 			$keys = array("id", "adventure_id", "title", "url", "audio", "width", "height",
 			              "grid_size", "show_grid", "drag_character", "fog_of_war",
 			              "fow_distance", "start_x", "start_y", "dm_notes");
@@ -258,23 +258,29 @@
 			$map["show_grid"] = NO;
 			$map["drag_character"] = is_true($map["drag_character"] ?? false) ? YES : NO;
 
-			if ($this->db->query("begin") === false) {
-				return false;
+			if ($transaction) {
+				$this->db->query("begin");
 			}
 
 			if ($this->db->insert("maps", $map, $keys) === false) {
-				$this->db->query("rollback");
+				if ($transaction) {
+					$this->db->query("rollback");
+				}
 				return false;
 			}
 			$map_id = $this->db->last_insert_id;
 
 			if ($this->place_characters($_SESSION["edit_adventure_id"], $map_id, $map["start_x"], $map["start_y"]) === false) {
-				$this->db->query("rollback");
+				if ($transaction) {
+					$this->db->query("rollback");
+				}
 				return false;
 			}
 
-			if ($this->db->query("commit") === false) {
-				return false;
+			if ($transaction) {
+				if ($this->db->query("commit") === false) {
+					return false;
+				}
 			}
 
 			if (($adventure = $this->db->entry("adventures", $_SESSION["edit_adventure_id"])) != false) {
@@ -337,20 +343,24 @@
 			return $this->constructs_import($map_id, $import);
 		}
 
-		public function constructs_import($map_id, $import) {
+		public function constructs_import($map_id, $import, $transaction = true) {
 			$tables = array(
 				"blinders" => array("pos1_x", "pos1_y", "pos2_x", "pos2_y"),
-				"doors"    => array("pos_x", "pos_y", "length", "direction", "state"),
+				"doors"    => array("pos_x", "pos_y", "length", "direction", "state", "secret"),
 				"lights"   => array("pos_x", "pos_y", "radius", "state"),
 				"walls"    => array("pos_x", "pos_y", "length", "direction", "transparent"),
 				"zones"    => array("pos_x", "pos_y", "width", "height", "color", "opacity", "script", "group", "altitude"));
 
-			$this->db->query("begin");
+			if ($transaction) {
+				$this->db->query("begin");
+			}
 
 			$query = "delete from %S where map_id=%d";
 			foreach ($tables as $table => $columns) {
 				if ($this->db->query($query, $table, $map_id) === false) {
-					$this->db->query("rollback");
+					if ($transaction) {
+						$this->db->query("rollback");
+					}
 					return false;
 				}
 				
@@ -363,14 +373,17 @@
 				foreach ($import[$table] as $data) {
 					$data["id"] = null;
 					$data["map_id"] = $map_id;
+
 					if ($this->db->insert($table, $data, $columns) === false) {
-						$this->db->query("rollback");
+						if ($transaction) {
+							$this->db->query("rollback");
+						}
 						return false;
 					}
 				}
 			}
 
-			return $this->db->query("commit") != false;
+			return $transaction ? ($this->db->query("commit") != false) : true;
 		}
 
 		public function map_export($map_id) {
@@ -530,7 +543,7 @@
 
 			$this->db->query("begin");
 
-			if (($map_id = $this->create_map($map)) == false) {
+			if (($map_id = $this->create_map($map, false)) == false) {
 				$this->view->add_message("Error while importing map.");
 				$this->db->query("rollback");
 				return false;
@@ -545,7 +558,7 @@
 				}
 			}
 
-			if ($this->constructs_import($map_id, $map) == false) {
+			if ($this->constructs_import($map_id, $map, false) == false) {
 				$this->view->add_message("Error while importing map constructs.");
 				$this->db->query("rollback");
 				return false;

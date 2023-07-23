@@ -56,7 +56,7 @@
 <!-- Doors -->
 <div class="doors">
 <xsl:for-each select="doors/door">
-<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" />
+<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" secret="{secret}" />
 </xsl:for-each>
 </div>
 <!-- Lights -->
@@ -96,7 +96,7 @@
 <div id="start" style="position:absolute; left:{map/start_x}px; top:{map/start_y}px;"><img src="/images/player_start.png" style="width:{@grid_cell_size}px; height:{@grid_cell_size}px;" /></div>
 </div>
 <!-- Fog of war -->
-<div class="fog_of_war"></div>
+<div class="fog_of_war" distance="{map/fow_distance}"></div>
 </div>
 <!-- Markers -->
 <div class="markers"></div>

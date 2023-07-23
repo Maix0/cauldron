@@ -519,6 +519,13 @@
 				$this->settings->database_version = 2.10;
 			}
 
+			if ($this->settings->database_version == 2.10) {
+				$this->db_query("ALTER TABLE doors CHANGE state state ENUM(%s,%s) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL", "open", "closed");
+				$this->db_query("ALTER TABLE doors ADD secret BOOLEAN NOT NULL AFTER state");
+
+				$this->settings->database_version = 2.11;
+			}
+
 			return true;
 		}
 

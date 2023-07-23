@@ -1,3 +1,13 @@
+cauldron (2.11) stable; urgency=low
+
+  * Only Dungeon Masters can now control doors.
+  * Locked state doors removed, secret doors added.
+  * Pause option added.
+  * Token selector for adventure market.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 23 Jul 2023 21:19:31 +0200
+
 cauldron (2.10) stable; urgency=low
 
   * Fullscreen map.

@@ -402,16 +402,16 @@ function script_save(zone) {
 			$('div#'  + zone_id).append('<div class="script"></div>');
 		}
 
-		if (copy_script) {
-			$('div.zone[group="' + zone_group + '"] div.script').text(script);
-		} else {
-			$('div#' + zone_id + ' div.script').text(script);
-		}
-
 		if (zone_group != '') {
 			$('div#' + zone_id).attr('group', zone_group);
 		} else {
 			$('div#' + zone_id).removeAttr('group');
+		}
+
+		if (copy_script) {
+			$('div.zone[group="' + zone_group + '"] div.script').text(script);
+		} else {
+			$('div#' + zone_id + ' div.script').text(script);
 		}
 
 		$('div#' + zone_id + ' div.script').removeAttr('disabled');

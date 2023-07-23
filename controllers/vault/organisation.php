@@ -82,7 +82,9 @@
 				} else if ($_POST["submit_button"] == "Delete group") {
 					/* Delete organisation
 					 */
-					if ($this->model->delete_organisation($_POST["id"]) === false) {
+					if ($this->model->delete_okay($_POST) == false) {
+						$this->show_organisation_form($_POST);
+					} else if ($this->model->delete_organisation($_POST["id"]) === false) {
 						$this->view->add_message("Error deleting organisation.");
 						$this->show_organisation_form($_POST);
 					} else {

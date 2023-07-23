@@ -222,5 +222,21 @@
 		public function create_directory($subdir, $directory) {
 			return @mkdir($directory."/".$subdir);
 		}
+
+		public function save_file($file, $content, $directory) {
+			if ($this->filename_okay($file) == false) {
+				return false;
+			}
+
+			if (($fp = fopen($directory."/".$file, "w")) == false) {
+				return false;
+			}
+
+			fputs($fp, $content);
+
+			fclose($fp);
+
+			return true;
+		}
 	}
 ?>

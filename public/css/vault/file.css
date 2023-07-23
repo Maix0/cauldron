@@ -28,3 +28,9 @@ div.input-group span input {
 table.files td:nth-child(3) {
 	text-align:right;
 }
+
+textarea#editfile {
+	max-width:none;
+	height:300px;
+	resize:vertical;
+}

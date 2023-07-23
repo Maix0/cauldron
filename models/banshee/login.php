@@ -27,7 +27,7 @@
 
 				$_SERVER["REQUEST_METHOD"] = "GET";
 				$_POST = array();
-			} else if (is_true($_POST["repost"])) {
+			} else if (is_true($_POST["repost"] ?? false)) {
 				$token = $_POST[$post_protection->csrf_key];
 				$_POST = json_decode(base64_decode($_POST["postdata"]), true);
 				$_POST[$post_protection->csrf_key] = $token;

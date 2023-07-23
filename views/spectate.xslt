@@ -14,7 +14,7 @@
 </xsl:if>
 <div class="row">
 <xsl:for-each select="adventure">
-<div class="col-sm-6">
+<div class="col-sm-12 col-md-6">
 <div class="well" style="background-image:url({image})">
 <h2><xsl:value-of select="title" /></h2>
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
@@ -53,7 +53,7 @@
 <button class="btn btn-default btn-xs show_journal">Journal</button>
 <button class="btn btn-default btn-xs show_collectables">Inventory</button>
 <xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
-<a href="/adventure" class="btn btn-default btn-xs">Back</a>
+<a href="/{../back}" class="btn btn-default btn-xs">Back</a>
 </div>
 </span>
 </div>
@@ -122,7 +122,7 @@
 <xsl:if test="perc">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 </xsl:if>
-<img src="/resources/{../../resources_key}/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" />
+<img src="/resources/{../../resources_key}/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" draggable="false" />
 <xsl:if test="name!=''">
 <span><xsl:value-of select="name" /></span>
 </xsl:if>
@@ -134,7 +134,7 @@
 <xsl:for-each select="characters/character">
 <div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-<img src="/resources/{../../resources_key}/characters/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
+<img src="/resources/{../../resources_key}/characters/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" draggable="false" />
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>

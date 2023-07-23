@@ -213,6 +213,10 @@
 			$this->model->door_state($_POST["door_id"], $_POST["state"]);
 		}
 
+		public function post_door_secret() {
+			$this->model->door_secret($_POST["door_id"], $_POST["secret"]);
+		}
+
 		/* Journal
 		 */
 		public function post_journal() {

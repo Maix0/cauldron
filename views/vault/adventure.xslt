@@ -102,7 +102,7 @@
 </select></div>
 
 <xsl:call-template name="show_messages" />
-<div class="row market">
+<div class="row market adventures">
 <xsl:for-each select="adventure">
 <div class="col-md-6 col-sm-12 adventure" level="{level}">
 <div class="panel panel-primary">
@@ -110,14 +110,14 @@
 <div class="panel-body"><xsl:for-each select="summary/item"><p><xsl:value-of select="." /></p></xsl:for-each></div>
 <div class="panel-footer">
 <xsl:if test="level">
-<span>Average party level: <xsl:value-of select="level" /></span>
+<span>Party level: <xsl:value-of select="level" /></span>
 </xsl:if>
 <xsl:if test="guide">
 <span><a href="{guide}">Adventure guide</a></span>
 </xsl:if>
-<xsl:if test="source">
-<span><a href="{source}">Source</a></span>
-</xsl:if>
+<xsl:for-each select="source/item">
+<span class="source"><a href="{.}">Source</a></span>
+</xsl:for-each>
 <form action="/vault/adventure" method="post">
 <input type="hidden" name="adventure" value="{adventure}" />
 <input type="submit" name="submit_button" value="Import adventure" class="btn btn-xs btn-primary" />
@@ -139,6 +139,42 @@
 
 <!--
 //
+//  Token selector template
+//
+//-->
+<xsl:template match="token_selector">
+<p>This adventure contains token information. Because Cauldron VTT doesn't have a commercial market and most tokens are commercial, you have to import and use your own token collection. If you haven't imported your own tokens into Cauldron VTT, you are advised <a href="/vault/token">to do so first</a>. In this step, you have to select what token to use from your own collection for the token that was placed on the maps of this adventure by the one who designed it. Cauldron VTT already made a best guess based on the names.</p>
+
+<form action="/vault/adventure" method="post">
+<input type="hidden" name="adventure" value="{adventure}" />
+
+<div class="row token_selector">
+<div class="col-sm-6 col-xs-12">Tokens on this adventure's maps</div><div class="col-sm-6 col-xs-12">Your token collection</div>
+<xsl:for-each select="placed/token">
+<div class="col-sm-6 col-xs-12">
+<span><xsl:value-of select="type" /> (<xsl:value-of select="width" />&#215;<xsl:value-of select="height" />, HP:<xsl:value-of select="hitpoints" />, AC:<xsl:value-of select="armor_class" />)</span>
+</div>
+<div class="col-sm-6 col-xs-12">
+<select name="tokens[{type}]" class="form-control">
+<xsl:variable name="match" select="match" />
+<xsl:for-each select="../../library/token">
+<option value="{@id}"><xsl:if test="@id=$match"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="name" /> (<xsl:value-of select="width" />&#215;<xsl:value-of select="height" />, HP:<xsl:value-of select="hitpoints" />, AC:<xsl:value-of select="armor_class" />)</option>
+</xsl:for-each>
+</select>
+</div>
+</xsl:for-each>
+</div>
+
+<div class="btn-group">
+<input type="submit" name="submit_button" value="Import adventure" class="btn btn-default" />
+<a href="/vault/adventure/market" class="btn btn-default">Cancel</a>
+</div>
+</form>
+</xsl:template>
+
+
+<!--
+//
 //  Content template
 //
 //-->
@@ -148,6 +184,7 @@
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
 <xsl:apply-templates select="market" />
+<xsl:apply-templates select="token_selector" />
 <xsl:apply-templates select="result" />
 </xsl:template>
 

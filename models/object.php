@@ -404,7 +404,8 @@
 				"pos_y"     => (int)$door["pos_y"],
 				"length"    => (int)$door["length"],
 				"direction" => $door["direction"],
-				"state"     => $door["state"]);
+				"state"     => $door["state"],
+				"secret"    => is_true($door["secret"]) ? YES : NO);
 
 			if ($this->db->insert("doors", $data) === false) {
 				return false;
@@ -418,12 +419,21 @@
 				return false;
 			}
 
-			$valid_states = array("open", "closed", "locked");
+			$valid_states = array("open", "closed");
 			if (in_array($state, $valid_states) == false) {
 				return false;
 			}
 
 			$data = array("state" => $state);
+			return $this->db->update("doors", $door_id, $data) !== false;
+		}
+
+		public function door_secret($door_id, $secret) {
+			if ($this->valid_door_id($door_id) == false) {
+				return false;
+			}
+
+			$data = array("secret" => is_true($secret) ? YES : NO);
 			return $this->db->update("doors", $door_id, $data) !== false;
 		}
 
@@ -612,6 +622,9 @@
 				return false;
 			}
 
+			$script = trim($script);
+			$group = trim($group);
+
 			if ($copy_script && ($group != '')) {
 				if ($this->valid_map_id($map_id) == false) {
 					return false;
@@ -621,10 +634,9 @@
 				if ($this->db->query($query, $script, 'group', $group, $map_id) === false) {
 					return false;
 				}
-
 			}
 
-			$data = array("script" => trim($script), "group" => trim($group));
+			$data = array("script" => $script, "group" => $group);
 			return $this->db->update("zones", $zone_id, $data) !== false;
 		}
 

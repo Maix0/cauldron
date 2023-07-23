@@ -48,7 +48,8 @@ div.row div.well div.btn-group .btn {
 
 /* Running an adventure
  */
-div.loading {
+div.loading, 
+div.pause {
 	position:absolute;
 	top:0;
 	right:0;
@@ -59,13 +60,18 @@ div.loading {
 	text-align:center;
 }
 
-div.loading span {
+div.loading span,
+div.pause span {
 	font-size:40px;
 	position:absolute;
 	top:50%;
 	transform:translateY(-50%);
 	left:0;
 	right:0;
+}
+
+div.pause {
+	display:none;
 }
 
 /* Menu
@@ -172,6 +178,7 @@ div.door {
 	position:absolute;
 	background-color:#a06000;
 	border:1px solid #402000;
+	opacity:0.6;
 }
 
 /* Ruler

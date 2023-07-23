@@ -50,7 +50,7 @@
 </xsl:if>
 
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{character/name}" class="form-control" />
+<input type="text" id="name" name="name" value="{character/name}" maxlength="20" class="form-control" />
 <label for="hitpoints">Hit points:</label>
 <input type="text" id="hitpoints" name="hitpoints" value="{character/hitpoints}" class="form-control" />
 <label for="armor_class">Armor class:</label>

@@ -67,3 +67,17 @@ div.filter select {
 	width:200px;
 	margin-left:5px;
 }
+
+div.token_selector div span {
+	display:block;
+	padding-top:8px;
+}
+
+div.token_selector div:nth-child(1),
+div.token_selector div:nth-child(2) {
+	font-weight:bold;
+	font-size:16px;
+	padding-bottom:2px;
+	border-bottom:1px solid #808080;
+	margin-bottom:8px;
+}

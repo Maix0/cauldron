@@ -14,7 +14,8 @@
 			$query = "select *, (select count(*) from users where organisation_id=o.id) as users, ".
 			         "(select count(*) from adventures a, users u where a.dm_id=u.id and u.organisation_id=o.id) as adventures, ".
 			         "(select count(*) from tokens t where t.organisation_id=o.id) as tokens, ".
-			         "(select count(*) from maps m, adventures a, users u where m.adventure_id=a.id and a.dm_id=u.id and u.organisation_id=o.id) as maps ".
+			         "(select count(*) from maps m, adventures a, users u where m.adventure_id=a.id and a.dm_id=u.id and u.organisation_id=o.id) as maps, ".
+			         "(select count(*) from map_token t, maps m, adventures a, users u where t.map_id=m.id and m.adventure_id=a.id and a.dm_id=u.id and u.organisation_id=o.id) as placed ".
 			         "from organisations o order by name limit %d,%d";
 
 			return $this->db->execute($query, $offset, $limit);
@@ -102,6 +103,17 @@
 			return rmdir($directory);
 		}
 
+		public function delete_okay($organisation) {
+			$result = true;
+
+			if ($organisation["id"] == $this->user->organisation_id) {
+				$this->view->add_message("You cannot delete your own organisation.");
+				$result = false;
+			}
+
+			return $result;
+		}
+
 		public function delete_organisation($organisation_id) {
 			/* Delete adventures
 			 */
@@ -129,7 +141,7 @@
 				}
 			}
 
-			/* Delete organsattion
+			/* Delete organisation
 			 */
 			if (($organisation = $this->db->entry("organisations", $organisation_id)) == false) {
 				return false;

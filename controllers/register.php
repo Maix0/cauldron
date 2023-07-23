@@ -42,7 +42,7 @@
 
 			if ($_SERVER["REQUEST_METHOD"] == "GET") {
 				$this->model->reset_form_progress();
-			} else if (($_POST["splitform_current"] == 2) && isset($_POST["username"])) {
+			} else if ((($_POST["splitform_current"] ?? 0) == 2) && isset($_POST["username"])) {
 				$_POST["username"] = strtolower($_POST["username"]);
 			}
 

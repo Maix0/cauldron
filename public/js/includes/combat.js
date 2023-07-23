@@ -44,7 +44,7 @@ function combat_start() {
 	}
 
 	if (_combat_order.length > 0) {
-		write_sidebar('Another combat has already been started.');
+		write_sidebar('A combat has already been started. Type /next to go to the next round or /done to finish the current combat.');
 		return;
 	}
 

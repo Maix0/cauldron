@@ -1,5 +1,5 @@
 <?php
-	function show_modules($banshee_modules) {
+	function show_modules($banshee_modules, $script) {
 		$modules = array();
 		foreach ($banshee_modules as $module => $info) {
 			$file = $info["pages"][0];
@@ -21,7 +21,7 @@
 		$cols = floor($width / ($max + 2));
 		$col = 0;
 
-		print "Usage: ".$argv[0]." <module> [<module> ...]\n\n";
+		print "Usage: ".$script." <module> [<module> ...]\n\n";
 		print "Available modules:\n";
 		foreach ($modules as $module) {
 			print "  ".str_pad($module, $max);
@@ -55,7 +55,6 @@
 					foreach ($module["pages"] as $page) {
 						$file = $path."/".$page.".".$extension;
 						if (file_exists($file)) {
-							printf("Deleting file %s.\n", $file);
 							if (unlink($file) == false) {
 								printf("Error while deleting file %s\n", $file);
 							}
@@ -70,7 +69,6 @@
 				foreach ($module["libraries"] as $library) {
 					$file = "libraries/banshee/".$library.".php";
 					if (file_exists($file)) {
-						printf("Deleting library %s.\n", $file);
 						if (unlink($file) == false) {
 							printf("Error while deleting library %s\n", $file);
 						}
@@ -92,7 +90,6 @@
 			if (isset($module["files"])) {
 				foreach ($module["files"] as $file) {
 					if (file_exists($file)) {
-						printf("Deleting file %s.\n", $file, 3);
 						if (unlink($file) == false) {
 							printf("Error while deleting file %s\n", $file, 3);
 						}
@@ -137,7 +134,6 @@
 
 		/* Page configuration
 		 */
-		printf("Removing module from page configuration files.\n");
 		foreach (array("public_modules.conf", "private_modules.conf") as $file) {
 			$file = "settings/".$file;
 
@@ -164,7 +160,5 @@
 
 			fclose($fp);
 		}
-
-		system("database/private_modules");
 	}
 ?>

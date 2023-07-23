@@ -5,6 +5,9 @@ const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 2;
 const LAYER_MARKER = DEFAULT_Z_INDEX + 3;
 const LAYER_MENU = DEFAULT_Z_INDEX + 4;
 
+const DOOR_SECRET = '#a0a000';
+const OBJECT_HIDDEN_FADE = 0.6;
+
 var adventure_id = null;
 var map_id = null;
 var resources_key = null;
@@ -184,6 +187,7 @@ function object_token_context_menu(obj) {
 			}},
 			'presence': { name:'Toggle presence', icon:'fa-low-vision' },
 			'collectable': { name:'Assign collectable', icon:'fa-key' },
+			'fow': { name:'Toggle Fog of War', icon:'fa-cloud' },
 			'sep1': '-',
 			'armor_class': { name:'Set armor class', icon:'fa-shield' },
 			'hitpoints': { name:'Set hitpoints', icon:'fa-heartbeat' },
@@ -311,6 +315,17 @@ function object_delete(obj) {
 	$.post('/object/delete', {
 		instance_id: obj.prop('id')
 	}).done(function() {
+		if (obj.hasClass('light')) {
+			obj.attr('state', 'delete');
+			fog_of_war_light(obj);
+			fog_of_war_update(fow_obj);
+		}
+
+		if (obj.is(fow_obj)) {
+			fog_of_war_destroy();
+			fow_obj = null;
+		}
+
 		obj.remove();
 
 		if ((fow_obj != null) && (obj.hasClass('wall') || obj.hasClass('door'))) {
@@ -320,7 +335,7 @@ function object_delete(obj) {
 }
 
 function object_hide(obj) {
-	obj.fadeTo(0, 0.5);
+	obj.fadeTo(0, OBJECT_HIDDEN_FADE);
 	obj.attr('is_hidden', 'yes');
 
 	var data = {
@@ -423,12 +438,17 @@ function object_move(obj) {
 		zone_init_presence();
 	}
 
-	if (obj.hasClass('character') == false) {
-		return;
-	}
-
 	if (obj.is(fow_obj)) {
 		fog_of_war_update(obj);
+	} else if (obj.hasClass('light')) {
+		fog_of_war_light(obj);
+		if (fow_obj != null) {
+			fog_of_war_update(fow_obj);
+		}
+	}
+
+	if (obj.hasClass('character') == false) {
+		return;
 	}
 
 	/* Zone events
@@ -654,7 +674,8 @@ function door_create(pos_x, pos_y, length, direction, state) {
 		pos_y: pos_y,
 		length: length,
 		direction: direction,
-		state: state
+		state: state,
+		secret: 0
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
 
@@ -663,10 +684,10 @@ function door_create(pos_x, pos_y, length, direction, state) {
 		$('div#door' + instance_id).contextmenu(function(event) {
 			var menu_entries = {};
 
-			if ($(this).attr('state') == 'locked') {
-				menu_entries['door_unlock'] = { name:'Unlock', icon:'fa-unlock' };
+			if ($(this).attr('secret') == 'yes') {
+				menu_entries['door_normal'] = { name:'Normal', icon:'fa-eye' };
 			} else {
-				menu_entries['door_lock'] = { name:'Lock', icon:'fa-lock' };
+				menu_entries['door_secret'] = { name:'Secret', icon:'fa-eye-slash' };
 			}
 			menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
 
@@ -688,7 +709,6 @@ function door_position(door) {
 	var pos_y = parseInt(door.attr('pos_y'));
 	var length = parseInt(door.attr('length'));
 	var direction = door.attr('direction');
-	var state = door.attr('state');
 
 	pos_x *= grid_cell_size;
 	pos_y *= grid_cell_size;
@@ -711,8 +731,8 @@ function door_position(door) {
 	door.css('width', width + 'px');
 	door.css('height', height + 'px');
 
-	if (state == 'locked') {
-		door.css('background-color', '#c00000');
+	if (door.attr('secret') == 'yes') {
+		door.css('background-color', DOOR_SECRET);
 	}
 }
 
@@ -763,6 +783,11 @@ function light_create(pos_x, pos_y, radius) {
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
+
+		if (fow_obj != null) {
+        	fog_of_war_light($('img#light' + instance_id));
+			fog_of_war_update(fow_obj);
+		}
 	}).fail(function(data) {
 		cauldron_alert('Light create error');
 	});
@@ -1054,6 +1079,20 @@ function context_menu_handler(key, options) {
 					var blinder_y = coord_to_grid(mouse_y, true);
 				}
 
+				if (shift_down) {
+					var blinder = $('div.blinders div#new_blinder');
+					var pos_x = parseInt(blinder.attr('pos1_x'));
+					var pos_y = parseInt(blinder.attr('pos1_y'));
+					var delta_x = Math.abs(pos_x - blinder_x);
+					var delta_y = Math.abs(pos_y - blinder_y);
+
+					if (delta_x > delta_y) {
+						blinder_y = pos_y;
+					} else {
+						blinder_x = pos_x;
+					}
+				}
+
 				$('div.playarea div#new_blinder').last().each(function() {
 					$(this).attr('pos2_x', blinder_x);
 					$(this).attr('pos2_y', blinder_y);
@@ -1241,20 +1280,20 @@ function context_menu_handler(key, options) {
 				door_create(pos_x, pos_y, length, direction, 'closed');
 			});
 			break;
-		case 'door_lock':
-			obj.attr('state', 'locked');
-			obj.css('background-color', '#c00000');
-			$.post('/object/door_state', {
+		case 'door_secret':
+			obj.attr('secret', 'yes');
+			obj.css('background-color', DOOR_SECRET);
+			$.post('/object/door_secret', {
 				door_id: obj.prop('id').substring(4),
-				state: 'locked'
+				secret: 'yes'
 			});
 			break;
-		case 'door_unlock':
-			obj.attr('state', 'open');
+		case 'door_normal':
+			obj.attr('secret', 'no');
 			obj.css('background-color', '');
-			$.post('/object/door_state', {
+			$.post('/object/door_secret', {
 				door_id: obj.prop('id').substring(4),
-				state: 'closed'
+				secret: 'no'
 			});
 
 			break;
@@ -1265,16 +1304,19 @@ function context_menu_handler(key, options) {
 		case 'fow':
 			if (fow_obj == null) {
 				fog_of_war_set_distance(0);
-				var distance = null;
-				if ((distance = prompt('Fog of War distance (leave empty for unlimited distance):')) != undefined) {
+				var distance = $('div.fog_of_war').attr('distance');
+				if ((distance = prompt('Fog of War distance (leave empty for unlimited distance):', distance)) != undefined) {
 					if (distance != '') {
 						distance = parseInt(distance);
 						if (isNaN(distance)) {
-							write_sidebar('Invalid distance');
+							write_sidebar('Invalid distance.');
 						} else if (distance < 1) {
-							write_sidebar('Invalid distance');
+							write_sidebar('Invalid distance.');
 						} else {
 							fog_of_war_set_distance(distance);
+							$('img.light').each(function() {
+								fog_of_war_light($(this));
+							});
 						}
 					}
 
@@ -1375,7 +1417,13 @@ function context_menu_handler(key, options) {
 			}).done(function(data) {
 				obj.attr('state', state);
 				obj.attr('src', '/images/light_' + state + '.png');
+
+				if (fow_obj != null) {
+					fog_of_war_light(obj);
+					fog_of_war_update(fow_obj);
+				}
 			});
+
 			break;
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
@@ -1486,7 +1534,7 @@ function context_menu_handler(key, options) {
 					wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
 
 					var type = (key == 'wall_create') ? 'wall' : 'wall window';
-					var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" />';
+					var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" transparent="' + transparent + '" />';
 					$('div.playarea div.walls').append(wall);
 					$('div#new_wall').each(function() {
 						wall_position($(this));
@@ -1502,14 +1550,12 @@ function context_menu_handler(key, options) {
 			zone_x = coord_to_grid(mouse_x, false);
 			zone_y = coord_to_grid(mouse_y, false);
 
-			if (measuring) {
+			if ((measure_diff_x > 0) && (measure_diff_y > 0)) {
 				$('div.zone_create input#width').val(measure_diff_x + 1);
 				$('div.zone_create input#height').val(measure_diff_y + 1);
 
-				measuring_stop();
-			} else {
-				$('div.zone_create input#width').val(3);
-				$('div.zone_create input#height').val(3);
+				measure_diff_x = 0;
+				measure_diff_y = 0;
 			}
 			measuring_stop();
 
@@ -1575,10 +1621,10 @@ $(document).ready(function() {
 	$('div.door').contextmenu(function(event) {
 		var menu_entries = {};
 
-		if ($(this).attr('state') == 'locked') {
-			menu_entries['door_unlock'] = { name:'Unlock', icon:'fa-unlock' };
+		if ($(this).attr('secret') == 'yes') {
+			menu_entries['door_normal'] = { name:'Normal', icon:'fa-eye' };
 		} else {
-			menu_entries['door_lock'] = { name:'Lock', icon:'fa-lock' };
+			menu_entries['door_secret'] = { name:'Secret', icon:'fa-eye-slash' };
 		}
 		menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
 
@@ -1770,11 +1816,11 @@ $(document).ready(function() {
 	});
 
 	$('div.token[is_hidden=yes]').each(function() {
-		$(this).fadeTo(0, 0.5);
+		$(this).fadeTo(0, OBJECT_HIDDEN_FADE);
 	});
 
 	$('div.character[is_hidden=yes]').each(function() {
-		$(this).fadeTo(0, 0.5);
+		$(this).fadeTo(0, OBJECT_HIDDEN_FADE);
 	});
 
 	object_token_context_menu($('div.token'));
@@ -1793,7 +1839,7 @@ $(document).ready(function() {
 				'rotate_w':  { name:'West', icon:'fa-arrow-circle-left' },
 				'rotate_nw': { name:'North West' },
 			}},
-			'fow': { name:'Toggle fog of war', icon:'fa-cloud' },
+			'fow': { name:'Toggle Fog of War', icon:'fa-cloud' },
 			'sep1': '-',
 			'distance': { name:'Measure distance', icon:'fa-map-signs' },
 			'coordinates': { name:'Get coordinates', icon:'fa-flag' },

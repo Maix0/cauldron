@@ -6,7 +6,7 @@
 			"On, day / illuminated (real)",
 			"On, night / dark (cell)",
 			"On, night / dark (real)",
-			"On, manually erase");
+			"On, manually reveal");
 
 		private function show_overview() {
 			if (($adventures = $this->model->get_adventures()) === false) {

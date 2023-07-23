@@ -15,7 +15,7 @@
 </xsl:if>
 <xsl:if test="@is_dm='yes'">
 <img src="/images/cauldron.png" class="cauldron" />
-<p>This is the page where you and your players will see an overview of the adventures you have created. All that's needed to create an adventure is explained in the <a href="/manual">manual</a>, but here's a short list to make it even more easy to get you started.</p>
+<p>This is the page where you and your players will see an overview of the adventures you have created. All that's needed to create an adventure is explained in the <a href="/manual">manual</a>, but here's a short list to make it even more easy for you to get started.</p>
 <ul>
 <li>Go to the DM's Vault (see top menu bar) and click on the Adventures icon to create a new adventure or import one from the Adventure Market.</li>
 <li>If you created a new adventure, add one or more maps to your adventure.</li>
@@ -24,12 +24,15 @@
 <li>Add those characters to your adventure via the <a href="/vault/players">DM's Vault Players section</a>.</li>
 <li>Start the adventure and have fun!</li>
 </ul>
-<p><a href="/vault/adventure/new" class="btn btn-primary">Create your adventure!</a></p>
+<div class="btn-group">
+<a href="/vault/adventure/new" class="btn btn-primary">Create your own adventure</a>
+<a href="/vault/adventure/market" class="btn btn-primary">Browse the adventure market</a>
+</div>
 </xsl:if>
 </xsl:if>
 <div class="row">
 <xsl:for-each select="adventure">
-<div class="col-sm-6">
+<div class="col-sm-12 col-md-6">
 <div class="well" style="background-image:url({image})">
 <h2><xsl:value-of select="title" /></h2>
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
@@ -70,6 +73,7 @@
 <button class="btn btn-default btn-sm show_collectables">Inventory</button>
 <xsl:if test="@is_dm='yes'">
 <h2>Dungeon Master options</h2>
+<button class="btn btn-default btn-sm pause">Pause</button>
 <xsl:if test="map/dm_notes!=''">
 <button class="btn btn-default btn-sm show_dm_notes">DM notes</button>
 </xsl:if>
@@ -108,6 +112,7 @@
 <!-- Windows -->
 <xsl:if test="map">
 <div class="loading"><span>Loading...</span></div>
+<div class="pause"><span>Game paused</span></div>
 <!-- Journal -->
 <div class="journal" style="display:none">
 <div class="entries">
@@ -172,7 +177,7 @@
 <!-- Doors -->
 <div class="doors">
 <xsl:for-each select="doors/door">
-<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" />
+<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" secret="{secret}" />
 </xsl:for-each>
 </div>
 <!-- Lights -->

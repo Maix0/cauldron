@@ -26,12 +26,17 @@
 			$directory = $base_dir.$sub_dir;
 
 			if ($this->page->ajax_request) {
+				if (($this->user->is_admin == false) && (strpos($directory, "resources") === false)) {
+					$this->user->log_action("illegal %s operation for %s", $_POST["submit_button"], $directory."/".$_POST["filename"]);
+					return;
+				}
+
 				if ($_POST["submit_button"] == "Rename") {
-					if ($this->model->rename_file($_POST["filename_current"], $_POST["filename_new"], $directory) == false) {
+					if ($this->model->rename_file($_POST["filename"], $_POST["filename_new"], $directory) == false) {
 						$this->view->add_tag("result", "Error renaming file.");
 						$this->page->set_http_code(403);
 					} else {
-						$this->user->log_action("file or directory '%s' renamed to '%s'", $_POST["filename_current"], $_POST["filename_new"]);
+						$this->user->log_action("file or directory '%s' renamed to '%s'", $_POST["filename"], $_POST["filename_new"]);
 					}
 				} else if ($_POST["submit_button"] == "Delete") {
 					if (is_dir($directory."/".$_POST["filename"])) {
@@ -47,6 +52,13 @@
 					} else {
 						$this->user->log_action("file / directory '%s' deleted", $_POST["filename"]);
 					}
+				} else if ($_POST["submit_button"] == "SaveFile") {
+					if ($this->model->save_file($_POST["filename"], $_POST["content"], $directory) == false) {
+						$this->view->add_tag("result", "Error saving file.");
+						$this->page->set_http_code(500);
+					} else {
+						$this->user->log_action("file '%s' saved", $_POST["filename"]);
+					}
 				}
 
 				return;
@@ -59,7 +71,11 @@
 			$this->view->add_css("includes/context_menu.css");
 
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				if ($_POST["submit_button"] == "Create") {
+				if (($this->user->is_admin == false) && (strpos($directory, "resources") === false)) {
+					/* Not allowed
+					 */
+					$this->user->log_action("illegal file operation for %s", $directory);
+				} else if ($_POST["submit_button"] == "Create") {
 					/* Create directory
 					 */
 					if ($this->model->directory_okay($_POST["create"], $directory) == false) {

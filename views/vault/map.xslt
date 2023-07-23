@@ -32,6 +32,9 @@
 </tr>
 </xsl:for-each>
 </tbody>
+<tfoot>
+<tr><td></td><td></td><td colspan="2">Total: <xsl:value-of select="count(maps/map)" /> maps</td></tr>
+</tfoot>
 </table>
 
 <div class="btn-group left">
@@ -232,7 +235,7 @@
 </select></div>
 
 <xsl:call-template name="show_messages" />
-<div class="row market">
+<div class="row market maps">
 <xsl:for-each select="map">
 <div class="col-lg-4 col-md-6 col-xs-12 map" category="{category}">
 <div class="panel panel-primary">

@@ -655,7 +655,7 @@ $(document).ready(function() {
 	var ws_host = $('div.playarea').attr('ws_host')
 	var ws_port = $('div.playarea').attr('ws_port')
 
-	write_sidebar('<img src="/images/cauldron.png" style="max-width:80px; display:block; margin:0 auto" />');
+	write_sidebar('<img src="/images/cauldron.png" style="max-width:80px; display:block; margin:0 auto" draggable="false" />');
 	write_sidebar('<b>Welcome to Cauldron v' + version + '</b>');
 
 	/* Websocket
@@ -681,6 +681,8 @@ $(document).ready(function() {
 			user_id: user_id
 		};
 		websocket_send(data);
+
+		write_sidebar('You are spectating.');
 	}
 
 	websocket.onmessage = function(event) {

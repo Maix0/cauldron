@@ -59,7 +59,7 @@
 <div class="row">
 <div class="col-sm-6">
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{token/name}" placeholder="The name of this NPC/monster/object." class="form-control" />
+<input type="text" id="name" name="name" value="{token/name}" maxlength="50" placeholder="The name of this NPC/monster/object." class="form-control" />
 <label for="width">Width:</label>
 <input type="text" id="width" name="width" value="{token/width}" class="form-control" />
 <label for="height">Height:</label>
