@@ -107,9 +107,9 @@
 					unset($this->cache[$key]);
 				}
 			} else if (is_int($value)) {
-				$this->store($key, "integer", (string)$value);
+				$this->store($key, "integer", $value);
 			} else if (is_float($value)) {
-				$this->store($key, "float", (string)$value);
+				$this->store($key, "float", $value);
 			} else if (is_bool($value)) {
 				$this->store($key, "boolean", show_boolean($value));
 			} else if (is_string($value)) {

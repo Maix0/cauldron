@@ -13,3 +13,7 @@ table.table tbody tr:not(.click) {
 input[type=checkbox] {
 	margin-right:5px;
 }
+
+span.sheet {
+	float:right;
+}

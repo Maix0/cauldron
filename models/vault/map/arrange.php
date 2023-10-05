@@ -27,12 +27,6 @@
 			return $map;
 		}
 
-		public function get_conditions() {
-			$query = "select * from conditions order by name";
-
-			return $this->db->execute($query);
-		}
-
 		private function place_characters($adventure_id, $map_id) {
 			$query = "select l.character_id from adventure_character l, characters c ".
 					 "where l.character_id=c.id and adventure_id=%d order by c.name";

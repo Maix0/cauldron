@@ -38,6 +38,7 @@ Zone group: <input id="zone_group" type="text" maxlength="10" onKeyUp="javascrip
 <li><b>event enter|move|turn|leave:</b> Only execute the next lines in the script under the specified condition: 'enter' when a character enteres the zone, 'move' when a character moves inside the zone, 'turn' when it's a character's turn during a battle while inside the zone or 'leave' when a character leaves the zone.</li>
 <li><b>heal &lt;points&gt;:</b> Heal the triggering character.</li>
 <li><b>hide &lt;object id&gt;:</b> Hide a token.</li>
+<li><b>light &lt;light number&gt; on|off:</b> Switch a light on or off.</li>
 <li><b>move &lt;object id&gt; &lt;x&gt;,&lt;y&gt; [&lt;target object id&gt;] [&lt;speed&gt;]:</b> Move an object to the x,y grid position, optionally relative to a target object. If the (target) object ID is 'character', the triggering character will be used. If the target object id is 'self', the object will be moved relative to itself. The speed is in milliseconds. You are strongly advised to use this command for visual effects only. Don't try to make a video game!</li>
 <li><b>name &lt;name&gt;:</b> Use this name when sending messages via 'write' and 'write_all'.</li>
 <li><b>rotate &lt;object id&gt; n|ne|e|se|s|sw|w|nw|&lt;direction&gt;:</b> Rotate a token. 'Direction' is a number between -3 and 4, indicating a change in direction in steps of 45 degrees.</li>

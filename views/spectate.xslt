@@ -19,7 +19,7 @@
 <h2><xsl:value-of select="title" /></h2>
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
 <div class="btn-group">
-<xsl:if test="story!=''"><button class="btn btn-primary btn-sm show_story{@id}">Introduction</button></xsl:if>
+<xsl:if test="introduction!=''"><button class="btn btn-primary btn-sm show_introduction{@id}">Introduction</button></xsl:if>
 <a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Spectate adventure</a>
 </div>
 </div>
@@ -28,7 +28,7 @@
 </div>
 
 <xsl:for-each select="adventure">
-<div class="story" id="story{@id}" title="{title}" style="display:none"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
+<div class="introduction" id="introduction{@id}" title="{title}" style="display:none"><xsl:value-of disable-output-escaping="yes" select="introduction" /></div>
 </xsl:for-each>
 </xsl:template>
 

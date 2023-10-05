@@ -23,13 +23,23 @@
 		}
 
 		private function show_character_form($character) {
+			$this->view->add_javascript("character.js");
+
+			if ($character["sheet"] == "file") {
+				$character["sheet_url"] = "";
+			}
+
+			if (isset($character["token_type"]) == false) {
+				$character["token_type"] = $character["token_type_backup"];
+			}
+
 			$this->view->open_tag("edit");
 			$this->view->record($character, "character");
 			$this->view->close_tag();
 		}
 
 		private function show_alternate_form($character_id) {
-			$this->view->title = "Character alternate icons";
+			$this->view->title = "Character alternate tokens.";
 
 			if (($character = $this->model->get_character($character_id)) == false) {
 				$this->view->add_tag("result", "Character not found.");
@@ -41,7 +51,7 @@
 				return;
 			}
 
-			$sizes = array(1 => "Medium", 2 => "Large");
+			$sizes = array(1 => "Medium", 2 => "Large", 3 => "Huge");
 
 			$attr = array(
 				"char_id"   => $character["id"],
@@ -97,17 +107,20 @@
 				if ($_POST["submit_button"] == "Save character") {
 					/* Save character
 					 */
-					if ($_FILES["icon"]["error"] == 0) {
-						list(, $extension) = explode("/", $_FILES["icon"]["type"], 2);
-						$_FILES["icon"]["extension"] = $extension;
+					if ($_FILES["token"]["error"] == 0) {
+						list(, $extension) = explode("/", $_FILES["token"]["type"], 2);
+						if ($extension == "jpeg") {
+							$extension = "jpg";
+						}
+						$_FILES["token"]["extension"] = $extension;
 					}
 
-					if ($this->model->save_okay($_POST, $_FILES["icon"]) == false) {
+					if ($this->model->save_okay($_POST, $_FILES["token"], $_FILES["sheet_file"]) == false) {
 						$this->show_character_form($_POST);
 					} else if (isset($_POST["id"]) === false) {
 						/* Create character
 						 */
-						if ($this->model->create_character($_POST, $_FILES["icon"]) === false) {
+						if ($this->model->create_character($_POST, $_FILES["token"], $_FILES["sheet_file"]) === false) {
 							$this->view->add_message("Error creating character.");
 							$this->show_character_form($_POST);
 						} else {
@@ -117,7 +130,7 @@
 					} else {
 						/* Update character
 						 */
-						if ($this->model->update_character($_POST, $_FILES["icon"]) === false) {
+						if ($this->model->update_character($_POST, $_FILES["token"], $_FILES["sheet_file"]) === false) {
 							$this->view->add_message("Error updating character.");
 							$this->show_character_form($_POST);
 						} else {
@@ -137,12 +150,12 @@
 						$this->user->log_action("character %d deleted", $_POST["id"]);
 						$this->show_overview();
 					}
-				} else if ($_POST["submit_button"] == "Add icon") {
-					/* Add alternate icon
+				} else if ($_POST["submit_button"] == "Add token") {
+					/* Add alternate token
 					 */
-					if ($this->model->icon_okay($_POST, $_FILES["icon"]) != false) {
-						if ($this->model->add_icon($_POST, $_FILES["icon"]) == false) {
-							$this->view->add_message("Error adding alternate icon.");
+					if ($this->model->token_okay($_POST, $_FILES["token"]) != false) {
+						if ($this->model->add_token($_POST, $_FILES["token"]) == false) {
+							$this->view->add_message("Error adding alternate token.");
 						}
 					} else {
 						$this->view->add_tag("name", $_POST["name"]);
@@ -150,9 +163,9 @@
 					}
 					$this->show_alternate_form($_POST["char_id"]);
 				} else if ($_POST["submit_button"] == "delete") {
-					/* Delete alternate icon
+					/* Delete alternate token
 					 */
-					if (($char_id = $this->model->delete_icon($_POST["icon_id"])) == false) {
+					if (($char_id = $this->model->delete_token($_POST["token_id"])) == false) {
 						$this->view->add_system_warning("Icon not found.");
 						$this->show_overview();
 					} else {
@@ -163,7 +176,7 @@
 					 */
 					if ($this->model->weapon_okay($_POST) != false) {
 						if ($this->model->add_weapon($_POST) == false) {
-							$this->view->add_message("Error adding alternate icon.");
+							$this->view->add_message("Error adding alternate token.");
 						}
 					} else {
 						$this->view->add_tag("name", $_POST["name"]);
@@ -171,7 +184,7 @@
 					}
 					$this->show_weapon_form($_POST["char_id"]);
 				} else if ($_POST["submit_button"] == "remove") {
-					/* Delete alternate icon
+					/* Delete alternate token
 					 */
 					if (($char_id = $this->model->delete_weapon($_POST["weapon_id"])) == false) {
 						$this->view->add_system_warning("Weapon not found.");
@@ -183,7 +196,7 @@
 					$this->show_overview();
 				}
 			} else if ($this->page->parameter_value(0, "alternate")) {
-				/* Alternate icon
+				/* Alternate token
 				 */
 				if (valid_input($this->page->parameters[1], VALIDATE_NUMBERS, VALIDATE_NONEMPTY)) {
 					$this->show_alternate_form($this->page->parameters[1]);
@@ -201,7 +214,7 @@
 			} else if ($this->page->parameter_value(0, "new")) {
 				/* New character
 				 */
-				$character = array("hitpoints" => 1, "armor_class" => 10, "initiative" => 0);
+				$character = array("hitpoints" => 1, "armor_class" => 10, "initiative" => 0, "token_type" => "topdown", "sheet" => "none");
 				$this->show_character_form($character);
 			} else if ($this->page->parameter_numeric(0)) {
 				/* Edit character

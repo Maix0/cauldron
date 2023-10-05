@@ -38,7 +38,8 @@
 				array_push($result[$character["fullname"]], array(
 					"id"       => $character["id"],
 					"name"     => $character["name"],
-					"enrolled" => $character["enrolled"]));
+					"enrolled" => $character["enrolled"],
+					"sheet"    => $character["sheet_url"]));
 			}
 
 			return $result;

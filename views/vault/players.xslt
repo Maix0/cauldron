@@ -40,6 +40,7 @@
 //-->
 <xsl:template match="edit">
 <xsl:call-template name="show_messages" />
+<h2><xsl:value-of select="adventure/title" /></h2>
 <form action="/{/output/page}" method="post">
 <input type="hidden" name="adventure_id" value="{adventure/@id}" />
 <div class="row">
@@ -49,7 +50,7 @@
 <div class="panel-heading"><xsl:value-of select="@name" /></div>
 <div class="panel-body">
 <xsl:for-each select="character">
-<div><input type="checkbox" name="characters[]" value="{@id}"><xsl:if test="@checked='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input><xsl:value-of select="." /></div>
+<div><xsl:if test="@sheet!=''"><span class="sheet">(<a href="{@sheet}" target="_blank">sheet</a>)</span></xsl:if><input type="checkbox" name="characters[]" value="{@id}"><xsl:if test="@checked='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input><xsl:value-of select="." /></div>
 </xsl:for-each>
 </div>
 </div>

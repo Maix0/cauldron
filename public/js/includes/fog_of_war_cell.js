@@ -185,7 +185,7 @@ function enlightened(x, y) {
 
 		$('div.wall').each(function() {
 			if ($(this).attr('transparent') == 'yes') {
-				return;
+				return true;
 			}
 
 			light_spot = check_lighting(pos, light_pos, $(this), light_spot);
@@ -198,7 +198,7 @@ function enlightened(x, y) {
 		if (light_spot >= 0) {
 			$('div.door').each(function() {
 				if ($(this).attr('state') == 'open') {
-					return;
+					return true;
 				}
 
 				light_spot = check_lighting(pos, light_pos, $(this), light_spot);
@@ -315,7 +315,7 @@ function fog_of_war_update(obj) {
 
 	$('div.wall').each(function() {
 		if ($(this).attr('transparent') == 'yes') {
-			return;
+			return true;
 		}
 
 		fog_of_war_spots = check_vision(char_pos, $(this), fog_of_war_spots);
@@ -323,7 +323,7 @@ function fog_of_war_update(obj) {
 
 	$('div.door').each(function() {
 		if ($(this).attr('state') == 'open') {
-			return;
+			return true;
 		}
 
 		fog_of_war_spots = check_vision(char_pos, $(this), fog_of_war_spots);

@@ -11,7 +11,6 @@
 <xsl:template match="adventure">
 <!-- Menu -->
 <div class="topbar">
-<span id="infobar"></span>
 <button class="btn btn-primary btn-xs open_menu">Menu</button>
 <div class="menu">
 <a href="/vault/map" class="btn btn-default btn-sm">Back</a>
@@ -71,12 +70,6 @@
 <div id="blinder{@id}" class="blinder" pos1_x="{pos1_x}" pos1_y="{pos1_y}" pos2_x="{pos2_x}" pos2_y="{pos2_y}" />
 </xsl:for-each>
 </div>
-<!-- Conditions -->
-<div class="conditions">
-<xsl:for-each select="conditions/condition">
-<div con_id="{@id}"><xsl:value-of select="." /></div>
-</xsl:for-each>
-</div>
 <!-- Tokens -->
 <div class="tokens">
 <xsl:for-each select="tokens/token">
@@ -96,7 +89,7 @@
 <div id="start" style="position:absolute; left:{map/start_x}px; top:{map/start_y}px;"><img src="/images/player_start.png" style="width:{@grid_cell_size}px; height:{@grid_cell_size}px;" /></div>
 </div>
 <!-- Fog of war -->
-<div class="fog_of_war" distance="{map/fow_distance}"></div>
+<div class="fog_of_war" type="{map/fog_of_war}" distance="{map/fow_distance}"></div>
 </div>
 <!-- Markers -->
 <div class="markers"></div>

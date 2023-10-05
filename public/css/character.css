@@ -3,23 +3,26 @@ div.panel img {
 	max-height:100px;
 	margin-right:25px;
 	float:left;
+}
+
+div.panel img.topdown {
 	transform:rotate(180deg);
 }
 
-div.panel-heading {
+div.content div.panel-heading {
 	font-weight:bold;
 }
 
-div.panel-heading a {
+div.content div.panel-heading a {
 	float:right;
 	margin-left:15px;
 }
 
-div.panel-body {
+div.content div.panel-body {
 	height:130px;
 }
 
-div.panel-footer span {
+div.content div.panel-footer span {
 	font-style:italic;
 }
 
@@ -27,17 +30,32 @@ span.input-group-btn label {
 	padding:6px 25px;
 }
 
-form img.icon {
+form img.token {
 	display:block;
-	transform:rotate(180deg);
 	max-width:100%;
 }
 
+form img.topdown {
+	transform:rotate(180deg);
+}
+
 @media (min-width:768px ) {
-	form img.icon {
+	form img.token {
 		float:right;
 		max-width:250px;
 	}
+}
+
+div.radio-group {
+	margin-bottom:5px;
+}
+
+div.radio-group span {
+	margin-right:25px;
+}
+
+div.radio-group span input {
+	margin-right:5px;
 }
 
 /* Alternates
@@ -51,7 +69,7 @@ div.alternate {
 	height:220px;
 }
 
-div.alternate img.icon {
+div.alternate img.token {
 	width:100%;
 	transform:rotate(180deg);
 }

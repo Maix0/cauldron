@@ -47,18 +47,19 @@
 		}
 
 		public function create_adventure($adventure) {
-			$keys = array("id", "title", "image", "story", "dm_id", "access");
+			$keys = array("id", "title", "image", "introduction", "dm_id", "access", "story");
 
 			$adventure["id"] = null;
 			$adventure["title"] = substr($adventure["title"], 0, 50);
 			$adventure["dm_id"] = $this->user->id;
 			$adventure["active_map_id"] = null;
+			$adventure["story"] = "";
 
 			return $this->db->insert("adventures", $adventure, $keys) !== false;
 		}
 
 		public function update_adventure($adventure) {
-			$keys = array("title", "image", "story", "access");
+			$keys = array("title", "image", "introduction", "access");
 
 			$adventure["title"] = substr($adventure["title"], 0, 50);
 
@@ -90,6 +91,11 @@
 			}
 
 			$queries = array(
+				array("delete from story_encounter_monsters where story_encounter_id in (select id from story_encounters where adventure_id=%d)", $adventure_id),
+				array("delete from story_encounters where adventure_id=%d", $adventure_id),
+				array("delete from story_events where adventure_id=%d", $adventure_id),
+				array("delete from story_npcs where adventure_id=%d", $adventure_id),
+				array("delete from story_objects where adventure_id=%d", $adventure_id),
 				array("delete from journal where adventure_id=%d", $adventure_id),
 				array("delete from collectables where adventure_id=%d", $adventure_id),
 				array("delete from lights where map_id in (select id from maps where adventure_id=%d)", $adventure_id),

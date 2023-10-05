@@ -1,3 +1,14 @@
+cauldron (3.0) stable; urgency=low
+
+  * Added Story writing module.
+  * Added option to link character sheet to character.
+  * Support for portrait player tokens.
+  * Toggling lights via zone script.
+  * Use token size when doing shape change.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 28 Sep 2023 23:43:26 +0200
+
 cauldron (2.11) stable; urgency=low
 
   * Only Dungeon Masters can now control doors.

@@ -160,7 +160,7 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 	 */
 	$('div.wall').each(function() {
 		if ($(this).attr('transparent') == 'yes') {
-			return;
+			return true;
 		}
 
 		draw_fow_shape_for_construct(l_ctx, pos_x, pos_y, $(this));
@@ -170,7 +170,7 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 	 */
 	$('div.door').each(function() {
 		if ($(this).attr('state') == 'open') {
-			return;
+			return true;
 		}
 
 		draw_fow_shape_for_construct(l_ctx, pos_x, pos_y, $(this));
@@ -280,7 +280,7 @@ function fog_of_war_update(obj) {
 	 */
 	$('div.wall').each(function() {
 		if ($(this).attr('transparent') == 'yes') {
-			return;
+			return true;
 		}
 
 		draw_fow_shape_for_construct(ctx, obj_x, obj_y, $(this));
@@ -290,7 +290,7 @@ function fog_of_war_update(obj) {
 	 */
 	$('div.door').each(function() {
 		if ($(this).attr('state') == 'open') {
-			return;
+			return true;
 		}
 
 		draw_fow_shape_for_construct(ctx, obj_x, obj_y, $(this));

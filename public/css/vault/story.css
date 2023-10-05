@@ -1,0 +1,171 @@
+h1.print {
+	display:none;
+}
+
+h2 {
+	margin-top:15px;
+	border-bottom:2px solid #ff7900;
+}
+
+div.global {
+	background-color:#ffffff;
+	padding:10px 15px;
+	border-radius:3px;
+}
+
+div.story div.row {
+	margin-bottom:15px;
+}
+
+div.story span.section {
+	color:#ffa020;
+}
+div.story span.section:before {
+	content:"[";
+	margin-right:2px;
+}
+div.story span.section:after {
+	content:"]";
+	margin-left:2px;
+}
+
+div.story div.item {
+	padding:0 15px;
+}
+
+div.story div.item div {
+	background-color:#ffffff;
+	padding:5px 15px;
+}
+
+div.story div.row a div.header {
+	color:#333333;
+}
+
+div.story div.row div {
+	min-height:30px;
+}
+
+div.story div.row a:hover {
+	color:#337ab7;
+}
+
+div.story div.row div.header {
+	background-color:#e0e8f0;
+}
+
+div.story div.row div.title {
+	font-weight:bold;
+}
+
+div.add div {
+	text-align:right;
+}
+
+div.story div.name,
+div.story div.title,
+div.story div.located {
+	overflow:hidden;
+	white-space:nowrap;
+	text-overflow:ellipsis;
+}
+
+div.story div.xp {
+	text-align:right;
+	white-space:nowrap;
+}
+
+div.story div.handle {
+	text-align:right;
+}
+
+textarea.form-control {
+	max-width:none;
+	height:250px;
+}
+
+@media print {
+	div.wrapper > div.header,
+	nav.navbar,
+	form.adventures_pulldown,
+	button.help,
+	div.handle,
+	div.add,
+	div.btn-group,
+	div.footer,
+	.players {
+		display:none;
+	}
+
+	div.global {
+		padding:0;
+	}
+
+	h1 {
+		display:none;
+	}
+
+	h1.print {
+		display:block;
+		margin-bottom:15px;
+	}
+
+	h2 {
+		border-bottom:1px solid #808080;
+	}
+
+	div.story div.body {
+		margin-top:-5px;
+		margin-left:20px;
+	}
+
+	div.story {
+		break-inside:avoid-page;
+	}
+
+	div.story div.row {
+		break-inside:avoid;
+		margin-bottom:5px;
+	}
+
+	div.story div.item {
+		padding:0;
+	}
+
+	a[href]:after {
+		content:none !important;
+	}
+
+	div.npc_name {
+		width:45%;
+	}
+
+	div.type {
+		text-align:right;
+		margin-top:-30px;
+	}
+
+	div.located {
+		text-align:right;
+	}
+
+	div.nr {
+		display:none;
+	}
+
+	div.count,
+	div.source,
+	div.cr {
+		position:relative;
+		left:20px;
+	}
+
+	div.count,
+	div.monster {
+		padding-bottom:-10px;
+		margin-bottom:-10px;
+		overflow:hidden;
+	    text-overflow:ellipsis;
+	    white-space:nowrap;
+	}
+}

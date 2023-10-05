@@ -5,7 +5,16 @@ const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 2;
 const LAYER_MARKER = DEFAULT_Z_INDEX + 3;
 const LAYER_MENU = DEFAULT_Z_INDEX + 4;
 
+const FOW_OFF = 0;
+const FOW_DAY_CELL = 1;
+const FOW_DAY_REAL = 2;
+const FOW_NIGHT_CELL = 3;
+const FOW_NIGHT_REAL = 4;
+const FOW_REVEAL = 5;
+
 const DOOR_SECRET = '#a0a000';
+const DOOR_OPEN = '#40c040';
+
 const OBJECT_HIDDEN_FADE = 0.6;
 
 var adventure_id = null;
@@ -19,6 +28,7 @@ var constructs_visible = true;
 var wf_script_editor = null;
 var wf_script_manual = null;
 var wf_zone_create = null;
+var fow_type = null;
 var fow_obj = null;
 var mouse_x = 0;
 var mouse_y = 0;
@@ -121,12 +131,16 @@ function capture_mouse_position(event) {
 
 function key_down(event) {
 	if (event.which == 16) {
+		// Shift
 		shift_down = true;
 	} else if (event.which == 17) {
+		// CTRL
 		ctrl_down = true;
 	} else if (event.which == 18) {
+		// ALT
 		alt_down = true;
 	} else if (event.which == 27) {
+		// Escape
 		blinder_stop();
 		door_stop();
 		wall_stop();
@@ -142,10 +156,6 @@ function key_up(event) {
 	} else if (event.which == 18) {
 		alt_down = false;
 	}
-}
-
-function set_condition(obj, condition) {
-	write_sidebar(obj.find('span').text() + ' is now ' + condition + '.');
 }
 
 /* Object functions
@@ -315,7 +325,7 @@ function object_delete(obj) {
 	$.post('/object/delete', {
 		instance_id: obj.prop('id')
 	}).done(function() {
-		if (obj.hasClass('light')) {
+		if ((fow_obj != null) && obj.hasClass('light')) {
 			obj.attr('state', 'delete');
 			fog_of_war_light(obj);
 			fog_of_war_update(fow_obj);
@@ -328,7 +338,7 @@ function object_delete(obj) {
 
 		obj.remove();
 
-		if ((fow_obj != null) && (obj.hasClass('wall') || obj.hasClass('door'))) {
+		if ((fow_obj != null) && (obj.hasClass('wall') || obj.hasClass('door') || obj.hasClass('blinder'))) {
 			fog_of_war_update(fow_obj);
 		}
 	});
@@ -370,6 +380,11 @@ function object_hitpoints(obj) {
 }
 
 function object_info(obj) {
+	if (obj.hasClass('light')) {
+		write_sidebar('Light number: ' + obj.attr('id').substring(5));
+		return;
+	}
+
 	var info ='';
 
 	if (obj.attr('id').substring(0, 5) == 'token') {
@@ -585,7 +600,7 @@ function object_show(obj) {
 function measuring_stop() {
 	$('div.playarea').off('mousemove');
 	$('div.ruler').remove();
-	$('span#infobar').text('');
+	$('p.measure').removeClass('measure');
 
 	measuring = false;
 }
@@ -684,11 +699,18 @@ function door_create(pos_x, pos_y, length, direction, state) {
 		$('div#door' + instance_id).contextmenu(function(event) {
 			var menu_entries = {};
 
+			if ($(this).attr('state') == 'closed') {
+				menu_entries['door_open'] = { name:'Open', icon:'fa-toggle-on' };
+			} else {
+				menu_entries['door_close'] = { name:'Close', icon:'fa-toggle-off' };
+			}
+
 			if ($(this).attr('secret') == 'yes') {
 				menu_entries['door_normal'] = { name:'Normal', icon:'fa-eye' };
 			} else {
 				menu_entries['door_secret'] = { name:'Secret', icon:'fa-eye-slash' };
 			}
+
 			menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -731,7 +753,9 @@ function door_position(door) {
 	door.css('width', width + 'px');
 	door.css('height', height + 'px');
 
-	if (door.attr('secret') == 'yes') {
+	if (door.attr('state') == 'open') {
+		door.css('background-color', DOOR_OPEN);
+	} else if (door.attr('secret') == 'yes') {
 		door.css('background-color', DOOR_SECRET);
 	}
 }
@@ -785,11 +809,32 @@ function light_create(pos_x, pos_y, radius) {
 		});
 
 		if (fow_obj != null) {
-        	fog_of_war_light($('img#light' + instance_id));
+			fog_of_war_light($('img#light' + instance_id));
 			fog_of_war_update(fow_obj);
 		}
 	}).fail(function(data) {
 		cauldron_alert('Light create error');
+	});
+}
+
+function light_set(light_id, state) {
+	var light = $('img#light' + light_id);
+
+	if (light.length == 0) {
+		return;
+	}
+
+	$.post('/object/light_state', {
+		light_id: light_id,
+		state: state
+	}).done(function(data) {
+		light.attr('state', state);
+		light.attr('src', '/images/light_' + state + '.png');
+
+		if (fow_obj != null) {
+			fog_of_war_light(light);
+			fog_of_war_update(fow_obj);
+		}
 	});
 }
 
@@ -1168,6 +1213,9 @@ function context_menu_handler(key, options) {
 			measuring_stop();
 			wall_stop();
 
+			var ruler_x = coord_to_grid(mouse_x, false);
+			var ruler_y = coord_to_grid(mouse_y, false);
+
 			var ruler_position = function(to_x, to_y) {
 				var angle = points_angle(ruler_x, ruler_y, to_x, to_y);
 				var distance = points_distance(ruler_x, ruler_y, to_x, to_y);
@@ -1177,28 +1225,23 @@ function context_menu_handler(key, options) {
 				ruler.css('height', '4px');
 				ruler.css('transform', 'rotate(' + angle + 'deg)');
 
-				var from_x = coord_to_grid(mouse_x, false);
-				var from_y = coord_to_grid(mouse_y, false);
-
-				measure_diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
-				measure_diff_y = Math.round(Math.abs(to_y - from_y) / grid_cell_size);
+				measure_diff_x = Math.round(Math.abs(to_x - ruler_x) / grid_cell_size);
+				measure_diff_y = Math.round(Math.abs(to_y - ruler_y) / grid_cell_size);
 
 				var distance = (measure_diff_x > measure_diff_y) ? measure_diff_x : measure_diff_y;
 
-				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft / ' + (measure_diff_x + 1) + 'x' + (measure_diff_y + 1));
+				$('p.measure').text(distance + ' / ' + (distance * 5) + 'ft / ' + (measure_diff_x + 1) + 'x' + (measure_diff_y + 1));
 			}
 
-			var ruler_x = coord_to_grid(mouse_x, false);
-			var ruler_y = coord_to_grid(mouse_y, false);
-			var ruler = '<div class="ruler" />';
-			$('div.playarea div.markers').append(ruler);
-			$('div.ruler').each(function() {
-				ruler_position(ruler_x, ruler_y);
-			});
+			var sidebar = $('div.sidebar');
+			sidebar.append('<p class="measure">&nbsp;</p>');
+			sidebar.prop('scrollTop', sidebar.prop('scrollHeight'));
 
+			$('div.playarea div.markers').append('<div class="ruler" />');
 			var ruler = $('div.ruler');
 			ruler.css('left', (ruler_x + (grid_cell_size >> 1)) + 'px');
 			ruler.css('top', (ruler_y + (grid_cell_size >> 1)) + 'px');
+			ruler_position(ruler_x, ruler_y);
 
 			$('div.playarea').mousemove(function(event) {
 				var scr = screen_scroll();
@@ -1210,11 +1253,11 @@ function context_menu_handler(key, options) {
 				ruler_position(to_x, to_y);
 			});
 
-			measuring = true;
-
 			$('div.playarea').on('click', function(event) {
 				measuring_stop();
 			});
+
+			measuring = true;
 			break;
 		case 'door_create':
 			blinder_stop();
@@ -1225,7 +1268,7 @@ function context_menu_handler(key, options) {
 			door_x = coord_to_grid(mouse_x, true) / grid_cell_size;
 			door_y = coord_to_grid(mouse_y, true) / grid_cell_size;
 
-			var door = '<div id="new_door" class="door" pos_x="' + door_x + '" pos_y="' + door_y + '" length="0" direction="horizontal" />';
+			var door = '<div id="new_door" class="door" pos_x="' + door_x + '" pos_y="' + door_y + '" state="closed" length="0" direction="horizontal" />';
 			$('div.playarea div.doors').append(door);
 			$('div.playarea div#new_door').each(function() {
 				door_position($(this));
@@ -1280,9 +1323,27 @@ function context_menu_handler(key, options) {
 				door_create(pos_x, pos_y, length, direction, 'closed');
 			});
 			break;
+		case 'door_close':
+			obj.attr('state', 'closed');
+			if (obj.attr('secret') == 'yes') {
+				obj.css('background-color', DOOR_SECRET);
+			} else {
+				obj.css('background-color', '');
+			}
+			$.post('/object/door_state', {
+				door_id: obj.prop('id').substring(4),
+				state: obj.attr('state')
+			});
+
+			if (fow_obj != null) {
+				fog_of_war_update(fow_obj);
+			}
+			break;
 		case 'door_secret':
 			obj.attr('secret', 'yes');
-			obj.css('background-color', DOOR_SECRET);
+			if (obj.attr('state') == 'closed') {
+				obj.css('background-color', DOOR_SECRET);
+			}
 			$.post('/object/door_secret', {
 				door_id: obj.prop('id').substring(4),
 				secret: 'yes'
@@ -1290,12 +1351,25 @@ function context_menu_handler(key, options) {
 			break;
 		case 'door_normal':
 			obj.attr('secret', 'no');
-			obj.css('background-color', '');
+			if (obj.attr('state') == 'closed') {
+				obj.css('background-color', '');
+			}
 			$.post('/object/door_secret', {
 				door_id: obj.prop('id').substring(4),
 				secret: 'no'
 			});
+			break;
+		case 'door_open':
+			obj.attr('state', 'open');
+			obj.css('background-color', DOOR_OPEN);
+			$.post('/object/door_state', {
+				door_id: obj.prop('id').substring(4),
+				state: obj.attr('state')
+			});
 
+			if (fow_obj != null) {
+				fog_of_war_update(fow_obj);
+			}
 			break;
 		case 'duplicate':
 			var pos = object_position(obj);
@@ -1373,6 +1447,9 @@ function context_menu_handler(key, options) {
 
 			wf_light_create.open();
 			break;
+		case 'light_info':
+			object_info(obj);
+			break;
 		case 'light_radius':
 			var radius = obj.attr('radius');
 			
@@ -1408,22 +1485,11 @@ function context_menu_handler(key, options) {
 			wf_light_edit.open();
 			break;
 		case 'light_toggle':
+			var light_id = obj.prop('id').substring(5);
 			var toggle = { on:'off', off:'on' };
 			var state = toggle[obj.attr('state')];
 
-			$.post('/object/light_state', {
-				light_id: obj.prop('id').substring(5),
-				state: state
-			}).done(function(data) {
-				obj.attr('state', state);
-				obj.attr('src', '/images/light_' + state + '.png');
-
-				if (fow_obj != null) {
-					fog_of_war_light(obj);
-					fog_of_war_update(fow_obj);
-				}
-			});
-
+			light_set(light_id, state);
 			break;
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
@@ -1576,6 +1642,7 @@ $(document).ready(function() {
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
 	grid_size = parseFloat($('div.playarea').attr('grid_size'));
 	grid_factor = grid_size / Math.floor(grid_size);
+	fow_type = parseInt($('div.fog_of_war').attr('type'));
 
 	/* Show grid
 	 */
@@ -1621,11 +1688,18 @@ $(document).ready(function() {
 	$('div.door').contextmenu(function(event) {
 		var menu_entries = {};
 
+		if ($(this).attr('state') == 'closed') {
+			menu_entries['door_open'] = { name:'Open', icon:'fa-toggle-on' };
+		} else {
+			menu_entries['door_close'] = { name:'Close', icon:'fa-toggle-off' };
+		}
+
 		if ($(this).attr('secret') == 'yes') {
 			menu_entries['door_normal'] = { name:'Normal', icon:'fa-eye' };
 		} else {
 			menu_entries['door_secret'] = { name:'Secret', icon:'fa-eye-slash' };
 		}
+
 		menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
 
 		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -1645,6 +1719,7 @@ $(document).ready(function() {
 
 	$('img.light').contextmenu(function(event) {
 		var menu_entries = {
+			'light_info': { name:'Get information', icon:'fa-info-circle' },
 			'light_radius': { name:'Set radius', icon:'fa-dot-circle-o' }
 		};
 
@@ -1867,6 +1942,10 @@ $(document).ready(function() {
 			'window_create': { name:'Create window', icon:'fa-window-maximize' },
 			'zone_create': { name:'Create zone', icon:'fa-square-o' }
 		};
+
+		if ((fow_type != FOW_NIGHT_CELL) && (fow_type != FOW_NIGHT_CELL)) {
+		//	delete menu_entries['light_create'];
+		}
 
 		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
 		return false;

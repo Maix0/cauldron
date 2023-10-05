@@ -1,3 +1,17 @@
+@media (min-width:768px) {
+	img.manual {
+		float:right;
+		margin-left:15px;
+	}
+}
+
+@media (max-width:767px) {
+	img.manual {
+ 		display:block;
+		width:100%;
+	}
+}
+
 div.well li {
 	color:#337ab7;
 	cursor:pointer;
@@ -12,8 +26,23 @@ h2 {
 	border-bottom:1px solid #ff7900;
 }
 
+h3 {
+	color: #5385c1;
+}
+
 div.row h3 {
+	color:#333333;
 	margin-top:10px;
+}
+
+div.row div img {
+	width:100%;
+	margin:10px;
+}
+
+div.row div p {
+	text-align:center;
+	font-style:italic;
 }
 
 div.section {

@@ -405,6 +405,7 @@
 			foreach ($characters as $character) {
 				array_push($queries, array("delete from map_character where character_id=%d", $character["id"]));
 				array_push($queries, array("delete from adventure_character where character_id=%d", $character["id"]));
+				array_push($queries, array("delete from character_weapons where character_id=%d", $character["id"]));
 				array_push($queries, array("delete from character_icons where character_id=%d", $character["id"]));
 				array_push($queries, array("delete from characters where id=%d", $character["id"]));
 			}

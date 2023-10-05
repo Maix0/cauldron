@@ -61,9 +61,9 @@
 <input type="text" id="image" name="image" value="{adventure/image}" placeholder="The image to show in the Adventures page." class="form-control" />
 <span class="input-group-btn"><input type="button" value="Browse resources" class="btn btn-default browser" /></span>
 </div>
-<label for="story">Introduction story (optional):</label>
-<textarea id="story" name="story" class="form-control" placeholder="A story to introduce your adventure to your players."><xsl:value-of select="adventure/story" /></textarea>
-<label for="story">Access rights:</label>
+<label for="introduction">Introduction story (optional):</label>
+<textarea id="introduction" name="introduction" class="form-control" placeholder="A story to introduce your adventure to your players."><xsl:value-of select="adventure/introduction" /></textarea>
+<label for="access">Access rights:</label>
 <select id="access" name="access" class="form-control">
 <xsl:for-each select="access/level">
 <option value="{@value}"><xsl:if test="@value=../../adventure/access"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>

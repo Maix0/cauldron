@@ -72,7 +72,13 @@
 				$hp = "?";
 			}
 
-			$monster = sprintf("%s:%s:%s:%s:%s", $name, $ac, $hp, $source, $page);
+			if (isset($monster["cr"]) == false) {
+				$cr = "?";
+			} else {
+				$cr = $monster["cr"];
+			}
+
+			$monster = sprintf("%s:%s:%s:%s:%s:%s", $name, $cr, $ac, $hp, $source, $page);
 			array_push($list, $monster);
 		}
 	}
@@ -84,9 +90,10 @@
 
 	print "var monsters = [\n\t{\n";
 	foreach ($list as $i => $monster) {
-		list($name, $ac, $hp, $source, $page) = explode(":", str_replace("'", "\\'", $monster));
+		list($name, $cr, $ac, $hp, $source, $page) = explode(":", str_replace("'", "\\'", $monster));
 
 		print "\t\tname: '".$name."',\n";
+		print "\t\tcr: '".$cr."',\n";
 		print "\t\thp: '".$hp."',\n";
 		print "\t\tac: '".$ac."',\n";
 		print "\t\tsource: '".$source."',\n";

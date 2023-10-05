@@ -55,7 +55,8 @@
 
 						$attr = array(
 							"id"      => $char["id"],
-							"checked" => show_boolean(in_array($char["id"], $invite["characters"])));
+							"checked" => show_boolean(in_array($char["id"], $invite["characters"])),
+							"sheet"   => $char["sheet"]);
 						$this->view->add_tag("character", $char["name"], $attr);
 					}
 					$this->view->close_tag();

@@ -41,7 +41,10 @@
 				return "import_sql";
 			}
 
-			if ($this->settings->database_version < $this->latest_database_version()) {
+			$latest = $this->latest_database_version();
+			if (gettype($this->settings->database_version) != gettype($latest)) {
+				return "update_db";
+			} else if ($this->settings->database_version < $latest) {
 				return "update_db";
 			}
 
@@ -238,6 +241,8 @@
 					$first = false;
 				}
 
+				$query = str_replace("%s", "'%s'", $query);
+				$query = str_replace("%S", "`%s`", $query);
 				$query = vsprintf($query, $args);
 				$this->view->add_message(" - %s", $query);
 
@@ -252,7 +257,7 @@
 		/* Update database
 		 */
 		public function update_database() {
-			if ($this->settings->database_version == 1) {
+			if ($this->settings->database_version === 1) {
 				$this->db_query("CREATE TABLE zones (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "game_map_id int(10) unsigned NOT NULL, pos_x smallint(5) unsigned NOT NULL, ".
 				                "pos_y smallint(5) unsigned NOT NULL, width tinyint(3) unsigned NOT NULL, ".
@@ -264,7 +269,7 @@
 				$this->settings->database_version = 2;
 			}
 
-			if ($this->settings->database_version == 2) {
+			if ($this->settings->database_version === 2) {
 				$this->db_query("CREATE TABLE collectables (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "game_id int(10) unsigned NOT NULL, game_map_token_id int(10) unsigned DEFAULT NULL, ".
 				                "name varchar(50) NOT NULL, image tinytext NOT NULL, found tinyint(1) NOT NULL, ".
@@ -275,13 +280,13 @@
 				$this->settings->database_version = 3;
 			}
 
-			if ($this->settings->database_version == 3) {
+			if ($this->settings->database_version === 3) {
 				$this->db_query("ALTER TABLE games ADD image TINYTEXT NOT NULL AFTER title, ADD story TEXT NOT NULL AFTER image");
 
 				$this->settings->database_version = 4;
 			}
 
-			if ($this->settings->database_version == 4) {
+			if ($this->settings->database_version === 4) {
 				$this->db_query("RENAME TABLE game_maps TO maps");
 				$this->db_query("RENAME TABLE game_map_character TO map_character");
 				$this->db_query("RENAME TABLE game_map_token TO map_token");
@@ -301,7 +306,7 @@
 				$this->settings->database_version = 5;
 			}
 
-			if ($this->settings->database_version == 5) {
+			if ($this->settings->database_version === 5) {
 				$this->db_query("CREATE TABLE character_icons (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "character_id int(10) unsigned NOT NULL, name varchar(20) NOT NULL, ".
 				                "size tinyint(3) unsigned NOT NULL, extension varchar(3) NOT NULL, PRIMARY KEY (id)) ".
@@ -316,7 +321,7 @@
 				$this->settings->database_version = 6;
 			}
 
-			if ($this->settings->database_version == 6) {
+			if ($this->settings->database_version === 6) {
 				$this->db_query("CREATE TABLE conditions (id int(10) unsigned NOT NULL AUTO_INCREMENT, name varchar(20) NOT NULL, ".
 				                "PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 				$this->db_query("INSERT INTO conditions VALUES (1,%s),(2,%s),(3,%s),(4,%s),(5,%s),(6,%s),".
@@ -330,7 +335,7 @@
 				$this->settings->database_version = 7;
 			}
 
-			if ($this->settings->database_version == 7) {
+			if ($this->settings->database_version === 7) {
 				$this->db_query("ALTER TABLE maps ADD start_x SMALLINT UNSIGNED NOT NULL AFTER show_grid, ".
 				                "ADD start_y SMALLINT UNSIGNED NOT NULL AFTER start_x");
 				$this->db_query("ALTER TABLE map_character CHANGE game_map_id map_id INT(10) UNSIGNED NOT NULL");
@@ -342,7 +347,7 @@
 				$this->settings->database_version = 8;
 			}
 
-			if ($this->settings->database_version == 8) {
+			if ($this->settings->database_version === 8) {
 				$this->db_query("ALTER TABLE map_character ADD rotation SMALLINT UNSIGNED NOT NULL AFTER pos_y");
 				$this->db_query("ALTER TABLE maps ADD audio TINYTEXT NOT NULL AFTER url");
 				$this->db_query("UPDATE menu SET id=4 WHERE id=3");
@@ -351,11 +356,11 @@
 				$this->settings->database_version = 9;
 			}
 
-			if ($this->settings->database_version == 9) {
+			if ($this->settings->database_version === 9) {
 				$this->settings->database_version = 10;
 			}
 
-			if ($this->settings->database_version == 10) {
+			if ($this->settings->database_version === 10) {
 				$this->db_query("CREATE TABLE walls (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "map_id int(10) unsigned NOT NULL, pos_x smallint(5) unsigned NOT NULL, ".
 				                "pos_y smallint(5) unsigned NOT NULL, length smallint(3) unsigned NOT NULL, ".
@@ -373,14 +378,14 @@
 				$this->settings->database_version = 11;
 			}
 
-			if ($this->settings->database_version == 11) {
+			if ($this->settings->database_version === 11) {
 				$this->db_query("ALTER TABLE maps ADD fog_of_war BOOLEAN NOT NULL AFTER drag_character");
 				$this->db_query("ALTER TABLE walls ADD transparent BOOLEAN NOT NULL AFTER direction");
 
 				$this->settings->database_version = 12;
 			}
 
-			if ($this->settings->database_version == 12) {
+			if ($this->settings->database_version === 12) {
 				$this->db_query("CREATE TABLE lights (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "map_id int(10) unsigned NOT NULL, pos_x smallint(5) unsigned NOT NULL, ".
 				                "pos_y smallint(5) unsigned NOT NULL, radius decimal(4,1) unsigned NOT NULL, ".
@@ -392,16 +397,16 @@
 				$this->settings->database_version = 13;
 			}
 
-			if ($this->settings->database_version == 13) {
-				$manual_html = file("../extra/manual.html");
-				$manual_css = file("../extra/manual.css");
+			if ($this->settings->database_version === 13) {
+				$manual_html = file_get_contents("../extra/manual.html");
+				$manual_css = file_get_contents("../extra/manual.css");
 				$this->db_query("INSERT INTO pages VALUES (1,%s,%s,%s,1,%s,%s,%s,%s,%s,1,0,0,NULL,NULL,NULL)",
 				                "/manual", "en", "cauldron", $manual_css, "Manual", "", "", $manual_html);
 
 				$this->settings->database_version = 14;
 			}
 
-			if ($this->settings->database_version == 14) {
+			if ($this->settings->database_version === 14) {
 				$this->db_query("ALTER TABLE organisations ADD resources_key VARCHAR(32) NOT NULL AFTER name");
 				$this->db_query("ALTER TABLE tokens ADD organisation_id INT UNSIGNED NOT NULL AFTER id");
 				$this->db_query("UPDATE tokens SET organisation_id=%s", 1);
@@ -414,42 +419,52 @@
 					return false;
 				}
 
-				if ($organisation["resources_key"] == $resources_key) {
-					mkdir("resources/".$resources_key);
+				if (is_array($organisation)) {
+					if ($organisation["resources_key"] == $resources_key) {
+						mkdir("resources/".$resources_key);
 
-					if (($dp = opendir("files")) != false) {
-						while (($file = readdir($dp)) != false) {
-							if (($file == ".") || ($file == "..") || ($file == $resources_key)) {
-								continue;
+						if (($dp = opendir("files")) != false) {
+							while (($file = readdir($dp)) != false) {
+								if (($file == ".") || ($file == "..") || ($file == $resources_key)) {
+									continue;
+								}
+
+								rename("files/".$file, "resources/".$resources_key."/".$file);
 							}
-
-							rename("files/".$file, "resources/".$resources_key."/".$file);
+							closedir($dp);
 						}
-						closedir($dp);
 					}
 				}
 
 				$this->settings->database_version = 15;
 			}
 
-			if ($this->settings->database_version == 15) {
+			if ($this->settings->database_version === 15) {
 				$this->db_query("ALTER TABLE games CHANGE player_access access TINYINT(1) UNSIGNED NOT NULL");
 				$this->db_query("ALTER TABLE game_character ADD token_id INT UNSIGNED NULL AFTER alternate_icon_id");
 				$this->db_query("ALTER TABLE game_character ADD FOREIGN KEY (token_id) REFERENCES tokens(id) ON DELETE RESTRICT ON UPDATE RESTRICT");
-				$this->db_query("ALTER TABLE organisations CHANGE files_key resources_key VARCHAR(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL");
 				$this->db_query("ALTER TABLE organisations ADD max_resources INT UNSIGNED NOT NULL AFTER resources_key, ".
 				                "ADD last_login TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER max_resources");
 				$this->db_query("ALTER TABLE tokens ADD armor_class TINYINT UNSIGNED NOT NULL AFTER extension, ".
 				                "ADD hitpoints SMALLINT UNSIGNED NOT NULL AFTER armor_class, ".
 				                "ADD shape_change BOOLEAN NOT NULL AFTER hitpoints");
-				$this->db_query("ALTER TABLE zones ADD altitude TINYINT NOT NULL AFTER group");
+				$this->db_query("ALTER TABLE zones ADD altitude TINYINT NOT NULL AFTER %S", "group");
+
+				$this->db_query("DELETE FROM menu");
+				$this->db_query("INSERT INTO menu VALUES (%d,%d,%s,%s),(%d,%d,%s,%s),(%d,%d,%s,%s),(%d,%d,%s,%s),".
+				                "(%d,%d,%s,%s),(%d,%d,%s,%s),(%d,%d,%s,%s),(%d,%d,%s,%s)",
+				                1, 0, 'Public', 'public', 2, 1, 'Welcome', '/', 5, 0, 'Private', 'private',
+				                6, 5, 'Games', '/game', 7, 5, 'Characters', '/character', 8, 5, 'Manual', '/manual',
+				                10, 5, 'CMS', '/cms', 11, 5, 'Logout', '/logout');
 
 				$this->settings->head_title = "Cauldron VTT";
+				$this->settings->start_page = "game";
+				$this->settings->page_after_login = "game";
 
 				$this->settings->database_version = 20;
 			}
 
-			if ($this->settings->database_version == 20) {
+			if ($this->settings->database_version === 20) {
 				$this->db_query("CREATE TABLE blinders (id int(10) unsigned NOT NULL AUTO_INCREMENT, map_id int(10) unsigned NOT NULL, ".
 				                "pos1_x int(10) unsigned NOT NULL, pos1_y int(10) unsigned NOT NULL, pos2_x int(10) unsigned NOT NULL, pos2_y int(10) unsigned NOT NULL, ".
 				                "PRIMARY KEY (id), KEY map_id (map_id), CONSTRAINT blinders_ibfk_1 FOREIGN KEY (map_id) REFERENCES maps (id)) ".
@@ -459,19 +474,21 @@
 				$this->settings->database_version = 21;
 			}
 
-			if ($this->settings->database_version == 21) {
+			if ($this->settings->database_version === 21) {
 				$this->settings->database_version = 22;
 			}
 
-			if ($this->settings->database_version == 22) {
+			if ($this->settings->database_version === 22) {
+				$this->db_query("UPDATE menu SET text=%s, link=%s WHERE text=%s", "DM's vault", "/vault", "CMS");
+
 				$this->settings->database_version = 23;
 			}
 
-			if ($this->settings->database_version == 23) {
+			if ($this->settings->database_version === 23) {
 				$this->settings->database_version = 24;
 			}
 
-			if ($this->settings->database_version == 24) {
+			if ($this->settings->database_version === 24) {
 				$this->db_query("RENAME TABLE game_character TO adventure_character");
 
 				$this->db_query("ALTER TABLE adventure_character CHANGE game_id adventure_id INT(10) UNSIGNED NOT NULL");
@@ -485,31 +502,34 @@
 				$this->db_query("ALTER TABLE maps DROP INDEX game_id, ADD INDEX adventure_id (adventure_id) USING BTREE");
 
 				$this->db_query("RENAME TABLE games TO adventures");
+				$this->db_query("UPDATE menu SET text=%s, link=%s WHERE text=%s", "Adventures", "/adventure", "Games");
+				$this->settings->start_page = "adventure";
+				$this->settings->page_after_login = "adventure";
 
 				$this->settings->database_version = 25;
 			}
 
-			if ($this->settings->database_version == 25) {
+			if ($this->settings->database_version === 25) {
 				$this->db_query("ALTER TABLE organisations ADD invitation_code VARCHAR(50) NULL AFTER name");
 
 				$this->settings->database_version = 26;
 			}
 
-			if ($this->settings->database_version == 26) {
-				$this->db_query("ALTER TABLE map CHANGE grid_size grid_size DECIMAL(5,2) UNSIGNED NOT NULL");
+			if ($this->settings->database_version === 26) {
+				$this->db_query("ALTER TABLE maps CHANGE grid_size grid_size DECIMAL(5,2) UNSIGNED NOT NULL");
 
 				$this->settings->database_version = 27;
 			}
 
-			if ($this->settings->database_version == 27) {
+			if ($this->settings->database_version === 27) {
 				$this->settings->database_version = 28;
 			}
 
-			if ($this->settings->database_version == 28) {
+			if ($this->settings->database_version === 28) {
 				$this->settings->database_version = 29;
 			}
 
-			if ($this->settings->database_version == 29) {
+			if ($this->settings->database_version === 29) {
 				$this->db_query("UPDATE settings SET type=%s WHERE %S=%s", "float", "key", "database_version");
 				$this->db_query("CREATE TABLE character_weapons (id int(10) unsigned NOT NULL, character_id int(10) unsigned NOT NULL, ".
 				                "name varchar(25) NOT NULL, roll varchar(25) NOT NULL, PRIMARY KEY (id), KEY character_id (character_id), ".
@@ -519,11 +539,49 @@
 				$this->settings->database_version = 2.10;
 			}
 
-			if ($this->settings->database_version == 2.10) {
+			if ($this->settings->database_version === 2.10) {
 				$this->db_query("ALTER TABLE doors CHANGE state state ENUM(%s,%s) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL", "open", "closed");
 				$this->db_query("ALTER TABLE doors ADD secret BOOLEAN NOT NULL AFTER state");
 
 				$this->settings->database_version = 2.11;
+			}
+
+			if ($this->settings->database_version === 2.11) {
+				$this->db_query("ALTER TABLE adventures CHANGE story introduction TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL");
+				$this->db_query("ALTER TABLE adventures ADD story TEXT NOT NULL");
+				$this->db_query("DROP TABLE conditions");
+
+				$this->db_query("CREATE TABLE story_encounters (id int(10) unsigned NOT NULL AUTO_INCREMENT, adventure_id int(10) unsigned NOT NULL, ".
+				                "title varchar(50) NOT NULL, PRIMARY KEY (id), KEY adventure_id (adventure_id), CONSTRAINT story_encounters_ibfk_1 ".
+				                "FOREIGN KEY (adventure_id) REFERENCES adventures (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+				$this->db_query("CREATE TABLE story_encounter_monsters (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
+				                "story_encounter_id int(10) unsigned NOT NULL, monster varchar(50) NOT NULL, cr varchar(3) NOT NULL, ".
+				                "%S tinyint(3) unsigned NOT NULL, source varchar(15) NOT NULL, PRIMARY KEY (id), KEY story_encounter_id ".
+				                "(story_encounter_id), CONSTRAINT story_encounter_monsters_ibfk_1 FOREIGN KEY (story_encounter_id) ".
+				                "REFERENCES story_encounters (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci", "count");
+
+				$this->db_query("CREATE TABLE story_events (id int(10) unsigned NOT NULL AUTO_INCREMENT, adventure_id int(10) unsigned NOT NULL, ".
+				                "nr int(10) unsigned NOT NULL, title varchar(50) NOT NULL, description text NOT NULL, PRIMARY KEY (id), KEY adventure_id ".
+				                "(adventure_id), CONSTRAINT story_events_ibfk_1 FOREIGN KEY (adventure_id) REFERENCES adventures (id)) ENGINE=InnoDB ".
+				                "DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+				$this->db_query("CREATE TABLE story_npcs (id int(10) unsigned NOT NULL AUTO_INCREMENT, adventure_id int(10) unsigned NOT NULL, ".
+				                "%S varchar(50) NOT NULL, cr varchar(3) NOT NULL, %S varchar(50) NOT NULL, description text NOT NULL, PRIMARY KEY (id), ".
+				                "KEY adventure_id (adventure_id), CONSTRAINT story_npcs_ibfk_1 FOREIGN KEY (adventure_id) REFERENCES adventures (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci", "name", "type");
+
+				$this->db_query("CREATE TABLE story_objects (id int(10) unsigned NOT NULL AUTO_INCREMENT, adventure_id int(10) unsigned NOT NULL, ".
+				                "nr int(10) unsigned NOT NULL, %S varchar(50) NOT NULL, located varchar(50) NOT NULL, description text NOT NULL, ".
+				                "PRIMARY KEY (id), KEY adventure_id (adventure_id), CONSTRAINT story_objects_ibfk_1 FOREIGN KEY (adventure_id) ".
+				                "REFERENCES adventures (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci", "name");
+
+				$this->db_query("ALTER TABLE characters ADD sheet ENUM(%s,%s,%s) NOT NULL AFTER extension, ADD sheet_url TINYTEXT NULL AFTER sheet",
+				                "none", "file", "url");
+
+				$this->db_query("ALTER TABLE characters ADD token_type ENUM(%s,%s) NOT NULL AFTER damage", "topdown", "portrait");
+
+				$this->settings->database_version = 3.0;
 			}
 
 			return true;

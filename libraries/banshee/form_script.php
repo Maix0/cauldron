@@ -200,7 +200,6 @@
 			if ($user->logged_in) {
 				$result .= "<tr><td>Name:</td><td>".$user->fullname."</td></tr>\n";
 				$result .= "<tr><td>Group:</td><td>".$user->organisation."</td></tr>\n";
-				$result .= "<tr><td>E-mail:</td><td>".$user->email."</td></tr>\n";
 				$sender_email = $user->email;
 				$sender_name = $user->fullname;
 			}

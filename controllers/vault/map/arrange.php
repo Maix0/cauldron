@@ -23,11 +23,6 @@
 				return;
 			}
 
-			if (($conditions = $this->model->get_conditions()) === false) {
-				$this->view->add_tag("result", "Database error.");
-				return;
-			}
-
 			if (($characters = $this->model->get_characters($map_id)) === false) {
 				$this->view->add_tag("result", "Database error.", array("url" => "vault/map"));
 				return;
@@ -38,7 +33,9 @@
 				return;
 			}
 
-			if (($lights = $this->model->get_lights($map_id)) === false) {
+			if (($map["fog_of_war"] != FOW_NIGHT_CELL) && ($map["fog_of_war"] != FOW_NIGHT_REAL)) {
+				$lights = array();
+			} else if (($lights = $this->model->get_lights($map_id)) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
@@ -78,10 +75,15 @@
 
 			if (($map["fog_of_war"] == FOW_DAY_REAL) || ($map["fog_of_war"] == FOW_NIGHT_REAL)) {
 				$type = "real";
-			} else {
+			} else if (($map["fog_of_war"] == FOW_DAY_CELL) || ($map["fog_of_war"] == FOW_NIGHT_CELL)) {
 				$type = "cell";
+			} else {
+				$type = null;
 			}
-			$this->view->add_javascript("includes/fog_of_war_".$type.".js");
+
+			if ($type !== null) {
+				$this->view->add_javascript("includes/fog_of_war_".$type.".js");
+			}
 
 			$this->view->add_css("banshee/font-awesome.css");
 		   	$this->view->add_css("includes/context_menu.css");
@@ -108,14 +110,6 @@
 					$blinder[$field] = $blinder[$field] * $grid_cell_size / $map["grid_size"];
 				}
 				$this->view->record($blinder, "blinder");
-			}
-			$this->view->close_tag();
-
-			/* Conditions
-			 */
-			$this->view->open_tag("conditions");
-			foreach ($conditions as $condition) {
-				$this->view->add_tag("condition", $condition["name"], array("id" => $condition["id"]));
 			}
 			$this->view->close_tag();
 

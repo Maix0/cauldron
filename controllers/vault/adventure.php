@@ -127,7 +127,7 @@
 							$this->user->log_action("adventure %d created", $new_adventure_id);
 
 							$this->view->add_tag("result", "Adventure created.");
-							header("Location: /vault/map/new?first");
+							header("Location: /vault/map?first");
 						}
 					} else {
 						/* Update adventure

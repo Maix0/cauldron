@@ -1,5 +1,25 @@
 <?php
 	abstract class cauldron_model extends Banshee\model {
+		public function __get($key) {
+			switch ($key) {
+				case "active_adventure_id": return $_SESSION["edit_adventure_id"] ?? null;
+			}
+
+			return null;
+		}
+
+		public function get_adventures() {
+			$query = "select * from adventures where dm_id=%d order by timestamp desc";
+
+			return $this->db->execute($query, $this->user->id);
+		}
+
+		public function is_my_adventure($adventure_id) {
+			$query = "select * from adventures where id=%d and dm_id=%d";
+
+			return $this->db->execute($query, $adventure_id, $this->user->id) != false;
+		}
+
 		public function resource_path($path, $resources_key = null) {
 			if ($path == "") {
 				return "/files/default.jpg";

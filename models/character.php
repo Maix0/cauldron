@@ -29,22 +29,22 @@
 			return $characters[$character_id];
 		}
 
-		private function file_upload_okay($icon) {
+		private function token_upload_okay($token, $char_id) {
 			$result = true;
 
-			if ($icon["error"] != 0) {
-				if (isset($character["id"]) == false) {
-					$this->view->add_message("Upload a icon.");
+			if ($token["error"] == UPLOAD_ERR_NO_FILE) {
+				if ($char_id == null) {
+					$this->view->add_message("Upload a token.");
 					$result = false;
 				}
 			} else {
-				list(, $extension) = explode("/", $icon["type"], 2);
-				if (in_array($extension, array("gif", "jpg", "png")) == false) {
-					$this->view->add_message("Invalid icon.");
+				list(, $extension) = explode("/", $token["type"], 2);
+				if (in_array($extension, array("gif", "jpeg", "png")) == false) {
+					$this->view->add_message("Invalid token.");
 					$result = false;
 				}
 
-				if (filesize($icon["tmp_name"]) > 300 * 1024) {
+				if (filesize($token["tmp_name"]) > 300 * 1024) {
 					$this->view->add_message("Icon size too big.");
 					$result = false;
 				}
@@ -53,7 +53,30 @@
 			return $result;
 		}
 
-		public function save_okay($character, $icon) {
+		private function sheet_upload_okay($sheet, $char_id) {
+			$result = true;
+
+			if ($sheet["error"] != 0) {
+				if ($char_id == null) {
+					$this->view->add_message("Select a character sheet file.");
+					$result = false;
+				}
+			} else {
+				if ($sheet["type"] != "application/pdf") {
+					$this->view->add_message("Invalid character sheet.");
+					$result = false;
+				}
+
+				if (filesize($sheet["tmp_name"]) > 5 * MB) {
+					$this->view->add_message("Character sheet size too big.");
+					$result = false;
+				}
+			}
+
+			return $result;
+		}
+
+		public function save_okay($character, $token, $sheet) {
 			$result = true;
 
 			if (isset($character["id"])) {
@@ -82,12 +105,13 @@
 			} else if ($character["armor_class"] < 1) {
 				$this->view->add_message("Armor class too low.");
 				$result = false;
+			} else if ($character["armor_class"] > 250) {
+				$this->view->add_message("Armor class too high.");
+				$result = false;
 			}
 
-			if (isset($character["id"]) == false) {
-				if ($this->file_upload_okay($icon) == false) {
-					$result = false;
-				}
+			if ($this->token_upload_okay($token, $character["id"] ?? null) == false) {
+				$result = false;
 			}
 
 			if (is_numeric($character["initiative"]) == false) {
@@ -95,19 +119,36 @@
 				$result = false;
 			}
 
+			if ($character["sheet"] == "file") {
+				if ($this->sheet_upload_okay($sheet, $character["id"] ?? null) == false) {
+					$result = false;
+				}
+			}
+
+			if (($character["sheet"] == "url") && (substr($character["sheet_url"], 0, 4) != 'http')) {
+				$this->view->add_message("Invalid character sheet URL.");
+				$result = false;
+			}
+
 			return $result;
 		}
 
-		private function save_icon($icon, $id) {
-			$token = new \Banshee\image($icon["tmp_name"]);
-			$token->rotate(180);
-			$token->save($icon["tmp_name"]);
+		private function save_token($token, $id, $type) {
+			if ($type == "topdown") {
+				$image = new \Banshee\image($token["tmp_name"]);
+				$image->rotate(180);
+				$image->save($token["tmp_name"]);
+			}
 
-			return copy($icon["tmp_name"], "resources/".$this->user->resources_key."/characters/".$id.".".$icon["extension"]);
+			return copy($token["tmp_name"], "resources/".$this->user->resources_key."/characters/".$id.".".$token["extension"]);
 		}
 
-		public function create_character($character, $icon) {
-			$keys = array("id", "user_id", "name", "initiative", "armor_class", "hitpoints", "damage", "extension");
+		private function save_sheet($sheet, $id) {
+			return copy($sheet["tmp_name"], "resources/".$this->user->resources_key."/characters/".$id.".pdf");
+		}
+
+		public function create_character($character, $token, $sheet) {
+			$keys = array("id", "user_id", "name", "initiative", "armor_class", "hitpoints", "damage", "token_type", "extension", "sheet", "sheet_url");
 
 			$character["id"] = null;
 			$character["user_id"] = $this->user->id;
@@ -115,28 +156,42 @@
 			$character["hitpoints"] = (int)$character["hitpoints"];
 			$character["damage"] = 0;
 			$character["extension"] = "";
+			if ($character["sheet"] == "none") {
+				$character["sheet_url"] = null;
+			}
 
 			if ($this->db->insert("characters", $character, $keys) === false) {
 				return false;
 			}
 			$char_id = $this->db->last_insert_id;
 
-			if ($this->save_icon($icon, $char_id)) {
+			if ($this->save_token($token, $char_id, $character["token_type"])) {
 				$keys = array("extension");
-				$character["extension"] = $icon["extension"];
+				$character["extension"] = $token["extension"];
 				$this->db->update("characters", $char_id, $character, $keys);
 			} else {
 				$this->db->delete("characters", $char_id);
 				return false;
 			}
 
+			if ($character["sheet"] == "file") {
+				if ($this->save_sheet($sheet, $char_id)) {
+					$keys = array("sheet_url");
+					$character["sheet_url"] = "/resources/".$this->user->resources_key."/characters/".$char_id.".pdf";
+					$this->db->update("characters", $char_id, $character, $keys);
+				} else {
+					$this->db->delete("characters", $char_id);
+					return false;
+				}
+			}
+
 			return true;
 		}
 
-		public function update_character($character, $icon) {
-			$keys = array("name", "initiative", "armor_class", "hitpoints");
+		public function update_character($character, $token, $sheet) {
+			$keys = array("name", "initiative", "armor_class", "hitpoints", "sheet", "sheet_url");
 
-			if ($icon["error"] == 0) {
+			if ($token["error"] == 0) {
 				if (($current = $this->get_character($character["id"])) == false) {
 					$this->view->add_message("Character not found.");
 					$result = false;
@@ -146,11 +201,40 @@
 				unlink("resources/".$this->user->resources_key."/characters/".$current["id"].".".$current["extension"]);
 				ob_end_clean();
 
-				if ($this->save_icon($icon, $character["id"])) {
+				if ($this->save_token($token, $character["id"], $character["token_type"])) {
 					array_push($keys, "extension");
-					$character["extension"] = $icon["extension"];
+					$character["extension"] = $token["extension"];
 				} else {
 					return false;
+				}
+
+				array_push($keys, "token_type");
+
+				if ($character["token_type"] == "portrait") {
+					$query = "update map_character set rotation=%d where character_id=%d";
+					$this->db->query($query, 0, $character["id"]);
+				}
+			}
+
+			$sheet_url = "resources/".$this->user->resources_key."/characters/".$character["id"].".pdf";
+
+			if ($character["sheet"] == "file") {
+				if ($sheet["error"] == 0) {
+					if ($this->save_sheet($sheet, $character["id"])) {
+						$character["sheet_url"] = "/".$sheet_url;
+					} else {
+						return false;
+					}
+				} else if (($key = array_search("sheet_url", $keys)) != false) {
+					unset($keys[$key]);
+				}
+			} else {
+				if ($character["sheet"] == "none") {
+					$character["sheet_url"] = null;
+				}
+
+				if (file_exists($sheet_url)){
+					unlink($sheet_url);
 				}
 			}
 
@@ -191,6 +275,7 @@
 			}
 
 			$queries = array(
+				array("delete from character_weapons where character_id=%d", $character_id),
 				array("delete from character_icons where character_id=%d", $character_id),
 				array("delete from characters where id=%d", $character_id));
 
@@ -203,6 +288,9 @@
 				unlink("resources/".$this->user->resources_key."/characters/".$character_id."_".$alternate["id"].".".$alternate["extension"]);
 			}
 			unlink("resources/".$this->user->resources_key."/characters/".$character_id.".".$current["extension"]);
+			if (file_exists($sheet = "resources/".$this->user->resources_key."/characters/".$character_id.".pdf")) {
+				unlink($sheet);
+			}
 			ob_end_clean();
 
 			return true;
@@ -216,7 +304,7 @@
 			return $this->db->execute($query, $character_id);
 		}
 
-		public function icon_okay($info, $icon) {
+		public function token_okay($info, $token) {
 			$result = true;
 
 			if ($this->get_character($info["char_id"]) == false) {
@@ -234,25 +322,25 @@
 					$result = false;
 				}
 				if ($result[0]["count"] > 0) {
-					$this->view->add_message("An icon with that name already exists.");
+					$this->view->add_message("A token with that name already exists.");
 					$result = false;
 				}
 			}
 
-			if (in_array($info["size"], array(1, 2)) == false) {
+			if (in_array($info["size"], array(1, 2, 3)) == false) {
 				$this->view->add_message("Invalid size.");
 				$result = false;
 			}
 
-			if ($this->file_upload_okay($icon) == false) {
+			if ($this->token_upload_okay($token, $info["char_id"]) == false) {
 				$result = false;
 			}
 
 			return $result;
 		}
 
-		public function add_icon($info, $icon) {
-			$parts = pathinfo($icon["name"]);
+		public function add_token($info, $token) {
+			$parts = pathinfo($token["name"]);
 
 			$data = array(
 				"id"           => null,
@@ -266,35 +354,35 @@
 			}
 			$id = $this->db->last_insert_id;
 
-			$token = new \Banshee\image($icon["tmp_name"]);
-			$token->rotate(180);
-			$token->save($icon["tmp_name"]);
+			$image = new \Banshee\image($token["tmp_name"]);
+			$image->rotate(180);
+			$image->save($token["tmp_name"]);
 
-			if (copy($icon["tmp_name"], "resources/".$this->user->resources_key."/characters/".$info["char_id"]."_".$id.".".$parts["extension"]) == false) {
+			if (copy($token["tmp_name"], "resources/".$this->user->resources_key."/characters/".$info["char_id"]."_".$id.".".$parts["extension"]) == false) {
 				$this->db->delete("character_icons", $id);
 			}
 
 			return true;
 		}
 
-		public function delete_icon($icon_id) {
+		public function delete_token($token_id) {
 			$query = "select * from character_icons i, characters c ".
 			         "where i.character_id=c.id and i.id=%d and c.user_id=%d";
-			if (($character = $this->db->execute($query, $icon_id, $this->user->id)) == false) {
+			if (($character = $this->db->execute($query, $token_id, $this->user->id)) == false) {
 				return false;
 			}
 			$current = $character[0];
 
 			$queries = array(
-				array("update adventure_character set alternate_icon_id=null where alternate_icon_id=%d", $icon_id),
-				array("delete from character_icons where id=%d", $icon_id));
+				array("update adventure_character set alternate_icon_id=null where alternate_icon_id=%d", $token_id),
+				array("delete from character_icons where id=%d", $token_id));
 
 			if ($this->db->transaction($queries) == false) {
 				return false;
 			}
 
 			ob_start();
-			unlink("resources/".$this->user->resources_key."/characters/".$current["character_id"]."_".$icon_id.".".$current["extension"]);
+			unlink("resources/".$this->user->resources_key."/characters/".$current["character_id"]."_".$token_id.".".$current["extension"]);
 			ob_end_clean();
 
 			return $current["character_id"];

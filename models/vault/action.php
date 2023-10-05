@@ -31,6 +31,11 @@
 			$log = array();
 			while (($line = fgets($fp)) != false) {
 				$entry = explode("|", chop($line));
+
+				if (count($entry) < 4) {
+					continue;
+				}
+
 				array_unshift($log, array(
 					"ip"        => $entry[0],
 					"timestamp" => $entry[1],

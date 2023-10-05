@@ -1,17 +1,5 @@
 <?php
-	class vault_collectable_model extends Banshee\model {
-		public function get_adventures() {
-			$query = "select * from adventures where dm_id=%d order by timestamp desc";
-
-			return $this->db->execute($query, $this->user->id);
-		}
-
-		public function is_my_adventure($adventure_id) {
-			$query = "select * from adventures where id=%d and dm_id=%d";
-
-			return $this->db->execute($query, $adventure_id, $this->user->id) != false;
-		}
-
+	class vault_collectable_model extends cauldron_model {
 		public function get_collectables() {
 			$query = "select * from collectables where adventure_id=%d order by name";
 

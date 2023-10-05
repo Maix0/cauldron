@@ -52,7 +52,12 @@
 						$page["form"] = false;
 					}
 				} else {
-					$page["content"] = $page_form->generate_form();
+					$default = array();
+					if ($this->page->page == "contact") {
+						$default["input_0"] = $this->user->email;
+					}
+
+					$page["content"] = $page_form->generate_form($default);
 				}
 			}
 

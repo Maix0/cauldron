@@ -166,6 +166,32 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 					script_error('Invalid token id: ' + param);
 				}
 				break;
+			case 'light':
+				var parts = param.split(/ +/);
+				if (parts.length != 2) {
+					if (debug) {
+						script_error('Invalid light options: ' + param);
+					}
+					break;
+				}
+
+				var light = $('div#light' + parts[0]);
+				if (light.length == 0) {
+					light = $('img#light' + parts[0]);
+					if (light.length == 0) {
+						if (debug) {
+							script_error('Unknown light id: ' + parts[0]);
+						}
+						break;
+					}
+				}
+
+				if ((parts[1] == 'on') || (parts[1] == 'off')) {
+					light_set(parts[0], parts[1]);
+				} else if (debug) {
+					script_error('Invalid light action: ' + parts[1]);
+				}
+				break;
 			case 'move':
 				var parts = param.split(/ +/);
 				if (parts[0] == 'character') {

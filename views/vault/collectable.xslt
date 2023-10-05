@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:import href="../banshee/main.xslt" />
+<xsl:import href="../includes/adventures_pulldown.xslt" />
 
 <!--
 //
@@ -8,14 +9,7 @@
 //
 //-->
 <xsl:template match="overview">
-<form action="/{/output/page}" method="post" class="adventure-selector">
-<input type="hidden" name="submit_button" value="Change adventure" />
-<select name="adventure" class="form-control" onChange="javascript:submit()">
-<xsl:for-each select="adventures/adventure">
-<option value="{@id}"><xsl:if test="@selected='yes'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
-</xsl:for-each>
-</select>
-</form>
+<xsl:apply-templates select="adventures_pulldown" />
 
 <table class="table table-condensed table-striped table-hover">
 <thead>

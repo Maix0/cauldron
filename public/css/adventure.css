@@ -83,17 +83,6 @@ div.topbar {
 	margin:0;
 }
 
-div.topbar span#infobar {
-	margin-right:15px;
-	display:inline-block;
-	position:relative;
-	top:4px;
-	margin-top:-5px;
-	width:150px;
-	height:20px;
-	text-align:right;
-}
-
 div.topbar div.btn-group {
 	margin:0;
 	display:inline-block;
@@ -438,6 +427,10 @@ div.sidebar span.history:before {
 	margin:0 5px;
 }
 
+div.sidebar p.measure {
+	font-size:20px;
+}
+
 @media (max-width:991px) {
 	div.playarea + div.sidebar {
 		top:60px;
@@ -505,6 +498,11 @@ div.draw-tools div.draw-brushes {
 	position:absolute;
 	top:5px;
 	left:470px;
+	height:60px;
+	right:15px;
+	overflow-x:auto;
+	overflow-y:hidden;
+	white-space:nowrap;
 }
 
 div.draw-tools div.draw-brushes span.brush {

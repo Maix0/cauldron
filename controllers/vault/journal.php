@@ -1,18 +1,8 @@
 <?php
-	class vault_journal_controller extends Banshee\controller {
+	class vault_journal_controller extends cauldron_controller {
 		private function show_overview() {
-			if (($adventures = $this->model->get_adventures()) === false) {
-				$this->view->add_tag("result", "Database error.");
+			if ($this->adventures_pulldown_init() == false) {
 				return;
-			}
-
-			if (count($adventures) == 0) {
-				$this->view->add_tag("result", "Create an adventure first.", array("url" => "vault/adventure/new"));
-				return;
-			}
-
-			if (isset($_SESSION["edit_adventure_id"]) == false) {
-				$_SESSION["edit_adventure_id"] = $adventures[0]["id"];
 			}
 
 			if (($journal = $this->model->get_journal($_SESSION["edit_adventure_id"])) === false) {
@@ -22,14 +12,7 @@
 
 			$this->view->open_tag("overview");
 
-			$this->view->open_tag("adventures");
-			foreach ($adventures as $adventure) {
-				$attr = array(
-					"id"	   => $adventure["id"],
-					"selected" => show_boolean($adventure["id"] == $_SESSION["edit_adventure_id"]));
-				$this->view->add_tag("adventure", $adventure["title"], $attr);
-			}
-			$this->view->close_tag();
+			$this->adventures_pulldown_show();
 
 			$this->view->open_tag("journal");
 			foreach ($journal as $entry) {
@@ -52,12 +35,9 @@
 
 		public function execute() {
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				if ($_POST["submit_button"] == "Change adventure") {
+				if ($this->adventures_pulldown_changed()) {
 					/* Change adventure 
 					 */
-					if ($this->model->is_my_adventure($_POST["adventure"])) {
-						$_SESSION["edit_adventure_id"] = $_POST["adventure"];
-					}
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save entry") {
 					/* Save entry
@@ -97,11 +77,6 @@
 						$this->user->log_action("journal entry %d deleted", $_POST["id"]);
 						$this->show_overview();
 					}
-				} else if ($_POST["submit_button"] == "search") {
-					/* Search
-					 */
-					$_SESSION["entry_search"] = $_POST["search"];
-					$this->show_overview();
 				} else {
 					$this->show_overview();
 				}

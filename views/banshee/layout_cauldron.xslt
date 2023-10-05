@@ -32,7 +32,7 @@
 <link rel="stylesheet" type="text/css" href="{.}" />
 </xsl:for-each>
 <style type="text/css">
-div.header {
+div.wrapper > div.header {
 	background-image:url(/images/layout/cauldron_header_<xsl:value-of select="/output/cauldron/background" />.jpg);
 }
 <xsl:value-of select="inline_css" />

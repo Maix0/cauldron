@@ -1,5 +1,5 @@
 <?php
-	class vault_map_controller extends Banshee\controller {
+	class vault_map_controller extends cauldron_controller {
 		private $fog_of_war = array(
 			"Off",
 			"On, day / illuminated (cell)",
@@ -9,18 +9,12 @@
 			"On, manually reveal");
 
 		private function show_overview() {
-			if (($adventures = $this->model->get_adventures()) === false) {
-				$this->view->add_tag("result", "Database error.");
-				return;
+			if (isset($_GET["first"])) {
+				$this->view->add_system_message("Your adventure has been created. Now add the first map to this adventure.");
 			}
 
-			if (count($adventures) == 0) {
-				$this->view->add_tag("result", "Create an adventure first.", array("url" => "vault/adventure/new"));
+			if ($this->adventures_pulldown_init() == false) {
 				return;
-			}
-
-			if (isset($_SESSION["edit_adventure_id"]) == false) {
-				$_SESSION["edit_adventure_id"] = $adventures[0]["id"];
 			}
 
 			if (($maps = $this->model->get_maps($_SESSION["edit_adventure_id"])) === false) {
@@ -30,14 +24,7 @@
 
 			$this->view->open_tag("overview", array("market" => show_boolean(ENABLE_MARKET)));
 
-			$this->view->open_tag("adventures");
-			foreach ($adventures as $adventure) {
-				$attr = array(
-					"id"       => $adventure["id"],
-					"selected" => show_boolean($adventure["id"] == $_SESSION["edit_adventure_id"]));
-				$this->view->add_tag("adventure", $adventure["title"], $attr);
-			}
-			$this->view->close_tag();
+			$this->adventures_pulldown_show();
 
 			$this->view->open_tag("maps");
 			foreach ($maps as $map) {
@@ -51,10 +38,6 @@
 		}
 
 		private function show_map_form($map) {
-			if (isset($_GET["first"])) {
-				$this->view->add_system_message("Adventure has been created. Now add the first map to this adventure.");
-			}
-
 			if ($map["method"] == "upload") {
 				$map["url"] = "";
 			}
@@ -94,18 +77,18 @@
 			$this->view->record($map, "grid");
 		}
 
-        private function show_market() {
-            $this->view->title = "Map market";
+		private function show_market() {
+			$this->view->title = "Map market";
 			$this->view->add_javascript("vault/market.js");
 
-            $maps = $this->model->get_market();
+			$maps = $this->model->get_market();
 
-            $this->view->open_tag("market");
-            foreach ($maps as $map) {
-                $this->view->record($map, "map");
-            }
-            $this->view->close_tag();
-        }
+			$this->view->open_tag("market");
+			foreach ($maps as $map) {
+				$this->view->record($map, "map");
+			}
+			$this->view->close_tag();
+		}
 
 		private function show_import_form($map) {
 			$this->view->record($map, "import");
@@ -146,12 +129,9 @@
 					$this->show_audio_resources();
 				}
 			} else if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				if ($_POST["submit_button"] == "Change adventure") {
+				if ($this->adventures_pulldown_changed()) {
 					/* Change adventure
 					 */
-					if ($this->model->is_my_adventure($_POST["adventure"])) {
-						$_SESSION["edit_adventure_id"] = $_POST["adventure"];
-					}
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save map") {
 					if (empty($_POST["width"]) && empty($_POST["height"])) {

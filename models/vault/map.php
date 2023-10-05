@@ -1,17 +1,5 @@
 <?php
 	class vault_map_model extends cauldron_model {
-		public function get_adventures() {
-			$query = "select * from adventures where dm_id=%d order by timestamp desc";
-
-			return $this->db->execute($query, $this->user->id);
-		}
-
-		public function is_my_adventure($adventure_id) {
-			$query = "select * from adventures where id=%d and dm_id=%d";
-
-			return $this->db->execute($query, $adventure_id, $this->user->id) != false;
-		}
-
 		public function get_maps($adventure_id) {
 			$query = "select *, (select count(*) from map_token where map_id=m.id) as tokens ".
 			         "from maps m where adventure_id=%d order by title";
@@ -183,7 +171,7 @@
 				return false;
 			}
 
-			$query = "select l.character_id from adventure_character l, characters c ".
+			$query = "select l.character_id, token_type from adventure_character l, characters c ".
 			         "where l.character_id=c.id and l.adventure_id=%d and l.character_id not in ".
 			         "(select character_id from map_character where map_id=%d) order by c.name";
 
@@ -196,7 +184,7 @@
 				"map_id"   => $map_id,
 				"pos_x"    => $start_x,
 				"pos_y"    => $start_y,
-				"rotation" => 180,
+				"rotation" => null,
 				"hidden"   => NO);
 
 			$positions = array(
@@ -207,6 +195,8 @@
 
 			foreach ($characters as $character) {
 				$data["character_id"] = $character["character_id"];
+				$data["rotation"] = ($character["token_type"] == "topdown") ? 180 : 0;
+
 				if ($this->db->insert("map_character", $data) == false) {
 					return false;
 				}
@@ -451,6 +441,7 @@
 				array("delete from lights where map_id=%d", $map_id),
 				array("delete from walls where map_id=%d", $map_id),
 				array("delete from zones where map_id=%d", $map_id),
+				array("update collectables set map_token_id=null where map_token_id in (select id from map_token where map_id=%d)", $map_id),
 				array("delete from map_token where map_id=%d", $map_id),
 				array("delete from map_character where map_id=%d", $map_id),
 				array("update adventures set active_map_id=null where active_map_id=%d", $map_id),

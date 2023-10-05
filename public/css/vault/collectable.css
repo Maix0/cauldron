@@ -1,14 +1,3 @@
-@media (min-width:768px) {
-	form.adventure-selector {
-		width:250px;
-		float:right;
-		position:relative;
-		margin-right:150px;
-		top:-45px;
-		margin-bottom:-40px;
-	}
-}
-
 table.table th:nth-child(n+2) {
 	width:90px;
 }

@@ -32,7 +32,7 @@
 			$this->view->open_tag("adventures", array("is_dm" => $is_dm));
 			foreach ($adventures as $adventure) {
 				$adventure["image"] = $this->model->resource_path($adventure["image"]);
-				$adventure["story"] = $this->format_text($adventure["story"]);
+				$adventure["introduction"] = $this->format_text($adventure["introduction"]);
 				$adventure["access"] = show_boolean($adventure["access"] >= ADVENTURE_ACCESS_PLAYERS);
 
 				$this->view->record($adventure, "adventure");
@@ -116,7 +116,9 @@
 					return;
 				}
 
-				if (($lights = $this->model->get_lights($adventure["active_map_id"])) === false) {
+				if (($active_map["fog_of_war"] != FOW_NIGHT_CELL) && ($active_map["fog_of_war"] != FOW_NIGHT_REAL)) {
+					$lights = array();
+				} else if (($lights = $this->model->get_lights($adventure["active_map_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -180,6 +182,7 @@
 
 			if ($active_map != null) {
 				$this->view->add_javascript("webui/jquery-ui.js");
+				$this->view->add_javascript("webui/jquery.ui.touch-punch.js");
 				$this->view->add_javascript("banshee/jquery.windowframe.js");
 				$this->view->add_javascript("includes/context_menu.js");
 				$this->view->add_javascript("includes/library.js");
@@ -191,14 +194,15 @@
 				}
 
 				$this->view->add_javascript("adventure.js");
-				if ($active_map["fog_of_war"] > 0) {
-					if ($active_map["fog_of_war"] == FOW_ERASE) {
-						$type = "erase";
+				if ($active_map["fog_of_war"] != FOW_OFF) {
+					if (($active_map["fog_of_war"] == FOW_DAY_CELL) || ($active_map["fog_of_war"] == FOW_NIGHT_CELL)) {
+						$type = "cell";
 					} else if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
 						$type = "real";
-					} else {
-						$type = "cell";
+					} else if ($active_map["fog_of_war"] == FOW_REVEAL) {
+						$type = "erase";
 					}
+
 					$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 				}
 
@@ -384,6 +388,8 @@
 					$character["orig_src"] = "characters/".$character["id"].".".$character["extension"];
 					if ($character["token_id"] != null) {
 						$character["src"] = "tokens/".$character["token_id"].".".$character["extension"];
+						$character["width"] *= $character["token_size"];
+						$character["height"] *= $character["token_size"];
 					} else if ($character["alternate_id"] != null) {
 						$character["src"] = "characters/".$character["id"]."_".$character["alternate_id"].".".$character["extension"];
 						$character["width"] *= $character["alternate_size"];
@@ -438,7 +444,7 @@
 					$message = new \Banshee\message($entry["content"]);
 					$entry["content"] = $message->unescaped_output();
 
-					$entry["content"] = preg_replace('/(http(s?):\/\/([^ ]+)\.(gif|jpg|png))/', '<img src="$1" />', $entry["content"]);
+					$entry["content"] = preg_replace('/(http(s?):\/\/([^ ]+)\.(gif|jpg|png|webp))/', '<img src="$1" />', $entry["content"]);
 
 					$this->view->record($entry, "entry");
 					$timestamp = $entry["timestamp"];
@@ -486,10 +492,6 @@
 		}
 
 		public function execute() {
-			if ($this->view->mobile) {
-				$this->view->add_javascript("webui/jquery.ui.touch-punch.js");
-			}
-
 			$this->view->title = "Adventures";
 
 			if ($this->page->ajax_request) {

@@ -15,14 +15,17 @@
 <div class="panel-heading">
 <xsl:value-of select="name" />
 <a href="{/output/page}/weapon/{@id}" title="Weapons"><span class="fa fa-legal" aria-hidden="true"></span></a>
-<a href="{/output/page}/alternate/{@id}" title="Alternate icons"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></a>
+<a href="{/output/page}/alternate/{@id}" title="Alternate tokens"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></a>
 <a href="{/output/page}/{@id}" title="Edit character"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
 </div>
 <div class="panel-body">
-<img src="/resources/{/output/cauldron/resources_key}/characters/{@id}.{extension}" class="icon" />
+<img src="/resources/{/output/cauldron/resources_key}/characters/{@id}.{extension}" class="token {token_type}" />
 <div>Hit points: <xsl:value-of select="hitpoints" /></div>
 <div>Armor class: <xsl:value-of select="armor_class" /></div>
 <div>Initiative bonus: <xsl:value-of select="initiative" /></div>
+<xsl:if test="sheet_url!=''">
+<div><a href="{sheet_url}" target="_blank">Character sheet</a></div>
+</xsl:if>
 </div>
 <div class="panel-footer">Adventure: <span><xsl:value-of select="title" /></span></div>
 </div>
@@ -46,7 +49,7 @@
 <xsl:if test="character/@id">
 <input type="hidden" name="id" value="{character/@id}" />
 <input type="hidden" name="extension" value="{character/extension}" />
-<img src="/resources/{/output/cauldron/resources_key}/characters/{character/@id}.{character/extension}" class="icon" />
+<img src="/resources/{/output/cauldron/resources_key}/characters/{character/@id}.{character/extension}" class="token {character/token_type}" />
 </xsl:if>
 
 <label for="name">Name:</label>
@@ -57,11 +60,32 @@
 <input type="text" id="armor_class" name="armor_class" value="{character/armor_class}" class="form-control" />
 <label for="initiative">Initiative bonus:</label>
 <input type="text" id="initiative" name="initiative" value="{character/initiative}" class="form-control" />
-<label for="icon">Icon (make sure the token is facing down):</label>
+<label for="token">Token image:</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
-<input type="file" name="icon" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name)" />Browse</label></span>
-<input type="text" id="upload-file-info" readonly="readonly" class="form-control" />
+<input type="file" name="token" style="display:none" class="form-control" onChange="javascript:$('#upload-token').val(this.files[0].name); $('div.token_type input').removeAttr('disabled');" />Select image</label></span>
+<input type="text" id="upload-token" readonly="readonly" class="form-control" />
+</div>
+<div class="radio-group token_type">
+<input type="hidden" name="token_type_backup" value="{character/token_type}" />
+<span><input type="radio" name="token_type" value="topdown" disabled="disabled"><xsl:if test="character/token_type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top down token image</span>
+<span><input type="radio" name="token_type" value="portrait" disabled="disabled"><xsl:if test="character/token_type='portrait'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Portrait token image</span>
+</div>
+<label for="sheet">Character sheet:</label>
+<div class="radio-group">
+<span><input type="radio" name="sheet" value="none"><xsl:if test="character/sheet='none'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>None</span>
+<span><input type="radio" name="sheet" value="file"><xsl:if test="character/sheet='file'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>File (PDF)</span>
+<span><input type="radio" name="sheet" value="url"><xsl:if test="character/sheet='url'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>URL to remote file or page</span>
+</div>
+<div class="sheet_file">
+<div class="input-group">
+<span class="input-group-btn"><label class="btn btn-default">
+<input type="file" name="sheet_file" style="display:none" class="form-control" onChange="javascript:$('#upload-sheet').val(this.files[0].name)" />Select PDF</label></span>
+<input type="text" id="upload-sheet" readonly="readonly" class="form-control"><xsl:if test="character/@id and character/sheet='file'"><xsl:attribute name="placeholder">Leave untouched to keep current sheet.</xsl:attribute></xsl:if></input>
+</div>
+</div>
+<div class="sheet_url">
+<input type="text" id="sheet_url" name="sheet_url" value="{character/sheet_url}" class="form-control" />
 </div>
 
 <div class="btn-group">
@@ -81,7 +105,7 @@
 //-->
 <xsl:template match="alternates">
 <xsl:call-template name="show_messages" />
-<p>Alternate icons for <xsl:value-of select="@character" />.</p>
+<p>Alternate tokens for <xsl:value-of select="@character" />.</p>
 <div class="row">
 
 <div class="col-sm-4">
@@ -91,15 +115,15 @@
 <input type="text" id="name" name="name" value="{../name}" maxlength="25" class="form-control" />
 <label for="size">Size:</label>
 <select name="size" class="form-control"><xsl:for-each select="sizes/size"><option value="{@value}"><xsl:if test="../../../size=@value"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option></xsl:for-each></select>
-<label for="icon">Alternate icon (make sure the token is facing down):</label>
+<label for="token">Alternate token (make sure the token is facing down):</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
-<input type="file" name="icon" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name)" />Browse</label></span>
-<input type="text" id="upload-file-info" readonly="readonly" class="form-control" />
+<input type="file" name="token" style="display:none" class="form-control" onChange="$('#upload-token').val(this.files[0].name)" />Select image</label></span>
+<input type="text" id="upload-token" readonly="readonly" class="form-control" />
 </div>
 
 <div class="btn-group">
-<input type="submit" name="submit_button" value="Add icon" class="btn btn-default" />
+<input type="submit" name="submit_button" value="Add token" class="btn btn-default" />
 <a href="/character" class="btn btn-default">Back</a>
 </div>
 </form>
@@ -109,7 +133,7 @@
 
 <div class="row">
 <xsl:for-each select="alternate">
-<div class="col-md-3 col-sm-4 col-xs-6"><div class="alternate"><img src="/resources/{/output/cauldron/resources_key}/characters/{character_id}_{@id}.{extension}" class="icon" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="icon_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
+<div class="col-md-3 col-sm-4 col-xs-6"><div class="alternate"><img src="/resources/{/output/cauldron/resources_key}/characters/{character_id}_{@id}.{extension}" class="token" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="token_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
 </xsl:for-each>
 </div>
 

@@ -376,12 +376,9 @@
 		 */
 		private function valid_door_id($door_id) {
 			$query = "select count(*) as count from doors d, maps m, adventures a ".
-			         "left join adventure_character i on a.id=i.adventure_id ".
-			         "left join characters c on i.character_id=c.id ".
-			         "where d.id=%d and d.map_id=m.id and m.adventure_id=a.id ".
-			         "and (a.dm_id=%d or c.user_id=%d)";
+			         "where d.id=%d and d.map_id=m.id and m.adventure_id=a.id and a.dm_id=%d";
 
-			if (($result = $this->db->execute($query, $door_id, $this->user->id, $this->user->id)) === false) {
+			if (($result = $this->db->execute($query, $door_id, $this->user->id)) === false) {
 				return false;
 			}
 

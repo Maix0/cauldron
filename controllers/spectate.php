@@ -26,7 +26,7 @@
 			$this->view->open_tag("adventures");
 			foreach ($adventures as $adventure) {
 				$adventure["image"] = $this->model->resource_path($adventure["image"], $adventure["resources_key"]);
-				$adventure["story"] = $this->format_text($adventure["story"]);
+				$adventure["introduction"] = $this->format_text($adventure["introduction"]);
 
 				$this->view->record($adventure, "adventure");
 			}

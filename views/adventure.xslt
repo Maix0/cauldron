@@ -18,7 +18,7 @@
 <p>This is the page where you and your players will see an overview of the adventures you have created. All that's needed to create an adventure is explained in the <a href="/manual">manual</a>, but here's a short list to make it even more easy for you to get started.</p>
 <ul>
 <li>Go to the DM's Vault (see top menu bar) and click on the Adventures icon to create a new adventure or import one from the Adventure Market.</li>
-<li>If you created a new adventure, add one or more maps to your adventure.</li>
+<li>If you created a new adventure, add one or more maps to your adventure. Multiple maps are available in the Map Market.</li>
 <li>Create accounts for your players via the <a href="/vault/user">DM's Vault Users section</a> or send them an <a href="/vault/invite">invite code</a> so they can create their account themselves.</li>
 <li>Let your players create their own character.</li>
 <li>Add those characters to your adventure via the <a href="/vault/players">DM's Vault Players section</a>.</li>
@@ -37,7 +37,7 @@
 <h2><xsl:value-of select="title" /></h2>
 <span>Dungeon Master: <xsl:value-of select="dm" /></span>
 <div class="btn-group">
-<xsl:if test="story!=''"><button class="btn btn-primary btn-sm show_story{@id}">Introduction</button></xsl:if>
+<xsl:if test="introduction!=''"><button class="btn btn-primary btn-sm show_introduction{@id}">Introduction</button></xsl:if>
 <xsl:if test="(access='yes' or dm_id=/output/user/@id) and type='play'"><a href="/{/output/page}/{@id}" class="btn btn-success btn-sm">Start adventure</a></xsl:if>
 <xsl:if test="type='spectate'"><a href="/spectate/{@id}" class="btn btn-success btn-sm">Spectate adventure</a></xsl:if>
 </div>
@@ -47,7 +47,7 @@
 </div>
 
 <xsl:for-each select="adventure">
-<div class="story" id="story{@id}" title="{title}" style="display:none"><xsl:value-of disable-output-escaping="yes" select="story" /></div>
+<div class="introduction" id="introduction{@id}" title="{title}" style="display:none"><xsl:value-of disable-output-escaping="yes" select="introduction" /></div>
 </xsl:for-each>
 </xsl:template>
 
@@ -59,7 +59,6 @@
 <xsl:template match="adventure">
 <!-- Menu -->
 <div class="topbar">
-<span id="infobar"></span>
 <xsl:if test="map">
 <div class="btn-group">
 <button class="btn btn-primary btn-xs open_menu">Menu</button>
@@ -223,7 +222,7 @@
 <!-- Characters -->
 <div class="characters">
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
+<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" token_type="{token_type}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" sheet="{sheet_url}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 <img src="/resources/{/output/cauldron/resources_key}/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
 <span class="name"><xsl:value-of select="name" /></span>

@@ -1,19 +1,5 @@
 <?php
-	class vault_journal_model extends Banshee\model {
-		private $columns = array();
-
-		public function get_adventures() {
-			$query = "select * from adventures where dm_id=%d order by timestamp desc";
-
-			return $this->db->execute($query, $this->user->id);
-		}
-
-		public function is_my_adventure($adventure_id) {
-			$query = "select * from adventures where id=%d and dm_id=%d";
-
-			return $this->db->execute($query, $adventure_id, $this->user->id) != false;
-		}
-
+	class vault_journal_model extends cauldron_model {
 		public function get_journal($adventure_id) {
 			$query = "select j.*, UNIX_TIMESTAMP(j.timestamp) as timestamp, u.fullname ".
 			         "from journal j, users u where j.user_id=u.id and adventure_id=%d order by timestamp";

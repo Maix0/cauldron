@@ -79,7 +79,7 @@
 <xsl:template match="submit">
 <xsl:call-template name="splitform_header" />
 <xsl:call-template name="progressbar" />
-<p>Your account has been created. You can now log in. Your account contains free tokens by <a href="https://www.forgotten-adventures.net/">Forgotten Adventures</a>, <a href="https://janloos.com/">Jan Loos</a> and <a href="https://immortalnights.com/">Devin Night</a> to get you started.</p>
+<p>Your account has been created. You can now log in.</p>
 <xsl:call-template name="redirect"><xsl:with-param name="url" /></xsl:call-template>
 </xsl:template>
 

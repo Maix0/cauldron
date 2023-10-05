@@ -6,7 +6,7 @@ const FOW_DAY_CELL = 1;
 const FOW_DAY_REAL = 2;
 const FOW_NIGHT_CELL = 3;
 const FOW_NIGHT_REAL = 4;
-const FOW_MAN_REV = 5;
+const FOW_REVEAL = 5;
 
 const DEFAULT_Z_INDEX = 10000;
 const LAYER_TOKEN = DEFAULT_Z_INDEX;
@@ -88,6 +88,8 @@ var attack_bonus = 0;
 var fullscreen = false
 var fullscreen_backup = undefined;
 var pause = false;
+var ruler_distance = 0;
+var ruler_previous = 0;
 
 /* Websocket
  */
@@ -237,7 +239,7 @@ function message_to_sidebar(name, message) {
 	if ((message.substring(0, 7) == 'http://') || (message.substring(0, 8) == 'https://')) {
 		var parts = message.split('.');
 		var extension = parts.pop();
-		var images = ['gif', 'jpg', 'jpeg', 'png'];
+		var images = ['gif', 'jpg', 'jpeg', 'png', 'webp'];
 
 		if (images.includes(extension)) {
 			message = '<img src="' + message + '" style="cursor:pointer;" onClick="javascript:show_image(this)" />';
@@ -580,7 +582,7 @@ function object_contextmenu_dm(event) {
 	var menu_entries = {};
 
 	menu_entries['info'] = { name:'Get information', icon:'fa-info-circle' };
-	menu_entries['view'] = { name:'View', icon:'fa-search' };
+	menu_entries['view'] = { name:'View token', icon:'fa-search' };
 	var rotate = {
 		'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
 		'rotate_ne': { name:'North East' },
@@ -638,7 +640,7 @@ function object_contextmenu_dm(event) {
 
 function object_contextmenu_player(event) {
 	var menu_entries = {
-		'view': { name:'View', icon:'fa-search' },
+		'view': { name:'View token', icon:'fa-search' },
 		'stick': { name:'Stick to / unstick', icon:'fa-lock' },
 		'attack': { name:'Attack', icon:'fa-legal' },
 		'sep': '-',
@@ -815,6 +817,11 @@ function object_hide(obj, send = true) {
 }
 
 function object_info(obj) {
+	if (obj.hasClass('light')) {
+		write_sidebar('Light number: ' + obj.attr('id').substring(5) + '<br />');
+		return;
+	}
+
 	var info = '';
 
 	if (obj.hasClass('zone') == false) {
@@ -1124,13 +1131,35 @@ function object_steer(event) {
 		return;
 	}
 
-	switch (event.which) {
-		case 81: // q
-			object_turn(obj, -45);
-			return;
-		case 69: // e
-			object_turn(obj, 45);
-			return;
+	if (obj.attr('token_type') == 'topdown') {
+		switch (event.which) {
+			case 81: // q
+				object_turn(obj, -45);
+				return;
+			case 69: // e
+				object_turn(obj, 45);
+				return;
+		}
+	}
+
+	var key_to_direction = {
+		87: 0,   // w
+		68: 90,  // d
+		83: 180, // s
+		65: 270  // a
+	}
+
+	if (obj.attr('token_type') == 'portrait') {
+		key_to_direction = {
+			...key_to_direction,
+			...{
+				69: 45,  // e
+				67: 135, // c
+				88: 180, // x
+				90: 225, // z
+				81: 315  // q
+			}
+		}
 	}
 
 	var directions = {
@@ -1144,25 +1173,13 @@ function object_steer(event) {
 		315: [-1, -1]
 	}
 
-	var rotation = parseInt(obj.attr('rotation'));
-
-	switch (event.which) {
-		case 65: // a
-			rotation = (rotation + 270) % 360;
-			break;
-		case 68: // d
-			rotation = (rotation + 90) % 360;
-			break;
-		case 87: // w
-			break;
-		case 83: // s
-			rotation = (rotation + 180) % 360;
-			break;
-		default:
-			return;
+	var direction = key_to_direction[event.which];
+	if (direction == undefined) {
+		return;
 	}
-
-	var direction = directions[rotation];
+	var rotation = parseInt(obj.attr('rotation'));
+	direction = (rotation + direction) % 360;
+	direction = directions[direction];
 	var x = direction[0];
 	var y = direction[1];
 
@@ -1321,8 +1338,8 @@ function effect_create_final(effect_id, src, width, height) {
  */
 function measuring_stop() {
 	$('div.playarea').off('mousemove');
-	$('span#infobar').text('');
 	$('div.ruler').remove();
+	$('p.measure').removeClass('measure');
 }
 
 /* Door functions
@@ -1525,6 +1542,8 @@ function light_create(pos_x, pos_y, radius) {
 		$('div#light' + instance_id).contextmenu(function(event) {
 			var menu_entries = {};
 
+			menu_entries['light_info'] = { name:'Get information', icon:'fa-info-circle' };
+
 			if ($(this).attr('state') == 'on') {
 				menu_entries['light_toggle'] = { name:'Turn off', icon:'fa-toggle-off' };
 			} else {
@@ -1585,6 +1604,23 @@ function light_state(obj, state) {
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
 	}
+}
+
+function light_set(light_id, state) {
+	$.post('/object/light_state', {
+		light_id: light_id,
+		state: state
+	}).done(function() {
+		var data = {
+			action: 'light_state',
+			light_id: light_id,
+			state: state
+		};
+		websocket_send(data);
+
+		var light = $('div#light' + light_id);
+		light_state(light, state);
+	});
 }
 
 function light_delete(obj) {
@@ -2600,37 +2636,41 @@ function context_menu_handler(key, options) {
 		case 'distance':
 			measuring_stop();
 
+			var ruler_x = coord_to_grid(mouse_x, false);
+			var ruler_y = coord_to_grid(mouse_y, false);
+			ruler_previous = 0;
+
 			var ruler_position = function(to_x, to_y) {
 				var angle = points_angle(ruler_x, ruler_y, to_x, to_y);
 				var distance = points_distance(ruler_x, ruler_y, to_x, to_y);
 
-				var ruler = $('div.ruler');
+				var ruler = $('div.ruler.current');
 				ruler.css('width', distance + 'px');
 				ruler.css('height', '4px');
 				ruler.css('transform', 'rotate(' + angle + 'deg)');
 
-				var from_x = coord_to_grid(mouse_x, false);
-				var from_y = coord_to_grid(mouse_y, false);
+				measure_diff_x = Math.round(Math.abs(to_x - ruler_x) / grid_cell_size);
+				measure_diff_y = Math.round(Math.abs(to_y - ruler_y) / grid_cell_size);
 
-				measure_diff_x = Math.round(Math.abs(to_x - from_x) / grid_cell_size);
-				measure_diff_y = Math.round(Math.abs(to_y - from_y) / grid_cell_size);
+				ruler_distance = (measure_diff_x > measure_diff_y) ? measure_diff_x : measure_diff_y;
+				ruler_distance += ruler_previous;
 
-				var distance = (measure_diff_x > measure_diff_y) ? measure_diff_x : measure_diff_y;
-
-				$('span#infobar').text(distance + ' / ' + (distance * 5) + 'ft / ' + (measure_diff_x + 1) + 'x' + (measure_diff_y + 1));
+				var text = ruler_distance + ' / ' + (ruler_distance * 5) + 'ft';
+				if (ruler_previous == 0) {
+					text += '/ ' + (measure_diff_x + 1) + 'x' + (measure_diff_y + 1);
+				}
+				$('p.measure').text(text);
 			}
 
-			var ruler_x = coord_to_grid(mouse_x, false);
-			var ruler_y = coord_to_grid(mouse_y, false);
-			var ruler = '<div class="ruler" />';
-			$('div.playarea div.markers').append(ruler);
-			$('div.ruler').each(function() {
-				ruler_position(ruler_x, ruler_y);
-			});
+			var sidebar = $('div.sidebar');
+			sidebar.append('<p class="measure">&nbsp;</p>');
+			sidebar.prop('scrollTop', sidebar.prop('scrollHeight'));
 
+			$('div.playarea div.markers').append('<div class="ruler current" />');
 			var ruler = $('div.ruler');
 			ruler.css('left', (ruler_x + (grid_cell_size >> 1)) + 'px');
 			ruler.css('top', (ruler_y + (grid_cell_size >> 1)) + 'px');
+			ruler_position(ruler_x, ruler_y);
 
 			$('div.playarea').mousemove(function(event) {
 				var scr = screen_scroll();
@@ -2643,7 +2683,25 @@ function context_menu_handler(key, options) {
 			});
 
 			$('div.playarea').on('click', function(event) {
-				measuring_stop();
+				if (ctrl_down == false) {
+					measuring_stop();
+					return;
+				}
+
+				ruler_previous = ruler_distance;
+
+				var scr = screen_scroll();
+				ruler_x = event.clientX + scr.left - 16;
+				ruler_x = coord_to_grid(ruler_x, false);
+				ruler_y = event.clientY + scr.top - 41;
+				ruler_y = coord_to_grid(ruler_y, false);
+
+				$('div.ruler.current').removeClass('current');
+				$('div.playarea div.markers').append('<div class="ruler current" />');
+				var ruler = $('div.ruler.current');
+				ruler.css('left', (ruler_x + (grid_cell_size >> 1)) + 'px');
+				ruler.css('top', (ruler_y + (grid_cell_size >> 1)) + 'px');
+				ruler_position(ruler_x, ruler_y);
 			});
 			break;
 		case 'door_close':
@@ -2850,6 +2908,9 @@ function context_menu_handler(key, options) {
 				}
 			}
 			break;
+		case 'light_info':
+			object_info(obj);
+			break;
 		case 'light_remove':
 			cauldron_confirm('Remove light?', function() {
 				for (var [key, value] of Object.entries(fow_light_char)) {
@@ -2877,20 +2938,7 @@ function context_menu_handler(key, options) {
 			var state = toggle[obj.attr('state')];
 			var light_id = obj.prop('id').substring(5);
 
-			$.post('/object/light_state', {
-				light_id: light_id,
-				state: state
-			}).done(function() {
-				var data = {
-					action: 'light_state',
-					light_id: light_id,
-					state: state
-				};
-				websocket_send(data);
-
-				var light = $('div#light' + light_id);
-				light_state(light, state);
-			});
+			light_set(light_id, state);
 			break;
 		case 'lower':
 			z_index--;
@@ -2966,19 +3014,22 @@ function context_menu_handler(key, options) {
 		case 'shape':
 			if (shape_change_id == 0) {
 				var filename = obj.find('img').attr('orig_src');
+				var size = 1;
 			} else {
 				var shape = $('div.shape_change div[shape_id=' + shape_change_id + ']');
 				var filename = 'tokens/' + shape_change_id.toString() + '.' + shape.attr('extension');
+				var size = $('div.shape_change div[shape_id=' + shape_change_id + ']').attr('size');
 			}
 
 			obj.find('img').attr('src', '/resources/' + resources_key + '/' + filename);
-			obj.find('img').css('width', grid_cell_size + 'px');
-			obj.find('img').css('height', grid_cell_size + 'px');
+			obj.find('img').css('width', (grid_cell_size * size) + 'px');
+			obj.find('img').css('height', (grid_cell_size * size) + 'px');
 
 			var data = {
 				action: 'shape',
 				char_id: obj.attr('id'),
-				src: filename
+				src: filename,
+				size: size
 			};
 			websocket_send(data);
 
@@ -2987,6 +3038,11 @@ function context_menu_handler(key, options) {
 				char_id: obj.attr('char_id'),
 				token_id: shape_change_id
 			});
+			break;
+		case 'sheet':
+			var char_id = obj.attr('char_id');
+			var sheet_url = $('div.characters div.character[char_id="' + char_id + '"]').attr('sheet');
+			window.open(sheet_url, '_blank');
 			break;
 		case 'stick':
 			var obj_pos = object_position(obj);
@@ -3113,6 +3169,10 @@ function key_down(event) {
 	} else if (event.which == 18) {
 		// ALT
 		alt_down = true;
+	} else if (event.which == 27) {
+		// Escape
+		$('p.measure').remove();
+		measuring_stop();
 	} else if (event.which == 9) {
 		// TAB
 		toggle_fullscreen();
@@ -3351,7 +3411,7 @@ $(document).ready(function() {
 			case 'draw_clear':
 				drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
 
-				if (fow_type == FOW_MAN_REV) {
+				if (fow_type == FOW_REVEAL) {
 					fog_of_war_reset(false);
 				}
 				break
@@ -3648,9 +3708,10 @@ $(document).ready(function() {
 				message_to_sidebar(data.name, data.mesg);
 				break;
 			case 'shape':
+				var size = parseInt(data.size)
 				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/' + data.src);
-				$('div#' + data.char_id).find('img').css('width', grid_cell_size + 'px');
-				$('div#' + data.char_id).find('img').css('height', grid_cell_size + 'px');
+				$('div#' + data.char_id).find('img').css('width', (grid_cell_size * size) + 'px');
+				$('div#' + data.char_id).find('img').css('height', (grid_cell_size * size) + 'px');
 				break;
 			case 'show':
 				var obj = $('div#' + data.instance_id);
@@ -3664,7 +3725,7 @@ $(document).ready(function() {
 				$('div#' + data.instance_id + ' img').off('contextmenu');
 				$('div#' + data.instance_id + ' img').contextmenu(function(event) {
 					var menu_entries = {
-						'view': { name:'View', icon:'fa-search' },
+						'view': { name:'View token', icon:'fa-search' },
 						'stick': { name:'Stick to / unstick', icon:'fa-lock' },
 						'attack': { name:'Attack', icon:'fa-legal' }
 					};
@@ -3768,7 +3829,7 @@ $(document).ready(function() {
 	 */
 	if ($('div.playarea').attr('show_grid') == 'yes') {
 		grid_init(grid_cell_size);
-    }
+	}
 
 	/* Drawing
 	 */
@@ -4000,7 +4061,7 @@ $(document).ready(function() {
 
 						drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
 
-						if (fow_type == FOW_MAN_REV) { 
+						if (fow_type == FOW_REVEAL) {
 							fog_of_war_reset(true);
 						}
 
@@ -4195,6 +4256,8 @@ $(document).ready(function() {
 		$('div.light').contextmenu(function(event) {
 			var menu_entries = {};
 
+			menu_entries['light_info'] = { name:'Get information', icon:'fa-info-circle' };
+
 			if ($(this).attr('state') == 'on') {
 				menu_entries['light_toggle'] = { name:'Turn off', icon:'fa-toggle-off' };
 			} else {
@@ -4226,6 +4289,10 @@ $(document).ready(function() {
 			'zone_delete': { name:'Delete', icon:'fa-trash' },
 		};
 
+		if ((fow_type != FOW_NIGHT_CELL) && (fow_type != FOW_NIGHT_REAL)) {
+			delete zone_menu['light_create'];
+		}
+
 		$('div.zone').contextmenu(function(event) {
 			var menu_entries = zone_menu;
 
@@ -4242,9 +4309,16 @@ $(document).ready(function() {
 		$('div.character img').contextmenu(function(event) {
 			var menu_entries = {
 				'info': { name:'Get information', icon:'fa-info-circle' },
-				'view': { name:'View', icon:'fa-search' },
-				'presence': { name:'Toggle presence', icon:'fa-low-vision' },
+				'view': { name:'View token', icon:'fa-search' }
 			}
+
+			var char_id = $(this).parent().attr('char_id');
+			var sheet = $('div.characters div.character[char_id="' + char_id + '"]').attr('sheet');
+			if (sheet != '') {
+				menu_entries['sheet'] = { name:'View character sheet', icon:'fa-file-text-o' };
+			}
+
+			menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
 
 			var label = $(this).parent().is(focus_obj) ? 'Unfocus' : 'Focus';
 			menu_entries['focus'] = { name:label, icon:'fa-binoculars' };
@@ -4254,7 +4328,7 @@ $(document).ready(function() {
 			menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
 			menu_entries['sep2'] = '-';
 
-			if ((fow_type != FOW_OFF) && (fow_type != FOW_MAN_REV)) {
+			if ((fow_type != FOW_OFF) && (fow_type != FOW_REVEAL)) {
 				if ($(this).parent().is(fow_obj)) {
 					menu_entries['fow_show'] = { name:'Remove Fog of War', icon:'fa-mixcloud' };
 				} else {
@@ -4329,6 +4403,10 @@ $(document).ready(function() {
 				'light_create': { name:'Create light', icon:'fa-lightbulb-o' },
 				'zone_create': { name:'Create zone', icon:'fa-square-o' }
 			};
+
+			if ((fow_type == FOW_OFF) || (fow_type == FOW_REVEAL)) {
+				delete menu_entries['light_create'];
+			}
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
@@ -4422,7 +4500,7 @@ $(document).ready(function() {
 			}
 		});
 
-		if (fow_type == FOW_MAN_REV) {
+		if (fow_type == FOW_REVEAL) {
 			fog_of_war_init(LAYER_FOG_OF_WAR, true);
 		}
 
@@ -4457,7 +4535,7 @@ $(document).ready(function() {
 			$('div#' + my_char + ' img').contextmenu(function(event) {
 				var menu_entries = {
 					'info': { name:'Get information', icon:'fa-info-circle' },
-					'view': { name:'View', icon:'fa-search' },
+					'view': { name:'View token', icon:'fa-search' },
 					'distance': { name:'Measure distance', icon:'fa-map-signs' },
 					'sep1': '-',
 					'damage': { name:'Damage', icon:'fa-warning' },
@@ -4506,7 +4584,7 @@ $(document).ready(function() {
 
 			/* Fog of war
 			 */
-			if (fow_type == FOW_MAN_REV) {
+			if (fow_type == FOW_REVEAL) {
 				fog_of_war_init(LAYER_FOG_OF_WAR, false);
 			} else if (fow_type != FOW_OFF) {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
@@ -4515,6 +4593,44 @@ $(document).ready(function() {
 				}
 				fog_of_war_update(my_character);
 			}
+
+			/* Anti-cheat
+			 */
+			var layer_removed_triggered = false;
+
+			var layer_removed = function(layer) {
+				if (layer_removed_triggered) {
+					return;
+				}
+				layer_removed_triggered = true;
+
+				$('div#map_background').remove();
+				send_message('Player ' + character_name + ' removed the ' + layer + ' layer.', 'Anti-Cheat');
+
+			};
+
+			$('div.zones').on('DOMNodeRemoved', function() {
+				layer_removed('zones');
+			});
+
+			$('div.walls').on('DOMNodeRemoved', function() {
+				layer_removed('walls');
+			});
+
+			$('div.doors').on('DOMNodeRemoved', function() {
+				layer_removed('doors');
+			});
+
+			$('div.blinders').on('DOMNodeRemoved', function() {
+				layer_removed('blinders');
+			});
+
+			$('div.fog_of_war').on('DOMNodeRemoved', function() {
+				layer_removed('fog of war');
+			});
+			$('div.fog_of_war canvas').on('DOMNodeRemoved', function() {
+				layer_removed('fog of war');
+			});
 		}
 
 		/* Menu tokens
@@ -4526,7 +4642,7 @@ $(document).ready(function() {
 		$('div.character:not(.mine) img').contextmenu(function(event) {
 			var menu_entries = {
 				'info': { name:'Get information', icon:'fa-info-circle' },
-				'view': { name:'View', icon:'fa-search' },
+				'view': { name:'View token', icon:'fa-search' },
 				'attack': { name:'Attack', icon:'fa-legal' },
 				'sep': '-',
 				'marker': { name:'Set marker', icon:'fa-map-marker' },
@@ -4966,6 +5082,19 @@ $(document).ready(function() {
 	var color = localStorage.getItem('interface_color');
 	if (color == 'dark') {
 		interface_color($('button#itfcol'), false);
+	}
+
+	/* Touchscreens
+	 */
+	if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0)) {
+		$('div.character').on('click', function(event) {
+			event.type = 'contextmenu';
+			$(this).find('img').trigger(event);
+		});
+		$('div.token').on('click', function(event) {
+			event.type = 'contextmenu';
+			$(this).find('img').trigger(event);
+		});
 	}
 });
 

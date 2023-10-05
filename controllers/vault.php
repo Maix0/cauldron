@@ -24,7 +24,7 @@
 					"Collectables"  => array("vault/collectable", "collectables.png"),
 					"Players"       => array("vault/players", "players.png"),
 					"Journal"       => array("vault/journal", "journal.png"),
-					"Conditions"    => array("vault/condition", "conditions.png")),
+					"Story"         => array("vault/story", "story.png")),
 				"System" => array(
 					"Files"         => array("vault/file", "file.png"),
 					"Menu"          => array("vault/menu", "menu.png"),

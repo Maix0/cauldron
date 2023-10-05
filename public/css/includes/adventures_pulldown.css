@@ -1,0 +1,14 @@
+form.adventures_pulldown select {
+	max-width:none;
+}
+
+@media (min-width:768px) {
+	form.adventures_pulldown {
+		width:250px;
+		float:right;
+		position:relative;
+		margin-right:150px;
+		top:-45px;
+		margin-bottom:-40px;
+	}
+}

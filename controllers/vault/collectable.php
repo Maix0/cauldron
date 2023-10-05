@@ -1,18 +1,8 @@
 <?php
-	class vault_collectable_controller extends Banshee\controller {
+	class vault_collectable_controller extends cauldron_controller {
 		private function show_overview() {
-			if (($adventures = $this->model->get_adventures()) === false) {
-				$this->view->add_tag("result", "Database error.");
+			if ($this->adventures_pulldown_init() == false) {
 				return;
-			}
-
-			if (count($adventures) == 0) {
-				$this->view->add_tag("result", "Create an adventure first.", array("url" => "vault/adventure/new"));
-				return;
-			}
-
-			if (isset($_SESSION["edit_adventure_id"]) == false) {
-				$_SESSION["edit_adventure_id"] = $adventures[0]["id"];
 			}
 
 			if (($collectables = $this->model->get_collectables()) === false) {
@@ -22,14 +12,7 @@
 
 			$this->view->open_tag("overview");
 
-			$this->view->open_tag("adventures");
-			foreach ($adventures as $adventure) {
-				$attr = array(
-					"id"	   => $adventure["id"],
-					"selected" => show_boolean($adventure["id"] == $_SESSION["edit_adventure_id"]));
-				$this->view->add_tag("adventure", $adventure["title"], $attr);
-			}
-			$this->view->close_tag();
+			$this->adventures_pulldown_show();
 
 			$this->view->open_tag("collectables");
 			foreach ($collectables as $collectable) {
@@ -53,12 +36,9 @@
 
 		public function execute() {
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				if ($_POST["submit_button"] == "Change adventure") {
+				if ($this->adventures_pulldown_changed()) {
 					/* Change adventure
 					 */
-					if ($this->model->is_my_adventure($_POST["adventure"])) {
-						$_SESSION["edit_adventure_id"] = $_POST["adventure"];
-					}
 					$this->show_overview();
 				} else if ($_POST["submit_button"] == "Save collectable") {
 					/* Save collectable

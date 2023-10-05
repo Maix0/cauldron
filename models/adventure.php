@@ -1,11 +1,13 @@
 <?php
 	class adventure_model extends cauldron_model {
 		public function get_adventures() {
-			$query = "select distinct a.*, u.fullname as dm from users u, adventures a ".
+			$query = "select distinct a.*, u.fullname as dm, ".
+			         "(select count(*) from maps where adventure_id=a.id) as maps ".
+			         "from users u, adventures a ".
 			         "left join adventure_character i on a.id=i.adventure_id ".
 			         "left join characters c on i.character_id=c.id ".
 			         "where a.dm_id=u.id and (a.dm_id=%d or c.user_id=%d) ".
-			         "order by timestamp desc";
+					 "having maps> 0 order by timestamp desc";
 
 			if (($adventures = $this->db->execute($query, $this->user->id, $this->user->id, ADVENTURE_ACCESS_PLAYERS_SPECTATORS)) === false) {
 				return false;
@@ -147,7 +149,7 @@
 		public function get_characters($map_id) {
 			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.rotation, i.hidden, ".
 			         "a.id as alternate_id, a.extension as alternate_extension, a.size as alternate_size, ".
-					 "t.id as token_id, t.extension as token_extension ".
+					 "t.id as token_id, t.extension as token_extension, t.width as token_size ".
 			         "from characters c, map_character i, maps m, adventure_character l ".
 			         "left join character_icons a on l.alternate_icon_id=a.id ".
 			         "left join tokens t on l.token_id=t.id ".
@@ -159,9 +161,15 @@
 		}
 
 		public function get_conditions() {
-			$query = "select * from conditions order by name";
+			$conditions = array();
 
-			return $this->db->execute($query);
+			foreach (CONDITIONS as $i => $condition) {
+				array_push($conditions, array(
+					"id"   => ($i + 1),
+					"name" => $condition));
+			}
+
+			return $conditions;
 		}
 
 		public function get_doors($map_id) {
