@@ -199,7 +199,7 @@
 				return;
 			}
 
-			$this->view->title = "Story";
+			$this->view->title = "Story writing";
 
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				if ($this->adventures_pulldown_changed()) {

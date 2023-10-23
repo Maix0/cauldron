@@ -58,6 +58,11 @@ div.radio-group span input {
 	margin-right:5px;
 }
 
+span.select {
+	display:none;
+	color:#ff0000;
+}
+
 /* Alternates
  */
 div.alternates {
@@ -86,5 +91,5 @@ div.alternate input.btn {
 /* Weapons
  */
 table.weapons th:nth-child(3) {
-	width:80px;
+	width:150px;
 }

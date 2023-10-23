@@ -336,7 +336,7 @@
 		public function constructs_import($map_id, $import, $transaction = true) {
 			$tables = array(
 				"blinders" => array("pos1_x", "pos1_y", "pos2_x", "pos2_y"),
-				"doors"    => array("pos_x", "pos_y", "length", "direction", "state", "secret"),
+				"doors"    => array("pos_x", "pos_y", "length", "direction", "state", "secret", "bars"),
 				"lights"   => array("pos_x", "pos_y", "radius", "state"),
 				"walls"    => array("pos_x", "pos_y", "length", "direction", "transparent"),
 				"zones"    => array("pos_x", "pos_y", "width", "height", "color", "opacity", "script", "group", "altitude"));
@@ -408,7 +408,7 @@
 				return false;
 			}
 
-			$data = array("version" => 3);
+			$data = array("version" => EXPORT_VERSION);
 			$data = array_merge($data, $map);
 			$data["title"] = $override["title"];
 			$data["dm_notes"] = $override["dm_notes"];

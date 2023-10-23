@@ -105,6 +105,9 @@ div.wrapper > div.header {
 			<span>Logged in as <a href="/profile"><xsl:value-of select="/output/user" /></a></span>
 			<span><a href="/session">Session manager</a></span>
 			</xsl:if>
+			<xsl:if test="/output/user/@admin='yes'">
+			<span><a href="/spectate">Spectate</a></span>
+			</xsl:if>
 		</div>
 	</div>
 

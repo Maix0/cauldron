@@ -55,7 +55,7 @@
 <!-- Doors -->
 <div class="doors">
 <xsl:for-each select="doors/door">
-<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" secret="{secret}" />
+<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" secret="{secret}" bars="{bars}" />
 </xsl:for-each>
 </div>
 <!-- Lights -->

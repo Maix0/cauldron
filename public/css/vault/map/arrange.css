@@ -162,7 +162,7 @@ div.library {
 	position:absolute;
 	top:90px;
 	right:0px;
-	bottom:165px;
+	bottom:215px;
 	width:200px;
 	overflow-y:scroll;
 	padding-right:15px;
@@ -201,7 +201,7 @@ div.filter {
 div.sidebar {
 	font-size:12px;
 	position:absolute;
-	height:150px;
+	height:200px;
 	right:0px;
 	bottom:0px;
 	width:200px;

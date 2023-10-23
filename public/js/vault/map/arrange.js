@@ -130,31 +130,46 @@ function capture_mouse_position(event) {
 }
 
 function key_down(event) {
-	if (event.which == 16) {
-		// Shift
-		shift_down = true;
-	} else if (event.which == 17) {
-		// CTRL
-		ctrl_down = true;
-	} else if (event.which == 18) {
-		// ALT
-		alt_down = true;
-	} else if (event.which == 27) {
-		// Escape
-		blinder_stop();
-		door_stop();
-		wall_stop();
-		measuring_stop();
+	switch (event.which) {
+		case 16:
+			// Shift
+			shift_down = true;
+			break;
+		case 17:
+			// CTRL
+			ctrl_down = true;
+			break;
+		case 18:
+			// ALT
+			alt_down = true;
+			break;
+		case 27:
+			// Escape
+			blinder_stop();
+			door_stop();
+			wall_stop();
+			measuring_stop();
+			$('div.menu').hide();
+			$('body div.context_menu').remove();
+			$('div.windowframe_overlay > div:visible').close();
+			break;
 	}
 }
 
 function key_up(event) {
-	if (event.which == 16) {
-		shift_down = false;
-	} else if (event.which == 17) {
-		ctrl_down = false;
-	} else if (event.which == 18) {
-		alt_down = false;
+	switch (event.which) {
+		case 16:
+			// Shift
+			shift_down = false;
+			break;
+		case 17:
+			// CTRL
+			ctrl_down = false;
+			break;
+		case 18:
+			// ALT
+			alt_down = false;
+			break;
 	}
 }
 
@@ -523,6 +538,9 @@ function object_move(obj) {
 	for (var [event_type, items] of Object.entries(zone_events)) {
 		items.forEach(function(zone_id) {
 			zone_run_script(zone_id, char_id, event_type, pos.left, pos.top, true);
+			if (fow_obj != null) {
+				fog_of_war_update(fow_obj);
+			}
 		});
 	}
 }
@@ -629,6 +647,12 @@ function blinder_create(pos1_x, pos1_y, pos2_x, pos2_y) {
 			return false;
 		});
 
+		$('div#blinder' + instance_id).on('dblclick', function() {
+			if (shift_down) {
+				object_delete($(this));
+			}
+		});
+
 		if (fow_obj != null) {
 			fog_of_war_update(fow_obj);
 		}
@@ -642,7 +666,7 @@ function points_angle(pos1_x, pos1_y, pos2_x, pos2_y) {
 	var dx = pos2_x - pos1_x;
 	var dy = pos2_y - pos1_y;
 
-	var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+	var angle = Math.round(Math.atan2(dy, dx) * 180 / Math.PI);
 	if (angle < 0) {
 		angle += 360;
 	}
@@ -654,7 +678,7 @@ function points_distance(pos1_x, pos1_y, pos2_x, pos2_y) {
 	var dx = pos2_x - pos1_x;
 	var dy = pos2_y - pos1_y;
 
-	return Math.sqrt(dx * dx + dy * dy);
+	return Math.round(Math.sqrt(dx * dx + dy * dy));
 }
 
 function blinder_position(blinder) {
@@ -690,7 +714,8 @@ function door_create(pos_x, pos_y, length, direction, state) {
 		length: length,
 		direction: direction,
 		state: state,
-		secret: 0
+		secret: 0,
+		bars: 0
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
 
@@ -711,6 +736,13 @@ function door_create(pos_x, pos_y, length, direction, state) {
 				menu_entries['door_secret'] = { name:'Secret', icon:'fa-eye-slash' };
 			}
 
+			if ($(this).attr('bars') == 'yes') {
+				menu_entries['door_solid'] = { name:'Solid', icon:'fa-square' };
+			} else {
+				menu_entries['door_bars'] = { name:'Bars', icon:'fa-table' };
+			}
+
+			menu_entries['sep'] = '-';
 			menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -757,6 +789,14 @@ function door_position(door) {
 		door.css('background-color', DOOR_OPEN);
 	} else if (door.attr('secret') == 'yes') {
 		door.css('background-color', DOOR_SECRET);
+	}
+
+	if (door.attr('bars') == 'yes') {
+		if (direction == 'horizontal') {
+			door.css('background-image', 'repeating-linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0) 5px, #000000 5px, #000000 10px)');
+		} else {
+			door.css('background-image', 'repeating-linear-gradient(0deg, rgba(0,0,0,0), rgba(0,0,0,0) 5px, #000000 5px, #000000 10px)');
+		}
 	}
 }
 
@@ -861,6 +901,12 @@ function wall_create(pos_x, pos_y, length, direction, transparent) {
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
+		});
+
+		$('div#wall' + instance_id).on('dblclick', function() {
+			if (shift_down) {
+				object_delete($(this));
+			}
 		});
 
 		if (fow_obj != null) {
@@ -1151,6 +1197,13 @@ function context_menu_handler(key, options) {
 				var pos2_x = parseInt($('div.playarea div#new_blinder').attr('pos2_x'));
 				var pos2_y = parseInt($('div.playarea div#new_blinder').attr('pos2_y'));
 
+				if (pos2_x < 0) {
+					pos2_x = 0;
+				}
+				if (pos2_y < 0) {
+					pos2_y = 0;
+				}
+
 				if ((pos1_x == pos2_x) && (pos1_y == pos2_y)) {
 					return;
 				}
@@ -1259,6 +1312,24 @@ function context_menu_handler(key, options) {
 
 			measuring = true;
 			break;
+		case 'door_bars':
+			obj.attr('bars', 'yes');
+
+			if (obj.attr('direction') == 'horizontal') {
+				obj.css('background-image', 'repeating-linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0) 5px, #000000 5px, #000000 10px)');
+			} else {
+				obj.css('background-image', 'repeating-linear-gradient(0deg, rgba(0,0,0,0), rgba(0,0,0,0) 5px, #000000 5px, #000000 10px)');
+			}
+
+			$.post('/object/door_bars', {
+				door_id: obj.prop('id').substring(4),
+				bars: 'yes'
+			});
+
+			if (fow_obj != null) {
+				fog_of_war_update(fow_obj);
+			}
+			break;
 		case 'door_create':
 			blinder_stop();
 			door_stop();
@@ -1330,6 +1401,7 @@ function context_menu_handler(key, options) {
 			} else {
 				obj.css('background-color', '');
 			}
+
 			$.post('/object/door_state', {
 				door_id: obj.prop('id').substring(4),
 				state: obj.attr('state')
@@ -1344,6 +1416,7 @@ function context_menu_handler(key, options) {
 			if (obj.attr('state') == 'closed') {
 				obj.css('background-color', DOOR_SECRET);
 			}
+
 			$.post('/object/door_secret', {
 				door_id: obj.prop('id').substring(4),
 				secret: 'yes'
@@ -1354,6 +1427,7 @@ function context_menu_handler(key, options) {
 			if (obj.attr('state') == 'closed') {
 				obj.css('background-color', '');
 			}
+
 			$.post('/object/door_secret', {
 				door_id: obj.prop('id').substring(4),
 				secret: 'no'
@@ -1362,9 +1436,25 @@ function context_menu_handler(key, options) {
 		case 'door_open':
 			obj.attr('state', 'open');
 			obj.css('background-color', DOOR_OPEN);
+
 			$.post('/object/door_state', {
 				door_id: obj.prop('id').substring(4),
 				state: obj.attr('state')
+			});
+
+			if (fow_obj != null) {
+				fog_of_war_update(fow_obj);
+			}
+			break;
+		case 'door_solid':
+			obj.attr('bars', 'no');
+			obj.css('background-size', '');
+			obj.css('background-position', '');
+			obj.css('background-image', '');
+
+			$.post('/object/door_bars', {
+				door_id: obj.prop('id').substring(4),
+				bars: 'no'
 			});
 
 			if (fow_obj != null) {
@@ -1679,6 +1769,12 @@ $(document).ready(function() {
 		return false;
 	});
 
+	$('div.blinder').on('dblclick', function() {
+		if (shift_down) {
+			object_delete($(this));
+		}
+	});
+
 	/* Doors
 	 */
 	$('div.door').each(function() {
@@ -1700,6 +1796,13 @@ $(document).ready(function() {
 			menu_entries['door_secret'] = { name:'Secret', icon:'fa-eye-slash' };
 		}
 
+		if ($(this).attr('bars') == 'yes') {
+			menu_entries['door_solid'] = { name:'Solid', icon:'fa-square' };
+		} else {
+			menu_entries['door_bars'] = { name:'Bars', icon:'fa-table' };
+		}
+
+		menu_entries['sep'] = '-';
 		menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
 
 		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -1777,6 +1880,12 @@ $(document).ready(function() {
 		return false;
 	});
 
+	$('div.wall').on('dblclick', function() {
+		if (shift_down) {
+			object_delete($(this));
+		}
+	});
+
 	/* Zones
 	 */
 	$('div.zone').draggable({
@@ -1793,7 +1902,7 @@ $(document).ready(function() {
 		width: 450,
 		header: 'Create zone',
 		buttons: {
-			'Create zone': function() {
+			'Create': function() {
 				var width = parseInt($('input#width').val());
 				var height = parseInt($('input#height').val());
 				var color = $('input#color').val();
@@ -1830,6 +1939,9 @@ $(document).ready(function() {
 
 				zone_create(width, height, color, opacity, group, altitude);
 
+				$(this).close();
+			},
+			'Cancel': function() {
 				$(this).close();
 			}
 		}
@@ -2014,4 +2126,8 @@ $(document).ready(function() {
 
 	$('input#filter').val(localStorage.getItem('vault_token_filter'));
 	filter_library();
+
+	write_sidebar('While placing walls, windows and blinders, hold CTRL to create consecutive constructs.');
+	write_sidebar('Press ALT to get blinders off the grid. Add SHIFT to make them horizontal or vertical.');
+	write_sidebar('Double-click a wall, window or blinder while holding SHIFT to delete the construct.');
 });

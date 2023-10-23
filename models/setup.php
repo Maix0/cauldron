@@ -584,6 +584,13 @@
 				$this->settings->database_version = 3.0;
 			}
 
+			if ($this->settings->database_version === 3.0) {
+				$this->db_query("ALTER TABLE users ADD keyboard TINYINT UNSIGNED NOT NULL AFTER email");
+				$this->db_query("ALTER TABLE doors ADD bars BOOLEAN NOT NULL AFTER secret");
+
+				$this->settings->database_version = 3.1;
+			}
+
 			return true;
 		}
 

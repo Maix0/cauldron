@@ -188,6 +188,7 @@
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("includes/combat.js");
+				$this->view->add_javascript("includes/keyboard.js");
 				$this->view->add_javascript("../dice-box/loader.js");
 				if (is_true($active_map["show_grid"])) {
 					$this->view->add_javascript("includes/grid.js");
@@ -211,16 +212,19 @@
 				$this->view->add_css("includes/context_menu.css");
 			}
 
-			$group_key = hash_hmac("sha256", $adventure["title"], $this->settings->secret_website_code);
-			$group_key = substr($group_key, 0, 12);
-
 			$attr = array(
-				"id"             => $adventure["id"],
-				"group_key"      => $group_key,
-				"is_dm"          => show_boolean($user_is_dungeon_master),
-				"grid_cell_size" => $grid_cell_size);
+				"id"    => $adventure["id"],
+				"is_dm" => show_boolean($user_is_dungeon_master));
 			$this->view->open_tag("adventure", $attr);
 			$this->view->record($adventure);
+
+			$group_key = hash_hmac("sha256", $adventure["title"], $this->settings->secret_website_code);
+			$group_key = substr($group_key, 0, 12);
+			$this->view->add_tag("group_key", $group_key);
+
+			$this->view->add_tag("grid_cell_size", $grid_cell_size);
+
+			$this->view->add_tag("keyboard", $this->user->keyboard);
 
 			/* Websocket
 			 */
@@ -287,6 +291,7 @@
 				$this->view->open_tag("doors");
 				foreach ($doors as $door) {
 					$door["secret"] = show_boolean($door["secret"]);
+					$door["bars"] = show_boolean($door["bars"]);
 					$this->view->record($door, "door");
 				}
 				$this->view->close_tag();
@@ -317,7 +322,7 @@
 				foreach ($blinders as $blinder) {
 					$fields = array("pos1_x", "pos1_y", "pos2_x", "pos2_y");
 					foreach ($fields as $field) {
-						$blinder[$field] = $blinder[$field] * $grid_cell_size / $active_map["grid_size"];
+						$blinder[$field] = round($blinder[$field] * $grid_cell_size / $active_map["grid_size"]);
 					}
 					$this->view->record($blinder, "blinder");
 				}

@@ -31,6 +31,8 @@ const DRAW_DEFAULT_WIDTH = 5;
 const DRAW_ERASE_THIN = 25;
 const DRAW_ERASE_THICK = 75;
 
+const CHAR_POS_SAVE_DELAY = 2;
+
 var websocket;
 var group_key = null;
 var adventure_id = null;
@@ -90,6 +92,11 @@ var fullscreen_backup = undefined;
 var pause = false;
 var ruler_distance = 0;
 var ruler_previous = 0;
+var key_to_direction = null;
+
+var char_pos_x = 0;
+var char_pos_y = 0;
+var char_pos_changed = false
 
 /* Websocket
  */
@@ -219,6 +226,8 @@ function toggle_fullscreen() {
 		fullscreen = false;
 		fullscreen_backup = undefined;
 	}
+
+	playarea.trigger('focus');
 }
 
 function write_sidebar(message) {
@@ -582,7 +591,7 @@ function object_contextmenu_dm(event) {
 	var menu_entries = {};
 
 	menu_entries['info'] = { name:'Get information', icon:'fa-info-circle' };
-	menu_entries['view'] = { name:'View token', icon:'fa-search' };
+	menu_entries['view'] = { name:'View', icon:'fa-search' };
 	var rotate = {
 		'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
 		'rotate_ne': { name:'North East' },
@@ -596,9 +605,6 @@ function object_contextmenu_dm(event) {
 	menu_entries['rotate'] = { name:'Rotate', icon:'fa-compass', items:rotate };
 	menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
 	menu_entries['sep1'] = '-';
-
-	var label = $(this).parent().is(focus_obj) ? 'Unfocus' : 'Focus';
-	menu_entries['focus'] = { name:label, icon:'fa-binoculars' };
 
 	menu_entries['handover'] = { name:'Hand over', icon:'fa-hand-stop-o' };
 	menu_entries['takeback'] = { name:'Take back', icon:'fa-hand-grab-o' };
@@ -640,7 +646,7 @@ function object_contextmenu_dm(event) {
 
 function object_contextmenu_player(event) {
 	var menu_entries = {
-		'view': { name:'View token', icon:'fa-search' },
+		'view': { name:'View', icon:'fa-search' },
 		'stick': { name:'Stick to / unstick', icon:'fa-lock' },
 		'attack': { name:'Attack', icon:'fa-legal' },
 		'sep': '-',
@@ -897,12 +903,18 @@ function object_move(obj, speed = 200) {
 	};
 	websocket_send(data);
 
-	if (obj.hasClass('effect') == false) {
-		$.post('/object/move', {
-			instance_id: obj.prop('id'),
-			pos_x: Math.round(pos.left / grid_cell_size),
-			pos_y: Math.round(pos.top / grid_cell_size)
-		});
+	if (obj.is(my_character) == false) {
+		if (obj.hasClass('effect') == false) {
+			$.post('/object/move', {
+				instance_id: obj.prop('id'),
+				pos_x: Math.round(pos.left / grid_cell_size),
+				pos_y: Math.round(pos.top / grid_cell_size)
+			});
+		}
+	} else {
+		char_pos_x = Math.round(pos.left / grid_cell_size);
+		char_pos_y =  Math.round(pos.top / grid_cell_size);
+		char_pos_changed = true;
 	}
 
 	if (obj.is(my_character)) {
@@ -1131,33 +1143,32 @@ function object_steer(event) {
 		return;
 	}
 
-	if (obj.attr('token_type') == 'topdown') {
+	if ((obj.attr('token_type') == 'topdown') || obj.hasClass('token')) {
 		switch (event.which) {
-			case 81: // q
+			case KB_ROTATE_LEFT:
 				object_turn(obj, -45);
 				return;
-			case 69: // e
+			case KB_ROTATE_RIGHT:
 				object_turn(obj, 45);
 				return;
 		}
 	}
 
-	var key_to_direction = {
-		87: 0,   // w
-		68: 90,  // d
-		83: 180, // s
-		65: 270  // a
-	}
+	if (key_to_direction == null) {
+		var keys = [ KB_MOVE_UP, KB_MOVE_RIGHT, KB_MOVE_DOWN, KB_MOVE_LEFT ];
+		var degrees = [ 0, 90, 180, 270 ];
 
-	if (obj.attr('token_type') == 'portrait') {
-		key_to_direction = {
-			...key_to_direction,
-			...{
-				69: 45,  // e
-				67: 135, // c
-				88: 180, // x
-				90: 225, // z
-				81: 315  // q
+		key_to_direction = {};
+		for (var i = 0; i < keys.length; i++) {
+			key_to_direction[keys[i]] = degrees[i];
+		}
+
+		if (obj.attr('token_type') == 'portrait') {
+			keys = [ KB_MOVE_UP_RIGHT, KB_MOVE_DOWN_RIGHT, KB_MOVE_DOWN_ALT, KB_MOVE_DOWN_LEFT, KB_MOVE_UP_LEFT ];
+			degrees = [ 45, 135, 180, 225, 315 ];
+
+			for (var i = 0; i < keys.length; i++) {
+				key_to_direction[keys[i]] = degrees[i];
 			}
 		}
 	}
@@ -1378,6 +1389,14 @@ function door_position(door) {
 
 	if (door.attr('state') == 'open') {
 		door_show_open(door);
+	}
+
+	if (door.attr('bars') == 'yes') {
+		if (direction == 'horizontal') {
+			door.css('background-image', 'repeating-linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0) 5px, #000000 5px, #000000 10px)');
+		} else {
+			door.css('background-image', 'repeating-linear-gradient(0deg, rgba(0,0,0,0), rgba(0,0,0,0) 5px, #000000 5px, #000000 10px)');
+		}
 	}
 }
 
@@ -1768,7 +1787,7 @@ function points_angle(pos1_x, pos1_y, pos2_x, pos2_y) {
 	var dx = pos2_x - pos1_x;
 	var dy = pos2_y - pos1_y;
 
-	var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+	var angle = Math.round(Math.atan2(dy, dx) * 180 / Math.PI);
 	if (angle < 0) {
 		angle += 360;
 	}
@@ -1780,7 +1799,7 @@ function points_distance(pos1_x, pos1_y, pos2_x, pos2_y) {
 	var dx = pos2_x - pos1_x;
 	var dy = pos2_y - pos1_y;
 
-	return Math.sqrt(dx * dx + dy * dy);
+	return Math.round(Math.sqrt(dx * dx + dy * dy));
 }
 
 function blinder_position(blinder) {
@@ -1995,6 +2014,7 @@ function zone_delete(obj) {
 		};
 		websocket_send(data);
 
+		obj.off('DOMNodeRemoved');
 		obj.remove();
 	});
 }
@@ -2024,7 +2044,7 @@ function marker_create(pos_x, pos_y, name = null) {
 	}
 
 	$('div.playarea div.markers').append(marker);
-	setTimeout(function() {
+	window.setTimeout(function() {
 		$('div.marker').first().remove();
 	}, 5000);
 }
@@ -2738,17 +2758,6 @@ function context_menu_handler(key, options) {
 
 			obj.remove();
 			break;
-		case 'focus':
-			if (focus_obj != null) {
-				focus_obj.find('img').css('border', '');
-			}
-			if (obj.is(focus_obj) == false) {
-				focus_obj = obj;
-				focus_obj.find('img').css('border', '1px solid #ffa000');
-			} else {
-				focus_obj = null;
-			}
-			break;
 		case 'fow_show':
 			if (fow_obj == null) {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
@@ -2756,6 +2765,12 @@ function context_menu_handler(key, options) {
 					var distance = fow_char_distances[obj.prop('id')];
 					fog_of_war_set_distance(distance);
 				}
+
+				var distance = fow_char_distances[obj.prop('id')];
+				if (distance != undefined) {
+					fog_of_war_set_distance(distance);
+				}
+
 				fog_of_war_update(obj);
 				fow_obj = obj;
 			} else if (obj.is(fow_obj)) {
@@ -2773,7 +2788,7 @@ function context_menu_handler(key, options) {
 				if (isNaN(distance)) {
 					write_sidebar('Invalid distance.');
 					return;
-				} else if (distance < 1) {
+				} else if (distance < 0) {
 					write_sidebar('Invalid distance.');
 					return;
 				}
@@ -2795,12 +2810,12 @@ function context_menu_handler(key, options) {
 			break;
 		case 'handover':
 			if (focus_obj == null) {
-				write_sidebar('Focus on a character first.');
+				write_sidebar('Focus on a character first by double clicking it.');
 				return;
 			}
 
 			if (focus_obj.hasClass('character') == false) {
-				write_sidebar('Focus on a character first.');
+				write_sidebar('Focus on a character first by double clicking it.');
 				return;
 			}
 
@@ -2880,12 +2895,12 @@ function context_menu_handler(key, options) {
 			break;
 		case 'light_attach':
 			if (focus_obj == null) {
-				write_sidebar('Focus on a character first.');
+				write_sidebar('Focus on a character first by double clicking it.');
 				break;
 			}
 
 			if (focus_obj.hasClass('character') == false) {
-				write_sidebar('Focus on a character first.');
+				write_sidebar('Focus on a character first by double clicking it.');
 				break;
 			}
 
@@ -3144,55 +3159,72 @@ function key_down(event) {
 		return;
 	}
 
-	if (event.which == 192) {
-		// back-quote
-		if ($('div.diceroll').is(':visible') == false) {
-			wf_dice_roll.open();
-		} else {
-			wf_dice_roll.close();
-		}
-	}
-
-	if ($('div.windowframe_overlay > div:visible').length > 0) {
-		return;
-	} else if ($('div.input input:focus').length > 0) {
+	if ($('div.input input:focus').length > 0) {
 		return;
 	}
 
+	var open_windows = $('div.windowframe_overlay > div:visible');
 
-	if (event.which == 16) {
-		// Shift
-		shift_down = true;
-	} else if (event.which == 17) {
-		// CTRL
-		ctrl_down = true;
-	} else if (event.which == 18) {
-		// ALT
-		alt_down = true;
-	} else if (event.which == 27) {
-		// Escape
-		$('p.measure').remove();
-		measuring_stop();
-	} else if (event.which == 9) {
-		// TAB
-		toggle_fullscreen();
+	switch (event.which) {
+		case 9:
+			// TAB
+			toggle_fullscreen();
+			break;
+		case 16:
+			// Shift
+			shift_down = true;
+			break;
+		case 17:
+			// CTRL
+			ctrl_down = true;
+			break;
+		case 18:
+			// ALT
+			alt_down = true;
+			break;
+		case 19:
+			// Pauze / break
+			if (dungeon_master) {
+				$('div.menu button.pause').trigger('click');
+			}
+			break;
+		case 27:
+			// Escape
+			$('p.measure').remove();
+			measuring_stop();
+			open_windows.close();
+			$('body div.context_menu').remove();
+			$('div.menu').hide();
+			break;
+		case 192:
+			// back-quote
+			if ($('div.diceroll:visible').length > 0) {
+				wf_dice_roll.close();
+			} else if (open_windows.length == 0) {
+				wf_dice_roll.open();
+			}
+			break;
 	}
 }
 
 function key_up(event) {
-	if (event.which == 16) {
-		// Shift
-		shift_down = false;
-		$('canvas#drawing').off('mousemove');
-	} else if (event.which == 17) {
-		// CTRL
-		ctrl_down = false;
-		if (shift_down == false) {
+	switch (event.which) {
+		case 16:
+			// Shift
+			shift_down = false;
 			$('canvas#drawing').off('mousemove');
-		}
-	} else if (event.which == 18) {
-		// ALT
-		alt_down = false;
+			break;
+		case 17:
+			// CTRL
+			ctrl_down = false;
+			if (shift_down == false) {
+				$('canvas#drawing').off('mousemove');
+			}
+			break;
+		case 18:
+			// ALT
+			alt_down = false;
+			break;
 	}
 }
 
@@ -3613,7 +3645,6 @@ $(document).ready(function() {
 					if (obj.is(fow_obj) || ((fow_type != FOW_OFF) && obj.is(my_character))) {
 						fog_of_war_update(obj);
 					}
-
 				});
 
 				if (obj.hasClass('character') && dungeon_master && ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL))) {
@@ -3725,7 +3756,7 @@ $(document).ready(function() {
 				$('div#' + data.instance_id + ' img').off('contextmenu');
 				$('div#' + data.instance_id + ' img').contextmenu(function(event) {
 					var menu_entries = {
-						'view': { name:'View token', icon:'fa-search' },
+						'view': { name:'View', icon:'fa-search' },
 						'stick': { name:'Stick to / unstick', icon:'fa-lock' },
 						'attack': { name:'Attack', icon:'fa-legal' }
 					};
@@ -3790,6 +3821,9 @@ $(document).ready(function() {
 
 	websocket.onclose = function(event) {
 		write_sidebar('Connection closed.');
+		window.setTimeout(function() {
+			cauldron_alert('The connection to the server was lost. Refresh the page to reconnect.');
+		}, 1000);
 		websocket = null;
 	};
 
@@ -4235,10 +4269,38 @@ $(document).ready(function() {
 			}
 		});
 
+		var focus_object = function(event) {
+			if (focus_obj != null) {
+				if ($(this).is(focus_obj)) {
+					return;
+				}
+
+				focus_obj.find('img').css('border', '');
+			}
+
+			focus_obj = $(this);
+			focus_obj.find('img').css('border', '1px solid #ffa000');
+
+			if (keep_centered) {
+				scroll_to_my_character(250);
+			}
+
+			event.stopPropagation();
+		};
+
+		$('div.characters div.character').on('dblclick', focus_object);
+		$('div.tokens div.token').on('dblclick', focus_object);
+
+		$('div.playarea').on('click', function() {
+			if (focus_obj != null) {
+				focus_obj.find('img').css('border', '');
+				focus_obj = null;
+			}
+		});
+
 		$('div.token[is_hidden=yes]').each(function() {
 			$(this).fadeTo(0, OBJECT_HIDDEN_FADE);
 		});
-
 		
 		$('div.light').each(function() {
 			var state = $(this).attr('state');
@@ -4309,7 +4371,7 @@ $(document).ready(function() {
 		$('div.character img').contextmenu(function(event) {
 			var menu_entries = {
 				'info': { name:'Get information', icon:'fa-info-circle' },
-				'view': { name:'View token', icon:'fa-search' }
+				'view': { name:'View', icon:'fa-search' }
 			}
 
 			var char_id = $(this).parent().attr('char_id');
@@ -4319,9 +4381,6 @@ $(document).ready(function() {
 			}
 
 			menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
-
-			var label = $(this).parent().is(focus_obj) ? 'Unfocus' : 'Focus';
-			menu_entries['focus'] = { name:label, icon:'fa-binoculars' };
 
 			menu_entries['sep1'] = '-';
 			menu_entries['distance'] = { name:'Measure distance', icon:'fa-map-signs' };
@@ -4535,7 +4594,7 @@ $(document).ready(function() {
 			$('div#' + my_char + ' img').contextmenu(function(event) {
 				var menu_entries = {
 					'info': { name:'Get information', icon:'fa-info-circle' },
-					'view': { name:'View token', icon:'fa-search' },
+					'view': { name:'View', icon:'fa-search' },
 					'distance': { name:'Measure distance', icon:'fa-map-signs' },
 					'sep1': '-',
 					'damage': { name:'Damage', icon:'fa-warning' },
@@ -4609,19 +4668,24 @@ $(document).ready(function() {
 
 			};
 
-			$('div.zones').on('DOMNodeRemoved', function() {
-				layer_removed('zones');
-			});
-
 			$('div.walls').on('DOMNodeRemoved', function() {
+				layer_removed('walls');
+			});
+			$('div.wall').on('DOMNodeRemoved', function() {
 				layer_removed('walls');
 			});
 
 			$('div.doors').on('DOMNodeRemoved', function() {
 				layer_removed('doors');
 			});
+			$('div.door').on('DOMNodeRemoved', function() {
+				layer_removed('doors');
+			});
 
 			$('div.blinders').on('DOMNodeRemoved', function() {
+				layer_removed('blinders');
+			});
+			$('div.blinder').on('DOMNodeRemoved', function() {
 				layer_removed('blinders');
 			});
 
@@ -4630,6 +4694,10 @@ $(document).ready(function() {
 			});
 			$('div.fog_of_war canvas').on('DOMNodeRemoved', function() {
 				layer_removed('fog of war');
+			});
+
+			$('div.pause').on('DOMNodeRemoved', function() {
+				layer_removed('pause');
 			});
 		}
 
@@ -4642,7 +4710,7 @@ $(document).ready(function() {
 		$('div.character:not(.mine) img').contextmenu(function(event) {
 			var menu_entries = {
 				'info': { name:'Get information', icon:'fa-info-circle' },
-				'view': { name:'View token', icon:'fa-search' },
+				'view': { name:'View', icon:'fa-search' },
 				'attack': { name:'Attack', icon:'fa-legal' },
 				'sep': '-',
 				'marker': { name:'Set marker', icon:'fa-map-marker' },
@@ -4664,6 +4732,22 @@ $(document).ready(function() {
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
+
+		/* Update character position
+		 */
+		window.setInterval(function() {
+			if (char_pos_changed == false) {
+				return;
+			}
+
+			$.post('/object/move', {
+				instance_id: my_character.prop('id'),
+				pos_x: char_pos_x,
+				pos_y: char_pos_y
+			});
+
+			char_pos_changed = false;
+		}, CHAR_POS_SAVE_DELAY * 1000);
 	}
 
 	/* Input field
@@ -4760,7 +4844,7 @@ $(document).ready(function() {
 		width: 450,
 		header: 'Create zone',
 		buttons: {
-			'Create zone': function() {
+			'Create': function() {
 				var width = parseInt($('input#width').val());
 				var height = parseInt($('input#height').val());
 				var color = $('input#color').val();
@@ -4797,6 +4881,9 @@ $(document).ready(function() {
 
 				zone_create(width, height, color, opacity, group, altitude);
 
+				$(this).close();
+			},
+			'Cancel': function() {
 				$(this).close();
 			}
 		}
@@ -4916,6 +5003,8 @@ $(document).ready(function() {
 		for ([key, value] of Object.entries(rolls)) {
 			var roll = value['roll'];
 			var global = value['global'];
+
+			key = key.replace('"', '&quot;');
 
 			if (global) {
 				var button = $('<div class="btn-group"><input type="button" value="' + key + '" title="' + roll + '" class="btn btn-default roll" /><input type="button" value="X" class="btn btn-default remove" /></div>');

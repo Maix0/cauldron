@@ -1,4 +1,4 @@
-const FOW_COLOR_SHADOW = '#181818';
+const FOW_COLOR = '#202020';
 const CELL_PADDING = 0.25;
 const POINTS_VISIBLE = 2;
 
@@ -199,6 +199,8 @@ function enlightened(x, y) {
 			$('div.door').each(function() {
 				if ($(this).attr('state') == 'open') {
 					return true;
+				} else if ($(this).attr('bars') == 'yes') {
+					return true;
 				}
 
 				light_spot = check_lighting(pos, light_pos, $(this), light_spot);
@@ -235,7 +237,7 @@ function fog_of_war_init(z_index) {
 		for (var x = 0; x < fog_of_war_map_width; x++) {
 			var left = x * grid_cell_size;
 			var top = y * grid_cell_size;
-			var fog = '<div id="fog_of_war_' + x + '_' + y +'" class="fow" style="position:absolute; z-index:' + z_index + '; left:' + left + 'px; top:' + top + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; background-color:' + FOW_COLOR_SHADOW + ';" />';
+			var fog = '<div id="fog_of_war_' + x + '_' + y +'" class="fow" style="position:absolute; z-index:' + z_index + '; left:' + left + 'px; top:' + top + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; background-color:' + FOW_COLOR + ';" />';
 
 			$('div.fog_of_war').append(fog);
 		}
@@ -323,6 +325,8 @@ function fog_of_war_update(obj) {
 
 	$('div.door').each(function() {
 		if ($(this).attr('state') == 'open') {
+			return true;
+		} else if ($(this).attr('bars') == 'yes') {
 			return true;
 		}
 

@@ -402,7 +402,8 @@
 				"length"    => (int)$door["length"],
 				"direction" => $door["direction"],
 				"state"     => $door["state"],
-				"secret"    => is_true($door["secret"]) ? YES : NO);
+				"secret"    => is_true($door["secret"]) ? YES : NO,
+				"bars"      => is_true($door["bars"]) ? YES : NO);
 
 			if ($this->db->insert("doors", $data) === false) {
 				return false;
@@ -431,6 +432,15 @@
 			}
 
 			$data = array("secret" => is_true($secret) ? YES : NO);
+			return $this->db->update("doors", $door_id, $data) !== false;
+		}
+
+		public function door_bars($door_id, $bars) {
+			if ($this->valid_door_id($door_id) == false) {
+				return false;
+			}
+
+			$data = array("bars" => is_true($bars) ? YES : NO);
 			return $this->db->update("doors", $door_id, $data) !== false;
 		}
 
@@ -700,15 +710,16 @@
 		}
 
 		public function collectables_get_found($adventure_id) {
-			if ($this->valid_adventure_id($adventure_id) == false) {
-				$query = "select a.access from adventures a, users u ".
-				         "where a.id=%d and a.dm_id=u.id and u.organisation_id=%d";
-				if (($adventure = $this->db->execute($query, $adventure_id, $this->user->organisation_id)) == false) {
-					return false;
-				}
+			if ($this->user->is_admin == false) {
+				if ($this->valid_adventure_id($adventure_id) == false) {
+					$query = "select access from adventures where id=%d";
+					if (($adventure = $this->db->execute($query, $adventure_id)) == false) {
+						return false;
+					}
 
-				if ($adventure[0]["access"] != ADVENTURE_ACCESS_PLAYERS_SPECTATORS) {
-					return false;
+					if ($adventure[0]["access"] != ADVENTURE_ACCESS_PLAYERS_SPECTATORS) {
+						return false;
+					}
 				}
 			}
 

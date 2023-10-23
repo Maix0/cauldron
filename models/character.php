@@ -44,7 +44,7 @@
 					$result = false;
 				}
 
-				if (filesize($token["tmp_name"]) > 300 * 1024) {
+				if (filesize($token["tmp_name"]) > MAX_CHARACTER_TOKEN_SIZE) {
 					$this->view->add_message("Icon size too big.");
 					$result = false;
 				}
@@ -83,6 +83,17 @@
 				if ($this->get_character($character["id"]) == false) {
 					$this->view->add_message("Character not found.");
 					$result = false;
+				}
+			} else {
+				$query = "select count(*) as count from characters where user_id=%d";
+				if (($count = $this->db->execute($query, $this->user->id)) === false) {
+					$this->view->add_message("Database error.");
+					return false;
+				}
+
+				if ($count[0]["count"] >= MAX_CHARACTER_COUNT) {
+					$this->view->add_message("Maximum number of characters reached.");
+					return false;
 				}
 			}
 
@@ -407,16 +418,6 @@
 			if (trim($weapon["name"]) == "") {
 				$this->view->add_message("Invalid name.");
 				$result = false;
-			} else {
-				$query = "select count(*) as count from character_weapons where name=%s and character_id=%d";
-				if (($result = $this->db->execute($query, $weapon["name"], $weapon["char_id"])) === false) {
-					$this->view->add_message("Database error.");
-					$result = false;
-				}
-				if ($result[0]["count"] > 0) {
-					$this->view->add_message("A weapon with that name already exists.");
-					$result = false;
-				}
 			}
 
 			if (trim($weapon["roll"]) == "") {
@@ -463,13 +464,27 @@
 		}
 
 		public function add_weapon($weapon) {
-			$data = array(
-				"id"           => null,
-				"character_id" => $weapon["char_id"],
-				"name"         => $weapon["name"],
-				"roll"         => $weapon["roll"]);
+			$query = "select id from character_weapons where name=%s and character_id=%d";
+			if (($current = $this->db->execute($query, $weapon["name"], $weapon["char_id"])) === false) {
+				$this->view->add_message("Database error.");
+				return false;
+			}
 
-			return $this->db->insert("character_weapons", $data) != false;
+			if (count($current) == 0) {
+				$data = array(
+					"id"           => null,
+					"character_id" => $weapon["char_id"],
+					"name"         => $weapon["name"],
+					"roll"         => $weapon["roll"]);
+
+				return $this->db->insert("character_weapons", $data) != false;
+			} else {
+				$data = array(
+					"name"         => $weapon["name"],
+					"roll"         => $weapon["roll"]);
+
+				return $this->db->update("character_weapons", $current[0]["id"], $data) !== false;
+			}
 		}
 
 		public function delete_weapon($weapon_id) {

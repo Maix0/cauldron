@@ -15,8 +15,17 @@ function update_sheet_form() {
 			$('div.sheet_url').show();
 			break;
 	}
+}
 
-	console.log(type);
+function token_selected() {
+	$('div.token_type input').removeAttr('disabled');
+
+	$('span.select').fadeIn(1000);
+	$('span.select').fadeOut(1000);
+	$('span.select').fadeIn(1000);
+	$('span.select').fadeOut(1000);
+	$('span.select').fadeIn(1000);
+	$('span.select').fadeOut(1000);
 }
 
 $(document).ready(function() {

@@ -70,6 +70,13 @@ div.pause span {
 	right:0;
 }
 
+div.loading span img,
+div.pause span img {
+	display:block;
+	width:150px;
+	margin:0 auto;
+}
+
 div.pause {
 	display:none;
 }

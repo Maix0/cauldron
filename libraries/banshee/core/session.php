@@ -35,6 +35,24 @@
 				return;
 			}
 
+			$timeout = $this->settings->session_timeout;
+			if (substr($timeout, -1) == "s") {
+				$timeout = substr($timeout, 0, -1);
+			}
+			if (substr($timeout, -3) == "day") {
+				$timeout = trim(substr($timeout, 0, -3));
+				$multiplier = DAY;
+			} else if (substr($timeout, -4) == "week") {
+				$timeout = trim(substr($timeout, 0, -4));
+				$multiplier = 7 * DAY;
+			} else if (substr($timeout, -5) == "month") {
+				$timeout = trim(substr($timeout, 0, -5));
+				$multiplier = 31 * DAY;
+			} else {
+				$multiplier = 1;
+			}
+			$this->timeout = (int)$timeout * $multiplier;
+
 			$query = "delete from sessions where expire<=%s";
 			if ($this->db->query($query, date("Y-m-d H:i:s")) === false) {
 				$this->error = true;
@@ -67,7 +85,7 @@
 
 			$session_data = array("content" => json_encode($_SESSION));
 			if (($this->settings->session_persistent == false) && ($this->user_id !== null)) {
-				$session_data["expire"] = date("Y-m-d H:i:s", time() + $this->settings->session_timeout);
+				$session_data["expire"] = date("Y-m-d H:i:s", time() + $this->timeout);
 			}
 
 			$this->db->update("sessions", $this->id, $session_data);
@@ -171,7 +189,7 @@
 			$this->id = $this->db->last_insert_id;
 			$this->session_id = $session_data["session_id"];
 
-			$timeout = is_true($this->settings->session_persistent) ? time() + $this->settings->session_timeout : 0;
+			$timeout = is_true($this->settings->session_persistent) ? time() + $this->timeout : 0;
 			setcookie(self::SESSION_NAME, $this->session_id, $timeout, "/", "", is_true(ENFORCE_HTTPS), true);
 			$_COOKIE[self::SESSION_NAME] = $this->session_id;
 
@@ -218,13 +236,13 @@
 			}
 
 			$login_id = hash("sha512", random_string(128));
-			$timeout = is_true($this->settings->session_persistent) ? time() + $this->settings->session_timeout : 0;
+			$timeout = is_true($this->settings->session_persistent) ? time() + $this->timeout : 0;
 			setcookie(self::SESSION_LOGIN, $login_id, $timeout, "/", "", is_true(ENFORCE_HTTPS), true);
 
 			$user_data = array(
 				"user_id"    => (int)$user_id,
 				"login_id"   => $login_id,
-				"expire"     => date("Y-m-d H:i:s", time() + $this->settings->session_timeout),
+				"expire"     => date("Y-m-d H:i:s", time() + $this->timeout),
 				"ip_address" => $_SERVER["REMOTE_ADDR"]);
 
 			return $this->db->update("sessions", $this->id, $user_data) !== false;

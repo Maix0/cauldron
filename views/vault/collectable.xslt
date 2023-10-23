@@ -13,12 +13,13 @@
 
 <table class="table table-condensed table-striped table-hover">
 <thead>
-<tr><th>Name</th><th>Found</th><th>Hide token</th><th>Placed</th></tr>
+<tr><th>Name</th><th>Location</th><th>Found</th><th>Hide token</th><th>Placed</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="collectables/collectable">
 <tr class="click" onClick="javascript:document.location='/{/output/page}/{@id}'">
 <td><xsl:value-of select="name" /></td>
+<td><xsl:value-of select="location" /></td>
 <td><xsl:value-of select="found" /></td>
 <td><xsl:value-of select="hide" /></td>
 <td><xsl:value-of select="placed" /></td>
@@ -63,8 +64,8 @@
 <label>Location:</label>
 <input readonly="readonly" value="{collectable/location}" class="form-control" />
 </xsl:if>
-<div>Collectable has been found (visible in inventory): <input type="checkbox" name="found"><xsl:if test="collectable/found='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
-<div>Hide containing token when collectable is found: <input type="checkbox" name="hide"><xsl:if test="collectable/hide='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input></div>
+<div class="option"><input type="checkbox" name="found"><xsl:if test="collectable/found='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Collectable has been found (visible in inventory).</div>
+<div class="option"><input type="checkbox" name="hide"><xsl:if test="collectable/hide='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Hide containing token when collectable is found.</div>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save collectable" class="btn btn-default" />

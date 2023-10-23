@@ -1,4 +1,4 @@
-const FOW_COLOR_SHADOW = '#181818';
+const FOW_COLOR = '#202020';
 const FOW_LIGHT_EDGE = 0.75;
 const FOW_COVERED_CHECKS = 2;
 
@@ -135,8 +135,8 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 	l_canvas.height = canvas.height;
 	var l_ctx = l_canvas.getContext('2d');
 
-	l_ctx.fillStyle = FOW_COLOR_SHADOW;
-	l_ctx.strokeStyle = FOW_COLOR_SHADOW;
+	l_ctx.fillStyle = FOW_COLOR;
+	l_ctx.strokeStyle = FOW_COLOR;
 	l_ctx.lineWidth = 1;
 	l_ctx.fillRect(0, 0, l_canvas.width, l_canvas.height);
 
@@ -154,7 +154,7 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 	l_ctx.fillRect(pos_x - radius, pos_y - radius, 2 * radius, 2 * radius);
 
 	l_ctx.globalCompositeOperation = 'source-over';
-	l_ctx.fillStyle = FOW_COLOR_SHADOW;
+	l_ctx.fillStyle = FOW_COLOR;
 
 	/* Walls
 	 */
@@ -170,6 +170,8 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 	 */
 	$('div.door').each(function() {
 		if ($(this).attr('state') == 'open') {
+			return true;
+		} else if ($(this).attr('bars') == 'yes') {
 			return true;
 		}
 
@@ -220,8 +222,8 @@ function fog_of_war_init(z_index) {
 
 	if (ctx == null) {
 		ctx = canvas.getContext('2d');
-		ctx.fillStyle = FOW_COLOR_SHADOW;
-		ctx.strokeStyle = FOW_COLOR_SHADOW;
+		ctx.fillStyle = FOW_COLOR;
+		ctx.strokeStyle = FOW_COLOR;
 		ctx.lineWidth = 1;
 	}
 }
@@ -290,6 +292,8 @@ function fog_of_war_update(obj) {
 	 */
 	$('div.door').each(function() {
 		if ($(this).attr('state') == 'open') {
+			return true;
+		} else if ($(this).attr('bars') == 'yes') {
 			return true;
 		}
 

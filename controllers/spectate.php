@@ -118,6 +118,7 @@
 			$this->view->set_layout("adventure");
 
 			$this->view->add_javascript("webui/jquery-ui.js");
+			$this->view->add_javascript("webui/jquery.ui.touch-punch.js");
 			$this->view->add_javascript("includes/context_menu.js");
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("includes/library.js");
@@ -125,29 +126,21 @@
 				$this->view->add_javascript("includes/grid.js");
 			}
 			$this->view->add_javascript("spectate.js");
-			if ($active_map["fog_of_war"] > 0) {
-				if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
-					$type = "real";
-				} else {
-					$type = "cell";
-				}
-				$this->view->add_javascript("includes/fog_of_war_".$type.".js");
-			}
 
 			$this->view->add_tag("back", $this->user->is_admin ? "spectate" : "adventure");
 
 			$this->view->add_css("banshee/font-awesome.css");
 			$this->view->add_css("includes/context_menu.css");
 
-			$group_key = hash_hmac("sha256", $adventure["title"], $this->settings->secret_website_code);
-			$group_key = substr($group_key, 0, 12);
-
-			$attr = array(
-				"id"             => $adventure["id"],
-				"group_key"      => $group_key,
-				"grid_cell_size" => $grid_cell_size);
+			$attr = array("id" => $adventure["id"]);
 			$this->view->open_tag("adventure", $attr);
 			$this->view->record($adventure);
+
+			$group_key = hash_hmac("sha256", $adventure["title"], $this->settings->secret_website_code);
+			$group_key = substr($group_key, 0, 12);
+			$this->view->add_tag("group_key", $group_key);
+
+			$this->view->add_tag("grid_cell_size", $grid_cell_size);
 
 			/* Websocket
 			 */
@@ -189,6 +182,8 @@
 				 */
 				$this->view->open_tag("doors");
 				foreach ($doors as $door) {
+					$door["secret"] = show_boolean($door["secret"]);
+					$door["bars"] = show_boolean($door["bars"]);
 					$this->view->record($door, "door");
 				}
 				$this->view->close_tag();

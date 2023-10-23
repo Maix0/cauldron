@@ -25,6 +25,12 @@
 <input type="text" id="email" name="email" value="{email}" class="form-control" />
 <label>Organisation:</label>
 <input type="text" disabled="disabled" value="{organisation}" class="form-control" />
+<label for="keyboard">Keyboard layout:</label>
+<select id="keyboard" name="keyboard" class="form-control">
+<xsl:for-each select="keyboards/keyboard">
+<option value="{@value}"><xsl:if test="@value=../../keyboard"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option>
+</xsl:for-each>
+</select>
 <label for="current">Current password:</label>
 <input type="password" id="current" name="current" class="form-control" />
 <label for="password">New password:</label> <span class="blank" style="font-size:10px">(will not be changed when left blank)</span>
@@ -41,7 +47,6 @@
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Update profile" class="btn btn-default" />
-<a href="/{@logout}" class="btn btn-default">Logout</a>
 </div>
 <xsl:if test="/output/user/@admin='no'">
 <div class="btn-group">

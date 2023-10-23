@@ -94,9 +94,10 @@
 				return false;
 			}
 
-			ob_start();
-			unlink("resources/".$this->resources_key."/tokens/".$token_id.".".$current["extension"]);
-			ob_end_clean();
+			$filename = "resources/".$this->resources_key."/tokens/".$token_id.".".$current["extension"];
+			if (file_exists($filename)) {
+				unlink($filename);
+			}
 
 			return true;
 		}

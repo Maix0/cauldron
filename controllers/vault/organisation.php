@@ -61,11 +61,11 @@
 					} else if (isset($_POST["id"]) === false) {
 						/* Create organisation
 						 */
-						if ($this->model->create_organisation($_POST) === false) {
+						if (($organisation_id = $this->model->create_organisation($_POST)) === false) {
 							$this->view->add_message("Error creating organisation.");
 							$this->show_organisation_form($_POST);
 						} else {
-							$this->user->log_action("organisation %d created", $this->db->last_insert_id);
+							$this->user->log_action("organisation %d created", $organisation_id);
 							$this->show_overview();
 						}
 					} else {

@@ -14,6 +14,7 @@
 			$query = "select *, (select count(*) from users where organisation_id=o.id) as users, ".
 			         "(select count(*) from adventures a, users u where a.dm_id=u.id and u.organisation_id=o.id) as adventures, ".
 			         "(select count(*) from tokens t where t.organisation_id=o.id) as tokens, ".
+			         "(select count(*) from characters c, users u where c.user_id=u.id and u.organisation_id=o.id) as characters, ".
 			         "(select count(*) from maps m, adventures a, users u where m.adventure_id=a.id and a.dm_id=u.id and u.organisation_id=o.id) as maps, ".
 			         "(select count(*) from map_token t, maps m, adventures a, users u where t.map_id=m.id and m.adventure_id=a.id and a.dm_id=u.id and u.organisation_id=o.id) as placed ".
 			         "from organisations o order by name limit %d,%d";
@@ -44,7 +45,7 @@
 				$this->view->add_message("Database error.");
 				$result = false;
 			} else if ($check != false) {
-				if ($check["id"] != $organisation["id"]) {
+				if ($check["id"] != ($organisation["id"] ?? null)) {
 					$this->view->add_message("Organisation name already exists.");
 					$result = false;
 				}
@@ -66,12 +67,14 @@
 				return false;
 			}
 
+			$organisation_id = $this->db->last_insert_id;
+
 			mkdir("resources/".$resources_key, 0755);
 			foreach (USER_SUB_DIRECTORIES as $directory) {
 				mkdir("resources/".$resources_key."/".$directory, 0755);
 			}
 
-			return true;
+			return $organisation_id;
 		}
 
 		public function update_organisation($organisation) {

@@ -9,3 +9,5 @@ for combat, like Dungeons & Dragons and Pathfinder.
 You can create a free account at https://www.cauldron-vtt.net/ or host it on
 your own server. It's written in PHP and Javascript and uses a MySQL database
 to store game information and a websocket for client-to-client communication.
+
+![Cauldron VTT screenshot](https://gitlab.com/hsleisink/cauldron/-/raw/master/public/images/screenshot.png)

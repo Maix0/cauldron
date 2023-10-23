@@ -7,7 +7,7 @@
 			         "left join adventure_character i on a.id=i.adventure_id ".
 			         "left join characters c on i.character_id=c.id ".
 			         "where a.dm_id=u.id and (a.dm_id=%d or c.user_id=%d) ".
-					 "having maps> 0 order by timestamp desc";
+					 "having maps> 0 order by title";
 
 			if (($adventures = $this->db->execute($query, $this->user->id, $this->user->id, ADVENTURE_ACCESS_PLAYERS_SPECTATORS)) === false) {
 				return false;

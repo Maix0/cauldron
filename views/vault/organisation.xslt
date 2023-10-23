@@ -14,11 +14,12 @@
 <tr>
 <th>Name</th>
 <th>Users</th>
+<th>Characters</th>
 <th>Tokens</th>
 <th>Adventures</th>
 <th>Maps</th>
 <th>Tokens placed</th>
-<th>Max resources (MB)</th>
+<th>Space (MB)</th>
 <th>Days idle</th>
 </tr>
 </thead>
@@ -27,6 +28,7 @@
 <tr class="click" onClick="javascript:document.location='/{/output/page}/{@id}'">
 <td><xsl:value-of select="name" /></td>
 <td><xsl:value-of select="users" /></td>
+<td><xsl:value-of select="characters" /></td>
 <td><xsl:value-of select="tokens" /></td>
 <td><xsl:value-of select="adventures" /></td>
 <td><xsl:value-of select="maps" /></td>

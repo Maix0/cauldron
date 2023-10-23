@@ -3,7 +3,7 @@
 		public function get_adventures() {
 			$query = "select *, (select count(*) from adventure_character where adventure_id=a.id) as players, ".
 			         "(select count(*) from maps where adventure_id=a.id) as maps ".
-			         "from adventures a where dm_id=%d order by timestamp desc";
+			         "from adventures a where dm_id=%d order by title";
 
 			return $this->db->execute($query, $this->user->id);
 		}
@@ -126,6 +126,8 @@
 				$this->view->add_message("Adventure not found.");
 				return false;
 			}
+
+			$adventure = array_merge(array("version" => EXPORT_VERSION), $adventure);
 
 			unset($adventure["id"]);
 			unset($adventure["dm_id"]);

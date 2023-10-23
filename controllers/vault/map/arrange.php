@@ -107,7 +107,7 @@
 			foreach ($blinders as $blinder) {
 				$fields = array("pos1_x", "pos1_y", "pos2_x", "pos2_y");
 				foreach ($fields as $field) {
-					$blinder[$field] = $blinder[$field] * $grid_cell_size / $map["grid_size"];
+					$blinder[$field] = round($blinder[$field] * $grid_cell_size / $map["grid_size"]);
 				}
 				$this->view->record($blinder, "blinder");
 			}
@@ -126,6 +126,7 @@
 			$this->view->open_tag("doors");
 			foreach ($doors as $door) {
 				$door["secret"] = show_boolean($door["secret"]);
+				$door["bars"] = show_boolean($door["bars"]);
 				$this->view->record($door, "door");
 			}
 			$this->view->close_tag();

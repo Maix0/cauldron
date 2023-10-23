@@ -1,9 +1,11 @@
 <?php
 	class vault_collectable_model extends cauldron_model {
 		public function get_collectables() {
-			$query = "select * from collectables where adventure_id=%d order by name";
+			$query = "select c.*, concat(%s, t.name, %s, m.title) as location from collectables c ".
+			         "left join map_token h on c.map_token_id=h.id left join tokens t on h.token_id=t.id ".
+			         "left join maps m on h.map_id=m.id where c.adventure_id=%d order by c.name";
 
-			return $this->db->execute($query, $_SESSION["edit_adventure_id"]);
+			return $this->db->execute($query, "Token ", " in map ", $_SESSION["edit_adventure_id"]);
 		}
 
 		public function get_collectable($collectable_id) {
@@ -21,7 +23,7 @@
 			         "where h.id=%d and h.token_id=t.id and h.map_id=m.id";
 
 				if (($result = $this->db->execute($query, $collectable["map_token_id"])) != false) {
-					$collectable["location"] = "Placed in token ".$result[0]["name"]." in map ".$result[0]["title"].".";
+					$collectable["location"] = "Token ".$result[0]["name"]." in map ".$result[0]["title"];
 				}
 			}
 
@@ -105,9 +107,10 @@
 					return false;
 				}
 
-				ob_start();
-				unlink("resources/".$this->user->resources_key."/collectables/".$current["image"]);
-				ob_end_clean();
+				$filename = "resources/".$this->user->resources_key."/collectables/".$current["image"];
+				if (file_exists($filename)) {
+					unlink($filename);
+				}
 
 				$collectable["image"] = $this->make_filename($collectable["id"], $image["name"]);
 				if ($this->save_image($image, $collectable["image"])) {
@@ -143,9 +146,10 @@
 				return false;
 			}
 
-			ob_start();
-			unlink("resources/".$this->user->resources_key."/collectables/".$current["image"]);
-			ob_end_clean();
+			$filename = "resources/".$this->user->resources_key."/collectables/".$current["image"];
+			if (file_exists($filename)) {
+				unlink($filename);
+			}
 
 			return true;
 		}

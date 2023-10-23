@@ -112,10 +112,9 @@
 					"name"          => "Group ".($result[0]["id"] + 1),
 					"max_resources" => $this->settings->default_max_resources);
 
-				if ($this->borrow("vault/organisation")->create_organisation($organisation) == false) {
+				if (($organisation_id = $this->borrow("vault/organisation")->create_organisation($organisation)) === false) {
 					return false;
 				}
-				$organisation_id = $this->db->last_insert_id;
 
 				$roles = array(USER_MAINTAINER_ROLE_ID, PLAYER_ROLE_ID, DUNGEON_MASTER_ROLE_ID);
 			} else {
@@ -148,6 +147,7 @@
 				"FULLNAME" => $data["fullname"],
 				"EMAIL"    => $data["email"],
 				"USERNAME" => $data["username"],
+				"GROUP"    => "Group ".$organisation_id,
 				"WEBSITE"  => $this->settings->head_title,
 				"IP_ADDR"  => $_SERVER["REMOTE_ADDR"],
 				"DM"       => show_boolean($user_is_dm)));

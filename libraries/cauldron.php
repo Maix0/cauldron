@@ -1,13 +1,18 @@
 <?php
-	define("CAULDRON_VERSION", "3.0");
+	define("CAULDRON_VERSION", "3.1");
 
-    define("PLAYER_ROLE_ID", 2);
+	define("PLAYER_ROLE_ID", 2);
 	define("DUNGEON_MASTER_ROLE_ID", 3);
 	define("USER_MAINTAINER_ROLE_ID", 4);
 
 	define("ADVENTURE_ACCESS_DM_ONLY", 0);
 	define("ADVENTURE_ACCESS_PLAYERS", 1);
 	define("ADVENTURE_ACCESS_PLAYERS_SPECTATORS", 2);
+
+	define("MAX_CHARACTER_COUNT", 12);
+	define("MAX_CHARACTER_TOKEN_SIZE", 300 * 1024);
+
+	define("KEYBOARDS", array("Qwerty", "Azerty", "Qwertz"));
 
 	define("FOW_OFF", 0);
 	define("FOW_DAY_CELL", 1);
@@ -18,6 +23,8 @@
 
 	define("MARKET_DIRECTORY", "files/market/");
 	define("BRUSH_DIRECTORY", "files/brushes/");
+
+	define("EXPORT_VERSION", 3);
 
 	define("USER_SUB_DIRECTORIES", array("audio", "brushes", "characters",
 		"collectables", "effects", "maps", "tokens"));

@@ -33,9 +33,11 @@
 </xsl:for-each>
 </div>
 
+<xsl:if test="count(characters/character)&lt;characters/@max">
 <div class="btn-group left">
 <a href="/{/output/page}/new" class="btn btn-default">New character</a>
 </div>
+</xsl:if>
 </xsl:template>
 
 <!--
@@ -63,13 +65,14 @@
 <label for="token">Token image:</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
-<input type="file" name="token" style="display:none" class="form-control" onChange="javascript:$('#upload-token').val(this.files[0].name); $('div.token_type input').removeAttr('disabled');" />Select image</label></span>
+<input type="file" name="token" style="display:none" class="form-control" onChange="javascript:$('#upload-token').val(this.files[0].name); token_selected();" />Select image</label></span>
 <input type="text" id="upload-token" readonly="readonly" class="form-control" />
 </div>
 <div class="radio-group token_type">
 <input type="hidden" name="token_type_backup" value="{character/token_type}" />
 <span><input type="radio" name="token_type" value="topdown" disabled="disabled"><xsl:if test="character/token_type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top down token image</span>
 <span><input type="radio" name="token_type" value="portrait" disabled="disabled"><xsl:if test="character/token_type='portrait'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Portrait token image</span>
+<span class="select">&lt;-- select the token type</span>
 </div>
 <label for="sheet">Character sheet:</label>
 <div class="radio-group">
@@ -130,14 +133,13 @@
 </div>
 
 <div class="col-sm-8">
-
 <div class="row">
 <xsl:for-each select="alternate">
 <div class="col-md-3 col-sm-4 col-xs-6"><div class="alternate"><img src="/resources/{/output/cauldron/resources_key}/characters/{character_id}_{@id}.{extension}" class="token" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="token_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
 </xsl:for-each>
 </div>
-
 </div>
+
 </div>
 </xsl:template>
 
@@ -167,8 +169,6 @@
 </div>
 
 <div class="col-sm-8">
-
-<div class="row">
 <table class="table table-striped table-condensed weapons">
 <thead><tr><th>Weapon</th><th>Roll</th><th></th></tr></thead>
 <tbody>
@@ -176,7 +176,7 @@
 <tr>
 <td><xsl:value-of select="name" /></td>
 <td><xsl:value-of select="roll" /></td>
-<td><form action="/{/output/page}" method="post"><input type="hidden" name="weapon_id" value="{@id}" /><input type="submit" name="submit_button" value="remove" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></td>
+<td><form action="/{/output/page}" method="post"><input type="hidden" name="weapon_id" value="{@id}" /><span class="btn-group"><input type="button" value="edit" class="btn btn-default btn-xs" onClick="javascript:edit_weapon(this)" /><input type="submit" name="submit_button" value="remove" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></span></form></td>
 </tr>
 </xsl:for-each>
 </tbody>
@@ -184,11 +184,11 @@
 </div>
 
 </div>
-</div>
 
 <div id="help">
 <p>The weapons and their dice rolls will be added to the Dice roll window of the adventure page.</p>
 <p>The roll field must contain a valid dice roll string, like '1d8+2' or '3d6'.</p>
+<p>You can of course also add rolls for spells and even ability checks here.</p>
 </div>
 </xsl:template>
 

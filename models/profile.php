@@ -115,7 +115,7 @@
 		}
 
 		public function update_profile($profile) {
-			$keys = array("fullname", "email");
+			$keys = array("fullname", "email", "keyboard");
 
 			if ($profile["password"] != "") {
 				array_push($keys, "password");

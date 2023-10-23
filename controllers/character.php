@@ -10,7 +10,7 @@
 
 			$this->view->open_tag("overview");
 
-			$this->view->open_tag("characters");
+			$this->view->open_tag("characters", array("max" => MAX_CHARACTER_COUNT));
 			foreach ($characters as $character) {
 				if ($character["title"] == "") {
 					$character["title"] = "(none)";
@@ -73,6 +73,8 @@
 		}
 
 		private function show_weapon_form($character_id) {
+			$this->view->add_javascript("character_weapons.js");
+
 			$this->view->title = "Character weapons";
 
 			if (($character = $this->model->get_character($character_id)) == false) {
@@ -176,7 +178,7 @@
 					 */
 					if ($this->model->weapon_okay($_POST) != false) {
 						if ($this->model->add_weapon($_POST) == false) {
-							$this->view->add_message("Error adding alternate token.");
+							$this->view->add_message("Error adding weapon.");
 						}
 					} else {
 						$this->view->add_tag("name", $_POST["name"]);

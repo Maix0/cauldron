@@ -24,6 +24,7 @@
 <li>Add those characters to your adventure via the <a href="/vault/players">DM's Vault Players section</a>.</li>
 <li>Start the adventure and have fun!</li>
 </ul>
+<p>I would appreciate it if you <a href="/questionnaire/1">answer a few questions</a> about Cauldron VTT. I will take less than a minute.</p>
 <div class="btn-group">
 <a href="/vault/adventure/new" class="btn btn-primary">Create your own adventure</a>
 <a href="/vault/adventure/market" class="btn btn-primary">Browse the adventure market</a>
@@ -110,8 +111,8 @@
 </xsl:if>
 <!-- Windows -->
 <xsl:if test="map">
-<div class="loading"><span>Loading...</span></div>
-<div class="pause"><span>Game paused</span></div>
+<div class="loading"><span><img src="/images/cauldron.png" />Loading...</span></div>
+<div class="pause"><span><img src="/images/cauldron.png" />Game paused</span></div>
 <!-- Journal -->
 <div class="journal" style="display:none">
 <div class="entries">
@@ -143,11 +144,11 @@
 <!-- Effects -->
 <div class="effect_create" style="display:none">
 <xsl:for-each select="effects/effect">
-<img src="/{.}" title="{@name}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" class="effect" /><xsl:text>
+<img src="/{.}" title="{@name}" style="width:{../../grid_cell_size}px; height:{../../grid_cell_size}px;" class="effect" /><xsl:text>
 </xsl:text></xsl:for-each>
 </div>
 <!-- Play area -->
-<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" adventure_id="{@id}" map_id="{map/@id}" start_x="{map/start_x}" start_y="{map/start_y}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
+<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{group_key}" adventure_id="{@id}" map_id="{map/@id}" start_x="{map/start_x}" start_y="{map/start_y}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}" keyboard="{keyboard}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div id="map_background">
@@ -176,13 +177,13 @@
 <!-- Doors -->
 <div class="doors">
 <xsl:for-each select="doors/door">
-<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" secret="{secret}" />
+<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" secret="{secret}" bars="{bars}" />
 </xsl:for-each>
 </div>
 <!-- Lights -->
 <div class="lights">
 <xsl:for-each select="lights/light">
-<div id="light{@id}" class="light" radius="{radius}" state="{state}" style="left:{pos_x}px; top:{pos_y}px; width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
+<div id="light{@id}" class="light" radius="{radius}" state="{state}" style="left:{pos_x}px; top:{pos_y}px; width:{../../grid_cell_size}px; height:{../../grid_cell_size}px;" />
 </xsl:for-each>
 </div>
 <!-- Blinders -->
@@ -283,7 +284,7 @@
 <div class="library">
 <xsl:for-each select="library/token">
 <div class="well well-sm">
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" style="max-width:{../../@grid_cell_size}px; max-height:{../../@grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" style="max-width:{../../grid_cell_size}px; max-height:{../../grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" />
 <div class="name"><xsl:value-of select="name" /></div>
 <div>Size: <xsl:value-of select="width" /> &#215; <xsl:value-of select="height" /></div>
 <div>HP: <xsl:value-of select="hitpoints" /></div>

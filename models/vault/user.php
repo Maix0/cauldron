@@ -237,12 +237,13 @@
 		}
 
 		public function create_user($user, $register = false) {
-			$keys = array("id", "organisation_id", "username", "password", "one_time_key", "cert_serial", "status", "authenticator_secret", "fullname", "email");
+			$keys = array("id", "organisation_id", "username", "password", "one_time_key", "cert_serial", "status", "authenticator_secret", "fullname", "email", "keyboard");
 
 			$user["id"] = null;
 			$user["username"] = strtolower($user["username"]);
 			$user["password"] = password_hash($user["password"], PASSWORD_ALGORITHM);
 			$user["one_time_key"] = null;
+			$user["keyboard"] = 0;
 
 			if (($this->user->is_admin == false) && ($register == false)) {
 				$user["organisation_id"] = $this->user->organisation_id;
@@ -420,11 +421,17 @@
 			}
 
 			foreach ($characters as $character) {
-				unlink("resources/".$resources_key."/characters/".$character["id"].".".$character["extension"]);
+				$filename = "resources/".$resources_key."/characters/".$character["id"].".".$character["extension"];
+				if (file_exists($filename)) {
+					unlink($filename);
+				}
 			}
 
             foreach ($alternates as $alternate) {
-                unlink("resources/".$resources_key."/characters/".$alternate["character_id"]."_".$alternate["id"].".".$alternate["extension"]);
+                $filename = "resources/".$resources_key."/characters/".$alternate["character_id"]."_".$alternate["id"].".".$alternate["extension"];
+                if (file_exists($filename)) {
+                	unlink($filename);
+                }
             }
 
 			return true;

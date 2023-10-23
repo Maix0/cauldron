@@ -31,12 +31,20 @@
 				"authenticator" => show_boolean(USE_AUTHENTICATOR),
 				"logout"        => LOGOUT_MODULE));
 
-
 			$this->view->add_tag("username", $this->user->username);
 			$this->view->add_tag("organisation", $organisation);
+			$this->view->add_tag("keyboard", $this->user->keyboard);
 			foreach (array_keys($profile) as $key) {
 				$this->view->add_tag($key, $profile[$key]);
 			}
+
+			$keyboards = KEYBOARDS;
+			asort($keyboards);
+			$this->view->open_tag("keyboards");
+			foreach ($keyboards as $i => $keyboard) {
+				$this->view->add_tag("keyboard", $keyboard, array("value" => $i));
+			}
+			$this->view->close_tag();
 
 			/* Action log
 			 */

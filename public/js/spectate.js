@@ -1,9 +1,6 @@
 const ROLL_NORMAL = 0;
 const ROLL_ADVANTAGE = 1;
 const ROLL_DISADVANTAGE = 2;
-const FOW_OFF = 0;
-const FOW_DAY = 1;
-const FOW_NIGHT = 2;
 
 const DEFAULT_Z_INDEX = 10000;
 const LAYER_TOKEN = DEFAULT_Z_INDEX;
@@ -14,6 +11,13 @@ const LAYER_MARKER = DEFAULT_Z_INDEX + 4;
 const LAYER_MENU = DEFAULT_Z_INDEX + 5;
 const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
 
+const DOOR_SECRET = '#a0a000';
+const DOOR_OPEN = '#40c040';
+const DOOR_OPACITY = '0.6';
+
+const DRAW_DEFAULT_COLOR = 1;
+const DRAW_DEFAULT_WIDTH = 5;
+
 var websocket;
 var group_key = null;
 var adventure_id = null;
@@ -23,13 +27,10 @@ var resources_key = null;
 var grid_cell_size = null;
 var z_index = DEFAULT_Z_INDEX;
 var focus_obj = null;
-var fow_type = null;
-var fow_obj = null;
-var fow_default_distance = null;
-var fow_char_distances = {};
-var fow_light_char = {};
 var drawing_canvas = null;
 var drawing_ctx = null;
+var fullscreen = false
+var fullscreen_backup = undefined;
 
 function websocket_send(data) {
 	if (websocket == null) {
@@ -37,7 +38,8 @@ function websocket_send(data) {
 	}
 
 	data.adventure_id = adventure_id;
-	data.user_id = user_id;
+	data.map_id = map_id;
+	data.from_user_id = user_id;
 	data = JSON.stringify(data);
 
 	websocket.send(data);
@@ -102,6 +104,58 @@ function coord_to_grid(coord, edge = true) {
 	}
 
 	return coord;
+}
+
+/* Interface functions
+ */
+function interface_color(button, swap = true) {
+	var color = localStorage.getItem('interface_color');
+
+	if (color == undefined) {
+		color = 'bright';
+	}
+
+	if (swap) {
+		color = (color == 'bright') ? 'dark' : 'bright';
+	}
+
+	if (color == 'dark') {
+		$('div.wrapper').addClass('dark');
+		$(button).text('Bright interface');
+		localStorage.setItem('interface_color', 'dark');
+	} else {
+		$('div.wrapper').removeClass('dark');
+		$(button).text('Dark interface');
+		localStorage.setItem('interface_color', 'bright');
+	}
+}
+
+function toggle_fullscreen() {
+	var playarea = $('div.playarea');
+
+	if (fullscreen == false) {
+		fullscreen_backup = playarea.css('bottom');
+		playarea.css({
+			top: 0,
+			right: 0,
+			bottom: 0,
+			left: 0
+		});
+		$('div.draw-tools').hide();
+
+		fullscreen = true;
+	} else {
+		playarea.removeAttr('style');
+		if (fullscreen_backup != undefined) {
+			playarea.css('bottom', fullscreen_backup);
+		}
+		$('div.draw-tools').show();
+
+		fullscreen = false;
+		fullscreen_backup = undefined;
+	}
+
+	playarea.trigger('focus');
 }
 
 /* Draw functions
@@ -251,9 +305,12 @@ function object_show(obj) {
 }
 
 function object_view(obj, max_size = 300) {
+	var color = localStorage.getItem('interface_color');
+	var bgcolor = (color == 'dark') ? '64, 64, 64' : '160, 160, 160';
+
 	var src = obj.find('img').prop('src');
 	var onclick = 'javascript:$(this).remove();';
-	var div_style = 'position:absolute; z-index:' + LAYER_VIEW + '; top:0; left:0; right:0; bottom:0; background-color:rgba(255, 255, 255, 0.8);';
+	var div_style = 'position:absolute; z-index:' + LAYER_VIEW + '; top:0; left:0; right:0; bottom:0; background-color:rgba(' + bgcolor + ', 0.8);';
 	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%)';
 	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px;';
 
@@ -285,7 +342,6 @@ function effect_create_object(effect_id, src, pos_x, pos_y, width, height) {
  */
 function measuring_stop() {
 	$('div.playarea').off('mousemove');
-	$('span#infobar').text('');
 	$('img.pin').remove();
 }
 
@@ -316,10 +372,20 @@ function door_position(door) {
 	door.css('width', width + 'px');
 	door.css('height', height + 'px');
 
-	if (state == 'open') {
+	if (door.attr('secret') == 'yes') {
+		door.css('background-color', DOOR_SECRET);
+	}
+
+	if (door.attr('state') == 'open') {
 		door_show_open(door);
-	} else if (state == 'locked') {
-		door_show_locked(door);
+	}
+
+	if (door.attr('bars') == 'yes') {
+		if (direction == 'horizontal') {
+			door.css('background-image', 'repeating-linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0) 5px, #000000 5px, #000000 10px)');
+		} else {
+			door.css('background-image', 'repeating-linear-gradient(0deg, rgba(0,0,0,0), rgba(0,0,0,0) 5px, #000000 5px, #000000 10px)');
+		}
 	}
 }
 
@@ -362,65 +428,15 @@ function door_collision(x1, y1, x2, y2) {
 function door_show_closed(door) {
 	door.attr('state', 'closed');
 
-	door.css('opacity', '1');
-	door.css('background-color', '');
-
-	/* Fog of War
-	 */
-	if (fow_obj != null) {
-		fog_of_war_update(fow_obj);
-	}
+	door.css('opacity', DOOR_OPACITY);
+	door.css('background-color', door.attr('secret') == 'yes' ? DOOR_SECRET : '');
 }
 
 function door_show_open(door) {
 	door.attr('state', 'open');
 
-	door.css('opacity', '0.6');
-	door.css('background-color', '#40c040');
-
-	/* Fog of War
-	 */
-	if (fow_obj != null) {
-		fog_of_war_update(fow_obj);
-	}
-}
-
-function door_show_locked(door) {
-	door_show_closed(door);
-	door.attr('state', 'locked');
-}
-
-function door_show_unlocked(door) {
-	door.attr('state', 'closed');
-}
-
-/* Light functions
- */
-function light_create_object(instance_id, pos_x, pos_y, radius) {
-	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;"></div>';
-
-	$('div.playarea div.lights').append(light);
-
-	/* Fog of War
-	 */
-	fog_of_war_light($('div#light' + instance_id));
-
-	if (fow_obj != null) {
-		fog_of_war_update(fow_obj);
-	}
-}
-
-function light_delete(obj) {
-	delete fow_light_char[obj.prop('id')];
-
-	obj.attr('state', 'delete');
-	fog_of_war_light(obj);
-
-	if (fow_obj != null) {
-		fog_of_war_update(fow_obj);
-	}
-
-	obj.remove();
+	door.css('opacity', DOOR_OPACITY);
+	door.css('background-color', DOOR_OPEN);
 }
 
 /* Wall functions
@@ -612,31 +628,28 @@ function context_menu_handler(key, options) {
 	}
 
 	switch (key) {
-		case 'fow_show':
-			if (fow_obj == null) {
-				fog_of_war_init(LAYER_FOG_OF_WAR);
-				if (fow_type == FOW_NIGHT) {
-					var distance = fow_char_distances[obj.prop('id')];
-					fog_of_war_set_distance(distance);
-				}
-				fog_of_war_update(obj);
-				fow_obj = obj;
-			} else if (obj.is(fow_obj)) {
-				fog_of_war_destroy();
-				fow_obj = null;
-			} else {
-				fog_of_war_update(obj);
-				fow_obj = obj;
-			}
-			break;
 		case 'info':
 			object_info(obj);
+			break;
+		case 'sheet':
+			var char_id = obj.attr('char_id');
+			var sheet_url = $('div.characters div.character[char_id="' + char_id + '"]').attr('sheet');
+			window.open(sheet_url, '_blank');
 			break;
 		case 'view':
 			object_view(obj);
 			break;
 		default:
 			write_sidebar('Unknown menu option: ' + key);
+	}
+}
+
+function key_down(event) {
+	switch (event.which) {
+		case 9:
+			// TAB
+			toggle_fullscreen();
+			break;
 	}
 }
 
@@ -649,8 +662,6 @@ $(document).ready(function() {
 	user_id = parseInt($('div.playarea').attr('user_id'));
 	resources_key = $('div.playarea').attr('resources_key');
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
-	fow_type = parseInt($('div.playarea').attr('fog_of_war'));
-	fow_default_distance = parseInt($('div.playarea').attr('fow_distance'));
 	var version = $('div.playarea').attr('version');
 	var ws_host = $('div.playarea').attr('ws_host')
 	var ws_port = $('div.playarea').attr('ws_port')
@@ -671,13 +682,7 @@ $(document).ready(function() {
 		write_sidebar('Connection established.');
 
 		var data = {
-			action: 'effect_request',
-			map_id: map_id
-		};
-		websocket_send(data);
-
-		var data = {
-			action: 'draw_request',
+			action: 'request_init',
 			user_id: user_id
 		};
 		websocket_send(data);
@@ -732,11 +737,19 @@ $(document).ready(function() {
 				var obj = $('div#' + data.door_id);
 				switch (data.state) {
 					case 'closed': door_show_closed(obj); break;
-					case 'locked': door_show_locked(obj); break;
 					case 'open': door_show_open(obj); break;
-					case 'unlocked': door_show_unlocked(obj); break;
 				}
 				break;
+			case 'draw_brush':
+				drawing_ctx.beginPath();
+				var img = new Image();
+				img.src = data.brush;
+				img.onload = function() {
+					var pattern = drawing_ctx.createPattern(img, 'repeat');
+					drawing_ctx.strokeStyle = pattern;
+				};
+				sleep(250);
+				break
 			case 'draw_clear':
 				drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
 				break
@@ -779,17 +792,10 @@ $(document).ready(function() {
 				write_sidebar(data.name + ' added a journal entry.');
 				break;
 			case 'light_create':
-				light_create_object(data.instance_id, data.pos_x, data.pos_y, data.radius);
 				break;
 			case 'light_delete':
-				var obj = $('div#' + data.instance_id);
-				light_delete(obj);
 				break;
 			case 'light_toggle':
-				var light = $('div#light' + data.light_id);
-				light.attr('state', data.state);
-
-				fog_of_war_light(light);
 				break;
 			case 'marker':
 				marker_create(data.pos_x, data.pos_y, data.name);
@@ -800,8 +806,6 @@ $(document).ready(function() {
 				if (obj.hasClass('light')) {
 					obj.css('left', data.pos_x + 'px');
 					obj.css('top', data.pos_y + 'px');
-
-					fog_of_war_light(obj);
 					break;
 				}
 
@@ -809,14 +813,7 @@ $(document).ready(function() {
 				obj.animate({
 					left: data.pos_x,
 					top: data.pos_y
-				}, data.speed, function() {
-					/* Fog of War
-					 */
-					if (obj.is(fow_obj)) {
-						fog_of_war_update(obj);
-					}
-
-				});
+				}, data.speed);
 				break;
 			case 'reload':
 				document.location = '/spectate/' + adventure_id;
@@ -855,6 +852,9 @@ $(document).ready(function() {
 
 	websocket.onclose = function(event) {
 		write_sidebar('Connection closed.');
+		window.setTimeout(function() {
+			cauldron_alert('The connection to the server was lost. Refresh the page to reconnect.');
+		}, 1000);
 		websocket = null;
 	};
 
@@ -874,8 +874,8 @@ $(document).ready(function() {
 	drawing_canvas = document.getElementById('drawing');
 
 	drawing_ctx = drawing_canvas.getContext('2d');
-	drawing_ctx.lineWidth = 1;
-	drawing_ctx.strokeStyle = '#000000';
+	drawing_ctx.lineWidth = DRAW_DEFAULT_WIDTH;
+	drawing_ctx.strokeStyle = DRAW_DEFAULT_COLOR;
 
 	/* Zones
 	 */
@@ -897,14 +897,6 @@ $(document).ready(function() {
 	$('div.wall').each(function() {
 		wall_position($(this));
 	});
-
-	/* Lights
-	 */
-	if (fow_type == FOW_NIGHT) {
-		$('div.light').each(function() {
-			fog_of_war_light($(this));
-		});
-	}
 
 	/* Objects
 	 */
@@ -963,6 +955,12 @@ $(document).ready(function() {
 			'view': {name:'View', icon:'fa-search'}
 		};
 
+		var char_id = $(this).parent().attr('char_id');
+		var sheet = $('div.characters div.character[char_id="' + char_id + '"]').attr('sheet');
+		if (sheet != '') {
+			menu_entries['sheet'] = { name:'View character sheet', icon:'fa-file-text-o' };
+		}
+
 		show_context_menu($(this), event, menu_entries, context_menu_handler, LAYER_MENU);
 		return false;
 	});
@@ -1001,5 +999,59 @@ $(document).ready(function() {
 		var audio = new Audio(audio_file);
 		audio.loop = true;
 		audio.play();
+	}
+
+	$('body').keydown(key_down);
+
+	/* Menu
+	 */
+	$('button.open_menu').on('click', function(event) {
+		var skip = 1;
+		$('div.menu').toggle();
+		$('body').one('click', function() {
+			$('div.menu').hide();
+		});
+		event.stopPropagation();
+	});
+
+	$('div.menu').on('click', function(event) {
+		event.stopPropagation();
+	});
+
+	$('div.menu button').on('click', function(event) {
+		$('div.menu').hide();
+	});
+
+	$('div.menu').css('z-index', LAYER_MENU);
+
+	/* Fullscreen
+	*/
+	$('button.fullscreen').click(function() {
+		toggle_fullscreen();
+	});
+
+	/* Interface color
+	 */
+	$('button.interface_color').click(function() {
+		interface_color($(this));
+	});
+
+	var color = localStorage.getItem('interface_color');
+	if (color == 'dark') {
+		interface_color($('button#itfcol'), false);
+	}
+
+
+	/* Touchscreens
+	 */
+	if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0)) {
+		$('div.character').on('click', function(event) {
+			event.type = 'contextmenu';
+			$(this).find('img').trigger(event);
+		});
+		$('div.token').on('click', function(event) {
+			event.type = 'contextmenu';
+			$(this).find('img').trigger(event);
+		});
 	}
 });

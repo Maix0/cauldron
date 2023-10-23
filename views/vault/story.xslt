@@ -122,9 +122,13 @@
 <div id="help">
 <p>This page allows you to structure the important elements of your home brew campaign. Print this page (to PDF) to get a nice formated overview.</p>
 <h3>Non-Player Characters</h3>
-<p>It's good to list all the relevant non-player characters, such as the bad guys, the ones that send the players in the right direction or commoners they can meet along the way.</p>
+<p>It's good to list all the relevant non-player characters, such as the bad guys, the ones that send the players in the right direction or commoners they can meet along the way. You can group them by using a keyword surrounded by brackets in front of the NPC's name, like "[Red Wizards] Szass Tam".</p>
+<h3>Objects and locations</h3>
+<p>List all the important locations and objects that can be found there.</p>
 <h3>Events</h3>
 <p>Describe all the possible events that can happen during the adventure, like parts of the main quest, side quests, decision making points or objectives to reach.</p>
+<h3>Encounters</h3>
+<p>This section allows you to create possible encounters. It calculates the total XP of the encouter for you.</p>
 </div>
 </xsl:template>
 

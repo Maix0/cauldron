@@ -131,9 +131,9 @@
 <input type="hidden" name="url" value="{url}" />
 <input type="hidden" name="mode" value="{mode}" />
 
-<label>Grid size: <span>(possible values:<span class="sizes"></span>)</span></label>
+<label>Grid cell size: <span>(possible values:<span class="sizes"></span>)</span></label>
 <div id="slider1"><div id="grid-handle-value" class="ui-slider-handle" /></div>
-<label>Grid size fraction:</label>
+<label>Grid cell size fraction:</label>
 <div id="slider2"><div id="grid-handle-fraction" class="ui-slider-handle" /></div>
 <div><b>Show grid on map:</b><input type="checkbox" name="show_grid"><xsl:if test="show_grid='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input> (will not be red, but semi-transparent black)</div>
 <input type="hidden" name="grid_size" value="{grid_size}" />

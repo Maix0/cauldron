@@ -40,22 +40,24 @@
 <xsl:template match="adventure">
 <!-- Menu -->
 <div class="topbar">
-<span class="menu-one">
-<span id="infobar"></span>
-<xsl:if test="maps">
+<xsl:if test="map">
+<div class="btn-group">
+<button class="btn btn-primary btn-xs open_menu">Menu</button>
+</div>
+</xsl:if>
+<div class="menu">
+<a href="/{/output/page}" class="btn btn-default btn-sm">Leave session</a>
+<button class="btn btn-default btn-sm show_journal">Journal</button>
+<xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
+<button class="btn btn-default btn-sm show_collectables">Inventory</button>
+<h2>Interface</h2>
+<button id="itfcol" class="btn btn-default btn-sm interface_color">Dark interface</button>
+<button id="fullscreen" class="btn btn-default btn-sm fullscreen">Fullscreen map (TAB)</button>
+<h2>Map switching</h2>
 <select class="form-control map-selector" onChange="javascript:change_map()">
 <xsl:for-each select="maps/map"><option value="{@id}"><xsl:if test="@current='yes'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option></xsl:for-each>
 </select>
-</xsl:if>
-</span>
-<span class="menu-two">
-<div class="btn-group">
-<button class="btn btn-default btn-xs show_journal">Journal</button>
-<button class="btn btn-default btn-xs show_collectables">Inventory</button>
-<xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
-<a href="/{../back}" class="btn btn-default btn-xs">Back</a>
 </div>
-</span>
 </div>
 <xsl:if test="not(map)">
 <input id="adventure_id" type="hidden" name="adventure_id" value="{@id}" />
@@ -71,7 +73,7 @@
 </xsl:for-each>
 </div>
 <!-- Play area -->
-<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{@group_key}" adventure_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{resources_key}" is_dm="{@is_dm}" grid_cell_size="{@grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
+<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{group_key}" adventure_id="{@id}" map_id="{map/@id}" user_id="{/output/user/@id}" resources_key="{resources_key}" is_dm="{@is_dm}" grid_cell_size="{grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div>
@@ -98,13 +100,13 @@
 <!-- Doors -->
 <div class="doors">
 <xsl:for-each select="doors/door">
-<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" />
+<div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" secret="{secret}" bars="{bars}" />
 </xsl:for-each>
 </div>
 <!-- Lights -->
 <div class="lights">
 <xsl:for-each select="lights/light">
-<div id="light{@id}" class="light" radius="{radius}" state="{state}" style="left:{pos_x}px; top:{pos_y}px; width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
+<div id="light{@id}" class="light" radius="{radius}" state="{state}" style="left:{pos_x}px; top:{pos_y}px; width:{../../grid_cell_size}px; height:{../../grid_cell_size}px;" />
 </xsl:for-each>
 </div>
 <!-- Effects -->
@@ -132,7 +134,7 @@
 <!-- Characters -->
 <div class="characters">
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
+<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" sheet="{sheet_url}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 <img src="/resources/{../../resources_key}/characters/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" draggable="false" />
 <span class="name"><xsl:value-of select="name" /></span>

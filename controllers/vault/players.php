@@ -29,7 +29,7 @@
 			}
 
 			if (count($characters) == 0) {
-				$this->view->add_tag("result", "No characters available to invite.");
+				$this->view->add_tag("result", "No characters available to invite. Ask your players to create them.");
 				return;
 			}
 

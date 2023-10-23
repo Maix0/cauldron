@@ -1,3 +1,13 @@
+cauldron (3.1) stable; urgency=low
+
+  * Added support for Azerty and Qwertz keyboards.
+  * Added barred doors.
+  * Improved spectator module.
+  * Focus on character or token by DM by double clicking it.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 23 Oct 2023 10:20:07 +0200
+
 cauldron (3.0) stable; urgency=low
 
   * Added Story writing module.
