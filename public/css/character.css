@@ -22,6 +22,12 @@ div.content div.panel-body {
 	height:130px;
 }
 
+div.content div.panel-footer {
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
 div.content div.panel-footer span {
 	font-style:italic;
 }

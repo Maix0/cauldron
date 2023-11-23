@@ -2,14 +2,13 @@
 	class vault_journal_model extends cauldron_model {
 		public function get_journal($adventure_id) {
 			$query = "select j.*, UNIX_TIMESTAMP(j.timestamp) as timestamp, u.fullname ".
-			         "from journal j, users u where j.user_id=u.id and adventure_id=%d order by timestamp";
+			         "from journal j left join users u on j.user_id=u.id where adventure_id=%d order by timestamp";
 
 			return $this->db->execute($query, $adventure_id);
 		}
 
 		public function get_entry($entry_id) {
-			$query = "select j.*, u.fullname from journal j, users u ".
-			         "where j.user_id=u.id and j.id=%d";
+			$query = "select j.*, u.fullname from journal j left join users u on j.user_id=u.id where j.id=%d";
 			if (($entries = $this->db->execute($query, $entry_id)) == false) {
 				return false;
 			}

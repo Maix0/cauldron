@@ -5,6 +5,6 @@ else{pageNav+="<li class='simplePageNav"+i+"'><a rel='"+i+"' href='#'>"+i+"</a><
 pageNav+="</ul>";if(!options.holder){switch(options.pagerLocation)
 {case"before":selector.before(pageNav);break;case"both":selector.before(pageNav);selector.after(pageNav);break;default:selector.after(pageNav);}}
 else{$(options.holder).append(pageNav);}
-selector.parent().find(".simplePagerNav a").click(function(){var clickedLink=$(this).attr("rel");options.currentPage=clickedLink;if(options.holder){$(this).parent("li").parent("ul").parent(options.holder).find("li.currentPage").removeClass("currentPage");$(this).parent("li").parent("ul").parent(options.holder).find("a[rel='"+clickedLink+"']").parent("li").addClass("currentPage");}
+selector.parent().find(".simplePagerNav a").on('click', function(){var clickedLink=$(this).attr("rel");options.currentPage=clickedLink;if(options.holder){$(this).parent("li").parent("ul").parent(options.holder).find("li.currentPage").removeClass("currentPage");$(this).parent("li").parent("ul").parent(options.holder).find("a[rel='"+clickedLink+"']").parent("li").addClass("currentPage");}
 else{$(this).parent("li").parent("ul").parent(".simplePagerContainer").find("li.currentPage").removeClass("currentPage");$(this).parent("li").parent("ul").parent(".simplePagerContainer").find("a[rel='"+clickedLink+"']").parent("li").addClass("currentPage");}
 selector.children().hide();selector.find(".simplePagerPage"+clickedLink).show();return false;});});}})(jQuery);

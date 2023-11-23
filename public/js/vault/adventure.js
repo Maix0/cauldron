@@ -16,7 +16,7 @@ $(document).ready(function() {
 
 			image_dialog.append(list);
 
-			image_dialog.find('li').click(function() {
+			image_dialog.find('li').on('click', function() {
 				$('input#image').val($(this).text());
 				image_dialog.close();	
 			});

@@ -133,7 +133,10 @@
 				"roles"           => $roles);
 
 			if ($this->borrow("vault/user")->create_user($user, true) == false) {
-				$this->db->query("delete from organisations where id=%d", $organisation_id);
+				if ($user_is_dm) {
+					$this->borrow("vault/organisation")->delete_organisation($organisation_id);
+					$this->db->query("alter table organisations auto_increment=%d", 1);
+				}
 				return false;
 			}
 

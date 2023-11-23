@@ -69,6 +69,7 @@
 <input type="text" id="username" name="username" value="{username}" class="form-control" style="text-transform:lowercase" />
 <label for="password">Password:</label>
 <input type="password" id="password" name="password" class="form-control" />
+<p class="info">The processing of this last step can take a few seconds, due to all the resources that will be copied to your account. Please be patient.</p>
 </xsl:template>
 
 <!--

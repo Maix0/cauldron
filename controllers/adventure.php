@@ -184,6 +184,7 @@
 				$this->view->add_javascript("webui/jquery-ui.js");
 				$this->view->add_javascript("webui/jquery.ui.touch-punch.js");
 				$this->view->add_javascript("banshee/jquery.windowframe.js");
+				$this->view->add_javascript("banshee/jquery.mark.js");
 				$this->view->add_javascript("includes/context_menu.js");
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
@@ -201,7 +202,7 @@
 					} else if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
 						$type = "real";
 					} else if ($active_map["fog_of_war"] == FOW_REVEAL) {
-						$type = "erase";
+						$type = "reveal";
 					}
 
 					$this->view->add_javascript("includes/fog_of_war_".$type.".js");
@@ -343,7 +344,7 @@
 							$zone["opacity"] = 0.8;
 						}
 					} else {
-						unset($zone["script"]);
+						//unset($zone["script"]);
 					}
 					$this->view->record($zone, "zone");
 				}

@@ -18,7 +18,7 @@
 		}
 
 		public function key_okay($key) {
-			return (empty($key) == false) && ($key == $_SESSION["reset_password_key"]);
+			return (empty($key) == false) && ($key == ($_SESSION["reset_password_key"] ?? null));
 		}
 
 		public function send_password_link($user, $key) {

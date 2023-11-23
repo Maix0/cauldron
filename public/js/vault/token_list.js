@@ -22,7 +22,7 @@ function filter_clear() {
 
 $(document).ready(function() {
 	$('input#filter').val(localStorage.getItem('vault_token_filter'));
-	$('span.input-group-btn button.btn').click(function() {
+	$('span.input-group-btn button.btn').on('click', function() {
 		$('input#filter').val('');
 		filter_tokens();
 	});

@@ -32,7 +32,7 @@ function init_map_edit() {
 			header: 'Maps from Resources',
 		});
 
-		map_dialog.find('li').click(function() {
+		map_dialog.find('li').on('click', function() {
 			var file = $(this).text();
 			$('input#url').val(file);
 			reset_dimension();
@@ -67,7 +67,7 @@ function init_map_edit() {
 
 			audio_dialog.append(list);
 
-			audio_dialog.find('li').click(function() {
+			audio_dialog.find('li').on('click', function() {
 				$('input#audio').val($(this).text());
 
 				audio_dialog.close();

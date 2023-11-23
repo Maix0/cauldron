@@ -35,7 +35,7 @@ $(document).ready(function() {
 		width: 1000
 	});
 
-	$('div.market div.map img').click(function() {
+	$('div.market div.map img').on('click', function() {
 		var img = preview_window.find('img');
 
 		if (img.attr('src') != $(this).attr('full')) {

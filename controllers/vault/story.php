@@ -38,6 +38,7 @@
 			$this->view->add_css("banshee/font-awesome.css");
 			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("webui/jquery.ui.touch-punch.js");
+			$this->view->add_javascript("banshee/jquery.mark.js");
 			$this->view->add_javascript("vault/story.js");
 
 			$this->view->open_tag("overview");

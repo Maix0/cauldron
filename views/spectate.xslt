@@ -46,7 +46,7 @@
 </div>
 </xsl:if>
 <div class="menu">
-<a href="/{/output/page}" class="btn btn-default btn-sm">Leave session</a>
+<a href="/adventure" class="btn btn-default btn-sm">Leave session</a>
 <button class="btn btn-default btn-sm show_journal">Journal</button>
 <xsl:if test="map/type='video'"><button id="playvideo" onClick="javascript:$('video').get(0).play();" class="btn btn-default btn-xs">Play video</button></xsl:if>
 <button class="btn btn-default btn-sm show_collectables">Inventory</button>

@@ -88,13 +88,13 @@
 		return preg_match("/^(([01]?[0-9])|(2[0-3])):[0-5][0-9](:[0-5][0-9])?$/", $time) === 1;
 	}
 
-	/* Validate a timestamp
+	/* Validate a date-time string
 	 *
-	 * INPUT:  string timestamp
-	 * OUTPUT: boolean timestamp oke
+	 * INPUT:  string date-time
+	 * OUTPUT: boolean date-time oke
 	 * ERROR:  -
 	 */
-	function valid_timestamp($timestamp) {
+	function valid_datetime($timestamp) {
 		list($date, $time) = explode(" ", $timestamp, 2);
 		return valid_date($date) && valid_time($time);
 	}

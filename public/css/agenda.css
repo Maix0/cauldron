@@ -1,0 +1,112 @@
+/* List view
+ */
+@media (min-width:768px) {
+	table.list thead tr th:nth-child(n+3) {
+		width:250px;
+	}
+}
+
+/* Month view
+ */
+div.row h2 {
+	margin:0;
+	display:inline-block;
+}
+
+div.row div.col-sm-8 {
+	text-align:right;
+}
+
+div.row div.btn-group {
+	margin:5px 0 5px 0;
+}
+
+table.month {
+	width:100%;
+	border-spacing:0px;
+	margin-top:10px;
+	margin-bottom:15px;
+	table-layout:fixed;
+}
+
+table.month tbody {
+	border-top:1px solid #c0c0c0;
+	border-left:1px solid #c0c0c0;
+}
+
+table.month thead th {
+	border-bottom:1px solid #c0c0c0;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	text-align:center;
+	padding-bottom:7px;
+}
+
+table.month tr.week {
+	height:70px;
+}
+
+table.month td.day {
+	width:14%;
+	border-right:1px solid #c0c0c0;
+	border-bottom:1px solid #c0c0c0;
+	vertical-align:top;
+	padding:0px 3px;
+	overflow:hidden;
+}
+
+table.month td.day div.nr {
+	margin-bottom:0;
+	text-align:right;
+	margin:5px 5px 0 0;
+}
+
+table.month td {
+	background-color:#fafafa;
+}
+
+table.month td.dow6,
+table.month td.dow7 {
+	background-color:#eaeaea;
+}
+
+table.month td.today {
+	background-color:#ffe0a0;
+}
+
+table.month div.appointment {
+	color:#2779f6;
+	cursor:pointer;
+}
+table.month div.appointment:hover {	
+	text-decoration:underline;
+}
+
+/* Appointment view
+ */
+div.appointment {
+	margin-bottom:15px;
+}
+
+div.appointment h3 span + span:before {
+	content:"-";
+	margin:0 10px;
+}
+@media (min-width:768px) {
+	div.appointment h3 {
+		text-align:right;
+		margin-top:-28px;
+	}
+}
+@media (max-width:767px) {
+	div.appointment h3 span {
+		display:block;
+	}
+	div.appointment h3 span:last-child {
+		text-align:right;
+	}
+
+	table.month thead {
+		display:none;
+	}
+}

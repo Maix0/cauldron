@@ -5,9 +5,16 @@ var _combat_max_entries = COMBAT_MAX_ENEMIES;
 var _combat_order = [];
 var _combat_not_started = 'No combat has been started. Use the /combat command.';
 
-function _combat_add_table_entry(name = '', bonus = 0) {
+function _combat_add_table_entry(name = '', bonus = 0, char_id = 0) {
 	var readonly = (name == '') ? '' : 'disabled="disabled" ';
-	var cell = '<tr><td><input type="text" value="' + name + '" ' + readonly + 'class="form-control input-sm" /></td>' +
+
+	if (char_id != 0) {
+		char_id = ' char_id="' + char_id + '"';
+	} else {
+		char_id = '';
+	}
+
+	var cell = '<tr' + char_id + '><td><input type="text" value="' + name + '" ' + readonly + 'class="form-control input-sm" /></td>' +
 			   '<td><input type="text" value="' + bonus + '" class="form-control input-sm" /></td></tr>';
 	$('table.combat-tracker tbody').append(cell);
 
@@ -152,13 +159,19 @@ function combat_next(being) {
 
 	combat_show_order();
 
-	$('div.character').each(function() {
-		if ($(this).prop('id') == _combat_order[0].char_id) {
-			zone_check_presence_for_turn($(this));
-		}
-	});
+	_combat_send_turn();
 
 	localStorage.setItem('combat_order', JSON.stringify(_combat_order));
+}
+
+function _combat_send_turn() {
+	if (_combat_order[0].char_id != undefined) {
+		var data = {
+			action: 'turn',
+			char_id: _combat_order[0].char_id
+		};
+		websocket_send(data);
+	}
 }
 
 function combat_stop() {
@@ -185,7 +198,7 @@ $(document).ready(function() {
 			$('div.character').each(function() {
 				var name = $(this).find('span').text();
 				var bonus = parseInt($(this).attr('initiative'));
-				_combat_add_table_entry(name, bonus);
+				_combat_add_table_entry(name, bonus, $(this).attr('char_id'));
 			});
 
 			_combat_add_table_entry();
@@ -236,10 +249,12 @@ $(document).ready(function() {
 						roll = '0' + roll;
 					}
 
+					var char_id = $(this).attr('char_id');
+
 					var item = {
 						key: roll + '-enemy',
 						name: name,
-						char_id: null
+						char_id: char_id
 					}
 					_combat_order.push(item);
 				});
@@ -255,11 +270,7 @@ $(document).ready(function() {
 
 				combat_show_order(true);
 
-				$('div.character').each(function() {
-					if ($(this).prop('id') == _combat_order[0].char_id) {
-						zone_check_presence_for_turn($(this));
-					}
-				});
+				_combat_send_turn();
 
 				localStorage.setItem('combat_order', JSON.stringify(_combat_order));
 				localStorage.setItem('combat_adventure_id', adventure_id);
@@ -270,7 +281,6 @@ $(document).ready(function() {
 				_combat_add_table_entry();
 			},
 			'Cancel': function() {
-				write_sidebar('Combat canceled.');
 				$(this).close();
 			}
 		}

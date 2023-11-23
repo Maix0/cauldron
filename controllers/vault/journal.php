@@ -16,6 +16,9 @@
 
 			$this->view->open_tag("journal");
 			foreach ($journal as $entry) {
+				if ($entry["fullname"] == "") {
+					$entry["fullname"] = JOURNAL_UNKNOWN_USER;
+				}
 				$entry["timestamp"] = date("j M Y, H:i", $entry["timestamp"]);
 				$this->view->record($entry, "entry");
 			}
@@ -26,9 +29,15 @@
 
 		private function show_entry_form($entry) {
 			$this->view->open_tag("edit");
+
 			if (isset($entry["id"])) {
 				unset($entry["adventure_id"]);
 			}
+
+			if ($entry["fullname"] == "") {
+				$entry["fullname"] = JOURNAL_UNKNOWN_USER;
+			}
+
 			$this->view->record($entry, "entry");
 			$this->view->close_tag();
 		}

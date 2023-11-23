@@ -1,11 +1,6 @@
 const FOW_COLOR_SHADOW = '#181818';
 
-function fog_of_war_clear_circle(obj) {
-	var pos = object_position(obj);
-	var x = pos.left + (grid_cell_size >> 1);
-	var y = pos.top + (grid_cell_size >> 1);
-	var r = parseInt($('div.playarea').attr('fow_distance')) * grid_cell_size + (grid_cell_size >> 1);
-
+function fog_of_war_clear_circle(x, y, r) {
 	drawing_ctx.beginPath();
 	drawing_ctx.globalCompositeOperation = 'destination-out';
 	drawing_ctx.fillStyle = 'rgba(0, 0, 0, 1)';
@@ -34,12 +29,27 @@ function fog_of_war_reset(is_dungeon_master) {
 	}
 	drawing_ctx.fill();
 
+	var half_grid = (grid_cell_size >> 1);
+	var r = parseInt($('div.playarea').attr('fow_distance')) * grid_cell_size + half_grid;
+
+	var x = parseInt($('div.playarea').attr('start_x')) * grid_cell_size + half_grid;
+	var y = parseInt($('div.playarea').attr('start_y')) * grid_cell_size + half_grid;
+	fog_of_war_clear_circle(x, y, r);
+
 	if (is_dungeon_master) {
-		$('div.characters > div').each(function() {
-			fog_of_war_clear_circle($(this));
+		$('div.characters div.character').each(function() {
+			var pos = object_position($(this));
+			var x = pos.left + half_grid;
+			var y = pos.top + half_grid;
+
+			fog_of_war_clear_circle(x, y, r);
 		});
 	} else if (my_character != null) {
-		fog_of_war_clear_circle(my_character);
+		var pos = object_position(my_character);
+		var x = pos.left + half_grid;
+		var y = pos.top + half_grid;
+
+		fog_of_war_clear_circle(x, y, r);
 	}
 }
 

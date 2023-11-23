@@ -12,6 +12,7 @@ div.character img,
 img.light,
 div#start img {
 	cursor:grab;
+	user-select:none;
 }
 
 div.character span {
@@ -72,6 +73,12 @@ div.blinder {
 	background-color:#e080e0;
 	border:1px solid #e000e0;
 	transform-origin:0px 2px;
+}
+
+/* Conditions
+ */
+div.conditions {
+	display:none;
 }
 
 /* Doors
@@ -215,11 +222,16 @@ div.sidebar p.measure {
 
 /* Manual
  */
-div.script_manual div.conditions span:after {
-	content:', ';
+div.script_manual_conditions {
+	display:inline;
 }
-div.script_manual div.conditions span:last-child:after {
-	content:'.';
+
+div.script_manual_conditions span:after {
+	content:", ";
+}
+
+div.script_manual_conditions span:last-child:after {
+	content:"";
 }
 
 /* Mobile view

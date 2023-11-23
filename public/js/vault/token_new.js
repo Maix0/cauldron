@@ -24395,7 +24395,7 @@ $(document).ready(function() {
 
 	/* Click monster record
 	 */
-	$('div.monsters div.well').click(function() {
+	$('div.monsters div.well').on('click', function() {
 		$('input#name').val($(this).find('div').first().text());
 		$('input#hitpoints').val($(this).attr('hp'));
 		$('input#armor_class').val($(this).attr('ac'));

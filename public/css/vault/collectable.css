@@ -21,10 +21,14 @@ div.option input {
 	margin-right:5px;
 }
 
-@media (min-width:768px ) {
+textarea {
+	resize:vertical;
+}
+
+@media (min-width:992px ) {
 	img.collectable {
 		float:right;
-		max-width:200px;
+		max-width:300px;
 	}
 }
 

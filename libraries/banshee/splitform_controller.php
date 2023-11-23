@@ -91,6 +91,7 @@
 							}
 							$this->view->close_tag();
 
+							$this->model->reset_form_progress();
 							unset($_SESSION["splitform"][$this->page->module]);
 							return true;
 						}

@@ -1,5 +1,5 @@
 <?php
-	define("CAULDRON_VERSION", "3.1");
+	define("CAULDRON_VERSION", "3.2");
 
 	define("PLAYER_ROLE_ID", 2);
 	define("DUNGEON_MASTER_ROLE_ID", 3);
@@ -24,14 +24,15 @@
 	define("MARKET_DIRECTORY", "files/market/");
 	define("BRUSH_DIRECTORY", "files/brushes/");
 
-	define("EXPORT_VERSION", 3);
+	define("JOURNAL_UNKNOWN_USER", "<unknown>");
+	define("AGENDA_KEY_LENGTH", 10);
 
 	define("USER_SUB_DIRECTORIES", array("audio", "brushes", "characters",
 		"collectables", "effects", "maps", "tokens"));
 
-	define("CONDITIONS", array("Blinded", "Charmed", "Deafened", "Exhausted",
-		"Frightened", "Grappled", "Incapacitated", "Invisible", "Paralyzed",
-		"Petrified", "Poisoned", "Prone", "Restrained", "Stunned", "Unconscious"));
+	define("CONDITIONS", array("blinded", "charmed", "deafened", "exhausted",
+		"frightened", "grappled", "incapacitated", "invisible", "paralyzed",
+		"petrified", "poisoned", "prone", "restrained", "stunned", "unconscious"));
 
 	define("CR_to_XP", array(
 		"0"   => 10,

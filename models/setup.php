@@ -591,6 +591,19 @@
 				$this->settings->database_version = 3.1;
 			}
 
+			if ($this->settings->database_version === 3.1) {
+				$this->db_query("CREATE TABLE agenda (id int(10) unsigned NOT NULL AUTO_INCREMENT, user_id int(10) unsigned NOT NULL, ".
+				                "%S datetime NOT NULL, end datetime DEFAULT NULL, title varchar(25) NOT NULL, adventure_id int(10) unsigned DEFAULT NULL, ".
+				                "PRIMARY KEY (id), KEY user_id (user_id), KEY adventure_id (adventure_id), CONSTRAINT agenda_ibfk_1 FOREIGN KEY (user_id) ".
+				                "REFERENCES users (id), CONSTRAINT agenda_ibfk_2 FOREIGN KEY (adventure_id) REFERENCES adventures (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci", "begin");
+				$this->db_query("ALTER TABLE journal CHANGE user_id user_id INT(10) UNSIGNED NULL");
+				$this->db_query("ALTER TABLE collectables ADD description TEXT NOT NULL AFTER name");
+				$this->db_query("ALTER TABLE collectables ADD %S BOOLEAN NOT NULL AFTER hide", "explain");
+
+				$this->settings->database_version = 3.2;
+			}
+
 			return true;
 		}
 

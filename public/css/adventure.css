@@ -274,6 +274,21 @@ div.dicerolls_defined input.remove {
 	padding:6px 10px;
 }
 
+/* Collectables
+ */
+div.collectables table.table {
+	margin-bottom:0;
+}
+
+div.collectables table.table th:nth-child(n+2) {
+	width:80px;
+}
+
+div.collectables div.all {
+	max-height:300px;
+	overflow:auto;
+}
+
 /* DM notes
  */
 div.notes div.panel-body {
@@ -313,8 +328,9 @@ div.journal div.session {
 }
 
 div.journal textarea {
-	max-width:630px;
+	max-width:930px;
 	max-height:200px;
+	resize:vertical;
 }
 
 div.journal div.entry {
@@ -335,6 +351,16 @@ div.journal span.writer {
 div.journal span.writer:after {
 	content:":";
 	margin-right:5px;
+}
+
+div.journal div.input-group {
+    width:500px;
+    max-width:100%;
+    margin:0 0 15px auto;
+}
+
+div.journal mark {
+	background-color:#ffff00;
 }
 
 /* Screen elements
@@ -525,6 +551,18 @@ div.draw-tools div.draw-brushes span.brush {
  */
 div.conditions {
 	display:none;
+}
+
+div.script_manual_conditions {
+	display:inline;
+}
+
+div.script_manual_conditions span:after {
+	content:", ";
+}
+
+div.script_manual_conditions span:last-child:after {
+	content:"";
 }
 
 /* Character alternate icons

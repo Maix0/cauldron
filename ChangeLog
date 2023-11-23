@@ -1,9 +1,21 @@
+cauldron (3.2) stable; urgency=low
+
+  * Added agenda module.
+  * Zone scripts are now executed by the triggering player and no longer
+    by the Dungeon Master.
+  * Zone scripts simplified.
+  * Added description option to collectables.
+  * Improved inventory window.
+  * More interface improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  8 Oct 2023 13:03:52 +0100
+
 cauldron (3.1) stable; urgency=low
 
   * Added support for Azerty and Qwertz keyboards.
   * Added barred doors.
   * Improved spectator module.
-  * Focus on character or token by DM by double clicking it.
+  * Interface improvements.
   * Small bugfixes and improvements.
 
  -- Hugo Leisink <hugo@leisink.net>  Mon, 23 Oct 2023 10:20:07 +0200

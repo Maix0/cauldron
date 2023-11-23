@@ -723,10 +723,34 @@
 				}
 			}
 
-			$query = "select id, name, image from collectables ".
+			$query = "select id, name, description, image, %S from collectables ".
 					 "where adventure_id=%d and found=%d order by name";
 
-			return $this->db->execute($query, $adventure_id, YES);
+			return $this->db->execute($query, "explain", $adventure_id, YES);
+		}
+
+		public function collectables_get_all($adventure_id) {
+			if ($this->valid_adventure_id($adventure_id) == false) {
+				return false;
+			}
+
+			$query = "select id, name, found, %S from collectables ".
+			         "where adventure_id=%d order by name";
+
+			return $this->db->execute($query, "explain", $adventure_id);
+		}
+
+		public function collectable_state($collectable_id, $field, $state) {
+			if ($this->valid_collectable_id($collectable_id) == false) {
+				return false;
+			}
+
+			if (in_array($field, array("found", "explain")) == false) {
+				return false;
+			}
+
+			$query = "update collectables set %S=%d where id=%d";
+			$this->db->query($query, $field, is_true($state) ? YES : NO, $collectable_id);
 		}
 
 		/* Journal functions

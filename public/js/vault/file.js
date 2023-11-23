@@ -83,7 +83,7 @@ function delete_file(filename) {
 }
 
 $(document).ready(function() {
-	$('table.files tr.alter').contextmenu(function(event) {
+	$('table.files tr.alter').on('contextmenu', function(event) {
 		var file = $(this).find('td:nth-child(2)').text();
 		var parts = file.split('.');
 
@@ -116,7 +116,7 @@ $(document).ready(function() {
 		return false;
 	});
 
-	$('table.files tr').find('a').click(function(e) {
+	$('table.files tr').find('a').on('click', function(e) {
 		e.stopPropagation();
 	});
 });

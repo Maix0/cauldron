@@ -70,6 +70,12 @@
 <div id="blinder{@id}" class="blinder" pos1_x="{pos1_x}" pos1_y="{pos1_y}" pos2_x="{pos2_x}" pos2_y="{pos2_y}" />
 </xsl:for-each>
 </div>
+<!-- Conditions -->
+<div class="conditions">
+<xsl:for-each select="conditions/condition">
+<div con_id="{@id}"><xsl:value-of select="." /></div>
+</xsl:for-each>
+</div>
 <!-- Tokens -->
 <div class="tokens">
 <xsl:for-each select="tokens/token">

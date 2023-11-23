@@ -47,7 +47,6 @@ function websocket_send(data) {
 
 function change_map() {
 	document.location = '/spectate/' + adventure_id + '/' + $('select.map-selector').val();
-
 }
 
 function screen_scroll() {
@@ -179,30 +178,6 @@ function object_alive(obj) {
 		obj.css('opacity', '1');
 	}
 	obj.find('div.hitpoints').css('display', 'block');
-}
-
-function object_damage(obj, points) {
-	var hitpoints = parseInt(obj.attr('hitpoints'));
-	var damage = parseInt(obj.attr('damage'));
-
-	damage += points;
-
-	if (damage > hitpoints) {
-		damage = hitpoints;
-	} else if (damage < 0) {
-		damage = 0;
-	}
-
-	obj.attr('damage', damage);
-
-	var perc = Math.floor(100 * damage / hitpoints);
-	var dmg = obj.find('div.damage');
-	dmg.css('width', perc.toString() + '%');
-	if (damage == hitpoints) {
-		object_dead(obj);
-	} else {
-		object_alive(obj);
-	}
 }
 
 function object_dead(obj) {
@@ -389,42 +364,6 @@ function door_position(door) {
 	}
 }
 
-function door_collision(x1, y1, x2, y2) {
-	var x = ((x1 + 0.5) + (x2 + 0.5)) / 2;
-	var y = ((y1 + 0.5) + (y2 + 0.5)) / 2;
-	var result = false;
-
-	$('div.door').each(function() {
-		if ($(this).attr('state') == 'open') {
-			return;
-		}
-
-		var direction = $(this).attr('direction');
-
-		if (direction == 'horizontal') {
-			var wx1 = parseInt($(this).attr('pos_x'));
-			var wx2 = wx1 + parseInt($(this).attr('length'));
-			var wy = parseInt($(this).attr('pos_y'));
-
-			if ((y == wy) && (x >= wx1) && (x <= wx2)) {
-				result = true;
-				return false;
-			}
-		} else if (direction == 'vertical') {
-			var wx = parseInt($(this).attr('pos_x'));
-			var wy1 = parseInt($(this).attr('pos_y'));
-			var wy2 = wy1 + parseInt($(this).attr('length'));
-
-			if ((x == wx) && (y >= wy1) && (y <= wy2)) {
-				result = true;
-				return false;
-			}
-		}
-	});
-
-	return result;
-}
-
 function door_show_closed(door) {
 	door.attr('state', 'closed');
 
@@ -466,38 +405,6 @@ function wall_position(wall) {
 	wall.css('top', pos_y + 'px');
 	wall.css('width', width + 'px');
 	wall.css('height', height + 'px');
-}
-
-function wall_collision(x1, y1, x2, y2) {
-	var x = ((x1 + 0.5) + (x2 + 0.5)) / 2;
-	var y = ((y1 + 0.5) + (y2 + 0.5)) / 2;
-	var result = false;
-
-	$('div.wall').each(function() {
-		var direction = $(this).attr('direction');
-
-		if (direction == 'horizontal') {
-			var wx1 = parseInt($(this).attr('pos_x'));
-			var wx2 = wx1 + parseInt($(this).attr('length'));
-			var wy = parseInt($(this).attr('pos_y'));
-
-			if ((y == wy) && (x >= wx1) && (x <= wx2)) {
-				result = true;
-				return false;
-			}
-		} else if (direction == 'vertical') {
-			var wx = parseInt($(this).attr('pos_x'));
-			var wy1 = parseInt($(this).attr('pos_y'));
-			var wy2 = wy1 + parseInt($(this).attr('length'));
-
-			if ((x == wx) && (y >= wy1) && (y <= wy2)) {
-				result = true;
-				return false;
-			}
-		}
-	});
-
-	return result;
 }
 
 /* Zone functions
@@ -609,22 +516,6 @@ function context_menu_handler(key, options) {
 	var obj = $(this);
 	if (obj.prop('tagName').toLowerCase() == 'img') {
 		obj = obj.parent();
-	}
-
-	var parts = key.split('_');
-	var travel_map_id = 0;
-	if (parts[0] == 'condition') {
-		key = parts[0];
-		var condition_id = parts[1];
-	} else if (parts[0] == 'alternate') {
-		key = parts[0];
-		var alternate_id = parts[1];
-	} else if (parts[0] == 'rotate') {
-		key = parts[0];
-		var direction = parts[1];
-	} else if (parts[0] == 'travel') {
-		key = parts[0];
-		var travel_map_id = parts[1];
 	}
 
 	switch (key) {
@@ -938,7 +829,7 @@ $(document).ready(function() {
 
 	/* Menu tokens
 	 */
-	$('div.token img').contextmenu(function(event) {
+	$('div.token img').on('contextmenu', function(event) {
 		var menu_entries = {
 			'view': {name:'View', icon:'fa-search'}
 		};
@@ -949,7 +840,7 @@ $(document).ready(function() {
 
 	/* Menu characters
 	 */
-	$('div.character img').contextmenu(function(event) {
+	$('div.character img').on('contextmenu', function(event) {
 		var menu_entries = {
 			'info': {name:'Get information', icon:'fa-info-circle'},
 			'view': {name:'View', icon:'fa-search'}
@@ -982,7 +873,7 @@ $(document).ready(function() {
 		open: journal_show
 	});
 
-	$('select.map-selector').click(function(event) {
+	$('select.map-selector').on('click', function(event) {
 		event.stopPropagation();
 	});
 
@@ -1026,13 +917,13 @@ $(document).ready(function() {
 
 	/* Fullscreen
 	*/
-	$('button.fullscreen').click(function() {
+	$('button.fullscreen').on('click', function() {
 		toggle_fullscreen();
 	});
 
 	/* Interface color
 	 */
-	$('button.interface_color').click(function() {
+	$('button.interface_color').on('click', function() {
 		interface_color($(this));
 	});
 
@@ -1040,7 +931,6 @@ $(document).ready(function() {
 	if (color == 'dark') {
 		interface_color($('button#itfcol'), false);
 	}
-
 
 	/* Touchscreens
 	 */

@@ -1,0 +1,12 @@
+table.table th:nth-child(n+3) {
+	width:250px;
+}
+
+@media (max-width:767px) {
+	table.table th:nth-child(2),
+	table.table td:nth-child(2),
+	table.table th:nth-child(4),
+	table.table td:nth-child(4) {
+		display:none;
+	}
+}

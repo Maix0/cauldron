@@ -73,6 +73,18 @@
 			return $this->db->execute($query, $map_id);
 		}
 
+		public function get_conditions() {
+			$conditions = array();
+
+			foreach (CONDITIONS as $i => $condition) {
+				array_push($conditions, array(
+					"id"   => ($i + 1),
+					"name" => $condition));
+			}
+
+			return $conditions;
+		}
+
 		public function get_doors($map_id) {
 			$query = "select * from doors where map_id=%d";
 

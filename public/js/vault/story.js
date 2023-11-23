@@ -57,6 +57,39 @@ function sortable_events() {
 	});
 }
 
+function filter_reset() {
+	$('div.story div.row').show();
+	$('div.story').unmark();
+}
+
+function filter_adjust() {
+	filter_reset();
+
+	var filter = $('div.filter input[type="text"]').val().toLowerCase();
+	if (filter == '') {
+		return;
+	}
+
+	var mark_options = { separateWordSearch: false };
+
+	var sections = [ 'npcs', 'objects', 'events', 'encounters' ];
+	sections.forEach(function(section) {
+		$('div.' + section).each(function() {
+			if ($(this).text().toLowerCase().indexOf(filter) == -1) {
+				$(this).hide();
+			} else {
+				$(this).mark(filter, mark_options);
+			}
+		});
+	});
+}
+
+function filter_clear() {
+	$('div.filter input[type="text"]').val('');
+
+	filter_reset();
+}
+
 $(document).ready(function() {
 	cr_input_to_select();
 	add_monster();

@@ -74,13 +74,14 @@
 		}
 
 		public function create_collectable($collectable, $image) {
-			$keys = array("id", "adventure_id", "name", "image", "found", "hide");
+			$keys = array("id", "adventure_id", "name", "description", "image", "found", "hide", "explain");
 
 			$collectable["id"] = null;
 			$collectable["adventure_id"] = $_SESSION["edit_adventure_id"];
 			$collectable["image"] = "";
 			$collectable["found"] = is_true($collectable["found"] ?? false) ? YES : NO;
 			$collectable["hide"] = is_true($collectable["hide"] ?? false) ? YES : NO;
+			$collectable["explain"] = is_true($collectable["explain"] ?? false) ? YES : NO;
 
 			if ($this->db->insert("collectables", $collectable, $keys) === false) {
 				return false;
@@ -100,7 +101,7 @@
 		}
 
 		public function update_collectable($collectable, $image) {
-			$keys = array("name", "found", "hide");
+			$keys = array("name", "description", "found", "hide", "explain");
 
 			if ($image["error"] == 0) {
 				if (($current = $this->get_collectable($collectable["id"])) == false) {
@@ -122,6 +123,7 @@
 
 			$collectable["found"] = is_true($collectable["found"] ?? false) ? YES : NO;
 			$collectable["hide"] = is_true($collectable["hide"] ?? false) ? YES : NO;
+			$collectable["explain"] = is_true($collectable["explain"] ?? false) ? YES : NO;
 
 			return $this->db->update("collectables", $collectable["id"], $collectable, $keys);
 		}

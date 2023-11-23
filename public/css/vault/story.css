@@ -84,10 +84,21 @@ textarea.form-control {
 	height:250px;
 }
 
+div.filter {
+	width:500px;
+	max-width:100%;
+	margin:0 0 15px auto;
+}
+
+mark {
+	background-color:#ffff00;
+}
+
 @media print {
 	div.wrapper > div.header,
 	nav.navbar,
 	form.adventures_pulldown,
+	div.filter,
 	button.help,
 	div.handle,
 	div.add,

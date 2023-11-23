@@ -44,6 +44,7 @@ var z_index = DEFAULT_Z_INDEX;
 var dungeon_master = null;
 var my_name = null;
 var character_name = null;
+var character_steerable = true;
 var my_character = null;
 var wf_collectables = null;
 var wf_dice_roll = null;
@@ -139,7 +140,7 @@ function map_image() {
 			header: 'Maps from Resources',
 		});
 
-		$('ul.map_image li').click(function() {
+		$('ul.map_image li').on('click', function() {
 			var map_url = $(this).text();
 			var resources_key = $('div.playarea').attr('resources_key');
 
@@ -238,7 +239,11 @@ function write_sidebar(message) {
 }
 
 function show_image(img) {
-	var image = '<div class="image_overlay" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); border:1px solid #000000; max-width:80%; max-height:80%; cursor:pointer" /></div>';
+	if ($('div.image_overlay').length > 0) {
+		return;
+	}
+
+	var image = '<div class="image_overlay" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); filter:drop-shadow(#000000 10px 10px 5px); max-width:80%; max-height:80%; cursor:pointer" /></div>';
 
 	$('body').append(image);
 	$('body div.image_overlay').show();
@@ -256,8 +261,7 @@ function message_to_sidebar(name, message) {
 			message = '<a href="' + message + '" target="_blank">' + message + '</a>';
 		}
 	} else {
-		message = message.replace(/</g, '&lt;');
-		message = message.replace(/\n/g, '<br />');
+		message = message.replace(/</g, '&lt;').replace(/\n/g, '<br />');
 	}
 
 	if (name != null) {
@@ -504,6 +508,7 @@ function show_help() {
 		'done':                  'End the combat.',
 		'next [&lt;name&gt;]':   'Next turn in combat.',
 		'night [0-4]':           'Set map night mode.',
+		'noscript':              'Disable all zone scripts.',
 		'ping':                  'See who\'s online in the session.',
 		'reload':                'Reload current page.',
 		'remove &lt;name&gt;':   'Remove one from the combat.',
@@ -716,7 +721,7 @@ function object_create(icon, x, y) {
 		}
 
 		if (parseInt(rotation) > 0) {
-			object_rotate($('div#token' + instance_id), rotation, true, 0);
+			object_rotate_command($('div#token' + instance_id), rotation, 0);
 		}
 
 		$('div.playarea div#token' + instance_id).draggable({
@@ -725,13 +730,15 @@ function object_create(icon, x, y) {
 			}
 		});
 
-		$('div#token' + instance_id).contextmenu(object_contextmenu_dm);
+		$('div#token' + instance_id).on('click', object_click);
+		$('div#token' + instance_id).on('dblclick', object_dblclick);
+		$('div#token' + instance_id).on('contextmenu', object_contextmenu_dm);
 	}).fail(function() {
 		write_sidebar('Error creating object.');
 	});
 }
 
-function object_damage(obj, points) {
+function object_damage_command(obj, points) {
 	var hitpoints = parseInt(obj.attr('hitpoints'));
 	var damage = parseInt(obj.attr('damage'));
 
@@ -752,22 +759,15 @@ function object_damage(obj, points) {
 		damage = 0;
 	}
 
-	obj.attr('damage', damage);
+	var perc = Math.floor(100 * damage / hitpoints).toString() + '%';
 
-	var perc = Math.floor(100 * damage / hitpoints);
-	var dmg = obj.find('div.damage');
-	dmg.css('width', perc.toString() + '%');
-	if (damage == hitpoints) {
-		object_dead(obj);
-	} else {
-		object_alive(obj);
-	}
+	object_damage_action(obj, damage, perc);
 
 	var data = {
 		action: 'damage',
 		instance_id: obj.prop('id'),
 		damage: damage,
-		perc: dmg.css('width')
+		perc: perc
 	};
 	websocket_send(data);
 
@@ -776,6 +776,53 @@ function object_damage(obj, points) {
 		damage: damage
 	});
 }
+
+function object_damage_action(obj, damage, percentage) {
+	obj.attr('damage', damage);
+	obj.find('div.damage').css('width', percentage);
+
+	if (percentage == '100%') {
+		object_dead(obj);
+	} else {
+		object_alive(obj);
+	}
+}
+
+function object_click(event) {
+	if ($(this).is(focus_obj)) {
+		event.stopPropagation();
+	}
+}
+
+function object_dblclick(event) {
+	event.stopPropagation();
+
+	if (ctrl_down) {
+		if ($(this).attr('is_hidden') == 'yes') {
+			object_show_command($(this));
+		} else {
+			object_hide_command($(this));
+		}
+		return;
+	}
+
+	if (focus_obj != null) {
+		if ($(this).is(focus_obj)) {
+			return;
+		}
+
+		focus_obj.find('img').css('border', '');
+	}
+
+	focus_obj = $(this);
+	focus_obj.find('img').css('border', '1px solid #ffa000');
+
+	zone_init_presence();
+
+	if (keep_centered) {
+		scroll_to_my_character(250);
+	}
+};
 
 function object_dead(obj) {
 	obj.css('background-color', '#c03010');
@@ -801,25 +848,28 @@ function object_delete(obj) {
 	});
 }
 
-function object_hide(obj, send = true) {
+function object_hide_command(obj) {
+	object_hide_action(obj);
+
+	var data = {
+		action: 'hide',
+		instance_id: obj.prop('id')
+	};
+	websocket_send(data);
+
+	$.post('/object/hide', {
+		instance_id: obj.prop('id')
+	});
+}
+
+function object_hide_action(obj) {
 	if (dungeon_master) {
 		obj.fadeTo(0, OBJECT_HIDDEN_FADE);
 	} else {
 		obj.hide(100);
 	}
+
 	obj.attr('is_hidden', 'yes');
-
-	if (send) {
-		var data = {
-			action: 'hide',
-			instance_id: obj.prop('id')
-		};
-		websocket_send(data);
-
-		$.post('/object/hide', {
-			instance_id: obj.prop('id')
-		});
-	}
 }
 
 function object_info(obj) {
@@ -862,6 +912,14 @@ function object_info(obj) {
 		if (obj.hasClass('character')) {
 			info += 'Initiative bonus: ' + obj.attr('initiative') + '<br />';
 		}
+	} else {
+		script = obj.find('div.script');
+		if (script.length > 0) {
+			var dashes = '&mdash;&mdash;&mdash;';
+			info += '<b>' + dashes + '[ script ]' + dashes + dashes + '</b>\n';
+			info += script.text() + '\n';
+			info += '<b>' + dashes + dashes + dashes + dashes + '&mdash;&mdash;</b>\n';
+		}
 	}
 
 	if (dungeon_master) {
@@ -903,22 +961,16 @@ function object_move(obj, speed = 200) {
 	};
 	websocket_send(data);
 
-	if (obj.is(my_character) == false) {
-		if (obj.hasClass('effect') == false) {
-			$.post('/object/move', {
-				instance_id: obj.prop('id'),
-				pos_x: Math.round(pos.left / grid_cell_size),
-				pos_y: Math.round(pos.top / grid_cell_size)
-			});
-		}
-	} else {
+	if (obj.is(my_character)) {
 		char_pos_x = Math.round(pos.left / grid_cell_size);
 		char_pos_y =  Math.round(pos.top / grid_cell_size);
 		char_pos_changed = true;
-	}
-
-	if (obj.is(my_character)) {
-		zone_check_events(obj, pos);
+	} else if (obj.hasClass('effect') == false) {
+		$.post('/object/move', {
+			instance_id: obj.prop('id'),
+			pos_x: Math.round(pos.left / grid_cell_size),
+			pos_y: Math.round(pos.top / grid_cell_size)
+		});
 	}
 
 	/* Fog of War
@@ -961,7 +1013,24 @@ function object_position(obj) {
 	return pos;
 }
 
-function object_rotate(obj, rotation, send_to_backend = true, speed = 500) {
+function object_rotate_command(obj, rotation, speed = 500) {
+	object_rotate_action(obj, rotation, speed);
+
+	var data = {
+		action: 'rotate',
+		instance_id: obj.prop('id'),
+		rotation: rotation,
+		speed: speed
+	};
+	websocket_send(data);
+
+	$.post('/object/rotate', {
+		instance_id: obj.prop('id'),
+		rotation: rotation
+	});
+}
+
+function object_rotate_action(obj, rotation, speed = 500) {
 	var img = obj.find('img');
 	var width = img.width() / grid_cell_size;
 	var height = img.height() / grid_cell_size;
@@ -1001,42 +1070,30 @@ function object_rotate(obj, rotation, send_to_backend = true, speed = 500) {
 	});
 
 	obj.attr('rotation', rotation);
-
-	if (send_to_backend) {
-		var data = {
-			action: 'rotate',
-			instance_id: obj.prop('id'),
-			rotation: rotation,
-			speed: speed
-		};
-		websocket_send(data);
-
-		$.post('/object/rotate', {
-			instance_id: obj.prop('id'),
-			rotation: rotation
-		});
-	}
 }
 
-function object_show(obj, send = true) {
+function object_show_command(obj) {
+	object_show_action(obj);
+
+	var data = {
+		action: 'show',
+		instance_id: obj.prop('id')
+	};
+	websocket_send(data);
+
+	$.post('/object/show', {
+		instance_id: obj.prop('id')
+	});
+}
+
+function object_show_action(obj) {
 	if (dungeon_master) {
 		obj.fadeTo(0, 1);
 	} else {
 		obj.show(100);
 	}
+
 	obj.attr('is_hidden', 'no');
-
-	if (send) {
-		var data = {
-			action: 'show',
-			instance_id: obj.prop('id')
-		};
-		websocket_send(data);
-
-		$.post('/object/show', {
-			instance_id: obj.prop('id')
-		});
-	}
 }
 
 function object_step(obj, x, y) {
@@ -1107,6 +1164,8 @@ function object_step(obj, x, y) {
 	obj.css('top', pos.top + 'px');
 	object_move(obj, 50);
 
+	zone_check_events(obj, pos);
+
 	if (stick_to != null) {
 		stick_to_x += x;
 		stick_to_y += y;
@@ -1119,6 +1178,10 @@ function object_step(obj, x, y) {
 
 function object_steer(event) {
 	if ((dungeon_master == false) && pause) {
+		return;
+	}
+
+	if (character_steerable == false) {
 		return;
 	}
 
@@ -1205,7 +1268,7 @@ function object_turn(obj, direction) {
 		rotation -= 360;
 	}
 
-	object_rotate(obj, rotation, true, 100);
+	object_rotate_command(obj, rotation, 100);
 }
 
 function object_view(obj, max_size = 300) {
@@ -1233,8 +1296,9 @@ function object_view(obj, max_size = 300) {
 
 	var onclick = 'javascript:$(this).remove();';
 	var div_style = 'position:absolute; z-index:' + LAYER_VIEW + '; top:0; left:0; right:0; bottom:0; background-color:rgba(' + bgcolor + ', 0.8);';
-	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%)';
-	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px;';
+	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);';
+	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px; margin:0 auto;';
+	var description = obj.find('img').attr('description');
 
 	var transform = obj.find('img').css('transform');
 	if ((transform != 'none') && (collectable_id == undefined)) {
@@ -1242,11 +1306,18 @@ function object_view(obj, max_size = 300) {
 	}
 
 	if (((obj.hasClass('token') == false) && (obj.hasClass('character') == false)) || (collectable_id != undefined)) {
-		img_style += ' border:1px solid #000000; background-color:#ffffff;';
+		span_style += ' border:1px solid #000000; background-color:#ffffff;';
 	}
 
-	var view = $('<div id="view" style="' + div_style + '" onClick="' + onclick +'"><span style="' + span_style + '"><img src="' + src + '" style="' + img_style + '" /></span></div>');
+	var view = '<div id="view" style="' + div_style + '" onClick="' + onclick +'"><span style="' + span_style + '">';
+	view += '<img src="' + src + '" style="' + img_style + '" />';
+	if ((description != undefined) && (description != '')) {
+		description = description.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br />');
+		view += '<div style="padding:15px; min-width:500px; max-height:200px; overflow:auto">' + description + '</div>';
+	}
+	view += '</span></div>';
 	$('body').append(view);
+	$('div#view div').css('width', $('div#view img').width() + 'px');
 
 	if ((collectable_id != undefined) && (dungeon_master == false)) {
 		$('div#view span').append('<div class="btn-group" style="width:100%"><button class="btn btn-default" style="width:100%">Take item</button></div>');
@@ -1260,7 +1331,7 @@ function object_view(obj, max_size = 300) {
 			send_message(character_name + ' has found an item! Check the inventory.', character_name, false);
 
 			if (obj.attr('c_hide') == 'yes') {
-				object_hide(obj);
+				object_hide_command(obj);
 			}
 		});
 	}
@@ -1327,7 +1398,7 @@ function effect_create_final(effect_id, src, width, height) {
 		}
 	});
 
-	$('div#' + effect_id).contextmenu(function(event) {
+	$('div#' + effect_id).on('contextmenu', function(event) {
 		var menu_entries = {
 			'handover': { name:'Hand over', icon:'fa-hand-stop-o' },
 			'takeback': { name:'Take back', icon:'fa-hand-grab-o' },
@@ -1558,7 +1629,12 @@ function light_create(pos_x, pos_y, radius) {
 			}
 		});
 
-		$('div#light' + instance_id).contextmenu(function(event) {
+		$('div#light' + instance_id).on('dblclick', function(event) {
+			light_toggle($(this));
+			event.stopPropagation();
+		});
+
+		$('div#light' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = {};
 
 			menu_entries['light_info'] = { name:'Get information', icon:'fa-info-circle' };
@@ -1625,21 +1701,25 @@ function light_state(obj, state) {
 	}
 }
 
-function light_set(light_id, state) {
+function light_toggle(light) {
+	var toggle = { on:'off', off:'on' };
+	var state = toggle[light.attr('state')];
+
+	light_state(light, state);
+
+	var light_id = light.prop('id').substring(5);
+
 	$.post('/object/light_state', {
 		light_id: light_id,
 		state: state
-	}).done(function() {
-		var data = {
-			action: 'light_state',
-			light_id: light_id,
-			state: state
-		};
-		websocket_send(data);
-
-		var light = $('div#light' + light_id);
-		light_state(light, state);
 	});
+
+	var data = {
+		action: 'light_state',
+		light_id: light_id,
+		state: state
+	};
+	websocket_send(data);
 }
 
 function light_delete(obj) {
@@ -1867,15 +1947,7 @@ function zone_check_events(obj, pos) {
 
 	for (var [event_type, items] of Object.entries(zone_events)) {
 		items.forEach(function(zone_id) {
-			var data = {
-				action: 'event',
-				zone: zone_id,
-				character: obj.prop('id'),
-				zone_event: event_type,
-				pos_x: pos.left,
-				pos_y: pos.top
-			};
-			websocket_send(data);
+			zone_run_script(zone_id, obj.prop('id'), event_type, pos.left, pos.top);
 		});
 	}
 }
@@ -1988,7 +2060,7 @@ function zone_create(width, height, color, opacity, group, altitude) {
 		};
 		websocket_send(data);
 
-		$('div#zone' + instance_id).contextmenu(function(event) {
+		$('div#zone' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = zone_menu;
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -2020,11 +2092,13 @@ function zone_delete(obj) {
 }
 
 function zone_init_presence() {
-	if (my_character == null) {
+	if (my_character != null) {
+		var my_pos = object_position(my_character);
+	} else if (focus_obj) {
+		var my_pos = object_position(focus_obj);
+	} else {
 		return;
 	}
-
-	var my_pos = object_position(my_character);
 
 	zone_presence = [];
 	$('div.zone').each(function() {
@@ -2067,8 +2141,39 @@ function collectables_show() {
 
 			$(data).find('collectable').each(function() {
 				var image = $(this).find('image').text();
-				var collectable = '<div class="col-sm-4" style="width:115px; height:115px;" onClick="javascript:object_view($(this), 600);"><img src="/resources/' + resources_key + '/collectables/' + image + '" style="max-width:100px; max-height:100px; cursor:pointer;" /></div>';
+				var description = $(this).find('description').text();
+				description = description.replace(/"/g, '&quot;');
+
+				var collectable = '<div class="col-sm-4" style="width:115px; height:115px;" onClick="javascript:object_view($(this), 1000);"><img src="/resources/' + resources_key + '/collectables/' + image + '" style="max-width:100px; max-height:100px; cursor:pointer;" description="' + description + '" /></div>';
 				row.append(collectable);
+			});
+		}
+
+		if (dungeon_master) {
+			$.post('/object/collectables/all', {
+				adventure_id: adventure_id,
+			}).done(function(data) {
+				var collectables = '<div class="all"><table class="table table-condensed"><thead><th>Collectable</th><th>Found</th><th>Explained</th></tr></thead><tbody>';
+				$(data).find('collectable').each(function() {
+					var col_id = $(this).attr('id');
+					var name = $(this).find('name').text();
+					var found = $(this).find('found').text();
+					var explain = $(this).find('explain').text();
+					collectables += '<tr col_id="' + col_id + '"><td>' + name + '</td>' +
+						'<td><input name="found" type="checkbox" ' + (found == 'yes' ? 'checked="checked" ' : '') + '/></td>' +
+						'<td><input name="explain" type="checkbox" ' + (explain == 'yes' ? 'checked="checked" ' : '') + '/></td></tr>';
+				});
+				collectables += '</tbody></table></div>';
+
+				body.append(collectables);
+
+				body.find('input').on('click', function() {
+					$.post('/object/collectable/state', {
+						id: $(this).parent().parent().attr('col_id'),
+						field: $(this).attr('name'),
+						state: $(this).is(':checked')
+					});
+				});
 			});
 		}
 	});
@@ -2077,6 +2182,8 @@ function collectables_show() {
 /* Journal functions
  */
 function journal_add_entry(name, content) {
+	content = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 	var entry = '<div class="entry"><span class="writer">' + name + '</span><span class="content">' + content + '</span></div>';
 	$('div.journal div.entries').append(entry);
 
@@ -2101,6 +2208,8 @@ function journal_save_entry(name, content) {
 function journal_show() {
 	var panel = $('div.journal').parent();
 	panel.prop('scrollTop', panel.prop('scrollHeight'));
+
+	$('div.journal textarea').focus();
 }
 
 function journal_write() {
@@ -2114,6 +2223,36 @@ function journal_write() {
 
 	journal_add_entry(character_name, content);
 	journal_save_entry(character_name, content);
+}
+
+function journal_filter_reset() {
+	$('div.journal div.entry').show();
+	$('div.journal').unmark();
+}
+
+function journal_filter_adjust() {
+	journal_filter_reset();
+
+	var filter = $('div.journal input[type="text"]').val().toLowerCase();
+	if (filter == '') {
+		return;
+	}
+
+	var mark_options = { separateWordSearch: false };
+
+	$('div.journal div.entry').each(function() {
+		if ($(this).text().toLowerCase().indexOf(filter) == -1) {
+			$(this).hide();
+		} else {
+			$(this).mark(filter, mark_options);
+		}
+	});
+}
+
+function journal_filter_clear() {
+	$('div.journal input[type="text"]').val('');
+
+	journal_filter_reset();
 }
 
 /* Combat functions
@@ -2264,9 +2403,7 @@ function handle_input(input) {
 			}
 			break;
 		case 'damage':
-		case 'dmg':
 			if (my_character == null) {
-				write_sidebar('You have no character.');
 				return;
 			}
 
@@ -2277,7 +2414,7 @@ function handle_input(input) {
 				return;
 			}
 
-			object_damage(my_character, points);
+			object_damage_command(my_character, points);
 			break;
 		case 'dmroll':
 			if (dungeon_master == false) {
@@ -2304,8 +2441,6 @@ function handle_input(input) {
 			break;
 		case 'heal':
 			if (my_character == null) {
-				write_sidebar('You have no character.');
-				$('div.input input').val(input);
 				return;
 			}
 
@@ -2315,23 +2450,23 @@ function handle_input(input) {
 				return;
 			}
 
-			object_damage(my_character, -points);
+			object_damage_command(my_character, -points);
 			break;
 		case 'help':
 			show_help();
 			break;
 		case 'history':
 			if (param == 'clear') {
-				input_history = null;
+				input_history = [];
 				input_index = -1;
 				localStorage.removeItem('input_history');
 				write_sidebar('History cleared.');
 				return;
 			}
 
-			var history = 'Input history:<br />\n';
+			var history = 'Input history:\n';
 			input_history.forEach(function(value) {
-				history += '<span class="history" style="display:block">' + value + '</span>\n';
+				history += '<span class="history" style="display:block">' + value + '</span>';
 			});
 			write_sidebar(history);
 			$('div.sidebar span.history').off('click').on('click', function() {
@@ -2412,6 +2547,18 @@ function handle_input(input) {
 			};
 			websocket_send(data);
 			break;
+		case 'noscript':
+			if (dungeon_master) {
+				var data = {
+					action: 'noscript'
+				};
+				websocket_send(data);
+
+				script_disable_all();
+
+				write_sidebar('All zone scripts have been disabled.');
+			}
+			break;
 		case 'ping':
 			if (dungeon_master == false) {
 				return;
@@ -2482,7 +2629,7 @@ function handle_input(input) {
 	input_history_add(input);
 }
 
-function context_menu_handler(key, options) {
+function context_menu_handler(key) {
 	var obj = $(this);
 	if (obj.prop('tagName').toLowerCase() == 'img') {
 		obj = obj.parent();
@@ -2645,7 +2792,7 @@ function context_menu_handler(key, options) {
 					return;
 				}
 
-				object_damage(obj, points);
+				object_damage_command(obj, points);
 			});
 			break;
 		case 'delete':
@@ -2763,12 +2910,9 @@ function context_menu_handler(key, options) {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
 				if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
 					var distance = fow_char_distances[obj.prop('id')];
-					fog_of_war_set_distance(distance);
-				}
-
-				var distance = fow_char_distances[obj.prop('id')];
-				if (distance != undefined) {
-					fog_of_war_set_distance(distance);
+					if (distance != undefined) {
+						fog_of_war_set_distance(distance);
+					}
 				}
 
 				fog_of_war_update(obj);
@@ -2834,7 +2978,7 @@ function context_menu_handler(key, options) {
 					return;
 				}
 
-				object_damage(obj, -points);
+				object_damage_command(obj, -points);
 			});
 			break;
 		case 'info':
@@ -2949,11 +3093,7 @@ function context_menu_handler(key, options) {
 			});
 			break;
 		case 'light_toggle':
-			var toggle = { on:'off', off:'on' };
-			var state = toggle[obj.attr('state')];
-			var light_id = obj.prop('id').substring(5);
-
-			light_set(light_id, state);
+			light_toggle(obj);
 			break;
 		case 'lower':
 			z_index--;
@@ -3001,30 +3141,22 @@ function context_menu_handler(key, options) {
 				});
 
 				my_character.attr('hitpoints', points);
-				object_damage(my_character, points - max_hp);
+				object_damage_command(my_character, points - max_hp);
 			});
 			break;
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
-				object_show(obj);
+				object_show_command(obj);
 			} else {
-				object_hide(obj);
+				object_hide_command(obj);
 			}
 			break;
 		case 'rotate':
 			var compass = { 'n':   0, 'ne':  45, 'e':  90, 'se': 135,
 			                's': 180, 'sw': 225, 'w': 270, 'nw': 315 };
 			if ((direction = compass[direction]) != undefined) {
-				object_rotate(obj, direction);
+				object_rotate_command(obj, direction);
 			}
-			break;
-		case 'script':
-			$('div.script_editor input#zone_id').val($(this).prop('id'));
-			$('input#zone_group').val($(this).attr('group'));
-			$('div.script_editor textarea').val($(this).find('div.script').text());
-			zone_group_change(true);
-			wf_script_editor.open();
-			$('div.script_editor textarea').focus();
 			break;
 		case 'shape':
 			if (shape_change_id == 0) {
@@ -3113,7 +3245,7 @@ function context_menu_handler(key, options) {
 				window.open('/adventure/' + adventure_id + '/' + travel_map_id);
 			}
 
-			object_hide(obj);
+			object_hide_command(obj);
 			break;
 		case 'view':
 			object_view(obj);
@@ -3165,6 +3297,8 @@ function key_down(event) {
 
 	var open_windows = $('div.windowframe_overlay > div:visible');
 
+	console.log(event.which);
+
 	switch (event.which) {
 		case 9:
 			// TAB
@@ -3197,7 +3331,7 @@ function key_down(event) {
 			$('div.menu').hide();
 			break;
 		case 192:
-			// back-quote
+			// r
 			if ($('div.diceroll:visible').length > 0) {
 				wf_dice_roll.close();
 			} else if (open_windows.length == 0) {
@@ -3321,7 +3455,7 @@ $(document).ready(function() {
 		if (parts.length == 4) {
 			var my_char_id = $('div.playarea').attr('my_char');
 			if (my_char_id != undefined) {
-				object_damage($('div#' + my_char_id), 0);
+				object_damage_command($('div#' + my_char_id), 0);
 			}
 		}
 
@@ -3329,7 +3463,7 @@ $(document).ready(function() {
 			/* Unhide character
 			 */
 			if (my_character.attr('is_hidden') == 'yes') {
-				object_show(my_character, true);
+				object_show_command(my_character);
 			}
 
 			/* Request map status from DM
@@ -3404,17 +3538,11 @@ $(document).ready(function() {
 						  '<img src="' + data.url + '" style="width:' + data.width + 'px; height:' + data.height + 'px;" />' +
 						  '</div>';
 				$('div.playarea div.tokens').append(obj);
-				$('div#token' + data.instance_id).contextmenu(object_contextmenu_player);
+				$('div#token' + data.instance_id).on('contextmenu', object_contextmenu_player);
 				break;
 			case 'damage':
 				var obj = $('div#' + data.instance_id);
-				obj.attr('damage', data.damage);
-				obj.find('div.damage').css('width', data.perc);
-				if (data.perc == '100%') {
-					object_dead(obj);
-				} else {
-					object_alive(obj);
-				}
+				object_damage_action(obj, data.damage, data.perc);
 				break;
 			case 'delete':
 				var obj = $('div#' + data.instance_id);
@@ -3477,11 +3605,6 @@ $(document).ready(function() {
 			case 'effect_delete':
 				$('div#' + data.instance_id).remove();
 				break;
-			case 'event':
-				if (dungeon_master) {
-					zone_run_script(data.zone, data.character, data.zone_event, data.pos_x, data.pos_y);
-				}
-				break;
 			case 'fow_distance':
 				if (my_character == null) {
 					break;
@@ -3526,7 +3649,7 @@ $(document).ready(function() {
 				}
 
 				$('div#' + data.instance_id + ' img').off('contextmenu');
-				$('div#' + data.instance_id + ' img').contextmenu(function(event) {
+				$('div#' + data.instance_id + ' img').on('contextmenu', function(event) {
 					var menu_entries = {
 						'info': { name:'Get infomation', icon:'fa-info-circle' },
 						'stick': { name:'Stick to / unstick', icon:'fa-lock' },
@@ -3555,7 +3678,7 @@ $(document).ready(function() {
 				break;
 			case 'hide':
 				var obj = $('div#' + data.instance_id);
-				object_hide(obj, false);
+				object_hide_action(obj);
 				break;
 			case 'journal':
 				journal_add_entry(data.name, data.content);
@@ -3617,8 +3740,8 @@ $(document).ready(function() {
 							left: data.pos_x,
 							top: data.pos_y
 						}
-						// Recursive zone events
-						//zone_check_events(obj, pos);
+
+						zone_init_presence();
 					} else if (obj.hasClass('zone') && (my_character != null)) {
 						var pos = object_position(my_character);
 						if (zone_covers_position(obj, pos)) {
@@ -3657,6 +3780,9 @@ $(document).ready(function() {
 			case 'night':
 				$('div.night').css('background-color', 'rgba(0, 0, 0, ' + data.level + ')');
 				break;
+			case 'noscript':
+				script_disable_all();
+				break;
 			case 'pause':
 				pause = data.pause;
 
@@ -3670,6 +3796,7 @@ $(document).ready(function() {
 			case 'ping':
 				var data = {
 					action: 'pong',
+					user_id: 0,
 					name: my_name + ' (' + character_name + ')'
 				};
 				websocket_send(data);
@@ -3733,7 +3860,7 @@ $(document).ready(function() {
 				break;
 			case 'rotate':
 				var obj = $('div#' + data.instance_id);
-				object_rotate(obj, data.rotation, false, data.speed);
+				object_rotate_action(obj, data.rotation, data.speed);
 				break;
 			case 'say':
 				message_to_sidebar(data.name, data.mesg);
@@ -3746,7 +3873,7 @@ $(document).ready(function() {
 				break;
 			case 'show':
 				var obj = $('div#' + data.instance_id);
-				object_show(obj, false);
+				object_show_action(obj);
 				break;
 			case 'takeback':
 				$('div#' + data.instance_id).css('cursor', 'default');
@@ -3754,7 +3881,7 @@ $(document).ready(function() {
 				$('div#' + data.instance_id).draggable('destroy');
 
 				$('div#' + data.instance_id + ' img').off('contextmenu');
-				$('div#' + data.instance_id + ' img').contextmenu(function(event) {
+				$('div#' + data.instance_id + ' img').on('contextmenu', function(event) {
 					var menu_entries = {
 						'view': { name:'View', icon:'fa-search' },
 						'stick': { name:'Stick to / unstick', icon:'fa-lock' },
@@ -3774,6 +3901,15 @@ $(document).ready(function() {
 					document.location = '/adventure/' + adventure_id + '/' + data.map_id;
 				}
 				break;
+			case 'turn':
+				if (my_character == null) {
+					break;
+				}
+
+				if (my_character.attr('char_id') == data.char_id) {
+					zone_check_presence_for_turn(my_character);
+				}
+				break;
 			case 'window_state':
 				var obj = $('div#' + data.window_id);
 				switch (data.transparent) {
@@ -3784,10 +3920,6 @@ $(document).ready(function() {
 			case 'zone_create':
 				zone_create_object(data.instance_id, data.pos_x, data.pos_y, data.width, data.height,
 				                   data.color, data.opacity, data.group, data.altitude);
-				break;
-			case 'zone_opacity':
-				var zone = $('div#' + data.instance_id);
-				zone.css('opacity', data.opacity);
 				break;
 			case 'zone_delete':
 				var zone = $('div#' + data.instance_id);
@@ -4018,7 +4150,7 @@ $(document).ready(function() {
 			});
 		});
 
-		$('div.draw-tools div.draw-colors span').click(function() {
+		$('div.draw-tools div.draw-colors span').on('click', function() {
 			var color = $(this).css('background-color');
 
 			drawing_ctx.strokeStyle = color;
@@ -4035,7 +4167,7 @@ $(document).ready(function() {
 			$(this).css('box-shadow', '0 0 5px 2px #0080ff');
 		});
 
-		$('div.draw-tools div.draw-brushes span').click(function() {
+		$('div.draw-tools div.draw-brushes span').on('click', function() {
 			var img = new Image();
 			img.src = $(this).attr('brush');
 			img.onload = function() {
@@ -4055,7 +4187,7 @@ $(document).ready(function() {
 			$(this).css('box-shadow', '0 0 5px 2px #0080ff');
 		});
 
-		$('button.draw_clear').click(function() {
+		$('button.draw_clear').on('click', function() {
 			var image = $('div#map_background').css('background-image');
 			image = image.substring(image.length - 15, image.length - 2);
 
@@ -4149,7 +4281,7 @@ $(document).ready(function() {
 	});
 
 	if (dungeon_master) {
-		$('div.door').contextmenu(function(event) {
+		$('div.door').on('contextmenu', function(event) {
 			var menu_entries = {};
 
 			if ($(this).attr('state') == 'open') {
@@ -4171,7 +4303,7 @@ $(document).ready(function() {
 		wall_position($(this));
 	});
 
-	$('div.wall[transparent=yes]').contextmenu(function(event) {
+	$('div.wall[transparent=yes]').on('contextmenu', function(event) {
 		var menu_entries = {};
 
 		if ($(this).attr('transparent') == 'yes') {
@@ -4217,12 +4349,12 @@ $(document).ready(function() {
 	}
 
 	$('div.character[is_hidden=yes]').each(function() {
-		object_hide($(this), false);
+		object_hide_action($(this));
 	});
 
 	$('div.token').each(function() {
 		$(this).css('z-index', LAYER_TOKEN);
-		object_rotate($(this), $(this).attr('rotation'), false, 0);
+		object_rotate_action($(this), $(this).attr('rotation'), 0);
 
 		if ($(this).attr('hitpoints') > 0) {
 			if ($(this).attr('damage') == $(this).attr('hitpoints')) {
@@ -4233,7 +4365,7 @@ $(document).ready(function() {
 
 	$('div.character').each(function() {
 		$(this).css('z-index', LAYER_CHARACTER);
-		object_rotate($(this), $(this).attr('rotation'), false, 0);
+		object_rotate_action($(this), $(this).attr('rotation'), 0);
 	});
 
 	if (dungeon_master) {
@@ -4269,27 +4401,10 @@ $(document).ready(function() {
 			}
 		});
 
-		var focus_object = function(event) {
-			if (focus_obj != null) {
-				if ($(this).is(focus_obj)) {
-					return;
-				}
-
-				focus_obj.find('img').css('border', '');
-			}
-
-			focus_obj = $(this);
-			focus_obj.find('img').css('border', '1px solid #ffa000');
-
-			if (keep_centered) {
-				scroll_to_my_character(250);
-			}
-
-			event.stopPropagation();
-		};
-
-		$('div.characters div.character').on('dblclick', focus_object);
-		$('div.tokens div.token').on('dblclick', focus_object);
+		$('div.characters div.character').on('click', object_click);
+		$('div.characters div.character').on('dblclick', object_dblclick);
+		$('div.tokens div.token').on('click', object_click);
+		$('div.tokens div.token').on('dblclick', object_dblclick);
 
 		$('div.playarea').on('click', function() {
 			if (focus_obj != null) {
@@ -4315,7 +4430,12 @@ $(document).ready(function() {
 			}
 		});
 
-		$('div.light').contextmenu(function(event) {
+		$('div.light').on('dblclick', function(event) {
+			light_toggle($(this));
+			event.stopPropagation();
+		});
+
+		$('div.light').on('contextmenu', function(event) {
 			var menu_entries = {};
 
 			menu_entries['light_info'] = { name:'Get information', icon:'fa-info-circle' };
@@ -4337,7 +4457,6 @@ $(document).ready(function() {
 		 */
 		zone_menu = {
 			'info': { name:'Get information', icon:'fa-info-circle' },
-			'script': { name:'Edit event script', icon:'fa-edit' },
 			'sep1': '-',
 			'marker': { name:'Set marker', icon:'fa-map-marker' },
 			'distance': { name:'Measure distance', icon:'fa-map-signs' },
@@ -4355,7 +4474,7 @@ $(document).ready(function() {
 			delete zone_menu['light_create'];
 		}
 
-		$('div.zone').contextmenu(function(event) {
+		$('div.zone').on('contextmenu', function(event) {
 			var menu_entries = zone_menu;
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -4364,11 +4483,11 @@ $(document).ready(function() {
 
 		/* Menu tokens
 		 */
-		$('div.token img').contextmenu(object_contextmenu_dm);
+		$('div.token img').on('contextmenu', object_contextmenu_dm);
 
 		/* Menu characters
 		 */
-		$('div.character img').contextmenu(function(event) {
+		$('div.character img').on('contextmenu', function(event) {
 			var menu_entries = {
 				'info': { name:'Get information', icon:'fa-info-circle' },
 				'view': { name:'View', icon:'fa-search' }
@@ -4452,7 +4571,7 @@ $(document).ready(function() {
 
 		/* Menu map
 		 */
-		$('div.playarea > div').contextmenu(function(event) {
+		$('div.playarea > div').on('contextmenu', function(event) {
 			var menu_entries = {
 				'marker': { name:'Set marker', icon:'fa-map-marker' },
 				'distance': { name:'Measure distance', icon:'fa-map-signs' },
@@ -4463,7 +4582,7 @@ $(document).ready(function() {
 				'zone_create': { name:'Create zone', icon:'fa-square-o' }
 			};
 
-			if ((fow_type == FOW_OFF) || (fow_type == FOW_REVEAL)) {
+			if ((fow_type != FOW_NIGHT_CELL) && (fow_type != FOW_NIGHT_REAL)) {
 				delete menu_entries['light_create'];
 			}
 
@@ -4532,7 +4651,7 @@ $(document).ready(function() {
 
 						wf_play_audio.append(audio);
 
-						$('ul.audio li').click(function() {
+						$('ul.audio li').on('click', function() {
 							wf_play_audio.close();
 
 							$('div.input input').focus();
@@ -4591,7 +4710,7 @@ $(document).ready(function() {
 
 			/* Menu my character
 			 */
-			$('div#' + my_char + ' img').contextmenu(function(event) {
+			$('div#' + my_char + ' img').on('contextmenu', function(event) {
 				var menu_entries = {
 					'info': { name:'Get information', icon:'fa-info-circle' },
 					'view': { name:'View', icon:'fa-search' },
@@ -4703,11 +4822,11 @@ $(document).ready(function() {
 
 		/* Menu tokens
 		 */
-		$('div.token img').contextmenu(object_contextmenu_player);
+		$('div.token img').on('contextmenu', object_contextmenu_player);
 
 		/* Menu (other) characters
 		 */
-		$('div.character:not(.mine) img').contextmenu(function(event) {
+		$('div.character:not(.mine) img').on('contextmenu', function(event) {
 			var menu_entries = {
 				'info': { name:'Get information', icon:'fa-info-circle' },
 				'view': { name:'View', icon:'fa-search' },
@@ -4723,7 +4842,7 @@ $(document).ready(function() {
 
 		/* Menu map
 		 */
-		$('div.playarea > div').contextmenu(function(event) {
+		$('div.playarea > div').on('contextmenu', function(event) {
 			var menu_entries = {
 				'marker': { name:'Set marker', icon:'fa-map-marker' },
 				'distance': { name:'Measure distance', icon:'fa-map-signs' }
@@ -4787,19 +4906,20 @@ $(document).ready(function() {
 		        '<span class="effect_size">height: <input id="effect_height" type="number" value="1" min="1" /></span>'
 	});
 
-	$('div.effect_create img').click(function() {
+	$('div.effect_create img').on('click', function() {
 		effect_create($(this));
 	});
 
 	wf_collectables = $('<div class="collectables"></div>').windowframe({
 		activator: 'button.show_collectables',
-		width: 500,
+		width: 700,
+		top: 150,
 		style: 'success',
 		header: 'Inventory',
 		open: collectables_show
 	});
 
-	$('div.dm_notes').windowframe({
+	wf_dm_notes = $('div.dm_notes').windowframe({
 		activator: 'button.show_dm_notes',
 		style: 'danger',
 		header: 'DM notes'
@@ -4807,8 +4927,8 @@ $(document).ready(function() {
 
 	wf_journal = $('div.journal').windowframe({
 		activator: 'button.show_journal',
-		width: 800,
-		height: 400,
+		width: 1000,
+		height: 500,
 		style: 'info',
 		header: 'Journal',
 		open: journal_show
@@ -4889,19 +5009,19 @@ $(document).ready(function() {
 		}
 	});
 
-	$('button.journal_write').click(function() {
+	$('button.journal_write').on('click', function() {
 		journal_write();
 	});
 
-	$('button.center_character').click(function() {
+	$('button.center_character').on('click', function() {
 		center_character($(this));
 	});
 
-	$('button.interface_color').click(function() {
+	$('button.interface_color').on('click', function() {
 		interface_color($(this));
 	});
 
-	$('button.fullscreen').click(function() {
+	$('button.fullscreen').on('click', function() {
 		toggle_fullscreen();
 	});
 
@@ -4909,11 +5029,11 @@ $(document).ready(function() {
 		map_switch();
 	});
 
-	$('button.map_image').click(function() {
+	$('button.map_image').on('click', function() {
 		map_image();
 	});
 
-	$('button.playvideo').click(function() {
+	$('button.playvideo').on('click', function() {
 		$('video').get(0).play();
 	});
 
@@ -5012,7 +5132,7 @@ $(document).ready(function() {
 				var button = $('<div class="btn-group"><input type="button" value="' + key + '" title="' + roll + '" class="btn btn-primary roll" /></div>');
 			}
 
-			button.find('input.roll').click(function() {
+			button.find('input.roll').on('click', function() {
 				wf_dice_roll.close();
 
 				write_sidebar('Rolling for ' + $(this).attr('value').toLowerCase() + '.');
@@ -5020,7 +5140,7 @@ $(document).ready(function() {
 				roll_dice(dice, dungeon_master == false);
 				input_history_add('/roll ' + dice);
 			});
-			button.find('input.remove').click(function() {
+			button.find('input.remove').on('click', function() {
 				if (confirm('Delete dice?')) {
 					var key = $(this).parent().find('input.roll').attr('value');
 					var rolls = localStorage.getItem('dicerolls');
@@ -5084,6 +5204,10 @@ $(document).ready(function() {
 		}
 	});
 
+	if (localStorage.getItem('dice_type') == undefined) {
+		localStorage.setItem('dice_type', 'animated');
+	}
+
 	var dice_type_selector = $('<select style="float:right; width:110px; margin-top:15px" class="form-control dice-type"><option value="quick">Quick</option><option value="animated">Animated</option></select>');
 	if (localStorage.getItem('dice_type') == 'animated') {
 		dice_type_selector.find('option:last-child').attr('selected', 'selected');
@@ -5093,7 +5217,7 @@ $(document).ready(function() {
 	});
 	wf_dice_roll.parent().find('div.btn-group').before(dice_type_selector);
 
-	wf_dice_roll.find('div.dice img').dblclick(function() {
+	wf_dice_roll.find('div.dice img').on('dblclick', function() {
 		var dice = $(this).attr('title');
 		if (dice == undefined) {
 			return;

@@ -25,6 +25,7 @@ var grid_size = null;
 var grid_factor = null;
 var z_index = DEFAULT_Z_INDEX;
 var constructs_visible = true;
+var construct_last_type = null;
 var wf_script_editor = null;
 var wf_script_manual = null;
 var wf_zone_create = null;
@@ -53,15 +54,6 @@ var menu_defaults = {
 };
 
 function websocket_send(data) {
-	switch (data.action) {
-		case 'zone_opacity':
-			if (data.opacity == 0) {
-				write_sidebar('Zone made transparent.');
-			} else {
-				write_sidebar('Zone made solid.');
-			}
-			break;
-	}
 }
 
 function filter_library() {
@@ -173,6 +165,15 @@ function key_up(event) {
 	}
 }
 
+function set_condition(obj, condition, set_only = true) {
+	var name = obj.find('span').text();
+	if (name == undefined) {
+		name = obj.attr('id');
+	}
+
+	write_sidebar(name + '\'s condition set to ' + condition);
+}
+
 /* Object functions
  */
 function object_armor_class(obj) {
@@ -196,7 +197,7 @@ function object_armor_class(obj) {
 }
 
 function object_token_context_menu(obj) {
-	obj.find('img').contextmenu(function(event) {
+	obj.find('img').on('contextmenu', function(event) {
 		var menu_entries = {
 			'info': { name:'Get information', icon:'fa-info-circle' },
 			'name': { name:'Set name', icon:'fa-edit' },
@@ -297,11 +298,11 @@ function object_create(icon, x, y) {
 		}
 
 		if (parseInt(rotation) > 0) {
-			object_rotate($('div#token' + instance_id), rotation);
+			object_rotate_command($('div#token' + instance_id), rotation);
 		}
 
 		if (hidden == 'yes') {
-			object_hide($('div#token' + instance_id));
+			object_hide_command($('div#token' + instance_id));
 		}
 
 		$('div.playarea div#token' + instance_id).draggable({
@@ -316,7 +317,7 @@ function object_create(icon, x, y) {
 	});
 }
 
-function object_damage(obj, points) {
+function object_damage_command(obj, points) {
 	var hitpoints = parseInt(obj.attr('hitpoints'));
 	var damage = parseInt(obj.attr('damage'));
 	damage += points;
@@ -359,7 +360,7 @@ function object_delete(obj) {
 	});
 }
 
-function object_hide(obj) {
+function object_hide_command(obj) {
 	obj.fadeTo(0, OBJECT_HIDDEN_FADE);
 	obj.attr('is_hidden', 'yes');
 
@@ -538,6 +539,7 @@ function object_move(obj) {
 	for (var [event_type, items] of Object.entries(zone_events)) {
 		items.forEach(function(zone_id) {
 			zone_run_script(zone_id, char_id, event_type, pos.left, pos.top, true);
+
 			if (fow_obj != null) {
 				fog_of_war_update(fow_obj);
 			}
@@ -571,7 +573,16 @@ function object_position(obj) {
 	return pos;
 }
 
-function object_rotate(obj, rotation, send_to_backend = true) {
+function object_rotate_command(obj, rotation) {
+	object_rotate_action(obj, rotation);
+
+	$.post('/object/rotate', {
+		instance_id: obj.prop('id'),
+		rotation: rotation
+	});
+}
+
+function object_rotate_action(obj, rotation) {
 	var img = obj.find('img');
 	var width = img.width() / grid_cell_size;
 	var height = img.height() / grid_cell_size;
@@ -590,16 +601,9 @@ function object_rotate(obj, rotation, send_to_backend = true) {
 
 	img.css('transform', 'rotate(' + rotation + 'deg)');
 	obj.attr('rotation', rotation);
-
-	if (send_to_backend) {
-		$.post('/object/rotate', {
-			instance_id: obj.prop('id'),
-			rotation: rotation
-		});
-	}
 }
 
-function object_show(obj) {
+function object_show_command(obj) {
 	obj.fadeTo(0, 1);
 	obj.attr('is_hidden', 'no');
 
@@ -625,7 +629,105 @@ function measuring_stop() {
 
 /* Blinder functions
  */
-function blinder_create(pos1_x, pos1_y, pos2_x, pos2_y) {
+function blinder_create_command() {
+	construct_last_type = 'blinder';
+
+	blinder_stop();
+	door_stop();
+	measuring_stop();
+	wall_stop();
+
+	if (alt_down) {
+		var blinder_x = mouse_x;
+		var blinder_y = mouse_y;
+	} else {
+		var blinder_x = coord_to_grid(mouse_x, true);
+		var blinder_y = coord_to_grid(mouse_y, true);
+	}
+
+	var blinder = '<div id="new_blinder" class="blinder" pos1_x="' + blinder_x + '" pos1_y="' + blinder_y + '" pos2_x="' + blinder_x + '" pos2_y="' + blinder_y + '" />';
+	$('div.playarea div.blinders').append(blinder);
+	$('div#new_blinder').each(function() {
+		blinder_position($(this));
+	});
+
+	$('div.playarea').on('mousemove', function(event) {
+		capture_mouse_position(event);
+
+		if (alt_down) {
+			var blinder_x = mouse_x;
+			var blinder_y = mouse_y;
+		} else {
+			var blinder_x = coord_to_grid(mouse_x, true);
+			var blinder_y = coord_to_grid(mouse_y, true);
+		}
+
+		if (shift_down) {
+			var blinder = $('div.blinders div#new_blinder');
+			var pos_x = parseInt(blinder.attr('pos1_x'));
+			var pos_y = parseInt(blinder.attr('pos1_y'));
+			var delta_x = Math.abs(pos_x - blinder_x);
+			var delta_y = Math.abs(pos_y - blinder_y);
+
+			if (delta_x > delta_y) {
+				blinder_y = pos_y;
+			} else {
+				blinder_x = pos_x;
+			}
+		}
+
+		$('div.playarea div#new_blinder').last().each(function() {
+			$(this).attr('pos2_x', blinder_x);
+			$(this).attr('pos2_y', blinder_y);
+			blinder_position($(this));
+		});
+	});
+
+	$('div.playarea').on('click', function(event) {
+		var pos1_x = parseInt($('div.playarea div#new_blinder').attr('pos1_x'));
+		var pos1_y = parseInt($('div.playarea div#new_blinder').attr('pos1_y'));
+		var pos2_x = parseInt($('div.playarea div#new_blinder').attr('pos2_x'));
+		var pos2_y = parseInt($('div.playarea div#new_blinder').attr('pos2_y'));
+
+		if (pos1_x < 0) pos1_x = 0;
+		if (pos1_y < 0) pos1_y = 0;
+		if (pos2_x < 0) pos2_x = 0;
+		if (pos2_y < 0) pos2_y = 0;
+
+		if ((pos1_x == pos2_x) && (pos1_y == pos2_y)) {
+			return;
+		}
+
+		if (ctrl_down == false) {
+			blinder_stop(false);
+		}
+
+		pos1_x *= grid_factor;
+		pos1_y *= grid_factor;
+		pos2_x *= grid_factor;
+		pos2_y *= grid_factor;
+
+		blinder_create_action(pos1_x, pos1_y, pos2_x, pos2_y);
+
+		if (ctrl_down) {
+			var blinder_x = mouse_x;
+			var blinder_y = mouse_y;
+
+			if (alt_down == false) {
+				blinder_x = coord_to_grid(blinder_x, true);
+				blinder_y = coord_to_grid(blinder_y, true);
+			}
+
+			var blinder = '<div id="new_blinder" class="blinder" pos1_x="' + blinder_x + '" pos1_y="' + blinder_y + '" pos2_x="' + blinder_x + '" pos2_y="' + blinder_y + '" />';
+			$('div.playarea div.blinders').append(blinder);
+			$('div#new_blinder').each(function() {
+				blinder_position($(this));
+			});
+		}
+	});
+}
+
+function blinder_create_action(pos1_x, pos1_y, pos2_x, pos2_y) {
 	$.post('/object/create_blinder', {
 		map_id: map_id,
 		pos1_x: pos1_x,
@@ -637,7 +739,7 @@ function blinder_create(pos1_x, pos1_y, pos2_x, pos2_y) {
 
 		$('div.playarea div#new_blinder').first().attr('id', 'blinder' + instance_id);
 
-		$('div#blinder' + instance_id).contextmenu(function(event) {
+		$('div#blinder' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = {
 				'delete': { name:'Delete', icon:'fa-trash' },
 				'blinder_create': { name:'Create blinder', icon:'fa-eye-slash' }
@@ -706,7 +808,74 @@ function blinder_stop(remove = true) {
 
 /* Door functions
  */
-function door_create(pos_x, pos_y, length, direction, state) {
+function door_create_command() {
+	construct_last_type = 'door';
+
+	blinder_stop();
+	door_stop();
+	measuring_stop();
+	wall_stop();
+
+	door_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+	door_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+	var door = '<div id="new_door" class="door" pos_x="' + door_x + '" pos_y="' + door_y + '" state="closed" length="0" direction="horizontal" />';
+	$('div.playarea div.doors').append(door);
+	$('div.playarea div#new_door').each(function() {
+		door_position($(this));
+	});
+
+	$('div.playarea').on('mousemove', function(event) {
+		capture_mouse_position(event);
+
+		var pos_x = door_x;
+		var pos_y = door_y;
+		var end_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+		var end_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+		var diff_x = Math.abs(end_x - pos_x);
+		var diff_y = Math.abs(end_y - pos_y);
+
+		if (diff_x > diff_y) {
+			if (end_x < pos_x) {
+				pos_x = end_x;
+			}
+			var length = diff_x;
+			var direction = 'horizontal';
+		} else {
+			if (end_y < pos_y) {
+				pos_y = end_y;
+			}
+			var length = diff_y;
+			var direction = 'vertical';
+		}
+
+		$('div.playarea div#new_door').each(function() {
+			$(this).attr('pos_x', pos_x);
+			$(this).attr('pos_y', pos_y);
+			$(this).attr('length', length);
+			$(this).attr('direction', direction);
+			door_position($(this));
+		});
+	});
+
+	$('div.playarea').on('click', function(event) {
+		var length = parseInt($('div.playarea div#new_door').attr('length'));
+		if (length == 0) {
+			return;
+		}
+
+		door_stop(false);
+
+		var pos_x = $('div.playarea div#new_door').attr('pos_x');
+		var pos_y = $('div.playarea div#new_door').attr('pos_y');
+		var direction = $('div.playarea div#new_door').attr('direction');
+
+		door_create_action(pos_x, pos_y, length, direction, 'closed');
+	});
+}
+
+function door_create_action(pos_x, pos_y, length, direction, state) {
 	$.post('/object/create_door', {
 		map_id: map_id,
 		pos_x: pos_x,
@@ -721,7 +890,13 @@ function door_create(pos_x, pos_y, length, direction, state) {
 
 		$('div.playarea div#new_door').attr('id', 'door' + instance_id);
 
-		$('div#door' + instance_id).contextmenu(function(event) {
+		$('div#door' + instance_id).on('dblclick', function() {
+			if (shift_down) {
+				object_delete($(this));
+			}
+		});
+
+		$('div#door' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = {};
 
 			if ($(this).attr('state') == 'closed') {
@@ -831,7 +1006,7 @@ function light_create(pos_x, pos_y, radius) {
 			}
 		});
 
-		$('img#light' + instance_id).contextmenu(function(event) {
+		$('img#light' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = {};
 
 			menu_entries['light_radius'] = { name:'Radius', icon:'fa-dot-circle-o' };
@@ -880,7 +1055,98 @@ function light_set(light_id, state) {
 
 /* Wall functions
  */
-function wall_create(pos_x, pos_y, length, direction, transparent) {
+function wall_create_command(key) {
+	if (key == 'wall_create') {
+		construct_last_type = 'wall';
+	} else {
+		construct_last_type = 'window';
+	}
+
+	blinder_stop();
+	door_stop();
+	measuring_stop();
+	wall_stop();
+
+	wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+	wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+	var type = (key == 'wall_create') ? 'wall' : 'wall window';
+	var transparent = (key == 'wall_create') ? 'no' : 'yes';
+	var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" transparent="' + transparent + '" />';
+	$('div.playarea div.walls').append(wall);
+	$('div#new_wall').each(function() {
+		wall_position($(this));
+	});
+
+	$('div.playarea').on('mousemove', function(event) {
+		capture_mouse_position(event);
+
+		var pos_x = wall_x;
+		var pos_y = wall_y;
+		var end_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+		var end_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+		var diff_x = Math.abs(end_x - pos_x);
+		var diff_y = Math.abs(end_y - pos_y);
+
+		if (diff_x > diff_y) {
+			if (end_x < pos_x) {
+				pos_x = end_x;
+			}
+			var length = diff_x;
+			var direction = 'horizontal';
+		} else {
+			if (end_y < pos_y) {
+				pos_y = end_y;
+			}
+			var length = diff_y;
+			var direction = 'vertical';
+		}
+
+		$('div.playarea div#new_wall').last().each(function() {
+			$(this).attr('pos_x', pos_x);
+			$(this).attr('pos_y', pos_y);
+			$(this).attr('length', length);
+			$(this).attr('direction', direction);
+			wall_position($(this));
+		});
+	});
+
+	$('div.playarea').on('click', function(event) {
+		var length = parseInt($('div.playarea div#new_wall').attr('length'));
+		if (length == 0) {
+			return;
+		}
+
+		if (ctrl_down == false) {
+			wall_stop(false);
+		}
+
+		var pos_x = $('div.playarea div#new_wall').attr('pos_x');
+		var pos_y = $('div.playarea div#new_wall').attr('pos_y');
+		var direction = $('div.playarea div#new_wall').attr('direction');
+
+		if ((length == 0) || (length == undefined)) {
+			return;
+		}
+
+		wall_create_action(pos_x, pos_y, length, direction, key == 'window_create');
+
+		if (ctrl_down) {
+			wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
+			wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+
+			var type = (key == 'wall_create') ? 'wall' : 'wall window';
+			var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" transparent="' + transparent + '" />';
+			$('div.playarea div.walls').append(wall);
+			$('div#new_wall').each(function() {
+				wall_position($(this));
+			});
+		}
+	});
+}
+
+function wall_create_action(pos_x, pos_y, length, direction, transparent) {
 	$.post('/object/create_wall', {
 		map_id: map_id,
 		pos_x: pos_x,
@@ -893,7 +1159,7 @@ function wall_create(pos_x, pos_y, length, direction, transparent) {
 
 		$('div.playarea div#new_wall').first().attr('id', 'wall' + instance_id);
 
-		$('div#wall' + instance_id).contextmenu(function(event) {
+		$('div#wall' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = {
 				'delete': { name:'Delete', icon:'fa-trash' },
 				'blinder_create': { name:'Create blinder', icon:'fa-eye-slash' }
@@ -1020,7 +1286,7 @@ function zone_create(width, height, color, opacity, group, altitude) {
 			}
 		});
 
-		$('div#zone' + instance_id).contextmenu(function(event) {
+		$('div#zone' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = {
 				'info': { name:'Info', icon:'fa-info-circle' },
 				'script': { name:'Event script', icon:'fa-edit' },
@@ -1121,7 +1387,7 @@ function collectables_select(obj) {
 
 /* Input functions
  */
-function context_menu_handler(key, options) {
+function context_menu_handler(key) {
 	var obj = $(this);
 	if (obj.hasClass('light') == false) {
 		if (obj.prop('tagName').toLowerCase() == 'img') {
@@ -1140,101 +1406,7 @@ function context_menu_handler(key, options) {
 			object_armor_class(obj);
 			break;
 		case 'blinder_create':
-			blinder_stop();
-			door_stop();
-			measuring_stop();
-			wall_stop();
-
-			if (alt_down) {
-				var blinder_x = mouse_x;
-				var blinder_y = mouse_y;
-			} else {
-				var blinder_x = coord_to_grid(mouse_x, true);
-				var blinder_y = coord_to_grid(mouse_y, true);
-			}
-
-			var blinder = '<div id="new_blinder" class="blinder" pos1_x="' + blinder_x + '" pos1_y="' + blinder_y + '" pos2_x="' + blinder_x + '" pos2_y="' + blinder_y + '" />';
-			$('div.playarea div.blinders').append(blinder);
-			$('div#new_blinder').each(function() {
-				blinder_position($(this));
-			});
-
-			$('div.playarea').on('mousemove', function(event) {
-				capture_mouse_position(event);
-
-				if (alt_down) {
-					var blinder_x = mouse_x;
-					var blinder_y = mouse_y;
-				} else {
-					var blinder_x = coord_to_grid(mouse_x, true);
-					var blinder_y = coord_to_grid(mouse_y, true);
-				}
-
-				if (shift_down) {
-					var blinder = $('div.blinders div#new_blinder');
-					var pos_x = parseInt(blinder.attr('pos1_x'));
-					var pos_y = parseInt(blinder.attr('pos1_y'));
-					var delta_x = Math.abs(pos_x - blinder_x);
-					var delta_y = Math.abs(pos_y - blinder_y);
-
-					if (delta_x > delta_y) {
-						blinder_y = pos_y;
-					} else {
-						blinder_x = pos_x;
-					}
-				}
-
-				$('div.playarea div#new_blinder').last().each(function() {
-					$(this).attr('pos2_x', blinder_x);
-					$(this).attr('pos2_y', blinder_y);
-					blinder_position($(this));
-				});
-			});
-
-			$('div.playarea').on('click', function(event) {
-				var pos1_x = parseInt($('div.playarea div#new_blinder').attr('pos1_x'));
-				var pos1_y = parseInt($('div.playarea div#new_blinder').attr('pos1_y'));
-				var pos2_x = parseInt($('div.playarea div#new_blinder').attr('pos2_x'));
-				var pos2_y = parseInt($('div.playarea div#new_blinder').attr('pos2_y'));
-
-				if (pos2_x < 0) {
-					pos2_x = 0;
-				}
-				if (pos2_y < 0) {
-					pos2_y = 0;
-				}
-
-				if ((pos1_x == pos2_x) && (pos1_y == pos2_y)) {
-					return;
-				}
-
-				if (ctrl_down == false) {
-					blinder_stop(false);
-				}
-
-				pos1_x *= grid_factor;
-				pos1_y *= grid_factor;
-				pos2_x *= grid_factor;
-				pos2_y *= grid_factor;
-
-				blinder_create(pos1_x, pos1_y, pos2_x, pos2_y);
-
-				if (ctrl_down) {
-					var blinder_x = mouse_x;
-					var blinder_y = mouse_y;
-
-					if (alt_down == false) {
-						blinder_x = coord_to_grid(blinder_x, true);
-						blinder_y = coord_to_grid(blinder_y, true);
-					}
-
-					var blinder = '<div id="new_blinder" class="blinder" pos1_x="' + blinder_x + '" pos1_y="' + blinder_y + '" pos2_x="' + blinder_x + '" pos2_y="' + blinder_y + '" />';
-					$('div.playarea div.blinders').append(blinder);
-					$('div#new_blinder').each(function() {
-						blinder_position($(this));
-					});
-				}
-			});
+			blinder_create_command();
 			break;
 		case 'collectable':
 			collectables_select(obj);
@@ -1331,68 +1503,7 @@ function context_menu_handler(key, options) {
 			}
 			break;
 		case 'door_create':
-			blinder_stop();
-			door_stop();
-			measuring_stop();
-			wall_stop();
-
-			door_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-			door_y = coord_to_grid(mouse_y, true) / grid_cell_size;
-
-			var door = '<div id="new_door" class="door" pos_x="' + door_x + '" pos_y="' + door_y + '" state="closed" length="0" direction="horizontal" />';
-			$('div.playarea div.doors').append(door);
-			$('div.playarea div#new_door').each(function() {
-				door_position($(this));
-			});
-
-			$('div.playarea').on('mousemove', function(event) {
-				capture_mouse_position(event);
-
-				var pos_x = door_x;
-				var pos_y = door_y;
-				var end_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-				var end_y = coord_to_grid(mouse_y, true) / grid_cell_size;
-
-				var diff_x = Math.abs(end_x - pos_x);
-				var diff_y = Math.abs(end_y - pos_y);
-
-				if (diff_x > diff_y) {
-					if (end_x < pos_x) {
-						pos_x = end_x;
-					}
-					var length = diff_x;
-					var direction = 'horizontal';
-				} else {
-					if (end_y < pos_y) {
-						pos_y = end_y;
-					}
-					var length = diff_y;
-					var direction = 'vertical';
-				}
-
-				$('div.playarea div#new_door').each(function() {
-					$(this).attr('pos_x', pos_x);
-					$(this).attr('pos_y', pos_y);
-					$(this).attr('length', length);
-					$(this).attr('direction', direction);
-					door_position($(this));
-				});
-			});
-
-			$('div.playarea').on('click', function(event) {
-				var length = parseInt($('div.playarea div#new_door').attr('length'));
-				if (length == 0) {
-					return;
-				}
-
-				door_stop(false);
-
-				var pos_x = $('div.playarea div#new_door').attr('pos_x');
-				var pos_y = $('div.playarea div#new_door').attr('pos_y');
-				var direction = $('div.playarea div#new_door').attr('direction');
-
-				door_create(pos_x, pos_y, length, direction, 'closed');
-			});
+			door_create_command();
 			break;
 		case 'door_close':
 			obj.attr('state', 'closed');
@@ -1583,9 +1694,9 @@ function context_menu_handler(key, options) {
 			break;
 		case 'presence':
 			if (obj.attr('is_hidden') == 'yes') {
-				object_show(obj);
+				object_show_command(obj);
 			} else {
-				object_hide(obj);
+				object_hide_command(obj);
 			}
 			break;
 		case 'hitpoints':
@@ -1602,7 +1713,7 @@ function context_menu_handler(key, options) {
 			var compass = { 'n':   0, 'ne':  45, 'e':  90, 'se': 135,
 			                's': 180, 'sw': 225, 'w': 270, 'nw': 315 };
 			if ((direction = compass[direction]) != undefined) {
-				object_rotate(obj, direction);
+				object_rotate_command(obj, direction);
 			}
 			break;
 		case 'script':
@@ -1615,88 +1726,7 @@ function context_menu_handler(key, options) {
 			break;
 		case 'wall_create':
 		case 'window_create':
-			blinder_stop();
-			door_stop();
-			measuring_stop();
-			wall_stop();
-
-			wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-			wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
-
-			var type = (key == 'wall_create') ? 'wall' : 'wall window';
-			var transparent = (key == 'wall_create') ? 'no' : 'yes';
-			var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" transparent="' + transparent + '" />';
-			$('div.playarea div.walls').append(wall);
-			$('div#new_wall').each(function() {
-				wall_position($(this));
-			});
-
-			$('div.playarea').on('mousemove', function(event) {
-				capture_mouse_position(event);
-
-				var pos_x = wall_x;
-				var pos_y = wall_y;
-				var end_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-				var end_y = coord_to_grid(mouse_y, true) / grid_cell_size;
-
-				var diff_x = Math.abs(end_x - pos_x);
-				var diff_y = Math.abs(end_y - pos_y);
-
-				if (diff_x > diff_y) {
-					if (end_x < pos_x) {
-						pos_x = end_x;
-					}
-					var length = diff_x;
-					var direction = 'horizontal';
-				} else {
-					if (end_y < pos_y) {
-						pos_y = end_y;
-					}
-					var length = diff_y;
-					var direction = 'vertical';
-				}
-
-				$('div.playarea div#new_wall').last().each(function() {
-					$(this).attr('pos_x', pos_x);
-					$(this).attr('pos_y', pos_y);
-					$(this).attr('length', length);
-					$(this).attr('direction', direction);
-					wall_position($(this));
-				});
-			});
-
-			$('div.playarea').on('click', function(event) {
-				var length = parseInt($('div.playarea div#new_wall').attr('length'));
-				if (length == 0) {
-					return;
-				}
-
-				if (ctrl_down == false) {
-					wall_stop(false);
-				}
-
-				var pos_x = $('div.playarea div#new_wall').attr('pos_x');
-				var pos_y = $('div.playarea div#new_wall').attr('pos_y');
-				var direction = $('div.playarea div#new_wall').attr('direction');
-
-				if ((length == 0) || (length == undefined)) {
-					return;
-				}
-
-				wall_create(pos_x, pos_y, length, direction, key == 'window_create');
-
-				if (ctrl_down) {
-					wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-					wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
-
-					var type = (key == 'wall_create') ? 'wall' : 'wall window';
-					var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" transparent="' + transparent + '" />';
-					$('div.playarea div.walls').append(wall);
-					$('div#new_wall').each(function() {
-						wall_position($(this));
-					});
-				}
-			});
+			wall_create_command(key);
 			break;
 		case 'zone_create':
 			blinder_stop();
@@ -1759,7 +1789,7 @@ $(document).ready(function() {
 		blinder_position($(this));
 	});
 
-	$('div.blinder').contextmenu(function(event) {
+	$('div.blinder').on('contextmenu', function(event) {
 		var menu_entries = {
 			'delete': { name:'Delete', icon:'fa-trash' },
 			'blinder_create': { name:'Create blinder', icon:'fa-eye-slash' }
@@ -1781,7 +1811,13 @@ $(document).ready(function() {
 		door_position($(this));
 	});
 
-	$('div.door').contextmenu(function(event) {
+	$('div.door').on('dblclick', function() {
+		if (shift_down) {
+			object_delete($(this));
+		}
+	});
+
+	$('div.door').on('contextmenu', function(event) {
 		var menu_entries = {};
 
 		if ($(this).attr('state') == 'closed') {
@@ -1820,7 +1856,7 @@ $(document).ready(function() {
 		$(this).attr('title', 'Radius: ' + $(this).attr('radius'));
 	});
 
-	$('img.light').contextmenu(function(event) {
+	$('img.light').on('contextmenu', function(event) {
 		var menu_entries = {
 			'light_info': { name:'Get information', icon:'fa-info-circle' },
 			'light_radius': { name:'Set radius', icon:'fa-dot-circle-o' }
@@ -1870,7 +1906,7 @@ $(document).ready(function() {
 		wall_position($(this));
 	});
 
-	$('div.wall').contextmenu(function(event) {
+	$('div.wall').on('contextmenu', function(event) {
 		var menu_entries = {
 			'delete': { name:'Delete', icon:'fa-trash' },
 			'blinder_create': { name:'Create blinder', icon:'fa-eye-slash' }
@@ -1947,7 +1983,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$('div.zone').contextmenu(function(event) {
+	$('div.zone').on('contextmenu', function(event) {
 		var menu_entries = {
 			'info': { name:'Get information', icon:'fa-info-circle' },
 			'script': { name:'Edit event script', icon:'fa-edit' },
@@ -1980,12 +2016,12 @@ $(document).ready(function() {
 
 	$('div.token').each(function() {
 		$(this).css('z-index', LAYER_TOKEN);
-		object_rotate($(this), $(this).attr('rotation'), false);
+		object_rotate_action($(this), $(this).attr('rotation'));
 	});
 
 	$('div.character').each(function() {
 		$(this).css('z-index', LAYER_CHARACTER);
-		object_rotate($(this), $(this).attr('rotation'), false);
+		object_rotate_action($(this), $(this).attr('rotation'));
 	});
 
 	$('div.token').draggable({
@@ -2012,7 +2048,7 @@ $(document).ready(function() {
 
 	object_token_context_menu($('div.token'));
 
-	$('div.character img').contextmenu(function(event) {
+	$('div.character img').on('contextmenu', function(event) {
 		var menu_entries = {
 			'info': { name:'Get information', icon:'fa-info-circle' },
 			'presence': { name:'Toggle presence', icon:'fa-low-vision' },
@@ -2042,7 +2078,38 @@ $(document).ready(function() {
 		return false;
 	});
 
-	$('div.playarea > div').contextmenu(function(event) {
+	$('div.playarea > div').on('click', function(event) {
+		if ($('div.playarea div#new_blinder').length > 0) {
+			return;
+		}
+
+		if ($('div.playarea div#new_wall').length > 0) {
+			return;
+		}
+
+		if (ctrl_down == false) {
+			return;
+		}
+
+		capture_mouse_position(event)
+
+		switch (construct_last_type){
+			case 'blinder':
+				blinder_create_command();
+				break;
+			case 'door':
+				door_create_command();
+				break;
+			case 'wall':
+				wall_create_command('wall_create');
+				break;
+			case 'window':
+				wall_create_command('window_create');
+				break;
+		}
+	});
+
+	$('div.playarea > div').on('contextmenu', function(event) {
 		var menu_entries = {
 			'distance': { name:'Measure distance', icon:'fa-map-signs' },
 			'coordinates': { name:'Get coordinates', icon:'fa-flag' },
@@ -2056,7 +2123,7 @@ $(document).ready(function() {
 		};
 
 		if ((fow_type != FOW_NIGHT_CELL) && (fow_type != FOW_NIGHT_CELL)) {
-		//	delete menu_entries['light_create'];
+			delete menu_entries['light_create'];
 		}
 
 		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -2127,7 +2194,7 @@ $(document).ready(function() {
 	$('input#filter').val(localStorage.getItem('vault_token_filter'));
 	filter_library();
 
-	write_sidebar('While placing walls, windows and blinders, hold CTRL to create consecutive constructs.');
+	write_sidebar('While creating a blinder, wall or window, hold CTRL to create consecutive constructs.');
 	write_sidebar('Press ALT to get blinders off the grid. Add SHIFT to make them horizontal or vertical.');
-	write_sidebar('Double-click a wall, window or blinder while holding SHIFT to delete the construct.');
+	write_sidebar('Double-click a blinder, door, wall or window while holding SHIFT to delete the construct.');
 });

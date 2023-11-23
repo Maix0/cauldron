@@ -211,6 +211,19 @@
 			}
 			$characters = array($adventure["dm_id"] => "Dungeon Master");
 
+			/* Get users
+			 */
+			$query = "select id, fullname from users where organisation_id=".
+			         "(select u.organisation_id from adventures a, users u where a.id=%d and a.dm_id=u.id)";
+			if (($items = $this->db->execute($query, $adventure_id)) === false) {
+				return false;
+			}
+
+			$users = array();
+			foreach ($items as $item) {
+				$users[$item["id"]] = $item["fullname"];
+			}
+
 			/* Get players
 			 */
 			$query = "select c.user_id, c.name from characters c, adventure_character p ".
@@ -234,7 +247,7 @@
 			}
 
 			foreach ($result as $i => $item) {
-				$result[$i]["writer"] = $characters[$item["user_id"]];
+				$result[$i]["writer"] = ($characters[$item["user_id"]] ?? ($users[$item["user_id"]] ?? JOURNAL_UNKNOWN_USER));
 				unset($result[$i]["user_id"]);
 			}
 

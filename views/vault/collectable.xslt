@@ -13,7 +13,7 @@
 
 <table class="table table-condensed table-striped table-hover">
 <thead>
-<tr><th>Name</th><th>Location</th><th>Found</th><th>Hide token</th><th>Placed</th></tr>
+<tr><th>Name</th><th>Location</th><th>Found</th><th>Hide token</th><th>Explained</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="collectables/collectable">
@@ -22,7 +22,7 @@
 <td><xsl:value-of select="location" /></td>
 <td><xsl:value-of select="found" /></td>
 <td><xsl:value-of select="hide" /></td>
-<td><xsl:value-of select="placed" /></td>
+<td><xsl:value-of select="explain" /></td>
 </tr>
 </xsl:for-each>
 </tbody>
@@ -54,6 +54,8 @@
 
 <label for="name">Name:</label>
 <input type="text" id="name" name="name" value="{collectable/name}" placeholder="The name of this collectable object." class="form-control" />
+<label for="description">Description:</label>
+<textarea id="description" name="description" class="form-control"><xsl:value-of select="collectable/description" /></textarea>
 <label for="image">Image:</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
@@ -66,6 +68,7 @@
 </xsl:if>
 <div class="option"><input type="checkbox" name="found"><xsl:if test="collectable/found='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Collectable has been found (visible in inventory).</div>
 <div class="option"><input type="checkbox" name="hide"><xsl:if test="collectable/hide='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Hide containing token when collectable is found.</div>
+<div class="option"><input type="checkbox" name="explain"><xsl:if test="collectable/explain='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Explain this collectable by revealing the desciption to the players.</div>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save collectable" class="btn btn-default" />

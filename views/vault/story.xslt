@@ -11,6 +11,10 @@
 //-->
 <xsl:template match="overview">
 <xsl:apply-templates select="adventures_pulldown" />
+<div class="filter input-group">
+<input type="text" name="create" placeholder="Filter" class="form-control" onKeyup="javascript:filter_adjust()" />
+<span class="input-group-btn"><input type="button" value="X" class="btn btn-default" onClick="javascript:filter_clear()" /></span>
+</div>
 
 <div class="story">
 <h1 class="print"><xsl:value-of select="adventures_pulldown/adventure[@selected='yes']" /></h1>
@@ -30,7 +34,7 @@
 
 <h2>Non-Player Characters</h2>
 <xsl:for-each select="npcs/npc">
-<div class="row">
+<div class="row npcs">
 <div class="item">
 <a href="/{/output/page}/npc/{@id}">
 <div class="col-xs-9 col-md-5 header title npc_name"><xsl:value-of select="name" /></div>
@@ -50,7 +54,7 @@
 <h2>Objects and locations</h2>
 <div class="sortable" type="objects">
 <xsl:for-each select="objects/object">
-<div class="row">
+<div class="row objects">
 <div class="item" item_id="{@id}">
 <a href="/{/output/page}/object/{@id}">
 <div class="col-xs-8 header title name"><xsl:value-of select="name" /></div>
@@ -71,7 +75,7 @@
 <h2>Events</h2>
 <div class="sortable" type="events">
 <xsl:for-each select="events/event">
-<div class="row">
+<div class="row events">
 <div class="item" item_id="{@id}">
 <a href="/{/output/page}/event/{@id}">
 <div class="col-xs-9 header title name"><xsl:value-of select="title" /></div>
@@ -91,7 +95,7 @@
 <div class="story">
 <h2>Encounters</h2>
 <xsl:for-each select="encounters/encounter">
-<div class="row">
+<div class="row encounters">
 <div class="item">
 <a href="/{/output/page}/encounter/{@id}">
 <div class="col-xs-9 header title"><xsl:value-of select="title" /></div>
@@ -120,7 +124,7 @@
 </div>
 
 <div id="help">
-<p>This page allows you to structure the important elements of your home brew campaign. Print this page (to PDF) to get a nice formated overview.</p>
+<p>This page allows you to structure the important elements of your home brew campaign. Print this page (to PDF) to get a nice formatted overview.</p>
 <h3>Non-Player Characters</h3>
 <p>It's good to list all the relevant non-player characters, such as the bad guys, the ones that send the players in the right direction or commoners they can meet along the way. You can group them by using a keyword surrounded by brackets in front of the NPC's name, like "[Red Wizards] Szass Tam".</p>
 <h3>Objects and locations</h3>

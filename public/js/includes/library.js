@@ -30,7 +30,7 @@ function cauldron_alert(message, title = 'Cauldron alert', callback_close = unde
 		}
 	});
 
-	alert_window.find('div.btn-group input').click(function() {
+	alert_window.find('div.btn-group input').on('click', function() {
 		alert_window.close();
 	});
 
@@ -67,13 +67,13 @@ function cauldron_confirm(message, callback_yes, callback_no = undefined) {
 		dialog: true
 	});
 
-	confirm_window.find('div.btn-group input').first().click(function() {
+	confirm_window.find('div.btn-group input').first().on('click', function() {
 		confirm_window.close();
 
 		callback_yes();
 	});
 
-	confirm_window.find('div.btn-group input').last().click(function() {
+	confirm_window.find('div.btn-group input').last().on('click', function() {
 		confirm_window.close();
 
 		if (callback_no != undefined) {
@@ -121,7 +121,7 @@ function cauldron_prompt(message, input, callback_okay, callback_cancel = undefi
 		dialog: true
 	});
 
-	prompt_window.find('div.btn-group input').first().click(function() {
+	prompt_window.find('div.btn-group input').first().on('click', function() {
 		var input = prompt_window.find('input.form-control').val();
 
 		prompt_window.close();
@@ -129,7 +129,7 @@ function cauldron_prompt(message, input, callback_okay, callback_cancel = undefi
 		callback_okay(input);
 	});
 
-	prompt_window.find('div.btn-group input').last().click(function() {
+	prompt_window.find('div.btn-group input').last().on('click', function() {
 		prompt_window.close();
 
 		if (callback_cancel != undefined) {

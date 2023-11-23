@@ -12,6 +12,7 @@
 <xsl:if test="count(adventure)=0">
 <xsl:if test="@is_dm='no'">
 <p>There are no adventures available yet.</p>
+<p>Create a character if you haven't already done so. You need a character for each adventure you want to join. Your Dungeon Master can add you to his/her adventure.</p>
 </xsl:if>
 <xsl:if test="@is_dm='yes'">
 <img src="/images/cauldron.png" class="cauldron" />
@@ -115,6 +116,11 @@
 <div class="pause"><span><img src="/images/cauldron.png" />Game paused</span></div>
 <!-- Journal -->
 <div class="journal" style="display:none">
+<div class="input-group">
+<input type="text" name="create" placeholder="Filter" class="form-control" onKeyup="javascript:journal_filter_adjust()" />
+<span class="input-group-btn"><input type="button" value="X" class="btn btn-default" onClick="javascript:journal_filter_clear()" /></span>
+</div>
+
 <div class="entries">
 <xsl:for-each select="journal/entry">
 <xsl:if test="session"><div class="session"><xsl:value-of select="session" /></div></xsl:if>
@@ -124,6 +130,7 @@
 <div class="row">
 <div class="col-xs-10"><textarea class="form-control"></textarea></div>
 <div class="col-xs-2"><button class="btn btn-default journal_write">Add</button></div>
+</div>
 </div>
 <!-- DM notes -->
 <xsl:if test="map/dm_notes!=''">
@@ -135,10 +142,6 @@
 <div con_id="{@id}"><xsl:value-of select="." /></div>
 </xsl:for-each>
 </div>
-</div>
-<!-- Script -->
-<xsl:call-template name="script_editor" />
-<xsl:call-template name="script_manual" />
 <!-- Zone create -->
 <xsl:call-template name="zone_create" />
 <!-- Effects -->

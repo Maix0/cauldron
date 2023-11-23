@@ -1,5 +1,7 @@
 <?php
 	class vault_map_model extends cauldron_model {
+		private $export_tables = array("blinders", "doors", "lights", "walls", "zones");
+
 		public function get_maps($adventure_id) {
 			$query = "select *, (select count(*) from map_token where map_id=m.id) as tokens ".
 			         "from maps m where adventure_id=%d order by title";
@@ -230,13 +232,15 @@
 			              "grid_size", "show_grid", "drag_character", "fog_of_war",
 			              "fow_distance", "start_x", "start_y", "dm_notes");
 
+			$adventure_id = $_SESSION["edit_adventure_id"];
+
 			if (($map["method"] ?? null) == "upload") {
 				copy($_FILES["file"]["tmp_name"], $this->upload_to_url($map, true));
 				$map["url"] = $this->upload_to_url($map);
 			}
 
 			$map["id"] = null;
-			$map["adventure_id"] = $_SESSION["edit_adventure_id"];
+			$map["adventure_id"] = $adventure_id;
 			$map["title"] = substr($map["title"], 0, 50);
 			if (isset($map["grid_size"]) == false) {
 				$map["grid_size"] = 50;
@@ -260,7 +264,7 @@
 			}
 			$map_id = $this->db->last_insert_id;
 
-			if ($this->place_characters($_SESSION["edit_adventure_id"], $map_id, $map["start_x"], $map["start_y"]) === false) {
+			if ($this->place_characters($adventure_id, $map_id, $map["start_x"], $map["start_y"]) === false) {
 				if ($transaction) {
 					$this->db->query("rollback");
 				}
@@ -273,10 +277,10 @@
 				}
 			}
 
-			if (($adventure = $this->db->entry("adventures", $_SESSION["edit_adventure_id"])) != false) {
+			if (($adventure = $this->db->entry("adventures", $adventure_id)) != false) {
 				if ($adventure["active_map_id"] == null) {
 					$data = array("active_map_id" => $map_id);
-					$this->db->update("adventures", $adventure["id"], $data);
+					$this->db->update("adventures", $adventure_id, $data);
 				}
 			}
 
@@ -384,10 +388,9 @@
 			unset($map["id"]);
 			unset($map["adventure_id"]);
 
-			$tables = array("blinders", "doors", "lights", "walls", "zones");
 			$query = "select * from %S where map_id=%d";
 
-			foreach ($tables as $table) {
+			foreach ($this->export_tables as $table) {
 				if (($items = $this->db->execute($query, $table, $map_id)) === false) {
 					return false;
 				}
@@ -408,7 +411,11 @@
 				return false;
 			}
 
-			$data = array("version" => EXPORT_VERSION);
+			foreach ($this->export_tables as $table) {
+				unset($map[$table]["id"]);
+			}
+
+			$data = array("version" => $this->settings->database_version);
 			$data = array_merge($data, $map);
 			$data["title"] = $override["title"];
 			$data["dm_notes"] = $override["dm_notes"];
@@ -501,7 +508,9 @@
 		}
 
 		public function import_map($map) {
-			if (isset($_SESSION["edit_adventure_id"]) == false) {
+			$adventure_id = $_SESSION["edit_adventure_id"];
+
+			if (isset($adventure_id) == false) {
 				$this->view->add_message("No adventure selected.");
 				return false;
 			}
@@ -522,7 +531,7 @@
 			}
 
 			$query = "select count(*) as count from maps where adventure_id=%d and title=%s";
-			if (($result = $this->db->execute($query, $_SESSION["edit_adventure_id"], $map["title"])) == false) {
+			if (($result = $this->db->execute($query, $adventure_id, $map["title"])) == false) {
 				$this->view->add_message("Adventure query error.");
 				return false;
 			}

@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	$('input#random_code').click(function() {
+	$('input#random_code').on('click', function() {
 		$.ajax({
 			url:'/vault/invite'
 		}).done(function(data) {

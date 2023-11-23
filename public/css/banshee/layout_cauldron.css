@@ -181,6 +181,10 @@ div.footer {
 	font-size:12px;
 }
 
+div.footer div.container {
+	background-color:inherit;
+}
+
 div.footer a {
 	color:#606060;
 }

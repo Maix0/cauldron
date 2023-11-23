@@ -191,8 +191,28 @@
 			}
 
 			foreach ($collectables as $collectable) {
+				if ($collectable["explain"] == 0) {
+					$collectable["description"] = "";
+				}
 				$this->view->record($collectable, "collectable");
 			}
+		}
+
+		public function post_collectables_all() {
+			if (($collectables = $this->model->collectables_get_all($_POST["adventure_id"])) === false) {
+				return false;
+			}
+
+			foreach ($collectables as $collectable) {
+				$collectable["found"] = show_boolean($collectable["found"] ?? false);
+				$collectable["explain"] = show_boolean($collectable["explain"] ?? false);
+
+				$this->view->record($collectable, "collectable");
+			}
+		}
+
+		public function post_collectable_state() {
+			$this->model->collectable_state($_POST["id"], $_POST["field"], $_POST["state"]);
 		}
 
 		/* Alternate icon

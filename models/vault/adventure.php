@@ -91,6 +91,7 @@
 			}
 
 			$queries = array(
+				array("delete from agenda where adventure_id=%d", $adventure_id),
 				array("delete from story_encounter_monsters where story_encounter_id in (select id from story_encounters where adventure_id=%d)", $adventure_id),
 				array("delete from story_encounters where adventure_id=%d", $adventure_id),
 				array("delete from story_events where adventure_id=%d", $adventure_id),
@@ -127,7 +128,7 @@
 				return false;
 			}
 
-			$adventure = array_merge(array("version" => EXPORT_VERSION), $adventure);
+			$adventure = array_merge(array("version" => $this->settings->database_version), $adventure);
 
 			unset($adventure["id"]);
 			unset($adventure["dm_id"]);
@@ -267,6 +268,7 @@
 				}
 
 				$map_id = $this->db->last_insert_id;
+				$map["version"] = $adventure["version"];
 
 				if ($this->borrow("vault/map")->constructs_import($map_id, $map, false) == false) {
 					$this->view->add_message("Error creating constructs.");

@@ -79,7 +79,10 @@
 		/* User information
 		 */
 		if ($_user->logged_in) {
-			$params = array("id" => $_user->id, "admin" => show_boolean($_user->is_admin));
+			$params = array(
+				"id"              => $_user->id,
+				"organisation_id" => $_user->organisation_id,
+				"admin"           => show_boolean($_user->is_admin));
 			$_view->add_tag("user", $_user->fullname, $params);
 		}
 

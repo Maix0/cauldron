@@ -49,7 +49,7 @@
 			}
 
 			if (method_exists($this, $function)) {
-				if (($_SERVER["REQUEST_METHOD"] == "POST") && ($_SERVER["HTTP_CONTENT_TYPE"] == "application/octet-stream")) {
+				if (($_SERVER["REQUEST_METHOD"] == "POST") && (($_SERVER["HTTP_CONTENT_TYPE"] ?? null) == "application/octet-stream")) {
 					$_POST = file_get_contents("php://input");
 				}
 

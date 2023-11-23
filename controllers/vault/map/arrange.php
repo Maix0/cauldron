@@ -28,6 +28,11 @@
 				return;
 			}
 
+			if (($conditions = $this->model->get_conditions()) === false) {
+				$this->view->add_tag("result", "Database error.");
+				return;
+			}
+
 			if (($doors = $this->model->get_doors($map_id)) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
@@ -110,6 +115,14 @@
 					$blinder[$field] = round($blinder[$field] * $grid_cell_size / $map["grid_size"]);
 				}
 				$this->view->record($blinder, "blinder");
+			}
+			$this->view->close_tag();
+
+			/* Conditions
+			 */
+			$this->view->open_tag("conditions");
+			foreach ($conditions as $condition) {
+				$this->view->add_tag("condition", $condition["name"], array("id" => $condition["id"]));
 			}
 			$this->view->close_tag();
 
