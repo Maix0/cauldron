@@ -55,6 +55,11 @@ table.month td.day {
 	overflow:hidden;
 }
 
+table.month td.day img.dice {
+	width:20px;
+	margin-right:5px;
+}
+
 table.month td.day div.nr {
 	margin-bottom:0;
 	text-align:right;

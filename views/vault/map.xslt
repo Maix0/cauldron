@@ -54,8 +54,7 @@
 <input type="hidden" name="id" value="{map/@id}" />
 </xsl:if>
 <input type="hidden" name="grid_size" value="{map/grid_size}" />
-<input type="hidden" name="mode" value="{map/mode}" />
-<xsl:if test="map/show_grid='yes'"><input type="hidden" name="show_grid" value="on" /></xsl:if>
+<input type="hidden" name="show_grid" value="{map/show_grid}" />
 
 <label for="title">Map title:</label>
 <input type="text" id="title" name="title" value="{map/title}" maxlength="50" placeholder="The name of what this map represents." class="form-control" />
@@ -79,6 +78,9 @@
 <span class="input-group-btn"><input type="button" value="Browse resources" class="btn btn-default map_browser" /></span>
 </div>
 </div>
+<div class="empty_map">
+<p>You've selected the empty map. This is a white single-pixel image. Set the map width and map height manually. Make those sizes a multiple of the default grid cell size, which is <xsl:value-of select="round(map/grid_size)" />.</p>
+</div>
 <label for="width">Map width:</label>
 <input type="text" id="width" name="width" value="{map/width}" placeholder="Leave empty for automatic detection." class="form-control" />
 <label for="height">Map height:</label>
@@ -97,7 +99,7 @@
 </select>
 <label for="fow_distance">Default nightly Fog of War distance:</label>
 <input type="text" id="fow_distance" name="fow_distance" value="{map/fow_distance}" class="form-control" />
-<label for="dm_notes">Dungeon Master notes:</label>
+<label for="dm_notes">Notes for this map:</label>
 <textarea id="dm_notes" name="dm_notes" placeholder="Notes for yourself about this map and its events." class="form-control"><xsl:value-of select="map/dm_notes" /></textarea>
 
 <div class="btn-group">
@@ -116,7 +118,8 @@
 
 <div id="help">
 <p>This is where you add a map to your adventure. Specify at least the title of your map and the URL to the map image or video.</p>
-<p>The map image/video URL can point to a resource at another website. Click the 'Browse resources' to list all the available maps in the '<a href="/vault/resources/maps">maps</a>' directory in your Resources section. If you want to create a map on which you will only draw, choose the /files/emtpy_map.png file.</p>
+<p><b>Map impage/video URL:</b> The URL can point to a resource at another website. Click the 'Browse resources' to list all the available maps in the '<a href="/vault/resources/maps">maps</a>' directory in your Resources section. If you want to create a map on which you will only draw, choose the /files/emtpy_map.png file.</p>
+<p><b>Background audio URL:</b> Use a URL to an actual audio file, not to a YouTube or Spotify page.</p>
 </div>
 </xsl:template>
 
@@ -129,13 +132,18 @@
 <form action="/{/output/page}" method="post">
 <input type="hidden" name="id" value="{@id}" />
 <input type="hidden" name="url" value="{url}" />
-<input type="hidden" name="mode" value="{mode}" />
+<input type="hidden" name="offset_x" value="{offset_x}" />
+<input type="hidden" name="offset_y" value="{offset_y}" />
 
 <label>Grid cell size: <span>(possible values:<span class="sizes"></span>)</span></label>
 <div id="slider1"><div id="grid-handle-value" class="ui-slider-handle" /></div>
 <label>Grid cell size fraction:</label>
 <div id="slider2"><div id="grid-handle-fraction" class="ui-slider-handle" /></div>
-<div><b>Show grid on map:</b><input type="checkbox" name="show_grid"><xsl:if test="show_grid='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input> (will not be red, but semi-transparent black)</div>
+<label>Horizontal map offset</label>
+<div id="slider3"><div id="map-x-offset" class="ui-slider-handle" /></div>
+<label>Vertical map offset:</label>
+<div id="slider4"><div id="map-y-offset" class="ui-slider-handle" /></div>
+<div><b>Show grid on map:</b><input type="checkbox" name="show_grid"><xsl:if test="show_grid='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input> (will not be red, but half transparent black)</div>
 <input type="hidden" name="grid_size" value="{grid_size}" />
 
 <div class="btn-group">
@@ -151,7 +159,7 @@
 
 <div class="playarea">
 <div class="map" style="width:{width}px; height:{height}px;">
-<xsl:if test="type='image'"><img src="{url}" class="map" /></xsl:if>
+<xsl:if test="type='image'"><img src="{url}" class="map" style="width:{width}px; height:{height}px;" /></xsl:if>
 <xsl:if test="type='video'"><video width="{width}" height="{height}" loop="true" class="map"><source src="{url}" /></video></xsl:if>
 </div>
 <div class="grid"></div>
@@ -159,6 +167,7 @@
 
 <div id="help">
 <p><b>Grid size fraction:</b> It's possible that the size of a map is faulty. For such map, its width and height divided by the number of cells does not result in a round number. In that case, use the grid size fraction setting.</p>
+<p><b>Grid finder:</b> Use the Grid finder only when you can't find the grid manually. Adjust the settings to logical values after using it.</p>
 </div>
 </xsl:template>
 

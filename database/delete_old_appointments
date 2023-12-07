@@ -1,0 +1,14 @@
+#!/usr/bin/php
+<?php
+	chdir(__DIR__);
+	require "../libraries/banshee/core/banshee.php";
+
+	$db = new \Banshee\Database\MySQLi_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
+	if ($db->connected == false) {
+		exit("Internal error: database not available.\n");
+	}
+
+	$date = date("Y-m-1 00:00:00", strtotime("-1 month"));
+
+	$db->query("delete from agenda where begin<%s", $date);
+?>

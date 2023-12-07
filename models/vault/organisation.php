@@ -26,6 +26,14 @@
 			return $this->db->entry("organisations", $organisation_id);
 		}
 
+		public function get_directory_size($directory) {
+			if (($size = $this->borrow("vault/file")->get_directory_size($directory)) !== false) {
+				$size = ceil($size / MB);
+			}
+
+			return $size;
+		}
+
 		public function get_users($organisation_id) {
 			$query = "select u.*, r.role_id from users u left join user_role r on u.id=r.user_id and r.role_id=%d ".
 			         "where u.organisation_id=%d order by fullname";

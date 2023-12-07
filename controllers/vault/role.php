@@ -126,7 +126,7 @@
 			} else if ($this->page->parameter_value(0, "new")) {
 				/* Show the role webform
 				 */
-				$role = array("profile" => true);
+				$role = array("account" => true);
 				$this->show_role_form($role);
 			} else {
 				/* Show a list of all roles

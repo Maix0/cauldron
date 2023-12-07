@@ -94,6 +94,10 @@ mark {
 	background-color:#ffff00;
 }
 
+h2 button.fa {
+	font-size:16px;
+}
+
 @media print {
 	div.wrapper > div.header,
 	nav.navbar,

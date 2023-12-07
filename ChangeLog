@@ -1,3 +1,14 @@
+cauldron (3.3) stable; urgency=low
+
+  * Improved combat tracker.
+  * Added spell effect areas.
+  * Option to delete your own account.
+  * Added map grid finder and background offset.
+  * Improved support for an empty map, for quick and dirty map drawing.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu,  7 Dec 2023 11:36:44 +0100
+
 cauldron (3.2) stable; urgency=low
 
   * Added agenda module.

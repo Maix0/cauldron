@@ -268,7 +268,7 @@
 				}
 
 				$map_id = $this->db->last_insert_id;
-				$map["version"] = $adventure["version"];
+				$map["version"] = $adventure["version"] ?? 3.2;
 
 				if ($this->borrow("vault/map")->constructs_import($map_id, $map, false) == false) {
 					$this->view->add_message("Error creating constructs.");

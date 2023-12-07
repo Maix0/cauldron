@@ -1,37 +1,34 @@
 #!/bin/bash
 
-cd `dirname $0`/../public/js/webui
-
 if [ "$1" = "" ]; then
 	echo "Usage: $0 <version>"
 	exit
 fi
 
+cd `dirname $0`/../public/js/webui
 version=$1
 
 echo "Downloading jQuery UI v${version}."
-wget -qO jquery-ui.zip http://jqueryui.com/resources/download/jquery-ui-${version}.zip
+wget -qO jquery-ui.min.js http://code.jquery.com/ui/${version}/jquery-ui.min.js
 
-if [ ! -s jquery-ui.zip ]; then
-	rm -f jquery-ui.zip
+if [ ! -s jquery-ui.min.js ]; then
+	rm -f jquery-ui.min.js
 	echo "Download error."
 	exit
 fi
 
-echo "Installing jQuery UI."
-unzip jquery-ui.zip > /dev/null
-mv jquery-ui-${version}/jquery-ui.min.js jquery-ui.js
+mv -f jquery-ui.min.js jquery-ui.js
 
-rm -f ../../css/jquery/*
-for file in `ls jquery-ui-${version}/*.min.css`; do
-	new=`echo ${file} | sed 's/\.min\./\./'`
-	new=`basename ${new}`
-	cat ${file} | sed 's/url("images/url("\/images\/jquery/g' > ../../css/jquery/${new}
-done
+cd ../../css/webui
 
-rm -f ../../images/jquery/*
-mv -f jquery-ui-${version}/images/* ../../images/jquery
+wget -qO jquery-ui.new.css https://code.jquery.com/ui/${version}/themes/base/jquery-ui.css
 
-echo "Cleaning up."
-rm -rf jquery-ui-${version}
-rm -f jquery-ui.zip
+if [ ! -s jquery-ui.new.css ]; then
+	rm -f jquery-ui.new.css
+	echo "Download error."
+	exit
+fi
+
+cat jquery-ui.new.css | sed 's/"images/"\/images\/jquery/' > jquery-ui.css
+
+rm -f jquery-ui.new.css

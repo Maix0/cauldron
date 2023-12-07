@@ -120,7 +120,7 @@
 		/* Add CR levels
 		 */
 		private function add_cr_levels() {
-			$this->view->add_javascript("vault/story.js");
+			$this->view->add_javascript("vault/story_encounter.js");
 
 			$crs = array_keys(CR_to_XP);
 			array_unshift($crs, "");

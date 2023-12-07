@@ -66,6 +66,7 @@
 <input type="text" id="name" name="name" value="{organisation/name}" class="form-control" />
 <label for="max_resources">Max resource capacity:</label>
 <div class="input-group">
+	<span class="input-group-addon"><xsl:value-of select="organisation/usage" /> /</span>
 	<input type="text" id="max_resources" name="max_resources" value="{organisation/max_resources}" class="form-control" />
 	<span class="input-group-addon">MB</span>
 </div>

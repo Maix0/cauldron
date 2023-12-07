@@ -32,7 +32,7 @@
 <xsl:call-template name="zone_create" />
 </div>
 <!-- Play area -->
-<div class="playarea" adventure_id="{@id}" map_id="{map/@id}" resources_key="{/output/cauldron/resources_key}" show_grid="{map/show_grid}" grid_cell_size="{@grid_cell_size}" grid_size="{map/grid_size}">
+<div class="playarea" adventure_id="{@id}" map_id="{map/@id}" resources_key="{/output/cauldron/resources_key}" show_grid="{map/show_grid}" grid_cell_size="{@grid_cell_size}" grid_size="{map/grid_size}" offset_x="{map/offset_x}" offset_y="{map/offset_y}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <div>
 <xsl:if test="map/type='image'"><xsl:attribute name="style">background-image:url(<xsl:value-of select="map/url" />); background-size:<xsl:value-of select="map/width" />px <xsl:value-of select="map/height" />px; width:<xsl:value-of select="map/width" />px; height:<xsl:value-of select="map/height" />px;</xsl:attribute></xsl:if>

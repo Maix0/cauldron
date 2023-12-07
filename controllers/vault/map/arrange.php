@@ -64,6 +64,8 @@
 			$factor = 1 / $map["grid_size"] * $grid_cell_size;
 			$map["width"] = round($map["width"] * $factor);
 			$map["height"] = round($map["height"] * $factor);
+			$map["offset_x"] = round($map["offset_x"] * $factor);
+			$map["offset_y"] = round($map["offset_y"] * $factor);
 
 			$this->view->title = $adventure["title"];
 			$this->view->set_layout("adventure");

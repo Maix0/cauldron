@@ -1,8 +1,14 @@
-table.table th:nth-child(n+3) {
+table.table th:nth-child(n+2) {
 	width:250px;
 }
 
-@media (max-width:767px) {
+table.table td {
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
+@media (max-width:991px) {
 	table.table th:nth-child(2),
 	table.table td:nth-child(2),
 	table.table th:nth-child(4),

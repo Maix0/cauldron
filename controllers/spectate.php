@@ -113,6 +113,8 @@
 			$factor = 1 / $active_map["grid_size"] * $grid_cell_size;
 			$active_map["width"] = round($active_map["width"] * $factor);
 			$active_map["height"] = round($active_map["height"] * $factor);
+			$active_map["offset_x"] = round($active_map["offset_x"] * $factor);
+			$active_map["offset_y"] = round($active_map["offset_y"] * $factor);
 
 			$this->view->title = $adventure["title"];
 			$this->view->set_layout("adventure");

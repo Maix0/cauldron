@@ -27,11 +27,13 @@ div.well input[type=checkbox] {
 
 textarea#style {
 	height:100px;
+	resize:vertical;
 }
 
 textarea#editor {
 	max-width:100%;
 	height:250px;
+	resize:vertical;
 }
 
 div.preview {

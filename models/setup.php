@@ -604,6 +604,13 @@
 				$this->settings->database_version = 3.2;
 			}
 
+			if ($this->settings->database_version === 3.2) {
+				$this->db_query("ALTER TABLE maps ADD offset_x TINYINT UNSIGNED NOT NULL AFTER height, ".
+				                "ADD offset_y TINYINT UNSIGNED NOT NULL AFTER offset_x");
+
+				$this->settings->database_version = 3.3;
+			}
+
 			return true;
 		}
 

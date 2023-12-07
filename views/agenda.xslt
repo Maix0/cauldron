@@ -70,7 +70,7 @@
 		<td class="day dow{@dow}{@today}">
 			<div class="nr"><xsl:value-of select="@nr" /></div>
 			<xsl:for-each select="appointment">
-				<div class="appointment" begin="{@begin}" end="{@end}" adventure="{@adventure}" onClick="javascript:show_appointment(this)"><xsl:value-of select="." /></div>
+				<div class="appointment" begin="{@begin}" end="{@end}" adventure="{@adventure}" onClick="javascript:show_appointment(this)"><img src="/images/d10.png" class="dice" /><xsl:value-of select="." /></div>
 			</xsl:for-each>
 		</td>
 	</xsl:for-each>

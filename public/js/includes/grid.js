@@ -15,12 +15,32 @@ function grid_init(cell_size, color = 'rgba(0, 0, 0, 0.3)') {
 	grid_ctx.strokeStyle = color;
 
 	grid_draw(cell_size);
+
+	$('canvas#grid').on('mousedown', function(event) {
+		$('canvas#drawing').trigger(event);
+	});
+
+	$('canvas#grid').on('mousemove', function(event) {
+		$('canvas#drawing').trigger(event);
+	});
+
+	$('canvas#grid').on('mouseleave', function(event) {
+		$('canvas#drawing').trigger(event);
+	});
+
+	$('canvas#grid').on('mouseenter', function(event) {
+		$('canvas#drawing').trigger(event);
+	});
+
+	$('canvas#grid').on('mouseup', function(event) {
+		$('canvas#drawing').trigger(event);
+	});
 }
 
 function grid_draw(cell_size) {
-	grid_ctx.clearRect(0, 0, grid_canvas.width, grid_canvas.height)
+	grid_ctx.clearRect(0, 0, grid_canvas.width, grid_canvas.height);
 
-	for (var i = 0; i < grid_width; i += cell_size) {
+	for (var i = 0; i <= grid_width; i += cell_size) {
 		grid_ctx.beginPath();
 		grid_ctx.moveTo(i, 0);
 		grid_ctx.lineTo(i, grid_height);
@@ -29,7 +49,7 @@ function grid_draw(cell_size) {
 		grid_ctx.stroke();
 	}
 
-	for (var i = 0; i < grid_height; i += cell_size) {
+	for (var i = 0; i <= grid_height; i += cell_size) {
 		grid_ctx.beginPath();
 		grid_ctx.moveTo(0, i);
 		grid_ctx.lineTo(grid_width, i);

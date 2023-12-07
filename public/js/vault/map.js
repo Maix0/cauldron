@@ -1,3 +1,6 @@
+const FINDER_SIZE = 5;
+const MAX_OFFSET = 99;
+
 var grid_size_min = 20;
 var grid_size_max = 300;
 
@@ -44,6 +47,14 @@ function init_map_edit() {
 				name = name.charAt(0).toUpperCase() + name.substr(1);
 				name = name.replace(/_/g, ' ');
 				title.val(name);
+			}
+
+			if (file == '/files/empty_map.png') {
+				$('div.empty_map').show();
+				$('input[name="show_grid"]').val('yes');
+			} else {
+				$('div.empty_map').hide();
+				$('input[name="show_grid"]').val('no');
 			}
 
 			map_dialog.close();
@@ -97,9 +108,11 @@ function init_grid(grid_cell_size) {
 
 	var grid_value = Math.floor(grid_cell_size);
 	var grid_fraction = (grid_cell_size % 1) * 100;
+	var map_offset_x = $('input[name="offset_x"]').val();
+	var map_offset_y = $('input[name="offset_y"]').val();
 
 	var handle_value = $('#grid-handle-value');
-	$('#slider1').slider({
+	var slider_value = $('#slider1').slider({
 		value: grid_value,
 		min: grid_size_min,
 		max: grid_size_max,
@@ -120,7 +133,7 @@ function init_grid(grid_cell_size) {
 	});
 
 	var handle_fraction = $('#grid-handle-fraction');
-	$('#slider2').slider({
+	var slider_fraction = $('#slider2').slider({
 		value: grid_fraction,
 		min: 0,
 		max: 99,
@@ -136,6 +149,40 @@ function init_grid(grid_cell_size) {
 			$('input[name="grid_size"]').val(value);
 
 			grid_draw(value);
+		}
+	});
+
+	var handle_offset_x = $('#map-x-offset');
+	var slider_offset_x = $('#slider3').slider({
+		value: map_offset_x,
+		min: 0,
+		max: MAX_OFFSET,
+		create: function() {
+			handle_offset_x.text($(this).slider('value'));
+			$('div.playarea img.map').css('left', -map_offset_x + 'px');
+		},
+		slide: function(event, ui) {
+			handle_offset_x.text(ui.value);
+
+			$('div.playarea div.map *').css('left', -ui.value + 'px');
+			$('input[name="offset_x"]').val(ui.value);
+		}
+	});
+
+	var handle_offset_y = $('#map-y-offset');
+	var slider_offset_y = $('#slider4').slider({
+		value: map_offset_y,
+		min: 0,
+		max: MAX_OFFSET,
+		create: function() {
+			handle_offset_y.text($(this).slider('value'));
+			$('div.playarea img.map').css('top', -map_offset_y + 'px');
+		},
+		slide: function(event, ui) {
+			handle_offset_y.text(ui.value);
+
+			$('div.playarea div.map *').css('top', -ui.value + 'px');
+			$('input[name="offset_y"]').val(ui.value);
 		}
 	});
 
@@ -156,4 +203,86 @@ function init_grid(grid_cell_size) {
 	} else {
 		$('span.sizes').text(result.join(', '));
 	}
+
+	/* Add grid find
+	 */
+	$('div.btn-group').before('<div class="btn-group right"><input type="button" class="btn btn-primary finder" value="Grid finder" /></div>')
+	$('div.btn-group').last().after('<p class="finder_info">Draw a ' + FINDER_SIZE + '&times;' + FINDER_SIZE + ' grid box in the middle of the map.</p>');
+	$('p.finder_info').css({
+		color: '#ff0000',
+		textAlign: 'right'
+	}).hide();
+
+	$('input.finder').on('click', function() {
+		$(this).prop('disabled', true);
+		$('p.finder_info').show();
+
+		$('div.playarea div.map *').css('left', '0');
+		$('div.playarea div.map *').css('top', '0');
+		grid_ctx.clearRect(0, 0, grid_canvas.width, grid_canvas.height)
+
+		var from_x = 0;
+		var from_y = 0;
+		var width = 0;
+
+		$('canvas').one('mousedown', function(event) {
+			var pos = $('canvas').offset();
+			from_x = Math.round(event.clientX - pos.left + window.scrollX);
+			from_y = Math.round(event.clientY - pos.top + window.scrollY);
+
+			grid_ctx.fillStyle = 'rgba(255, 96, 32, 0.2)';
+
+			$('canvas').on('mousemove', function(event) {
+				var pos = $('canvas').offset();
+				var width_x = Math.round(event.clientX - pos.left + window.scrollX) - from_x;
+				var width_y = Math.round(event.clientY - pos.top + window.scrollY) - from_y;
+				width = (width_x + width_y) / 2;
+
+				grid_ctx.clearRect(0, 0, grid_canvas.width, grid_canvas.height);
+				grid_ctx.beginPath();
+				grid_ctx.fillRect(from_x, from_y, width, width);
+				grid_ctx.rect(from_x, from_y, width, width);
+				grid_ctx.stroke();
+			});
+
+			$('canvas').one('mouseup', function() {
+				$('canvas').off('mousemove');
+
+				width = Math.abs(width);
+				var size = width / FINDER_SIZE;
+				$('input[name="grid_size"]').val(size);
+
+				var value = Math.floor(size);
+				slider_value.slider('value', value);
+				handle_value.text(value);
+
+				var fraction = Math.round((size - Math.floor(size)) * 100);
+				slider_fraction.slider('value', fraction);
+				handle_fraction.text(fraction);
+
+				var ofs_x = Math.round(from_x % Math.round(size));
+				if (ofs_x > MAX_OFFSET) {
+					ofs_x = 0;
+				}
+				slider_offset_x.slider('value', ofs_x);
+				handle_offset_x.text(ofs_x);
+				$('input[name="offset_x"]').val(ofs_x);
+
+				var ofs_y = Math.round(from_y % Math.round(size));
+				if (ofs_y > MAX_OFFSET) {
+					ofs_y = 0;
+				}
+				slider_offset_y.slider('value', ofs_y);
+				handle_offset_y.text(ofs_y);
+				$('input[name="offset_y"]').val(ofs_y);
+
+				$('div.playarea div.map *').css('left', -ofs_x + 'px');
+				$('div.playarea div.map *').css('top', -ofs_y + 'px');
+				grid_draw(size);
+
+				$('input.finder').prop('disabled', false);
+				$('p.finder_info').hide();
+			});
+		});
+	});
 }

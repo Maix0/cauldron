@@ -170,6 +170,8 @@
 				$factor = 1 / $active_map["grid_size"] * $grid_cell_size;
 				$active_map["width"] = round($active_map["width"] * $factor);
 				$active_map["height"] = round($active_map["height"] * $factor);
+				$active_map["offset_x"] = round($active_map["offset_x"] * $factor);
+				$active_map["offset_y"] = round($active_map["offset_y"] * $factor);
 			} else {
 				$active_map = null;
 			}
@@ -189,6 +191,7 @@
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("includes/combat.js");
+				$this->view->add_javascript("includes/spell_effect_area.js");
 				$this->view->add_javascript("includes/keyboard.js");
 				$this->view->add_javascript("../dice-box/loader.js");
 				if (is_true($active_map["show_grid"])) {
@@ -210,7 +213,9 @@
 
 				$this->view->add_css("webui/jquery-ui.css");
 				$this->view->add_css("banshee/font-awesome.css");
+				$this->view->add_css("includes/cauldron.css");
 				$this->view->add_css("includes/context_menu.css");
+				$this->view->add_css("includes/combat.css");
 			}
 
 			$attr = array(

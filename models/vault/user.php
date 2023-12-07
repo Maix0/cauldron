@@ -357,10 +357,10 @@
 			}
 
 			$query = "select count(*) as count from adventures where dm_id=%d";
-			if (($chars = $this->db->execute($query, $user_id)) == false) {
+			if (($adventures = $this->db->execute($query, $user_id)) == false) {
 				$this->view->add_message("Database error.");
 				$result = false;
-			} else if ($chars[0]["count"] > 0) {
+			} else if ($adventures[0]["count"] > 0) {
 				$this->view->add_message("This account contains adventures.");
 				$result = false;
 			}

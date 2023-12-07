@@ -220,6 +220,11 @@ div.sidebar p.measure {
 	font-size:20px;
 }
 
+div.sidebar span.say {
+	display:block;
+	margin-left:15px;
+}
+
 /* Manual
  */
 div.script_manual_conditions {

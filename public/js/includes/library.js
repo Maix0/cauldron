@@ -6,10 +6,6 @@ function array_remove(arr, val) {
 	return arr;
 }
 
-function sleep(ms) {
-	return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 /* Dialogs windows
  */
 function cauldron_alert(message, title = 'Cauldron alert', callback_close = undefined) {
@@ -104,7 +100,7 @@ function cauldron_prompt(message, input, callback_okay, callback_cancel = undefi
 		'</div>' +
 		'</div>';
 	var prompt_window = $(dialog).windowframe({
-		header: 'Prompt',
+		header: 'Input',
 		width: 500,
 		maximize: false,
 		minimize: false,

@@ -755,6 +755,22 @@ $(document).ready(function() {
 		grid_init(grid_cell_size);
 	}
 
+	/* Map offset
+	 */
+	var map_offset_x = parseInt($('div.playarea').attr('offset_x'));
+	var map_offset_y = parseInt($('div.playarea').attr('offset_y'));
+
+	if ((map_offset_x > 0) || (map_offset_y > 0)) {
+		var map = $('div.playarea div:first video');
+		if (map.length == 0) {
+			map = $('div.playarea > div').first();
+			map.css('background-position', '-' + map_offset_x + 'px -' + map_offset_y + 'px');
+		} else {
+			map.css('margin-left', '-' + map_offset_x + 'px');
+			map.css('margin-top', '-' + map_offset_y + 'px');
+		}
+	}
+
 	/* Drawing
 	 */
 	var map = $('div.playarea > div');

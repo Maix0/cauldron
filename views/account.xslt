@@ -23,8 +23,6 @@
 <input type="text" id="fullname" name="fullname" value="{fullname}" class="form-control" />
 <label for="email">E-mail address:</label>
 <input type="text" id="email" name="email" value="{email}" class="form-control" />
-<label>Organisation:</label>
-<input type="text" disabled="disabled" value="{organisation}" class="form-control" />
 <label for="keyboard">Keyboard layout:</label>
 <select id="keyboard" name="keyboard" class="form-control">
 <xsl:for-each select="keyboards/keyboard">
@@ -46,11 +44,11 @@
 </xsl:if>
 
 <div class="btn-group">
-<input type="submit" name="submit_button" value="Update profile" class="btn btn-default" />
+<input type="submit" name="submit_button" value="Update account" class="btn btn-default" />
 </div>
 <xsl:if test="/output/user/@admin='no'">
 <div class="btn-group">
-<input type="submit" name="submit_button" value="Delete profile" class="btn btn-danger" onClick="javascript:return prompt('This account and all of its data will be deleted. Type \'DELETE\' if you are sure.') == 'DELETE';" />
+<input type="submit" name="submit_button" value="Delete account" class="btn btn-danger" onClick="javascript:return confirm('DELETE ACCOUNT: Are you sure?')" />
 </div>
 </xsl:if>
 </form>

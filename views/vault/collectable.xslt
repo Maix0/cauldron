@@ -53,9 +53,9 @@
 </xsl:if>
 
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{collectable/name}" placeholder="The name of this collectable object." class="form-control" />
+<input type="text" id="name" name="name" value="{collectable/name}" placeholder="A reference for you as the Dungeon Master." class="form-control" />
 <label for="description">Description:</label>
-<textarea id="description" name="description" class="form-control"><xsl:value-of select="collectable/description" /></textarea>
+<textarea id="description" name="description" placeholder="To be shown to the players." class="form-control"><xsl:value-of select="collectable/description" /></textarea>
 <label for="image">Image:</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">

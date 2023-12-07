@@ -29,7 +29,7 @@
 	define("ERROR_MODULE", "banshee/error");
 	define("LOGIN_MODULE", "banshee/login");
 	define("LOGOUT_MODULE", "logout");
-	define("PROFILE_MODULE", "profile");
+	define("ACCOUNT_MODULE", "account");
 	define("FPDF_FONTPATH", "../extra/fpdf_fonts/");
 	define("K_PATH_FONTS", "../extra/tcpdf_fonts/");
 	define("PHOTO_PATH", "photos");

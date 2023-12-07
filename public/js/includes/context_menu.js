@@ -10,8 +10,12 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 	var menu_x = event.clientX;
 	var menu_y = event.clientY;
 
-	var flip_y = (event.clientY > (window.innerHeight / 2));
-	var flip_x = (event.clientX + 450 > window.innerWidth);
+	if (settings.main) {
+		var flip_x = (event.clientX + 450 > $('div.playarea').innerWidth());
+	} else {
+		var flip_x = false;
+	}
+	var flip_y = (event.clientY > ($('div.playarea').innerHeight() / 2));
 
 	var type = (settings.main) ? 'main' : 'sub';
 	var menu = $('<div class="context_menu context_menu_' + type + '" style="position:absolute; display:none; z-index:' + settings.z_index + ';"></div>');
@@ -36,7 +40,7 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 						}
 
 						if (flip_x) {
-							e.clientX -= 200;
+							e.clientX -= 600;
 						}
 
 						$(settings.root + ' div.context_menu_sub').remove();
@@ -72,6 +76,7 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 		return false;
 	});
 
+
 	if (settings.main) {
 		$(settings.root + ' div.context_menu').remove();
 	}
@@ -89,6 +94,9 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 
 	if (flip_y) {
 		menu_y -= menu.outerHeight();
+		if (settings.main == false) {
+			menu_y += 24;
+		}
 	}
 
 	if (flip_x) {

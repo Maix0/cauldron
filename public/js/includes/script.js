@@ -207,17 +207,23 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				param = param.replace('character', name);
 
 				if (debug == false) {
+					var send = 'To ' + name;
+					if (speaker != null) {
+						send += ' by ' + speaker;
+					}
+					send += ':\n' + param;
+
 					var data = {
 						action: 'say',
 						to_char_id: 0,
 						name: 'Zone script message',
-						mesg: 'To ' + name + ':\n' + param
+						mesg: send
 					};
 					websocket_send(data);
 				}
 
 				if (speaker != null) {
-					param = '<b>' + speaker + '</b>:<br />' + param;
+					param = '<b>' + speaker + '</b>:<span class="say">' + param + '</span>';
 				}
 				write_sidebar(param);
 				break;
@@ -227,7 +233,12 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				if (debug == false) {
 					send_message(param, speaker);
 				} else {
-					write_sidebar('Message to all:<br />' + param);
+					var send = '<b>Message to all'
+					if (speaker != null) {
+						send += ' by ' + speaker;
+					}
+					send += '</b>:<span class="say">' + param + '</span>';
+					write_sidebar(send);
 				}
 				break;
 			case 'write_dm':
@@ -242,8 +253,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 					};
 					websocket_send(data);
 				} else {
-					param = '<b>Zone script message:</b><br />' + param;
-					write_sidebar('<b>Zone script message:</b><br />' + param);
+					write_sidebar('<b>Message to DM:</b><span class="say">' + param + '</span>');
 				}
 				break;
 			default:

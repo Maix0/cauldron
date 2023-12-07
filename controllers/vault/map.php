@@ -171,6 +171,8 @@
 							if ($_POST["method"] == "upload") {
 								$_POST["url"] = $this->model->upload_to_url($_POST);
 							}
+							$_POST["offset_x"] = 0;
+							$_POST["offset_y"] = 0;
 							$this->show_grid_form($_POST);
 						}
 					} else {
@@ -188,6 +190,8 @@
 								if ($_POST["method"] == "upload") {
 									$_POST["url"] = $this->model->upload_to_url($_POST);
 								}
+								$_POST["offset_x"] = 0;
+								$_POST["offset_y"] = 0;
 								$this->show_grid_form($_POST);
 							} else {
 								header("Location: /vault/map/arrange/".$_POST["id"]);
@@ -255,7 +259,7 @@
 			} else if ($this->page->parameter_value(0, "new")) {
 				/* New map
 				 */
-				$map = array("method" => "upload", "grid_size" => 50, "fow_distance" => 3);
+				$map = array("method" => "upload", "grid_size" => 50, "show_grid" => false, "fow_distance" => 3);
 				$this->show_map_form($map);
 			} else if ($this->page->parameter_value(0, "grid") && $this->page->parameter_numeric(1)) {
 				/* Map grid

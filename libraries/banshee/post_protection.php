@@ -68,7 +68,7 @@
 				return;
 			}
 
-			$repost = in_array($_POST[self::KEY_REPOST], $_SESSION[self::KEY_REPOST]);
+			$repost = in_array($_POST[self::KEY_REPOST] ?? null, $_SESSION[self::KEY_REPOST]);
 			$this->register_post();
 
 			if ($repost == false) {
@@ -136,6 +136,10 @@
 					$referer = $_SERVER["HTTP_REFERER"];
 				} else {
 					$referer = "previous visited website";
+				}
+
+				if ($referer == "https://www.cauldron-vtt.net") {
+					return;
 				}
 
 				$message = "CSRF attempt via %s blocked.";

@@ -69,17 +69,17 @@
 <div class="menu">
 <div class="row">
 <div class="col-sm-6">
-<button class="btn btn-default btn-sm show_dice">Roll dice (~)</button>
-<button class="btn btn-default btn-sm show_journal">Journal</button>
 <button class="btn btn-default btn-sm show_collectables">Inventory</button>
+<button class="btn btn-default btn-sm show_journal">Journal</button>
+<button class="btn btn-default btn-sm show_dice">Roll dice (~)</button>
 <xsl:if test="@is_dm='yes'">
 <h2>Dungeon Master options</h2>
-<button class="btn btn-default btn-sm pause">Pause</button>
-<xsl:if test="map/dm_notes!=''">
-<button class="btn btn-default btn-sm show_dm_notes">DM notes</button>
-</xsl:if>
-<button class="btn btn-default btn-sm start_combat">Combat</button>
 <button class="btn btn-default btn-sm play_audio">Audio</button>
+<button class="btn btn-default btn-sm start_combat">Combat</button>
+<xsl:if test="map/dm_notes!=''">
+<button class="btn btn-default btn-sm show_dm_notes">Map notes</button>
+</xsl:if>
+<button class="btn btn-default btn-sm pause">Pause</button>
 <button class="btn btn-default btn-sm draw_clear">Remove drawings</button>
 </xsl:if>
 </div>
@@ -151,7 +151,7 @@
 </xsl:text></xsl:for-each>
 </div>
 <!-- Play area -->
-<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{group_key}" adventure_id="{@id}" map_id="{map/@id}" start_x="{map/start_x}" start_y="{map/start_y}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{grid_cell_size}" show_grid="{map/show_grid}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}" keyboard="{keyboard}">
+<div class="playarea" version="{/output/cauldron/version}" ws_host="{websocket/host}" ws_port="{websocket/port}" group_key="{group_key}" adventure_id="{@id}" map_id="{map/@id}" start_x="{map/start_x}" start_y="{map/start_y}" user_id="{/output/user/@id}" resources_key="{/output/cauldron/resources_key}" is_dm="{@is_dm}" grid_cell_size="{grid_cell_size}" show_grid="{map/show_grid}" offset_x="{map/offset_x}" offset_y="{map/offset_y}" drag_character="{map/drag_character}" fog_of_war="{map/fog_of_war}" fow_distance="{map/fow_distance}" name="{characters/@name}" keyboard="{keyboard}">
 <xsl:if test="characters/@mine"><xsl:attribute name="my_char"><xsl:value-of select="characters/@mine" /></xsl:attribute></xsl:if>
 <xsl:if test="map/audio!=''"><xsl:attribute name="audio"><xsl:value-of select="map/audio" /></xsl:attribute></xsl:if>
 <div id="map_background">
@@ -164,7 +164,9 @@
 <!-- Grid -->
 <div class="grid"></div>
 <!-- Drawing -->
-<div class="drawing"></div>
+<div class="drawing">
+<canvas id="spell-effect-area" width="{map/width}" height="{map/height}" />
+</div>
 <!-- Zones -->
 <div class="zones">
 <xsl:for-each select="zones/zone">
@@ -208,7 +210,7 @@
 <xsl:if test="perc">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 </xsl:if>
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="width:{width}px; height:{height}px;" />
 <xsl:if test="name!=''">
 <span class="name"><xsl:value-of select="name" /></span>
 </xsl:if>
@@ -279,6 +281,13 @@
 <span class="brush" brush="/{.}" title="{@name}" style="background-image:url(/{.})"></span>
 </xsl:for-each>
 </div>
+</div>
+</xsl:if>
+<xsl:if test="@is_dm='no'">
+<div class="brushes" style="display:none">
+<xsl:for-each select="brushes/brush">
+<img src="/{.}" />
+</xsl:for-each>
 </div>
 </xsl:if>
 <!-- Right bar -->

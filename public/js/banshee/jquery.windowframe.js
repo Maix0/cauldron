@@ -101,12 +101,14 @@
 		/* Info
 		 */
 		if (settings.info != undefined) {
-			$('<div>' + settings.info + '</div>').windowframe({
+			var info_window = $('<div>' + settings.info + '</div>').windowframe({
 				header: 'Info',
-				width: 500,
+				width: 515,
 				style: 'info',
 				activator: 'div#windowframe' + id + ' span.glyphicon-info-sign'
 			});
+
+			windowframe.data('info', info_window.parent().parent());
 		}
 
 		/* Drag windowframe
@@ -260,7 +262,13 @@
 				windowframe_hide($(this));
 			});
 		} else {
-			windowframe_hide($('div.windowframe_overlay div#' + windowframe_id));
+			var frame = $('div.windowframe_overlay div#' + windowframe_id);
+			windowframe_hide(frame);
+
+			var info = frame.data('info');
+			if (info != undefined) {
+				windowframe_hide(info);
+			}
 		}
 
 		if ($('div.windowframe_overlay div.panel:visible').length == 0) {

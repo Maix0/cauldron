@@ -9,13 +9,18 @@ const FOW_NIGHT_REAL = 4;
 const FOW_REVEAL = 5;
 
 const DEFAULT_Z_INDEX = 10000;
-const LAYER_TOKEN = DEFAULT_Z_INDEX;
-const LAYER_EFFECT = DEFAULT_Z_INDEX + 1;
-const LAYER_CHARACTER = DEFAULT_Z_INDEX + 2;
-const LAYER_CHARACTER_OWN = DEFAULT_Z_INDEX + 3;
-const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 4;
-const LAYER_MARKER = DEFAULT_Z_INDEX + 5;
-const LAYER_MENU = DEFAULT_Z_INDEX + 6;
+const LAYER_DRAWING = DEFAULT_Z_INDEX;
+const LAYER_GRID = DEFAULT_Z_INDEX + 1;
+const LAYER_ZONE = DEFAULT_Z_INDEX + 2;
+const LAYER_EFFECT = DEFAULT_Z_INDEX + 3;
+const LAYER_TOKEN = DEFAULT_Z_INDEX + 4;
+const LAYER_CONSTRUCT = DEFAULT_Z_INDEX + 5;
+const LAYER_LIGHT = DEFAULT_Z_INDEX + 6;
+const LAYER_CHARACTER = DEFAULT_Z_INDEX + 7;
+const LAYER_CHARACTER_OWN = DEFAULT_Z_INDEX + 8;
+const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 9;
+const LAYER_MARKER = DEFAULT_Z_INDEX + 10;
+const LAYER_MENU = DEFAULT_Z_INDEX + 11;
 const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
 
 const DOOR_SECRET = '#a0a000';
@@ -94,6 +99,8 @@ var pause = false;
 var ruler_distance = 0;
 var ruler_previous = 0;
 var key_to_direction = null;
+var brushes = {};
+var sea_submenu;
 
 var char_pos_x = 0;
 var char_pos_y = 0;
@@ -597,6 +604,7 @@ function object_contextmenu_dm(event) {
 
 	menu_entries['info'] = { name:'Get information', icon:'fa-info-circle' };
 	menu_entries['view'] = { name:'View', icon:'fa-search' };
+
 	var rotate = {
 		'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
 		'rotate_ne': { name:'North East' },
@@ -608,9 +616,9 @@ function object_contextmenu_dm(event) {
 		'rotate_nw': { name:'North West' }
 	};
 	menu_entries['rotate'] = { name:'Rotate', icon:'fa-compass', items:rotate };
+
 	menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
 	menu_entries['sep1'] = '-';
-
 	menu_entries['handover'] = { name:'Hand over', icon:'fa-hand-stop-o' };
 	menu_entries['takeback'] = { name:'Take back', icon:'fa-hand-grab-o' };
 	menu_entries['sep2'] = '-';
@@ -619,6 +627,7 @@ function object_contextmenu_dm(event) {
 	menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
 	menu_entries['zone_create'] = { name:'Zone', icon:'fa-square-o' };
 	menu_entries['sep3'] = '-';
+	menu_entries['sea'] = sea_submenu;
 	menu_entries['attack'] = { name:'Attack', icon:'fa-legal' };
 
 	var hitpoints = parseInt($(this).parent().attr('hitpoints'));
@@ -653,8 +662,10 @@ function object_contextmenu_player(event) {
 	var menu_entries = {
 		'view': { name:'View', icon:'fa-search' },
 		'stick': { name:'Stick to / unstick', icon:'fa-lock' },
+		'sep1': '-',
+		'sea': sea_submenu,
 		'attack': { name:'Attack', icon:'fa-legal' },
-		'sep': '-',
+		'sep2': '-',
 		'marker': { name:'Set marker', icon:'fa-map-marker' },
 		'distance': { name:'Measure distance', icon:'fa-map-signs' }
 	};
@@ -699,7 +710,7 @@ function object_create(icon, x, y) {
 		};
 		websocket_send(data);
 
-		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
+		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + LAYER_TOKEN + '" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
 		          (hitpoints > 0 ? '<div class="hitpoints"><div class="damage" style="width:0%"></div></div>' : '') +
 		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px;" />' +
 		          '</div>';
@@ -1285,9 +1296,10 @@ function object_view(obj, max_size = 300) {
 		}
 	}
 
-	if (collectable_id == undefined) {
-		var src = obj.find('img').prop('src');
-	} else {
+
+	var src = obj.find('img').prop('src');
+	if (collectable_id != undefined) {
+		var container_src = src;
 		var src = '/resources/' + resources_key + '/collectables/' + obj.attr('c_src');
 	}
 
@@ -1298,6 +1310,7 @@ function object_view(obj, max_size = 300) {
 	var div_style = 'position:absolute; z-index:' + LAYER_VIEW + '; top:0; left:0; right:0; bottom:0; background-color:rgba(' + bgcolor + ', 0.8);';
 	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);';
 	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px; margin:0 auto;';
+	var container_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px; position:absolute; top:100px; left:100px;';
 	var description = obj.find('img').attr('description');
 
 	var transform = obj.find('img').css('transform');
@@ -1309,8 +1322,11 @@ function object_view(obj, max_size = 300) {
 		span_style += ' border:1px solid #000000; background-color:#ffffff;';
 	}
 
-	var view = '<div id="view" style="' + div_style + '" onClick="' + onclick +'"><span style="' + span_style + '">';
-	view += '<img src="' + src + '" style="' + img_style + '" />';
+	var view = '<div id="view" style="' + div_style + '" onClick="' + onclick +'">';
+	if (container_src != undefined) {
+		view += '<img src="' + container_src + '" style="' + container_style + '" />';
+	}
+	view += '<span style="' + span_style + '"><img src="' + src + '" style="' + img_style + '" />';
 	if ((description != undefined) && (description != '')) {
 		description = description.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br />');
 		view += '<div style="padding:15px; min-width:500px; max-height:200px; overflow:auto">' + description + '</div>';
@@ -1581,7 +1597,7 @@ function door_show_open(door) {
 /* Light functions
  */
 function light_create_object(instance_id, pos_x, pos_y, radius) {
-	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;">';
+	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; z-index:' + LAYER_LIGHT + '">';
 	if (dungeon_master) {
 		light += '<img src="/images/light_on.png" style="width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px" />';
 	}
@@ -2002,7 +2018,7 @@ function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, gro
 		}
 	}
 
-	var zone = $('<div id="' + id + '" class="zone" altitude="' + altitude + '" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + ';" />');
+	var zone = $('<div id="' + id + '" class="zone" altitude="' + altitude + '" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; background-color:' + color + '; width:' + width + 'px; height:' + height + 'px; opacity:' + opacity + '; z-index:' + LAYER_ZONE + '" />');
 
 	if (group != '') {
 		zone.attr('group', group);
@@ -2183,6 +2199,7 @@ function collectables_show() {
  */
 function journal_add_entry(name, content) {
 	content = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	content = content.replace(/(http(s?):\/\/([^ ]+)\.(gif|jpg|png|webp))/, '<img src="$1" />');
 
 	var entry = '<div class="entry"><span class="writer">' + name + '</span><span class="content">' + content + '</span></div>';
 	$('div.journal div.entries').append(entry);
@@ -2223,6 +2240,7 @@ function journal_write() {
 
 	journal_add_entry(character_name, content);
 	journal_save_entry(character_name, content);
+	textarea.focus();
 }
 
 function journal_filter_reset() {
@@ -2253,18 +2271,6 @@ function journal_filter_clear() {
 	$('div.journal input[type="text"]').val('');
 
 	journal_filter_reset();
-}
-
-/* Combat functions
- */
-function combat_done() {
-	if (dungeon_master) {
-		combat_stop();
-	}
-
-	temporary_hitpoints = 0;
-
-	write_sidebar('The combat is over.');
 }
 
 /* Condition functions
@@ -2432,12 +2438,7 @@ function handle_input(input) {
 				return;
 			}
 
-			combat_done();
-
-			var data = {
-				action: 'done'
-			};
-			websocket_send(data);
+			combat_stop();
 			break;
 		case 'heal':
 			if (my_character == null) {
@@ -2905,6 +2906,24 @@ function context_menu_handler(key) {
 
 			obj.remove();
 			break;
+		case 'fill_texture':
+			var src = obj.css('background-image');
+			src = src.substring(5, src.length - 2);
+
+			var image = new Image();
+			image.src = src;
+			var pattern = drawing_ctx.createPattern(image, 'repeat');
+			drawing_ctx.fillStyle = pattern;
+			drawing_ctx.fillRect(0, 0, drawing_canvas.width, drawing_canvas.height);
+
+			var data = {
+				action: 'fill_texture',
+				src: src
+			};
+			websocket_send(data);
+
+			drawing_history.push(data);
+			break;
 		case 'fow_show':
 			if (fow_obj == null) {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
@@ -3158,6 +3177,18 @@ function context_menu_handler(key) {
 				object_rotate_command(obj, direction);
 			}
 			break;
+		case 'sea_cone':
+			spell_effect_area_cone(mouse_x, mouse_y);
+			break;
+		case 'sea_cone_angle':
+			spell_effect_area_change_cone_angle();
+			break;
+		case 'sea_circle':
+			spell_effect_area_circle(mouse_x, mouse_y);
+			break;
+		case 'sea_square':
+			spell_effect_area_square(mouse_x, mouse_y);
+			break;
 		case 'shape':
 			if (shape_change_id == 0) {
 				var filename = obj.find('img').attr('orig_src');
@@ -3297,12 +3328,12 @@ function key_down(event) {
 
 	var open_windows = $('div.windowframe_overlay > div:visible');
 
-	console.log(event.which);
-
 	switch (event.which) {
 		case 9:
 			// TAB
-			toggle_fullscreen();
+			if (open_windows.length == 0) {
+				toggle_fullscreen();
+			}
 			break;
 		case 16:
 			// Shift
@@ -3329,6 +3360,7 @@ function key_down(event) {
 			open_windows.close();
 			$('body div.context_menu').remove();
 			$('div.menu').hide();
+			spell_effect_area_stop();
 			break;
 		case 192:
 			// r
@@ -3549,7 +3581,7 @@ $(document).ready(function() {
 				obj.remove();
 				break;
 			case 'done':
-				combat_done();
+				combat_stop();
 				break;
 			case 'door_state':
 				var obj = $('div#' + data.door_id);
@@ -3560,13 +3592,8 @@ $(document).ready(function() {
 				break;
 			case 'draw_brush':
 				drawing_ctx.beginPath();
-				var img = new Image();
-				img.src = data.brush;
-				img.onload = function() {
-					var pattern = drawing_ctx.createPattern(img, 'repeat');
-					drawing_ctx.strokeStyle = pattern;
-				};
-				sleep(250);
+				var pattern = drawing_ctx.createPattern(brushes[data.brush], 'repeat');
+				drawing_ctx.strokeStyle = pattern;
 				break
 			case 'draw_clear':
 				drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
@@ -3604,6 +3631,15 @@ $(document).ready(function() {
 				break;
 			case 'effect_delete':
 				$('div#' + data.instance_id).remove();
+				break;
+			case 'fill_texture':
+				var image = new Image();
+				image.src = data.src;
+				$(image).on('load', function() {
+					var pattern = drawing_ctx.createPattern(image, 'repeat');
+					drawing_ctx.fillStyle = pattern;
+					drawing_ctx.fillRect(0, 0, drawing_canvas.width, drawing_canvas.height);
+				});
 				break;
 			case 'fow_distance':
 				if (my_character == null) {
@@ -3995,11 +4031,41 @@ $(document).ready(function() {
 	 */
 	if ($('div.playarea').attr('show_grid') == 'yes') {
 		grid_init(grid_cell_size);
+		$('div.grid canvas').css('z-index', LAYER_GRID);
+	}
+
+	/* Spell effect area
+	 */
+	spell_effect_area_init(grid_cell_size);
+
+	sea_submenu = { name:'Spell effect area', icon:'fa-magic', items:{
+		'sea_circle': { name:'Circle', icon:'fa-circle' },
+		'sea_cone': { name:'Cone', icon:'fa-play' },
+		'sea_square': { name:'Square', icon:'fa-stop' },
+		'sep': '-',
+		'sea_cone_angle': { name:'Change cone angle', icon:'fa-edit' }
+	}};
+
+	/* Map offset
+	 */
+	var map_offset_x = parseInt($('div.playarea').attr('offset_x'));
+	var map_offset_y = parseInt($('div.playarea').attr('offset_y'));
+
+	if ((map_offset_x > 0) || (map_offset_y > 0)) {
+		var map = $('div.playarea div:first video');
+		if (map.length == 0) {
+			map = $('div.playarea div#map_background');
+			map.css('background-position', '-' + map_offset_x + 'px -' + map_offset_y + 'px');
+		} else {
+			map.css('margin-left', '-' + map_offset_x + 'px');
+			map.css('margin-top', '-' + map_offset_y + 'px');
+		}
 	}
 
 	/* Drawing
 	 */
 	$('div.drawing').prepend('<canvas id="drawing" width="' + width + '" height="' + height + '" />');
+	$('div.drawing canvas').css('z-index', LAYER_DRAWING);
 	drawing_canvas = document.getElementById('drawing');
 
 	drawing_ctx = drawing_canvas.getContext('2d');
@@ -4033,6 +4099,10 @@ $(document).ready(function() {
 		});
 
 		$('canvas#drawing').on('mousedown', function(event) {
+			if (event.button != 0) {
+				return;
+			}
+
 			var pos = $('div.playarea').position();
 			var canvas_x = Math.round(pos.left) + 1;
 			var canvas_y = Math.round(pos.top) + 1;
@@ -4187,6 +4257,21 @@ $(document).ready(function() {
 			$(this).css('box-shadow', '0 0 5px 2px #0080ff');
 		});
 
+		$('div.draw-tools div.draw-brushes span').on('contextmenu', function(event) {
+			menu_entries = {
+				'fill_texture': { name:'Fill map with textture', icon:'fa-square' }
+			};
+
+			var menu_settings = {
+				root: 'body',
+				z_index: LAYER_MENU
+			};
+
+			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_settings);
+			return false;
+			
+		});
+
 		$('button.draw_clear').on('click', function() {
 			var image = $('div#map_background').css('background-image');
 			image = image.substring(image.length - 15, image.length - 2);
@@ -4280,6 +4365,8 @@ $(document).ready(function() {
 		door_position($(this));
 	});
 
+	$('div.door').css('z-index', LAYER_CONSTRUCT);
+
 	if (dungeon_master) {
 		$('div.door').on('contextmenu', function(event) {
 			var menu_entries = {};
@@ -4303,6 +4390,8 @@ $(document).ready(function() {
 		wall_position($(this));
 	});
 
+	$('div.wall').css('z-index', LAYER_CONSTRUCT);
+
 	$('div.wall[transparent=yes]').on('contextmenu', function(event) {
 		var menu_entries = {};
 
@@ -4322,6 +4411,8 @@ $(document).ready(function() {
 		$('div.light').each(function() {
 			fog_of_war_light($(this));
 		});
+
+		$('div.light').css('z-index', LAYER_LIGHT);
 	}
 
 	/* Blinders
@@ -4329,6 +4420,12 @@ $(document).ready(function() {
 	$('div.blinder').each(function() {
 		blinder_position($(this));
 	});
+
+	$('div.blinder').css('z-index', LAYER_CONSTRUCT);
+
+	/* Zones
+	 */
+	$('div.zone').css('z-index', LAYER_ZONE);
 
 	/* Objects
 	 */
@@ -4464,9 +4561,11 @@ $(document).ready(function() {
 			'effect_create': { name:'Create effect', icon:'fa-fire' },
 			'light_create': { name:'Create light', icon:'fa-lightbulb-o' },
 			'sep2': '-',
+			'sea': sea_submenu,
+			'sep3': '-',
 			'handover': { name:'Hand over', icon:'fa-hand-stop-o' },
 			'takeback': { name:'Take back', icon:'fa-hand-grab-o' },
-			'sep3': '-',
+			'sep4': '-',
 			'zone_delete': { name:'Delete', icon:'fa-trash' },
 		};
 
@@ -4491,7 +4590,7 @@ $(document).ready(function() {
 			var menu_entries = {
 				'info': { name:'Get information', icon:'fa-info-circle' },
 				'view': { name:'View', icon:'fa-search' }
-			}
+			};
 
 			var char_id = $(this).parent().attr('char_id');
 			var sheet = $('div.characters div.character[char_id="' + char_id + '"]').attr('sheet');
@@ -4520,6 +4619,7 @@ $(document).ready(function() {
 				menu_entries['sep3'] = '-';
 			}
 
+			menu_entries['sea'] = sea_submenu;
 			menu_entries['attack'] = { name:'Attack', icon:'fa-legal' };
 			menu_entries['damage'] = { name:'Damage', icon:'fa-warning' };
 			menu_entries['heal'] = { name:'Heal', icon:'fa-medkit' };
@@ -4577,6 +4677,8 @@ $(document).ready(function() {
 				'distance': { name:'Measure distance', icon:'fa-map-signs' },
 				'coordinates': { name:'Get coordinates', icon:'fa-flag' },
 				'sep1': '-',
+				'sea': sea_submenu,
+				'sep2': '-',
 				'effect_create': { name:'Create effect', icon:'fa-fire' },
 				'light_create': { name:'Create light', icon:'fa-lightbulb-o' },
 				'zone_create': { name:'Create zone', icon:'fa-square-o' }
@@ -4687,7 +4789,7 @@ $(document).ready(function() {
 		$('div.playarea').css('bottom', '90px');
 	} else {
 		/* Player settings
-		 /*/
+		 */
 		var my_char = $('div.playarea').attr('my_char');
 		if (my_char != undefined) {
 			my_character = $('div#' + my_char);
@@ -4716,6 +4818,7 @@ $(document).ready(function() {
 					'view': { name:'View', icon:'fa-search' },
 					'distance': { name:'Measure distance', icon:'fa-map-signs' },
 					'sep1': '-',
+					'sea': sea_submenu,
 					'damage': { name:'Damage', icon:'fa-warning' },
 					'heal': { name:'Heal', icon:'fa-medkit' },
 					'temphp': { name:'Set temporary hit points', icon:'fa-heart-o' },
@@ -4830,8 +4933,10 @@ $(document).ready(function() {
 			var menu_entries = {
 				'info': { name:'Get information', icon:'fa-info-circle' },
 				'view': { name:'View', icon:'fa-search' },
+				'sep1': '-',
+				'sea': sea_submenu,
 				'attack': { name:'Attack', icon:'fa-legal' },
-				'sep': '-',
+				'sep2': '-',
 				'marker': { name:'Set marker', icon:'fa-map-marker' },
 				'distance': { name:'Measure distance', icon:'fa-map-signs' },
 			};
@@ -4845,7 +4950,8 @@ $(document).ready(function() {
 		$('div.playarea > div').on('contextmenu', function(event) {
 			var menu_entries = {
 				'marker': { name:'Set marker', icon:'fa-map-marker' },
-				'distance': { name:'Measure distance', icon:'fa-map-signs' }
+				'distance': { name:'Measure distance', icon:'fa-map-signs' },
+				'sea': sea_submenu
 			};
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -4867,6 +4973,16 @@ $(document).ready(function() {
 
 			char_pos_changed = false;
 		}, CHAR_POS_SAVE_DELAY * 1000);
+
+		/* Pre-load brushes
+		 */
+		$('div.brushes img').each(function() {
+			var src = $(this).attr('src');
+
+			var image = new Image;
+			image.src = src;
+			brushes[src] = image;
+		});
 	}
 
 	/* Input field

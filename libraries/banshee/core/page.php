@@ -322,9 +322,9 @@
 				$this->type = "";
 				$this->user->log_action("unauthorized request for page %s", $page);
 			} else if (($this->module != LOGOUT_MODULE) && ($this->user->status == USER_STATUS_CHANGEPWD) && (isset($_SESSION["user_switch"]) == false)) {
-				/* Change profile before access to private pages
+				/* Change account before access to private pages
 				 */
-				$this->module = PROFILE_MODULE;
+				$this->module = ACCOUNT_MODULE;
 				$this->type = "";
 			} else {
 				/* Access allowed

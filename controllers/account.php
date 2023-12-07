@@ -6,10 +6,10 @@
 	 * Licensed under The MIT License
 	 */
 
-	class profile_controller extends Banshee\controller {
-		private function show_profile_form($profile = null) {
-			if ($profile === null) {
-				$profile = array(
+	class account_controller extends Banshee\controller {
+		private function show_account_form($account = null) {
+			if ($account === null) {
+				$account = array(
 					"fullname"             => $this->user->fullname,
 					"email"                => $this->user->email,
 					"authenticator_secret" => str_repeat("*", strlen($this->user->authenticator_secret ?? "")));
@@ -22,7 +22,7 @@
 
 			if (is_true(USE_AUTHENTICATOR)) {
 				$this->view->add_javascript("webui/jquery-ui.js");
-				$this->view->add_javascript("profile.js");
+				$this->view->add_javascript("account.js");
 
 				$this->view->add_css("webui/jquery-ui.css");
 			}
@@ -34,8 +34,8 @@
 			$this->view->add_tag("username", $this->user->username);
 			$this->view->add_tag("organisation", $organisation);
 			$this->view->add_tag("keyboard", $this->user->keyboard);
-			foreach (array_keys($profile) as $key) {
-				$this->view->add_tag($key, $profile[$key]);
+			foreach (array_keys($account) as $key) {
+				$this->view->add_tag($key, $account[$key]);
 			}
 
 			$keyboards = KEYBOARDS;
@@ -65,19 +65,19 @@
 				return;
 			}
 
-			$this->view->description = "Profile";
-			$this->view->keywords = "profile";
-			$this->view->title = "Profile";
+			$this->view->description = "Account";
+			$this->view->keywords = "account";
+			$this->view->title = "Account";
 
 			if ($this->user->status == USER_STATUS_CHANGEPWD) {
 				$this->view->add_message("Please, change your password.");
 			}
 
-			if (isset($_SESSION["profile_next"]) == false) {
-				if ($this->page->pathinfo[0] == PROFILE_MODULE) {
-					$_SESSION["profile_next"] = $this->settings->start_page;
+			if (isset($_SESSION["account_next"]) == false) {
+				if ($this->page->pathinfo[0] == ACCOUNT_MODULE) {
+					$_SESSION["account_next"] = $this->settings->start_page;
 				} else {
-					$_SESSION["profile_next"] = substr($_SERVER["REQUEST_URI"], 1);
+					$_SESSION["account_next"] = substr($_SERVER["REQUEST_URI"], 1);
 				}
 			}
 
@@ -85,31 +85,31 @@
 				$authenticator = new \Banshee\authenticator;
 				$this->view->add_tag("secret", $authenticator->create_secret());
 			} else if ($_SERVER["REQUEST_METHOD"] == "POST") {
-				/* Update profile
+				/* Update account
 				 */
-				if ($_POST["submit_button"] == "Update profile") {
-					if ($this->model->profile_okay($_POST) == false) {
-						$this->show_profile_form($_POST);
-					} else if ($this->model->update_profile($_POST) === false) {
-						$this->view->add_tag("result", "Error while updating profile.", array("url" => PROFILE_MODULE));
+				if ($_POST["submit_button"] == "Update account") {
+					if ($this->model->account_okay($_POST) == false) {
+						$this->show_account_form($_POST);
+					} else if ($this->model->update_account($_POST) === false) {
+						$this->view->add_tag("result", "Error while updating account.", array("url" => ACCOUNT_MODULE));
 					} else {
-						$this->view->add_tag("result", "Profile has been updated.", array("url" => $_SESSION["profile_next"]));
-						$this->user->log_action("profile updated");
-						unset($_SESSION["profile_next"]);
+						$this->view->add_tag("result", "Account has been updated.", array("url" => $_SESSION["account_next"]));
+						$this->user->log_action("account updated");
+						unset($_SESSION["account_next"]);
 					}
-				} else if ($_POST["submit_button"] == "Delete profile") {
-					if ($this->model->delete_okay() == false) {
-						$this->show_profile_form();
+				} else if ($_POST["submit_button"] == "Delete account") {
+					if ($this->model->delete_okay($_POST) == false) {
+						$this->show_account_form();
 					} else if ($this->model->delete_account() == false) {
 						$this->view->add_message("Something went wrong while deleting this account.");
-						$this->show_profile_form();
+						$this->show_account_form();
 					} else {
 						$this->view->add_tag("result", "Your account has been deleted. You will be logged out.", array("url" => ""));
 						$this->user->logout();
 					}
 				}
 			} else {
-				$this->show_profile_form();
+				$this->show_account_form();
 			}
 		}
 	}

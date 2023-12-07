@@ -33,6 +33,12 @@ table.table tfoot td:nth-child(3) {
 	padding-right:15px;
 }
 
+div.empty_map {
+	display:none;
+	color:#ff0000;
+	max-width:600px;
+}
+
 div.input-group {
 	max-width:600px;
 }
@@ -84,11 +90,17 @@ div.grid canvas#grid {
 	left:0;
 }
 
-div#slider1, div#slider2 {
+div#slider1,
+div#slider2,
+div#slider3,
+div#slider4 {
 	margin-bottom:15px;
 }
 
-#grid-handle-value, #grid-handle-fraction {
+#grid-handle-value,
+#grid-handle-fraction,
+#map-x-offset,
+#map-y-offset {
 	width: 3em;
 	height: 1.6em;
 	top: 50%;

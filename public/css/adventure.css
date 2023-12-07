@@ -1,3 +1,8 @@
+@font-face {
+	font-family:"handwriting";
+	src:url(/fonts/handwriting.ttf);
+}
+
 p.nomap {
 	margin-top:40px;
 }
@@ -152,7 +157,7 @@ ul.audio li:hover {
 
 /* Drawing
  */
-div.drawing {
+div.drawing canvas {
 	position:absolute;
 	top:0;
 	left:0;
@@ -428,12 +433,19 @@ img.ui-draggable-dragging {
 div.sidebar {
 	font-size:13px;
 	position:absolute;
-	top:375px;
 	right:0px;
 	bottom:65px;
 	width:200px;
 	overflow-y:scroll;
 	overflow-x:hidden;
+}
+
+div.brushes + div.sidebar {
+	top:40px;
+}
+
+div.library + div.sidebar {
+	top:375px;
 }
 
 div.sidebar img {
@@ -461,6 +473,15 @@ div.sidebar span.history:before {
 }
 
 div.sidebar p.measure {
+	font-size:20px;
+}
+
+div.sidebar span.say {
+	display:block;
+	margin-left:15px;
+}
+
+div.sidebar div.sea-text {
 	font-size:20px;
 }
 
@@ -529,9 +550,9 @@ div.draw-tools div.draw-colors span:before {
 
 div.draw-tools div.draw-brushes {
 	position:absolute;
-	top:5px;
-	left:470px;
-	height:60px;
+	top:0;
+	left:465px;
+	height:70px;
 	right:15px;
 	overflow-x:auto;
 	overflow-y:hidden;
@@ -542,7 +563,8 @@ div.draw-tools div.draw-brushes span.brush {
 	display:inline-block;
 	width:60px;
 	height:60px;
-	margin-right:5px;
+	margin-top:5px;
+	margin-left:5px;
 	margin-bottom:5px;
 	border:1px solid #000000;
 }
@@ -638,7 +660,7 @@ div.night {
 
 /* Grid
  */
-div.grid {
+div.grid canvas {
 	position:absolute;
 	top:0;
 	left:0;
@@ -656,31 +678,10 @@ div.zone div.script {
 
 /* Mobile view
  */
-@media (max-width:991px) {
-	div.playarea {
-		top:70px;
-	}
-
-	div.filter {
-		top:70px;
-	}
-
-	div.library {
-		top:115px;
-	}
-
-	div.sidebar {
-		top:405px;
-	}
-
-	div.topbar {
-		top:40px;
-	}
-}
-
 @media (max-width:767px) {
 	h1 {
 		font-size:22px;
+		margin-right:80px;
 	}
 
 	div.playarea {
@@ -697,7 +698,6 @@ div.zone div.script {
 	}
 
 	div.sidebar {
-		top:305px;
 		width:150px;
 	}
 
@@ -709,10 +709,6 @@ div.zone div.script {
 	button.play_audio {
 		display:none;
 	}
-}
-
-table.combat-tracker input {
-	margin-bottom:0;
 }
 
 /* Dark mode

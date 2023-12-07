@@ -1,37 +1,3 @@
-function add_monster() {
-	var nr = $('div.monsters div.panel').length + 1;
-
-	$('div.monsters').append(
-		'<div class="panel panel-primary"><div class="panel-body">\n'+
-		'<label for="monster">Monster:</label>\n' +
-		'<input type="text" name="monsters[' + nr + '][monster]" class="form-control" />\n' +
-		'<label for="count">Number of monsters:</label>\n' +
-		'<input type="text" name="monsters[' + nr + '][count]" class="form-control" />\n' +
-		'<label for="source">Source:</label>\n' +
-		'<input type="text" name="monsters[' + nr + '][source]" class="form-control" />\n' +
-		'<label for="cr">Challenge Rating:</label>\n' +
-		'<input type="text" name="monsters[' + nr + '][cr]" class="form-control cr" />\n' +
-		'</div></div>\n');
-
-	cr_input_to_select();
-}
-
-function cr_input_to_select() {
-	var template = '<select class="form-control">\n';
-	$('crs cr').each(function() {
-		template += '<option>' + $(this).text() + '</option>\n';
-	});
-	template += "</select>\n";
-
-	$('input.cr').each(function() {
-		var select = $(template);
-		select.attr('name', $(this).attr('name'));
-		select.val($(this).attr('value'));
-		$(this).after(select);
-		$(this).remove();
-	});
-}
-
 function sortable_events() {
 	var adventure_id = $('form.adventures_pulldown select').val();
 
@@ -67,6 +33,7 @@ function filter_adjust() {
 
 	var filter = $('div.filter input[type="text"]').val().toLowerCase();
 	if (filter == '') {
+		folding_set_all();
 		return;
 	}
 
@@ -88,12 +55,32 @@ function filter_clear() {
 	$('div.filter input[type="text"]').val('');
 
 	filter_reset();
+
+	folding_set_all();
+}
+
+function folding_set_all() {
+	$('h2 button').each(function() {
+		folding_set($(this))
+	});
+}
+
+function folding_set(button) {
+	var open = button.hasClass('fa-chevron-up');
+	var h2 = button.parent();
+
+	h2.nextUntil('h2').each(function() {
+		var selection = $(this).hasClass('row') ? $(this) : $(this).find('div.row');
+
+		if (open) {
+			selection.show();
+		} else {
+			selection.hide();
+		}
+	});
 }
 
 $(document).ready(function() {
-	cr_input_to_select();
-	add_monster();
-
 	sortable_events();
 
 	$('div.item a > div.header').each(function() {
@@ -107,4 +94,39 @@ $(document).ready(function() {
 			$(this).html(name);
 		}
 	});
+
+	/* Fold sections
+	 */
+	var button = '<button class="btn btn-default btn-xs fa fa-chevron-up"></button>';
+	var nr = 1;
+	$('h2:not(:first)').each(function() {
+		$(this).append(button);
+		$(this).find('button').attr('nr', nr++);
+	});
+
+	$('h2 button').css('float', 'right').on('click', function() {
+		var button_nr = $(this).attr('nr');
+
+		if ($(this).hasClass('fa-chevron-up')) {
+			$(this).removeClass('fa-chevron-up');
+			$(this).addClass('fa-chevron-down');
+			localStorage.setItem('story_fold_' + button_nr, true);
+		} else {
+			$(this).removeClass('fa-chevron-down');
+			$(this).addClass('fa-chevron-up');
+			localStorage.setItem('story_fold_' + button_nr, false);
+		}
+
+		folding_set($(this));
+	});
+
+	$('h2 button').each(function() {
+		var button_nr = $(this).attr('nr');
+
+		if (localStorage.getItem('story_fold_' + button_nr) == 'true') {
+			$(this).trigger('click');
+		}
+	});
+
+	filter_adjust();
 });

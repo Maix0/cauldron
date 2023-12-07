@@ -16,7 +16,8 @@ function show_appointment(cell) {
 	}
 
 	var dialog =
-		'<div class="cauldron_dialog">' +
+		'<div class="cauldron_dialog">' +	
+		'<img src="/images/d20.png" style="float:right" />' +
 		'<div class="message">' + message + '</div>' + 
 		'<div class="btn-group">' +
 		'<input type="button" value="Ok" class="btn btn-default" />' +

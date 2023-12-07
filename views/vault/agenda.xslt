@@ -39,13 +39,14 @@
 <h2>Appointments in the past</h2>
 <table class="table table-striped table-hover table-condensed">
 <thead>
-<tr><th class="title">Title</th><th class="date">Begin</th><th class="date">End</th></tr>
+<tr><th>Title</th><th>Adventure</th><th>Begin</th><th>End</th></tr>
 </thead>
 <tbody>
 <xsl:for-each select="appointments/appointment[not(timestamp&gt;$now)]">
 <xsl:sort select="begin" order="descending" />
 <tr onclick="javascript:document.location='/{/output/page}/{@id}'">
 <td><xsl:value-of select="title" /></td>
+<td><xsl:value-of select="adventure" /></td>
 <td><xsl:value-of select="begin" /></td>
 <td><xsl:value-of select="end" /></td>
 </tr>

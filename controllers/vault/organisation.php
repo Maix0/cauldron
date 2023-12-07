@@ -37,6 +37,12 @@
 				$users = array();
 			}
 
+			if (($size = $this->model->get_directory_size("resources/".$organisation["resources_key"])) === false) {
+				$size = 0;
+			}
+
+			$organisation["usage"] = $size;
+
 			$this->view->open_tag("edit");
 
 			$this->view->record($organisation, "organisation");
@@ -108,7 +114,7 @@
 				/* Edit organisation
 				 */
 				if (($organisation = $this->model->get_organisation($this->page->parameters[0])) == false) {
-					$this->view->add_tag("result", "organisation not found.");
+					$this->view->add_tag("result", "Organisation not found.");
 				} else {
 					$this->show_organisation_form($organisation);
 				}

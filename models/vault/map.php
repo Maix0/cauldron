@@ -148,6 +148,17 @@
 					$this->view->add_message("Unsupported file extension in image/video URL.");
 					$result = false;
 				}
+
+				if (substr($url, 0, 1) == "/") {
+					$file = $this->resource_path($url, $this->user->resources_key);
+					if (file_exists(substr($file, 1)) == false) {	
+						$this->view->add_message("Map file not found.");
+						$result = false;
+					}
+				} else if (substr($url, 0, 4) != "http") {
+					$this->view->add_message("Invalid map URL.");
+					$result = false;
+				}
 			}
 
 			$min_size = 2 * $this->settings->screen_grid_size;
@@ -229,8 +240,8 @@
 
 		public function create_map($map, $transaction = true) {
 			$keys = array("id", "adventure_id", "title", "url", "audio", "width", "height",
-			              "grid_size", "show_grid", "drag_character", "fog_of_war",
-			              "fow_distance", "start_x", "start_y", "dm_notes");
+			              "offset_x", "offset_y", "grid_size", "show_grid", "drag_character",
+			              "fog_of_war", "fow_distance", "start_x", "start_y", "dm_notes");
 
 			$adventure_id = $_SESSION["edit_adventure_id"];
 
@@ -249,8 +260,15 @@
 				$map["start_x"] = 2;
 				$map["start_y"] = 2;
 			}
-			$map["show_grid"] = NO;
+			$map["show_grid"] = is_true($_POST["show_grid"]) ? YES : NO;
 			$map["drag_character"] = is_true($map["drag_character"] ?? false) ? YES : NO;
+
+			if (isset($map["offset_x"]) == false) {
+				$map["offset_x"] = 0;
+			}
+			if (isset($map["offset_y"]) == false) {
+				$map["offset_y"] = 0;
+			}
 
 			if ($transaction) {
 				$this->db->query("begin");
@@ -314,7 +332,7 @@
 				return false;
 			}
 
-			$keys = array("grid_size", "show_grid");
+			$keys = array("grid_size", "show_grid", "offset_x", "offset_y");
 
 			$map["show_grid"] = is_true($map["show_grid"] ?? false) ? YES : NO;
 

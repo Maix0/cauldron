@@ -9,6 +9,10 @@
 		}
 
 		public function get_adventures() {
+			if ($this->user->id == null) {
+				return false;
+			}
+
 			$query = "select * from adventures where dm_id=%d order by title";
 
 			return $this->db->execute($query, $this->user->id);

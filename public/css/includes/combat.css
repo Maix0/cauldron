@@ -1,0 +1,43 @@
+table.combat-tracker input {
+    margin-bottom:0;
+}
+
+/* Combat buttons
+ */
+div.combat-buttons {
+	position:absolute;
+	right:5px;
+	bottom:60px;
+	width:200px;
+	height:20px;
+}
+
+div.combat-buttons div.btn-group {
+	margin:0;
+	width:100%;
+}
+
+div.combat-buttons button {
+	width:25%;
+}
+
+@media (max-width:767px) {
+	div.combat-buttons {
+		width:150px;
+	}
+}
+
+/* Remove from combat
+ */
+div.combat-remove {
+	max-height:500px;
+	overflow:auto;
+}
+
+div.combat-remove ul.list-group {
+	margin-bottom:0;
+}
+
+div.combat-remove li {
+	cursor:pointer;
+}
