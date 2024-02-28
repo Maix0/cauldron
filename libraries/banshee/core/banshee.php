@@ -22,8 +22,6 @@
 	define("DAY", 86400);
 	define("MB", 1048576);
 	define("ANALYTICS_DAYS", 60);
-	define("EVENT_FAILED_LOGIN", 1);
-	define("EVENT_EXPLOIT_ATTEMPT", 2);
 	define("PAGE_MODULE", "banshee/page");
 	define("FORM_MODULE", "banshee/form");
 	define("ERROR_MODULE", "banshee/error");

@@ -157,7 +157,7 @@ div.filter select {
 }
 
 div.preview {
-	max-height:900px;
+	max-height:750px;
 	overflow-y:auto;
 }
 

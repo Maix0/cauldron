@@ -85,9 +85,18 @@ textarea.form-control {
 }
 
 div.filter {
-	width:500px;
 	max-width:100%;
 	margin:0 0 15px auto;
+}
+
+div.filter input {
+	max-width:none;
+}
+
+@media (min-width:768px) {
+	div.filter {
+		width:400px;
+	}
 }
 
 mark {

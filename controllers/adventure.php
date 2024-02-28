@@ -191,6 +191,7 @@
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
 				$this->view->add_javascript("includes/combat.js");
+				$this->view->add_javascript("includes/spells.js");
 				$this->view->add_javascript("includes/spell_effect_area.js");
 				$this->view->add_javascript("includes/keyboard.js");
 				$this->view->add_javascript("../dice-box/loader.js");
@@ -199,23 +200,23 @@
 				}
 
 				$this->view->add_javascript("adventure.js");
-				if ($active_map["fog_of_war"] != FOW_OFF) {
-					if (($active_map["fog_of_war"] == FOW_DAY_CELL) || ($active_map["fog_of_war"] == FOW_NIGHT_CELL)) {
-						$type = "cell";
-					} else if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
-						$type = "real";
-					} else if ($active_map["fog_of_war"] == FOW_REVEAL) {
-						$type = "reveal";
-					}
 
-					$this->view->add_javascript("includes/fog_of_war_".$type.".js");
+				if (($active_map["fog_of_war"] == FOW_DAY_CELL) || ($active_map["fog_of_war"] == FOW_NIGHT_CELL)) {
+					$type = "cell";
+				} else if (($active_map["fog_of_war"] == FOW_DAY_REAL) || ($active_map["fog_of_war"] == FOW_NIGHT_REAL)) {
+					$type = "real";
+				} else if ($active_map["fog_of_war"] == FOW_REVEAL) {
+					$type = "reveal";
+				} else {
+					$type = "none";
 				}
+				$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 
 				$this->view->add_css("webui/jquery-ui.css");
 				$this->view->add_css("banshee/font-awesome.css");
-				$this->view->add_css("includes/cauldron.css");
 				$this->view->add_css("includes/context_menu.css");
 				$this->view->add_css("includes/combat.css");
+				$this->view->add_css("includes/spells.css");
 			}
 
 			$attr = array(

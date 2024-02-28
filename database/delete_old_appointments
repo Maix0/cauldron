@@ -8,7 +8,7 @@
 		exit("Internal error: database not available.\n");
 	}
 
-	$date = date("Y-m-1 00:00:00", strtotime("-1 month"));
+	$date = date("Y-m-1 00:00:00", strtotime("-2 months"));
 
 	$db->query("delete from agenda where begin<%s", $date);
 ?>

@@ -23,12 +23,12 @@
 				return;
 			}
 
-			if (($characters = $this->model->get_characters($invite["adventure_id"])) === false) {
+			if (($players = $this->model->get_characters($invite["adventure_id"])) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
 
-			if (count($characters) == 0) {
+			if (count($players) == 0) {
 				$this->view->add_tag("result", "No characters available to invite. Ask your players to create them.");
 				return;
 			}
@@ -43,21 +43,21 @@
 
 			$active_adventure = false;
 
-			if (is_array($characters)) {
+			if (is_array($players)) {
 				$this->view->open_tag("characters");
-				foreach ($characters as $user => $chars) {
-					$this->view->open_tag("user", array("name" => $user));
-					foreach ($chars as $char) {
-						if (is_true($char["enrolled"])) {
-							array_push($invite["characters"], $char["id"]);
+				foreach ($players as $player) {
+					$this->view->open_tag("user", array("name" => $player["name"]));
+					foreach ($player["characters"] as $character) {
+						if (is_true($character["enrolled"])) {
+							array_push($invite["characters"], $character["id"]);
 							$active_adventure = true;
 						}
 
 						$attr = array(
-							"id"      => $char["id"],
-							"checked" => show_boolean(in_array($char["id"], $invite["characters"])),
-							"sheet"   => $char["sheet"]);
-						$this->view->add_tag("character", $char["name"], $attr);
+							"id"      => $character["id"],
+							"checked" => show_boolean(in_array($character["id"], $invite["characters"])),
+							"sheet"   => $character["sheet"]);
+						$this->view->add_tag("character", $character["name"], $attr);
 					}
 					$this->view->close_tag();
 				}

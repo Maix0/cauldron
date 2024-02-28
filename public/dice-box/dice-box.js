@@ -29,6 +29,7 @@ Box.onRollComplete = function(rollResult) {
 	dicebox_callback = undefined;
 
 	dicebox_timeout = window.setTimeout(function() {
+		dicebox_timeout = undefined;
 		dicebox_hide();
 	}, 5000);
 
@@ -47,12 +48,21 @@ function dice_roll_3d(dice, addition, callback) {
 	$('body').append($('div#dice-box'));
 	$('div#dice-box').css('z-index', 1);
 
+	dicebox_clear_timer();
+
 	Box.roll(dice);
 
 	var audio = new Audio('/dice-box/diceroll.mp3');
 	audio.play();
 
 	return true;
+}
+
+function dicebox_clear_timer() {
+	if (dicebox_timeout != undefined) {
+		window.clearTimeout(dicebox_timeout);
+		dicebox_timeout = undefined;
+	}
 }
 
 function dicebox_hide() {
@@ -62,23 +72,21 @@ function dicebox_hide() {
 
 Box.init();
 
-$('div#dice-box').click(function() {
+$('div#dice-box').on('click', function() {
 	if (dicebox_busy) {
 		return;
 	}
 
-	window.clearTimeout(dicebox_timeout);
-
+	dicebox_clear_timer();
 	dicebox_hide();
 });
 
-$('div#dice-box').contextmenu(function() {
+$('div#dice-box').on('contextmenu', function() {
 	if (dicebox_busy) {
 		return;
 	}
 
-	window.clearTimeout(dicebox_timeout);
-
+	dicebox_clear_timer();
 	dicebox_hide();
 });
 

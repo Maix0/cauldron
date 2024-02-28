@@ -30,6 +30,8 @@
 <div id="help">
 <p>Here you assign player characters to your adventure. The players of those character will not be notified about this, so you have to inform them about it yourself.</p>
 <p>When you add one or more characters to your adventure, all character icons (including the ones already present on a map) will be placed around the yellow 'Player start' marker on each map.</p>
+<p>To add player characters to your adventure, your players have to create them first. Inviting players to your adventure can be done via the invitation code you set in the <a href="/vault/invite">Invite</a> section.</p>
+<p>If one of your players created an account without an invitation code, (s)he will end up with a Dungeon Master account in his/her own group. <a href="/contact">Send me a message</a> with your username and the player's username and I will move the player's account to your group.</p>
 </div>
 </xsl:template>
 

@@ -8,6 +8,8 @@ function fog_of_war_clear_circle(x, y, r) {
 	drawing_ctx.fill();
 }
 
+/* Fog of war interface
+ */
 function fog_of_war_init(z_index, is_dungeon_master) {
 	if (is_dungeon_master == false) {
 		$('div.playarea div.effects').after($('div.drawing'));

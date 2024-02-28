@@ -1,0 +1,52 @@
+div.spells {
+	position:relative;
+	min-height:500px;
+}
+
+div.spells input {
+	width:150px;
+}
+
+div.spells div.select {
+	position:absolute;
+	top:50px;
+	left:0;
+	bottom:0;
+	width:150px;
+	padding-right:15px;
+	overflow:auto;
+}
+
+div.spells div.select div {
+	cursor:pointer;
+	text-indent:-15px;
+	margin-left:15px;
+	user-select:none;
+}
+
+div.spells div.select div.selected {
+	color:#ff0000;
+}
+
+div.spells div.details {
+	position:absolute;
+	top:0;
+	right:-15px;
+	bottom:0;
+	margin-left:165px;
+	padding-right:15px;
+	overflow:auto;
+}
+
+div.spells hr {
+	border-top:1px solid #822000;
+}
+
+div.spells h2 {
+	color:#822000;
+	font-size:30px;
+}
+
+div.spells ul {
+	list-style-position:inside;
+}

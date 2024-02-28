@@ -13,6 +13,15 @@
 				return;
 			}
 
+			/* Plain text pages
+			 */
+			if (substr($page["url"], -4) == ".txt") {
+				$this->view->disable();
+				header("Content-Type: text/plain");
+				print preg_replace('~\R~u', "\r\n", trim($page["content"]))."\r\n";
+				return;
+			}
+
 			/* Page header
 			 */
 			if (trim($page["description"]) != "") {

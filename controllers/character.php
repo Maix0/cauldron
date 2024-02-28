@@ -104,6 +104,7 @@
 
 		public function execute() {
 			$this->view->title = "Characters";
+			$this->view->add_help_button();
 
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				if ($_POST["submit_button"] == "Save character") {

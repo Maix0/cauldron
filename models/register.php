@@ -100,14 +100,14 @@
 		}
 
 		public function process_form_data($data) {
-			$query = "select max(id) as id from organisations";
-			if (($result = $this->db->execute($query)) == false) {
-				return false;
-			}
-
 			$user_is_dm = empty($data["invitation"]);
 
 			if ($user_is_dm) {
+				$query = "select max(id) as id from organisations";
+				if (($result = $this->db->execute($query)) == false) {
+					return false;
+				}
+
 				$organisation = array(
 					"name"          => "Group ".($result[0]["id"] + 1),
 					"max_resources" => $this->settings->default_max_resources);

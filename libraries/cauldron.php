@@ -1,5 +1,5 @@
 <?php
-	define("CAULDRON_VERSION", "3.3");
+	define("CAULDRON_VERSION", "3.4");
 
 	define("PLAYER_ROLE_ID", 2);
 	define("DUNGEON_MASTER_ROLE_ID", 3);
@@ -14,7 +14,7 @@
 
 	define("KEYBOARDS", array("Qwerty", "Azerty", "Qwertz"));
 
-	define("FOW_OFF", 0);
+	define("FOW_NONE", 0);
 	define("FOW_DAY_CELL", 1);
 	define("FOW_DAY_REAL", 2);
 	define("FOW_NIGHT_CELL", 3);

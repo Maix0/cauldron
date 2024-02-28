@@ -30,13 +30,6 @@
 		public function session_okay($session) {
 			$result = true;
 
-			if ($this->settings->session_persistent) {
-				if (strtotime($session["expire"]) < time()) {
-					$this->view->add_message("The expire time lies in the past.");
-					$result = false;
-				}
-			}
-
 			if (strlen($session["name"]) > 250) {
 				$this->view->add_message("Session name is too long.");
 				$result = false;
@@ -46,15 +39,8 @@
 		}
 
 		public function update_session($session) {
-			$query = "update sessions set name=%s";
+			$query = "update sessions set name=%s where id=%d and user_id=%d";
 			$values = array("name" => $session["name"]);
-
-			if ($this->settings->session_persistent) {
-				$query .= ", expire=%s";
-				$values["expire"] = $session["expire"];
-			}
-
-			$query .= " where id=%d and user_id=%d";
 
 			return $this->db->execute($query, $values, $session["id"], $this->user->id) !== false;
 		}

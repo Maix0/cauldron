@@ -38,6 +38,10 @@
 <a href="/{/output/page}/new" class="btn btn-default">New character</a>
 </div>
 </xsl:if>
+
+<div id="help">
+<p>In case you're playing Dungeons &amp; Dragons 5th edition, you can use this <a href="/files/charactersheet/D&amp;D score details.ods">spreadsheet</a> to help you level your character, so you understand all the numbers that are present in your <a href="/files/charactersheet/D&amp;D character sheet.pdf">character sheet</a>.</p>
+</div>
 </xsl:template>
 
 <!--
@@ -70,7 +74,7 @@
 </div>
 <div class="radio-group token_type">
 <input type="hidden" name="token_type_backup" value="{character/token_type}" />
-<span><input type="radio" name="token_type" value="topdown" disabled="disabled"><xsl:if test="character/token_type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top down token image</span>
+<span><input type="radio" name="token_type" value="topdown" disabled="disabled"><xsl:if test="character/token_type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top-down token image</span>
 <span><input type="radio" name="token_type" value="portrait" disabled="disabled"><xsl:if test="character/token_type='portrait'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Portrait token image</span>
 <span class="select">&lt;-- select the token type</span>
 </div>
@@ -99,6 +103,11 @@
 </xsl:if>
 </div>
 </form>
+
+<div id="help">
+<p>When uploading a token image, you must set the right token type. Each type is controlled via the keyboard in a different way. With a portrait token, W is always up, S is always down, A is always left an D is always right. With a top-down token, you can use the same keys, but which direction the token moves depends on the direction the token is looking. A top-down token is rotated via Q and E.</p>
+<p>You can change your keyboard layout in your <a href="/account">account settings</a>. Cauldron VTT supports Azerty, Qwerty and Qwertz keyboards.</p>
+</div>
 </xsl:template>
 
 <!--
@@ -186,7 +195,7 @@
 </div>
 
 <div id="help">
-<p>The weapons and their dice rolls will be added to the Dice roll window of the adventure page.</p>
+<p>The weapons and their dice rolls will be added to the Dice roll window when you're playing an adventure.</p>
 <p>The roll field must contain a valid dice roll string, like '1d8+2' or '3d6'.</p>
 <p>You can of course also add rolls for spells and even ability checks here.</p>
 </div>

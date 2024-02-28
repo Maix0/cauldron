@@ -2,7 +2,7 @@
 	class vault_players_model extends Banshee\model {
 		public function get_adventures() {
 			$query = "select id, title, (select count(*) from adventure_character where adventure_id=a.id) as players ".
-			         "from adventures a where dm_id=%d order by timestamp desc";
+			         "from adventures a where dm_id=%d order by title";
 
 			return $this->db->execute($query, $this->user->id);
 		}
@@ -19,7 +19,7 @@
 		}
 
 		public function get_characters($adventure_id) {
-			$query = "select c.*, u.fullname, ".
+			$query = "select c.*, u.fullname, u.id as user_id, ".
 			         "(select count(*) from adventure_character where character_id=c.id) as busy, ".
 			         "(select count(*) from adventure_character where character_id=c.id and adventure_id=%d) as enrolled ".
 			         "from characters c, users u where c.user_id=u.id and u.organisation_id=%d ".
@@ -31,11 +31,13 @@
 
 			$result = array();
 			foreach ($characters as $character) {
-				if (isset($result[$character["fullname"]]) == false) {
-					$result[$character["fullname"]] = array();
+				if (isset($result[$character["user_id"]]) == false) {
+					$result[$character["user_id"]] = array(
+						"name"       => $character["fullname"],
+						"characters" => array());
 				}
 
-				array_push($result[$character["fullname"]], array(
+				array_push($result[$character["user_id"]]["characters"], array(
 					"id"       => $character["id"],
 					"name"     => $character["name"],
 					"enrolled" => $character["enrolled"],

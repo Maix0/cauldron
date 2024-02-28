@@ -72,6 +72,7 @@
 <button class="btn btn-default btn-sm show_collectables">Inventory</button>
 <button class="btn btn-default btn-sm show_journal">Journal</button>
 <button class="btn btn-default btn-sm show_dice">Roll dice (~)</button>
+<button class="btn btn-default btn-sm show_spells">Spells</button>
 <xsl:if test="@is_dm='yes'">
 <h2>Dungeon Master options</h2>
 <button class="btn btn-default btn-sm play_audio">Audio</button>
@@ -80,7 +81,6 @@
 <button class="btn btn-default btn-sm show_dm_notes">Map notes</button>
 </xsl:if>
 <button class="btn btn-default btn-sm pause">Pause</button>
-<button class="btn btn-default btn-sm draw_clear">Remove drawings</button>
 </xsl:if>
 </div>
 <div class="col-sm-6">
@@ -90,13 +90,14 @@
 <button id="fullscreen" class="btn btn-default btn-sm fullscreen">Fullscreen map (TAB)</button>
 <xsl:if test="map/type='video'"><button class="btn btn-default btn-sm playvideo">Play video</button></xsl:if>
 <xsl:if test="@is_dm='yes'">
-<h2>Map switching</h2>
+<h2>Map options</h2>
 <select class="form-control map-selector">
 <xsl:if test="traveled_from"><xsl:attribute name="style">display:none</xsl:attribute></xsl:if>
 <xsl:for-each select="maps/map"><option value="{@id}"><xsl:if test="@current='yes'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option></xsl:for-each>
 </select>
 <xsl:if test="map/type='image'">
 <button class="btn btn-default btn-sm map_image">Change map image</button>
+<button class="btn btn-default btn-sm draw_clear">Remove drawings</button>
 </xsl:if>
 </xsl:if>
 </div>
@@ -114,6 +115,11 @@
 <xsl:if test="map">
 <div class="loading"><span><img src="/images/cauldron.png" />Loading...</span></div>
 <div class="pause"><span><img src="/images/cauldron.png" />Game paused</span></div>
+<!-- Attack -->
+<div class="attack" style="display:none">
+<div><label>Attack bonus:</label><input type="text" value="0" class="form-control" /></div>
+<div><label>Attack type:</label><select class="form-control"><option>Normal</option><option>Advantage</option><option>Disadvantage</option></select></div>
+</div>
 <!-- Journal -->
 <div class="journal" style="display:none">
 <div class="input-group">
@@ -200,7 +206,7 @@
 <!-- Tokens -->
 <div class="tokens">
 <xsl:for-each select="tokens/token">
-<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
+<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; width:{width}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <xsl:if test="c_id!='' and c_found='no'">
 <xsl:attribute name="c_id"><xsl:value-of select="c_id" /></xsl:attribute>
 <xsl:attribute name="c_name"><xsl:value-of select="c_name" /></xsl:attribute>
@@ -210,7 +216,7 @@
 <xsl:if test="perc">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 </xsl:if>
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="width:{width}px; height:{height}px;" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="height:{height}px;" />
 <xsl:if test="name!=''">
 <span class="name"><xsl:value-of select="name" /></span>
 </xsl:if>
@@ -228,9 +234,9 @@
 <!-- Characters -->
 <div class="characters">
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" token_type="{token_type}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" sheet="{sheet_url}">
+<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px; width:{width}px;" is_hidden="{hidden}" rotation="{rotation}" token_type="{token_type}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" sheet="{sheet_url}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-<img src="/resources/{/output/cauldron/resources_key}/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" />
+<img src="/resources/{/output/cauldron/resources_key}/{src}" orig_src="{orig_src}" style="height:{height}px" />
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>
@@ -296,7 +302,7 @@
 <div class="library">
 <xsl:for-each select="library/token">
 <div class="well well-sm">
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" style="max-width:{../../grid_cell_size}px; max-height:{../../grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="max-width:{../../grid_cell_size}px; max-height:{../../grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" />
 <div class="name"><xsl:value-of select="name" /></div>
 <div>Size: <xsl:value-of select="width" /> &#215; <xsl:value-of select="height" /></div>
 <div>HP: <xsl:value-of select="hitpoints" /></div>

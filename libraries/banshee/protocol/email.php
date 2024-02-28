@@ -50,7 +50,7 @@
 				"rhyta.com", "superrito.com", "teleworm.us", "getairmail.com", "gishpuppy.com",
 				"guerrillamail.com", "jetable.org", "mailcatch.com", "mailinator.com", "mailmoat.com",
 				"temp-mail.org", "mt2015.com", "no-spam.ws", "onewaymail.com", "shitmail.org",
-				"crapmail.org", "spamgourmet.com", "tempemail.net", "yopmail.com");
+				"crapmail.org", "spamgourmet.com", "tempemail.net", "yopmail.com", "yandex.ru");
 
 			if (strpos($email ?? "", "@") === false) {
 				return false;

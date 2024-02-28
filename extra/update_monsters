@@ -1,6 +1,7 @@
 #!/usr/bin/php
 <?php
 	chdir(__DIR__);
+	error_reporting(E_ALL & ~E_NOTICE);
 
 	require "../libraries/banshee/protocol/http.php";
 
@@ -78,6 +79,10 @@
 				$cr = $monster["cr"];
 			}
 
+			if (is_array($cr)) {
+				$cr = $cr["cr"];
+			}
+
 			$monster = sprintf("%s:%s:%s:%s:%s:%s", $name, $cr, $ac, $hp, $source, $page);
 			array_push($list, $monster);
 		}
@@ -88,21 +93,27 @@
 
 	$max = count($list) - 1;
 
-	print "var monsters = [\n\t{\n";
+	$monsters = array();
 	foreach ($list as $i => $monster) {
-		list($name, $cr, $ac, $hp, $source, $page) = explode(":", str_replace("'", "\\'", $monster));
+		$monster = str_replace("\"", "\\\"", $monster);
+		list($name, $cr, $ac, $hp, $source, $page) = explode(":", $monster);
 
-		print "\t\tname: '".$name."',\n";
-		print "\t\tcr: '".$cr."',\n";
-		print "\t\thp: '".$hp."',\n";
-		print "\t\tac: '".$ac."',\n";
-		print "\t\tsource: '".$source."',\n";
-		print "\t\tpage: '".$page."'\n";
-		print "\t}";
-		if ($i < $max) {
-			print ",{";
-		}
-		print "\n";
+		array_push($monsters, array(
+			"name"   => $name,
+			"cr"     => $cr,
+			"hp"     => $hp,
+			"ac"     => $ac,
+			"source" => $source,
+			"page"   => $page));
 	}
-	print "];\n";
+
+	if (($fp = fopen("../public/data/monsters", "w")) == false) {
+		return false;
+	}
+
+	fputs($fp, "<data>\n");
+	fputs($fp, json_encode($monsters)."\n");
+	fputs($fp, "</data>");
+
+	fclose($fp);
 ?>

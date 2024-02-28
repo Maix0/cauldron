@@ -16,6 +16,7 @@
 		private $settings = null;
 		private $id = null;
 		private $session_id = null;
+		private $timeout = null;
 		private $user_id = null;
 		private $denied = false;
 		private $error = false;
@@ -105,6 +106,7 @@
 				case "user_id": return $this->user_id;
 				case "denied": return $this->denied;
 				case "error": return $this->error;
+				case "timeout": return $this->timeout;
 			}
 
 			return null;
@@ -170,7 +172,7 @@
 				"session_id" => null,
 				"login_id"   => null,
 				"content"    => null,
-				"expire"     => date("Y-m-d H:i:s", time() + DAY),
+				"expire"     => date("Y-m-d H:i:s", time() + HOUR),
 				"user_id"    => null,
 				"ip_address" => $_SERVER["REMOTE_ADDR"],
 				"bind_to_ip" => false,
@@ -189,8 +191,14 @@
 			$this->id = $this->db->last_insert_id;
 			$this->session_id = $session_data["session_id"];
 
-			$timeout = is_true($this->settings->session_persistent) ? time() + $this->timeout : 0;
-			setcookie(self::SESSION_NAME, $this->session_id, $timeout, "/", "", is_true(ENFORCE_HTTPS), true);
+			$options = array(
+				"expires"  => is_true($this->settings->session_persistent) ? time() + $this->timeout : 0,
+				"path"     => "/",
+				"domain"   => "",
+				"secure"   => is_true(ENFORCE_HTTPS),
+				"httponly" => true,
+				"samesite" => "strict");
+			setcookie(self::SESSION_NAME, $this->session_id, $options);
 			$_COOKIE[self::SESSION_NAME] = $this->session_id;
 
 			$_SESSION["request_counter"] = 0;
@@ -236,13 +244,20 @@
 			}
 
 			$login_id = hash("sha512", random_string(128));
-			$timeout = is_true($this->settings->session_persistent) ? time() + $this->timeout : 0;
-			setcookie(self::SESSION_LOGIN, $login_id, $timeout, "/", "", is_true(ENFORCE_HTTPS), true);
+			$options = array(
+				"expires"  => is_true($this->settings->session_persistent) ? time() + $this->timeout : 0,
+				"path"     => "/",
+				"domain"   => "",
+				"secure"   => is_true(ENFORCE_HTTPS),
+				"httponly" => true,
+				"samesite" => "strict");
+			setcookie(self::SESSION_LOGIN, $login_id, $options);
+			$_COOKIE[self::SESSION_LOGIN] = $login_id;
 
 			$user_data = array(
-				"user_id"    => (int)$user_id,
 				"login_id"   => $login_id,
 				"expire"     => date("Y-m-d H:i:s", time() + $this->timeout),
+				"user_id"    => (int)$user_id,
 				"ip_address" => $_SERVER["REMOTE_ADDR"]);
 
 			return $this->db->update("sessions", $this->id, $user_data) !== false;

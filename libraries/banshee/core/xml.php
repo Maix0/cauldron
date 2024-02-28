@@ -233,7 +233,7 @@
 			$pointers[$depth] = &$result;
 
 			foreach ($items as $item) {
-				if ($item["attributes"] === null) {
+				if (($item["attributes"] ?? null) === null) {
 					$item["attributes"] = array();
 				}
 
@@ -252,7 +252,7 @@
 						array_push($pointers[$depth], array(
 							"name"       => $item["tag"],
 							"attributes" => $item["attributes"],
-							"content"    => trim($item["value"])));
+							"content"    => trim($item["value"] ?? "")));
 						break;
 					case "close":
 						$depth--;

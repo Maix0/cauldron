@@ -17,7 +17,7 @@
 			         "(select count(*) from characters c, users u where c.user_id=u.id and u.organisation_id=o.id) as characters, ".
 			         "(select count(*) from maps m, adventures a, users u where m.adventure_id=a.id and a.dm_id=u.id and u.organisation_id=o.id) as maps, ".
 			         "(select count(*) from map_token t, maps m, adventures a, users u where t.map_id=m.id and m.adventure_id=a.id and a.dm_id=u.id and u.organisation_id=o.id) as placed ".
-			         "from organisations o order by name limit %d,%d";
+			         "from organisations o order by id limit %d,%d";
 
 			return $this->db->execute($query, $offset, $limit);
 		}

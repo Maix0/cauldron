@@ -23,6 +23,7 @@ function cauldron_alert(message, title = 'Cauldron alert', callback_close = unde
 		width: 500,
 		close: function() {
 			$(document).off('keydown', key_handler);
+			alert_window.destroy();
 		}
 	});
 
@@ -58,6 +59,7 @@ function cauldron_confirm(message, callback_yes, callback_no = undefined) {
 		minimize: false,
 		close: function() {
 			$(document).off('keydown', key_handler);
+			confirm_window.destroy();
 		},
 		resize: false,
 		dialog: true
@@ -92,7 +94,7 @@ function cauldron_confirm(message, callback_yes, callback_no = undefined) {
 function cauldron_prompt(message, input, callback_okay, callback_cancel = undefined) {
 	var dialog =
 		'<div class="cauldron_dialog">' +
-		'<div class="message">' + message + '</div>' + 
+		'<label>' + message + '</label>' + 
 		'<input type="text" value="' + input.replace('"', '\\"') + '" class="form-control" />' +
 		'<div class="btn-group">' +
 		'<input type="button" value="Ok" class="btn btn-default" />' +
@@ -112,6 +114,7 @@ function cauldron_prompt(message, input, callback_okay, callback_cancel = undefi
 		},
 		close: function() {
 			$(document).off('keydown', key_handler);
+			prompt_window.destroy();
 		},
 		resize: false,
 		dialog: true

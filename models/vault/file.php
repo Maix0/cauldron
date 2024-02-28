@@ -18,7 +18,7 @@
 				return false;
 			}
 
-			return valid_input($file, VALIDATE_NUMBERS.VALIDATE_LETTERS."-_. ");
+			return valid_input($file, VALIDATE_NUMBERS.VALIDATE_LETTERS."-_.& ");
 		}
 
 		private function dirname_okay($file) {

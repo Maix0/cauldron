@@ -5,7 +5,7 @@ const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 2;
 const LAYER_MARKER = DEFAULT_Z_INDEX + 3;
 const LAYER_MENU = DEFAULT_Z_INDEX + 4;
 
-const FOW_OFF = 0;
+const FOW_NONE = 0;
 const FOW_DAY_CELL = 1;
 const FOW_DAY_REAL = 2;
 const FOW_NIGHT_CELL = 3;
@@ -102,6 +102,14 @@ function toggle_constructs() {
 	}
 
 	constructs_visible = constructs_visible == false;
+}
+
+function tokens_highlight() {
+	if ($('head style.highlight').length == 0) {
+		$('head').append('<style type="text/css" class="highlight">div.token img { border: 3px solid #ffff00 }</style>');
+	} else {
+		$('head style.highlight').remove();
+	}
 }
 
 function coord_to_grid(coord, edge = true) {
@@ -396,11 +404,6 @@ function object_hitpoints(obj) {
 }
 
 function object_info(obj) {
-	if (obj.hasClass('light')) {
-		write_sidebar('Light number: ' + obj.attr('id').substring(5));
-		return;
-	}
-
 	var info ='';
 
 	if (obj.attr('id').substring(0, 5) == 'token') {
@@ -413,8 +416,6 @@ function object_info(obj) {
 			'Hitpoints: ' + obj.attr('hitpoints') + '<br />' +
 			'Damage: ' + obj.attr('damage') + '<br />';
 	}
-
-	info += 'Object ID: ' + obj.attr('id') + '<br />';
 
 	var name = obj.attr('name');
 	if (name == undefined) {
@@ -548,16 +549,18 @@ function object_move(obj) {
 }
 
 function object_name(obj) {
-	var name = $(obj).attr('name');
-	if ((name = prompt('Name:', name)) == undefined) {
-		return;
-	}
+	cauldron_prompt('Name:', obj.attr('name'), function(name) {
+		obj.attr('name', name);
 
-	$(obj).attr('name', name);
+		obj.find('span').remove();
+		if (name != '') {
+			obj.append('<span class="name">' + name + '</span>');
+		}
 
-	$.post('/object/name', {
-		instance_id: obj.prop('id'),
-		name: name
+		$.post('/object/name', {
+			instance_id: obj.prop('id'),
+			name: name
+		});
 	});
 }
 
@@ -637,9 +640,29 @@ function blinder_create_command() {
 	measuring_stop();
 	wall_stop();
 
+	var check_coords = function(bx, by, blinder, edge) {
+		const marge = 5;
+
+		x = parseInt(blinder.attr('pos' + edge + '_x'));
+		y = parseInt(blinder.attr('pos' + edge + '_y'));
+
+		if ((bx > x - marge) && (bx < x + marge)) {
+			if ((by > y - marge) && (by < y + marge)) {
+				return [x, y];
+			}
+		}
+
+		return [bx, by];
+	};
+
 	if (alt_down) {
 		var blinder_x = mouse_x;
 		var blinder_y = mouse_y;
+
+		$('div.blinder').each(function() {
+			[blinder_x, blinder_y] = check_coords(blinder_x, blinder_y, $(this), 1);
+			[blinder_x, blinder_y] = check_coords(blinder_x, blinder_y, $(this), 2);
+		});
 	} else {
 		var blinder_x = coord_to_grid(mouse_x, true);
 		var blinder_y = coord_to_grid(mouse_y, true);
@@ -657,6 +680,15 @@ function blinder_create_command() {
 		if (alt_down) {
 			var blinder_x = mouse_x;
 			var blinder_y = mouse_y;
+
+			$('div.blinder').each(function() {
+				if ($(this).attr('id') == 'new_blinder') {
+					return true;
+				}
+
+				[blinder_x, blinder_y] = check_coords(blinder_x, blinder_y, $(this), 1);
+				[blinder_x, blinder_y] = check_coords(blinder_x, blinder_y, $(this), 2);
+			});
 		} else {
 			var blinder_x = coord_to_grid(mouse_x, true);
 			var blinder_y = coord_to_grid(mouse_y, true);
@@ -768,7 +800,7 @@ function points_angle(pos1_x, pos1_y, pos2_x, pos2_y) {
 	var dx = pos2_x - pos1_x;
 	var dy = pos2_y - pos1_y;
 
-	var angle = Math.round(Math.atan2(dy, dx) * 180 / Math.PI);
+	var angle = Math.atan2(dy, dx) * 180 / Math.PI;
 	if (angle < 0) {
 		angle += 360;
 	}
@@ -997,7 +1029,7 @@ function light_create(pos_x, pos_y, radius) {
 		pos_x *= grid_cell_size;
 		pos_y *= grid_cell_size;
 
-		var light = $('<img id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px" />');
+		var light = $('<img id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" title="Radius: ' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px" />');
 		$('div.playarea div.lights').append(light);
 
 		$('img#light' + instance_id).draggable({
@@ -1009,7 +1041,7 @@ function light_create(pos_x, pos_y, radius) {
 		$('img#light' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = {};
 
-			menu_entries['light_radius'] = { name:'Radius', icon:'fa-dot-circle-o' };
+			menu_entries['light_radius'] = { name:'Set radius', icon:'fa-dot-circle-o' };
 
 			if ($(this).attr('state') == 'on') {
 				menu_entries['light_toggle'] = { name:'Turn off', icon:'fa-toggle-off' };
@@ -1648,9 +1680,6 @@ function context_menu_handler(key) {
 
 			wf_light_create.open();
 			break;
-		case 'light_info':
-			object_info(obj);
-			break;
 		case 'light_radius':
 			var radius = obj.attr('radius');
 			
@@ -1659,7 +1688,7 @@ function context_menu_handler(key) {
 				style: 'danger',
 				header: 'Edit light',
 				buttons: {
-					'Create': function() {
+					'Set': function() {
 						var radius = parseInt($('input#light_edit').val());
 
 						$.post('/object/light_radius', {
@@ -1668,6 +1697,11 @@ function context_menu_handler(key) {
 						}).done(function(data) {
 							obj.attr('radius', radius);
 							obj.attr('title', 'Radius: ' + obj.attr('radius'));
+
+							if (fow_obj != null) {
+								fog_of_war_light(obj);
+								fog_of_war_update(fow_obj);
+							}
 						});
 						$(this).close();
 					},
@@ -1874,7 +1908,6 @@ $(document).ready(function() {
 
 	$('img.light').on('contextmenu', function(event) {
 		var menu_entries = {
-			'light_info': { name:'Get information', icon:'fa-info-circle' },
 			'light_radius': { name:'Set radius', icon:'fa-dot-circle-o' }
 		};
 
@@ -2138,7 +2171,7 @@ $(document).ready(function() {
 			'zone_create': { name:'Create zone', icon:'fa-square-o' }
 		};
 
-		if ((fow_type != FOW_NIGHT_CELL) && (fow_type != FOW_NIGHT_CELL)) {
+		if ((fow_type != FOW_NIGHT_CELL) && (fow_type != FOW_NIGHT_REAL)) {
 			delete menu_entries['light_create'];
 		}
 

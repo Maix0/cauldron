@@ -359,9 +359,9 @@ div.journal span.writer:after {
 }
 
 div.journal div.input-group {
-    width:500px;
-    max-width:100%;
-    margin:0 0 15px auto;
+	width:500px;
+	max-width:100%;
+	margin:0 0 15px auto;
 }
 
 div.journal mark {
@@ -383,6 +383,10 @@ div.playarea {
 	background-color:#ffffff;
 }
 
+div.playarea > div {
+	background-repeat:no-repeat;
+}
+
 div.playarea video {
 	position:absolute;
 	left:0;
@@ -392,40 +396,40 @@ div.playarea video {
 /* Library
  */
 div.filter {
-    position:absolute;
-    right:30px;
-    top:40px;
-    width:170px;
+	position:absolute;
+	right:30px;
+	top:40px;
+	width:170px;
 	height:45px;
 }
 
 div.library {
-    position:absolute;
-    right:0px;
-    top:85px;
-    width:200px;
+	position:absolute;
+	right:0px;
+	top:85px;
+	width:200px;
 	height:280px;
-    overflow-y:scroll;
-    padding-right:15px;
+	overflow-y:scroll;
+	padding-right:15px;
 }
 
 div.library img.icon {
-    float:left;
-    width:50px;
-    height:50px;
-    transform:rotate(180deg);
-    cursor:grab;
+	float:left;
+	width:50px;
+	height:50px;
+	transform:rotate(180deg);
+	cursor:grab;
 }
 
 div.library div.well div {
-    margin-left:60px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+	margin-left:60px;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
 }
 
 img.ui-draggable-dragging {
-    transform:rotate(180deg);
+	transform:rotate(180deg);
 }
 
 /* Sidebar
@@ -454,6 +458,18 @@ div.sidebar img {
 
 div.sidebar b {
 	color:#4040a0;
+}
+
+div.sidebar hr {
+	margin:5px 0;
+}
+
+div.sidebar hr.top {
+	margin:15px 0 -5px 0;
+}
+
+div.sidebar hr.bottom {
+	margin:-5px 0 15px 0;
 }
 
 div.input {
@@ -629,6 +645,11 @@ div.hitpoints div.damage {
 	float:right;
 }
 
+div.token img,
+div.character img {
+	width:inherit;
+}
+
 div.token span,
 div.character span,
 div.marker span {
@@ -639,6 +660,10 @@ div.marker span {
 	background-color:#ffffff;
 	border:1px solid #808080;
 	padding:1px 3px;
+	width:inherit;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
 }
 div.mine span {
 	border-color:#404040;
@@ -746,5 +771,9 @@ div.dark div.menu {
 }
 
 div.dark div.draw-explain {
+	color:#e0e0e0;
+}
+
+div.dark div.sidebar div.sea-text {
 	color:#e0e0e0;
 }

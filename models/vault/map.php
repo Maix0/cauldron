@@ -151,7 +151,7 @@
 
 				if (substr($url, 0, 1) == "/") {
 					$file = $this->resource_path($url, $this->user->resources_key);
-					if (file_exists(substr($file, 1)) == false) {	
+					if (file_exists(substr(urldecode($file), 1)) == false) {	
 						$this->view->add_message("Map file not found.");
 						$result = false;
 					}
@@ -260,7 +260,7 @@
 				$map["start_x"] = 2;
 				$map["start_y"] = 2;
 			}
-			$map["show_grid"] = is_true($_POST["show_grid"]) ? YES : NO;
+			$map["show_grid"] = is_true($_POST["show_grid"] ?? false) ? YES : NO;
 			$map["drag_character"] = is_true($map["drag_character"] ?? false) ? YES : NO;
 
 			if (isset($map["offset_x"]) == false) {

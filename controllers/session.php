@@ -24,13 +24,7 @@
 		}
 
 		private function show_session_form($session) {
-			$this->view->add_javascript("webui/jquery-ui.js");
-			$this->view->add_javascript("banshee/jquery.timepicker.js");
-			$this->view->add_javascript("banshee/datetimepicker.js");
-			$this->view->add_css("webui/jquery-ui.css");
-			$this->view->add_css("banshee/timepicker.css");
-
-			$this->view->open_tag("edit", array("persistent" => show_boolean($this->settings->session_persistent)));
+			$this->view->open_tag("edit");
 			$this->view->record($session, "session");
 			$this->view->close_tag();
 		}

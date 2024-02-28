@@ -66,6 +66,7 @@
 			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("vault/map.js");
 			$this->view->add_javascript("includes/grid.js");
+			$this->view->add_javascript("includes/library.js");
 			$this->view->run_javascript("init_grid(".$map["grid_size"].")");
 
 			$this->view->add_css("webui/jquery-ui.css");

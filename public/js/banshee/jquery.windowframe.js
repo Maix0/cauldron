@@ -178,10 +178,11 @@
 		}
 	}
 
-	var windowframe_open = function() {
+	var windowframe_open = function(param) {
 		var windowframe_id = $(this).data('windowframe_id');
 		var settings = $(this).data('settings');
 		var windowframe = $('div.windowframe_overlay div#windowframe' + windowframe_id);
+		windowframe.data('param', param);
 
 		windowframe_to_top(windowframe);
 
@@ -333,6 +334,10 @@
 		$('div.windowframe_overlay div#windowframe' + windowframe_id).remove();
 
 		delete $(this);
+
+		if ($('div.windowframe_overlay div.panel:visible').length == 0) {
+			$('div.windowframe_overlay').hide();
+		}
 	}
 
 	/* JQuery prototype

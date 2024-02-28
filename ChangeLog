@@ -1,3 +1,16 @@
+cauldron (3.4) stable; urgency=low
+
+  * Added spells information window.
+  * Advantage and disadvantage options in attack roll window.
+  * Spell effect areas are shared with other session members.
+  * Blinders snap to other blinder's end while holding ALT.
+  * Bugfix: lights ignored blinders.
+  * Bugfix: mouse position detection for Safari.
+  * Bugfix: tokens not clickable after 'Remove Fog of War'.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 28 Feb 2024 16:45:27 +0100
+
 cauldron (3.3) stable; urgency=low
 
   * Improved combat tracker.

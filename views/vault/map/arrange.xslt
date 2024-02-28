@@ -15,6 +15,7 @@
 <div class="menu">
 <a href="/vault/map" class="btn btn-default btn-sm">Back</a>
 <button class="btn btn-default btn-sm" onClick="javascript:toggle_constructs()">Toggle constructs</button>
+<button class="btn btn-default btn-sm" onClick="javascript:tokens_highlight()">Highlight tokens</button>
 <xsl:if test="map/type='video'"><button onClick="javascript:$('video').get(0).play()" class="btn btn-default btn-sm">Play</button></xsl:if>
 <h2>Settings</h2>
 <a href="/vault/map/{map/@id}" class="btn btn-default btn-sm">Edit settings</a>
@@ -79,8 +80,11 @@
 <!-- Tokens -->
 <div class="tokens">
 <xsl:for-each select="tokens/token">
-<div id="token{instance_id}" token_id="{@id}" class="token" style="left:{pos_x}px; top:{pos_y}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" name="{name}">
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="width:{width}px; height:{height}px" />
+<div id="token{instance_id}" token_id="{@id}" class="token" style="left:{pos_x}px; top:{pos_y}px; width:{width}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" name="{name}">
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="height:{height}px" />
+<xsl:if test="name!=''">
+<span class="name"><xsl:value-of select="name" /></span>
+</xsl:if>
 </div>
 </xsl:for-each>
 </div>

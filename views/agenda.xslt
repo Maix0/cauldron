@@ -50,7 +50,7 @@
 <div class="col-sm-8"><div class="btn-group btn-responsive">
 	<a href="/{/output/page}/list" class="btn btn-xs btn-primary">List view</a>
 	<a href="/{/output/page}/{prev}" class="btn btn-xs btn-primary">Previous month</a>
-	<a href="/{/output/page}/current" class="btn btn-xs btn-primary">Current month</a>
+	<a href="/{/output/page}" class="btn btn-xs btn-primary">Current month</a>
 	<a href="/{/output/page}/{next}" class="btn btn-xs btn-primary">Next month</a>
 </div></div>
 </div>

@@ -40,16 +40,16 @@
 
 <input type="hidden" id="submit_button" name="submit_button" />
 <div class="btn-group">
-<input type="button" value="{buttons/previous}" class="previous btn btn-default" onClick="set_submit_type(this); $('form#split').submit();" >
+<input type="button" value="{buttons/previous}" class="previous btn btn-default" onClick="javascript:set_submit_type(this); $('form#split').submit();" >
 <xsl:if test="current=0"><xsl:attribute name="disabled">disabled</xsl:attribute></xsl:if>
 </input>
 
 <xsl:choose>
 	<xsl:when test="current/@max>current">
-		<input type="submit" value="{buttons/next}" class="next btn btn-default" onClick="set_submit_type(this);" />
+		<input type="submit" value="{buttons/next}" class="next btn btn-default" onClick="javascript:set_submit_type(this);" />
 	</xsl:when>
 	<xsl:otherwise>
-		<input type="submit" value="{buttons/submit}" class="submit btn btn-primary" onClick="set_submit_type(this);" />
+		<input type="submit" value="{buttons/submit}" class="submit btn btn-primary" onClick="javascript:set_submit_type(this);" />
 	</xsl:otherwise>
 </xsl:choose>
 </div>

@@ -15,14 +15,24 @@ div#start img {
 	user-select:none;
 }
 
-div.character span {
+div.token img,
+div.character img {
+	width:inherit;
+}
+
+div.character span,
+div.token span {
 	display:block;
-	font-size:8px;
+	font-size:9px;
 	text-align:center;
 	color:#000000;
 	background-color:#ffffff;
 	border:1px solid #808080;
 	padding:1px 3px;
+	width:inherit;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
 }
 
 select#collectable {
@@ -143,6 +153,10 @@ div.playarea {
 	border:1px solid #000000;
 	overflow:auto;
 	background-color:#ffffff;
+}
+
+div.playarea > div {
+	background-repeat:no-repeat;
 }
 
 div.playarea video {

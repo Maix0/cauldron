@@ -54,7 +54,7 @@
 		$_view->open_tag("banshee");
 		$_view->add_tag("version", BANSHEE_VERSION);
 		if ($_user->logged_in) {
-			$_view->add_tag("session_timeout", $_settings->session_timeout);
+			$_view->add_tag("session_timeout", $_session->timeout);
 		}
 		$_view->close_tag();
 		$_view->add_tag("hostname", $_SERVER["SERVER_NAME"]);

@@ -308,6 +308,7 @@
 //
 //-->
 <xsl:template match="content">
+<img src="/images/icons/story.png" class="title_icon" />
 <h1><xsl:value-of select="/output/layout/title/@page" /></h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit_story" />

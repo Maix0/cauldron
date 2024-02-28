@@ -30,6 +30,8 @@
 		}
 
 		protected function prepare_account($data) {
+			$this->view->add_javascript("register.js");
+
 			if (empty($data["username"])) {
 				$this->model->set_value("username", strtolower($data["email"]));
 			}

@@ -380,6 +380,6 @@ function fog_of_war_update(obj) {
 }
 
 function fog_of_war_destroy() {
-	$('div.fow').remove();
+	$('div.fog_of_war div.fow').remove();
 	fog_of_war_spot_max = null;
 }

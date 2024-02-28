@@ -70,7 +70,8 @@ disable the setup module in settings/public_modules.conf.
 
 Configure Cronjob
 -----------------
-Configure cronjob to run the script database/backup_database once per day.
+Configure cronjob to run the script database/backup_database once per day and
+the script database/delete_old_appointments once per month.
 
 
 Configure Banshee

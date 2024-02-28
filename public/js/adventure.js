@@ -1,7 +1,7 @@
 const ROLL_NORMAL = 0;
 const ROLL_ADVANTAGE = 1;
 const ROLL_DISADVANTAGE = 2;
-const FOW_OFF = 0;
+const FOW_NONE = 0;
 const FOW_DAY_CELL = 1;
 const FOW_DAY_REAL = 2;
 const FOW_NIGHT_CELL = 3;
@@ -51,6 +51,7 @@ var my_name = null;
 var character_name = null;
 var character_steerable = true;
 var my_character = null;
+var wf_attack = null;
 var wf_collectables = null;
 var wf_dice_roll = null;
 var wf_effect_create = null;
@@ -92,7 +93,6 @@ var alt_down = false;
 var drawing_canvas = null;
 var drawing_ctx = null;
 var drawing_history = [];
-var attack_bonus = 0;
 var fullscreen = false
 var fullscreen_backup = undefined;
 var pause = false;
@@ -100,7 +100,8 @@ var ruler_distance = 0;
 var ruler_previous = 0;
 var key_to_direction = null;
 var brushes = {};
-var sea_submenu;
+var sea_submenu = null;
+var mobile_device = false;
 
 var char_pos_x = 0;
 var char_pos_y = 0;
@@ -741,9 +742,15 @@ function object_create(icon, x, y) {
 			}
 		});
 
-		$('div#token' + instance_id).on('click', object_click);
-		$('div#token' + instance_id).on('dblclick', object_dblclick);
-		$('div#token' + instance_id).on('contextmenu', object_contextmenu_dm);
+		if (mobile_device) {
+			$('div#token' + instance_id + ' img').on('click', object_click_mobile);
+			$('div#token' + instance_id + ' img').on('click', object_click_mobile);
+		} else {
+			$('div#token' + instance_id + ' img').on('click', object_click);
+			$('div#token' + instance_id + ' img').on('dblclick', object_dblclick);
+		}
+
+		$('div#token' + instance_id + ' img').on('contextmenu', object_contextmenu_dm);
 	}).fail(function() {
 		write_sidebar('Error creating object.');
 	});
@@ -786,6 +793,10 @@ function object_damage_command(obj, points) {
 		instance_id: obj.prop('id'),
 		damage: damage
 	});
+
+	if (dungeon_master) {
+		obj.attr('title', 'HP: ' + (hitpoints - damage));
+	}
 }
 
 function object_damage_action(obj, damage, percentage) {
@@ -800,32 +811,45 @@ function object_damage_action(obj, damage, percentage) {
 }
 
 function object_click(event) {
-	if ($(this).is(focus_obj)) {
+	if ($(this).parent().is(focus_obj)) {
 		event.stopPropagation();
 	}
 }
 
+function object_click_mobile(event) {
+	event.type = 'contextmenu';
+	$(this).trigger(event);
+}
+
 function object_dblclick(event) {
 	event.stopPropagation();
+	
+	var obj = $(this).parent();
 
 	if (ctrl_down) {
-		if ($(this).attr('is_hidden') == 'yes') {
-			object_show_command($(this));
+		if (obj.attr('is_hidden') == 'yes') {
+			object_show_command(obj);
 		} else {
-			object_hide_command($(this));
+			object_hide_command(obj);
 		}
 		return;
 	}
 
+	if (shift_down) {
+		object_info(obj);
+		object_view(obj);
+		return;
+	}
+
 	if (focus_obj != null) {
-		if ($(this).is(focus_obj)) {
+		if (obj.is(focus_obj)) {
 			return;
 		}
 
 		focus_obj.find('img').css('border', '');
 	}
 
-	focus_obj = $(this);
+	focus_obj = obj;
 	focus_obj.find('img').css('border', '1px solid #ffa000');
 
 	zone_init_presence();
@@ -923,6 +947,12 @@ function object_info(obj) {
 		if (obj.hasClass('character')) {
 			info += 'Initiative bonus: ' + obj.attr('initiative') + '<br />';
 		}
+
+		var conditions = obj.find('span.conditions');
+		if (conditions.length > 0) {
+			conditions = conditions.html().replace(/>/g, '>- ');
+			info += 'Conditions:<br />- ' + conditions;
+		}
 	} else {
 		script = obj.find('div.script');
 		if (script.length > 0) {
@@ -931,10 +961,6 @@ function object_info(obj) {
 			info += script.text() + '\n';
 			info += '<b>' + dashes + dashes + dashes + dashes + '&mdash;&mdash;</b>\n';
 		}
-	}
-
-	if (dungeon_master) {
-		info += 'Object ID: ' + obj.attr('id') + '<br />';
 	}
 
 	write_sidebar(info);
@@ -986,7 +1012,7 @@ function object_move(obj, speed = 200) {
 
 	/* Fog of War
 	 */
-	if (obj.is(fow_obj) || ((fow_type != FOW_OFF) && obj.is(my_character))) {
+	if (obj.is(fow_obj) || obj.is(my_character)) {
 		fog_of_war_update(obj);
 	}
 
@@ -1296,7 +1322,6 @@ function object_view(obj, max_size = 300) {
 		}
 	}
 
-
 	var src = obj.find('img').prop('src');
 	if (collectable_id != undefined) {
 		var container_src = src;
@@ -1312,6 +1337,7 @@ function object_view(obj, max_size = 300) {
 	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px; margin:0 auto;';
 	var container_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px; position:absolute; top:100px; left:100px;';
 	var description = obj.find('img').attr('description');
+	var name = obj.find('span.name').text();
 
 	var transform = obj.find('img').css('transform');
 	if ((transform != 'none') && (collectable_id == undefined)) {
@@ -1327,6 +1353,9 @@ function object_view(obj, max_size = 300) {
 		view += '<img src="' + container_src + '" style="' + container_style + '" />';
 	}
 	view += '<span style="' + span_style + '"><img src="' + src + '" style="' + img_style + '" />';
+	if (name != '') {
+		view += '<div style="margin-top:30px; border:1px solid #000000; background-color:#ffffff; padding:3px; text-align:center;">' + name + '</div>';
+	}
 	if ((description != undefined) && (description != '')) {
 		description = description.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br />');
 		view += '<div style="padding:15px; min-width:500px; max-height:200px; overflow:auto">' + description + '</div>';
@@ -1568,7 +1597,7 @@ function door_show_closed(door) {
 
 	/* Fog of War
 	 */
-	if ((fow_type != FOW_OFF) && (my_character != null)) {
+	if (my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1587,7 +1616,7 @@ function door_show_open(door) {
 
 	/* Fog of War
 	 */
-	if ((fow_type != FOW_OFF) && (my_character != null)) {
+	if (my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1611,7 +1640,7 @@ function light_create_object(instance_id, pos_x, pos_y, radius) {
 		fog_of_war_light($('div#light' + instance_id));
 	}
 
-	if ((fow_type != FOW_OFF) && my_character != null) {
+	if (my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1710,7 +1739,7 @@ function light_state(obj, state) {
 		fog_of_war_light(obj);
 	}
 
-	if ((fow_type != FOW_OFF) && (my_character != null)) {
+	if (my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1746,7 +1775,7 @@ function light_delete(obj) {
 		fog_of_war_light(obj);
 	}
 
-	if ((fow_type != FOW_OFF) && (my_character != null)) {
+	if (my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1825,7 +1854,6 @@ function window_make_closed(wind) {
 		return;
 	}
 
-	write_sidebar('The window is now closed.');
 	window_show_closed(wind);
 	window_send_state(wind);
 }
@@ -1837,7 +1865,7 @@ function window_show_closed(wind) {
 
 	/* Fog of War
 	 */
-	if ((fow_type != FOW_OFF) && (my_character != null)) {
+	if (my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -1849,7 +1877,6 @@ function window_make_open(wind) {
 		return;
 	}
 
-	write_sidebar('The window is now open.');
 	window_show_open(wind);
 	window_send_state(wind);
 }
@@ -1861,7 +1888,7 @@ function window_show_open(wind) {
 
 	/* Fog of War
 	 */
-	if ((fow_type != FOW_OFF) && (my_character != null)) {
+	if (my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
@@ -2031,7 +2058,7 @@ function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, gro
 	}
 
 	if (altitude > 0) {
-		if ((fow_type != FOW_OFF) && (my_character != null)) {
+		if (my_character != null) {
 			fog_of_war_update(my_character);
 		} else if (fow_obj != null) {
 			fog_of_war_update(fow_obj);
@@ -2482,10 +2509,10 @@ function handle_input(input) {
 			break;
 		case 'labels':
 			if ((param == 'off') || (param == 'hide')) {
-				$('div.character div.hitpoints').css('display', 'none');
-				$('div.character span').css('display', 'none');
+				$('div.character div.hitpoints, div.token div.hitpoints').css('display', 'none');
+				$('div.character span, div.token span').css('display', 'none');
 
-				$('div.character').hover(function() {
+				$('div.character, div.token').hover(function() {
 					$(this).find('div.hitpoints').css('display', 'block');
 					$(this).find('span').css('display', 'block');
 				}, function() {
@@ -2493,10 +2520,10 @@ function handle_input(input) {
 					$(this).find('span').css('display', 'none');
 				});
 			} else if ((param == 'on') || (param == 'show')) {
-				$('div.character div.hitpoints').css('display', 'block');
-				$('div.character span').css('display', 'block');
+				$('div.character div.hitpoints, div.token div.hitpoints').css('display', 'block');
+				$('div.character span, div.token span').css('display', 'block');
 
-				$('div.character').off('mouseenter mouseleave');
+				$('div.character, div.token').off('mouseenter mouseleave');
 			}
 			break;
 		case 'log':
@@ -2669,7 +2696,7 @@ function context_menu_handler(key) {
 			var img_size = size * grid_cell_size;
 
 			my_character.find('img').attr('src', '/resources/' + resources_key + '/' + filename);
-			my_character.find('img').css('width', img_size + 'px');
+			my_character.css('width', img_size + 'px');
 			my_character.find('img').css('height', img_size + 'px');
 
 			var data = {
@@ -2686,7 +2713,7 @@ function context_menu_handler(key) {
 				alternate_id: alternate_id
 			});
 
-			if ((fow_type != FOW_OFF) && (my_character != null)) {
+			if (my_character != null) {
 				fog_of_war_update(my_character);
 			}
 			break;
@@ -2719,58 +2746,8 @@ function context_menu_handler(key) {
 			});
 			break;
 		case 'attack':
-			cauldron_prompt('Attack bonus:', attack_bonus.toString(), function(bonus) {
-				bonus = parseInt(bonus);
-				if (isNaN(bonus)) {
-					write_sidebar('Invalid attack bonus.');
-					return;
-				}
-
-				attack_bonus = bonus;
-				var armor_class = parseInt(obj.attr('armor_class'));
-
-				var message = '';
-				var name = obj.find('span.name').text();
-				if (name != '') {
-					message += 'Target: ' + name + '\n';
-				} else {
-					message += 'Target: ' + obj.prop('id') + '\n';
-				}
-
-				dice_roll(['1d20'], bonus, function(result, extra) {
-					var roll = result[0];
-
-					if (dungeon_master == false) {
-						message += 'Attack roll: [' + roll + ']';
-
-						if (bonus > 0) {
-							message += ' + ' + bonus + ' = ' + (roll + bonus);
-						}
-
-						message += '\n';
-					}
-
-					message += 'Result: ';
-
-					if (roll == 20) {
-						message += 'CRIT!';
-					} else if (((roll + bonus) >= armor_class) && (roll > 1)) {
-						message += 'hit!';
-					} else {
-						message += 'miss';
-					}
-
-					send_message(message, character_name);
-
-					if (dungeon_master) {
-						message = 'Attack roll: [' + roll + ']';
-						if (bonus > 0) {
-							message += ' + ' + bonus + ' = ' + (roll + bonus);
-						}
-						write_sidebar(message);
-					}
-				});
-			});
+			wf_attack.find('select').val('Normal');
+			wf_attack.open(obj);
 			break;
 		case 'condition':
 			if (condition_id > 0) {
@@ -2786,7 +2763,10 @@ function context_menu_handler(key) {
 			write_sidebar('Coordinates: ' + pos_x + ', ' + pos_y);
 			break;
 		case 'damage':
-			cauldron_prompt('Points:', '', function(points) {
+			var max_hp = obj.attr('hitpoints');
+			var hp_left = (parseInt(max_hp) - parseInt(obj.attr('damage'))).toString();
+
+			cauldron_prompt('Points (max HP=' + max_hp + ', HP left=' + hp_left + '):', '', function(points) {
 				points = parseInt(points);
 				if (isNaN(points)) {
 					write_sidebar('Invalid damage points.');
@@ -2990,7 +2970,10 @@ function context_menu_handler(key) {
 			websocket_send(data);
 			break;
 		case 'heal':
-			cauldron_prompt('Points:', '', function(points) {
+			var max_hp = obj.attr('hitpoints');
+			var damage = obj.attr('damage');
+
+			cauldron_prompt('Points (max HP=' + max_hp + ', damage=' + damage + '):', '', function(points) {
 				points = parseInt(points);
 				if (isNaN(points)) {
 					write_sidebar('Invalid healing points.');
@@ -3200,7 +3183,7 @@ function context_menu_handler(key) {
 			}
 
 			obj.find('img').attr('src', '/resources/' + resources_key + '/' + filename);
-			obj.find('img').css('width', (grid_cell_size * size) + 'px');
+			obj.css('width', (grid_cell_size * size) + 'px');
 			obj.find('img').css('height', (grid_cell_size * size) + 'px');
 
 			var data = {
@@ -3411,6 +3394,10 @@ $(document).ready(function() {
 	var version = $('div.playarea').attr('version');
 	var ws_host = $('div.playarea').attr('ws_host');
 	var ws_port = $('div.playarea').attr('ws_port');
+	
+	if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0)) {
+		mobile_device = true;
+	}
 
 	write_sidebar('<img src="/images/cauldron.png" style="max-width:80px; display:block; margin:0 auto" draggable="false" />');
 	write_sidebar('<b>Welcome to Cauldron v' + version + '</b>');
@@ -3546,7 +3533,7 @@ $(document).ready(function() {
 			case 'alternate':
 				var img_size = data.size * grid_cell_size;
 				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/' + data.src);
-				$('div#' + data.char_id).find('img').css('width', img_size + 'px');
+				$('div#' + data.char_id).css('width', img_size + 'px');
 				$('div#' + data.char_id).find('img').css('height', img_size + 'px');
 				break;
 			case 'armor':
@@ -3801,7 +3788,7 @@ $(document).ready(function() {
 
 					/* Fog of War
 					 */
-					if (obj.is(fow_obj) || ((fow_type != FOW_OFF) && obj.is(my_character))) {
+					if (obj.is(fow_obj) || obj.is(my_character)) {
 						fog_of_war_update(obj);
 					}
 				});
@@ -3901,10 +3888,22 @@ $(document).ready(function() {
 			case 'say':
 				message_to_sidebar(data.name, data.mesg);
 				break;
+			case 'sea_circle':
+				spell_effect_area_draw_circle(data.center_x, data.center_y, data.radius);
+				break;
+			case 'sea_cone':
+				spell_effect_area_draw_cone(data.origin_x, data.origin_y, data.radius, data.angle, data.cone_angle);
+				break;
+			case 'sea_square':
+				spell_effect_area_draw_square(data.pos_x, data.pos_y, data.range);
+				break;
+			case 'sea_clear':
+				spell_effect_area_clear();
+				break;
 			case 'shape':
 				var size = parseInt(data.size)
 				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/' + data.src);
-				$('div#' + data.char_id).find('img').css('width', (grid_cell_size * size) + 'px');
+				$('div#' + data.char_id).css('width', (grid_cell_size * size) + 'px');
 				$('div#' + data.char_id).find('img').css('height', (grid_cell_size * size) + 'px');
 				break;
 			case 'show':
@@ -3963,7 +3962,7 @@ $(document).ready(function() {
 				zone.remove();
 
 				if (altitude > 0) {
-					if ((fow_type != FOW_OFF) && (my_character != null)) {
+					if (my_character != null) {
 						fog_of_war_update(my_character);
 					} else if (fow_obj != null) {
 						fog_of_war_update(fow_obj);
@@ -4482,6 +4481,17 @@ $(document).ready(function() {
 			$(this).css('border', '');
 		});
 
+		if ($('div.character').length == 0) {
+			write_sidebar('<hr class="top" />');
+			write_sidebar('There are no player characters in your adenture. Invite players via the invitation code as set in the <a href="/vault/invite">Invite</a> section in the Dungeon Master\'s Vault. After that, add their characters via the <a href="/vault/players">Players</a> section.');
+			write_sidebar('<hr class="bottom" />');
+		};
+
+		$('div.character, div.token').each(function() {
+			var hitpoints = parseInt($(this).attr('hitpoints')) - parseInt($(this).attr('damage'));
+			$(this).attr('title', 'HP: ' + hitpoints);
+		});
+
 		$('div.token').draggable({
 			containment: 'div.playarea > div',
 			handle: 'img',
@@ -4498,10 +4508,12 @@ $(document).ready(function() {
 			}
 		});
 
-		$('div.characters div.character').on('click', object_click);
-		$('div.characters div.character').on('dblclick', object_dblclick);
-		$('div.tokens div.token').on('click', object_click);
-		$('div.tokens div.token').on('dblclick', object_dblclick);
+		if (mobile_device == false) {
+			$('div.characters div.character img').on('click', object_click);
+			$('div.characters div.character img').on('dblclick', object_dblclick);
+			$('div.tokens div.token img').on('click', object_click);
+			$('div.tokens div.token img').on('dblclick', object_dblclick);
+		}
 
 		$('div.playarea').on('click', function() {
 			if (focus_obj != null) {
@@ -4582,7 +4594,7 @@ $(document).ready(function() {
 
 		/* Menu tokens
 		 */
-		$('div.token img').on('contextmenu', object_contextmenu_dm);
+		$('div.tokens div.token img').on('contextmenu', object_contextmenu_dm);
 
 		/* Menu characters
 		 */
@@ -4605,7 +4617,7 @@ $(document).ready(function() {
 			menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
 			menu_entries['sep2'] = '-';
 
-			if ((fow_type != FOW_OFF) && (fow_type != FOW_REVEAL)) {
+			if ((fow_type != FOW_NONE) && (fow_type != FOW_REVEAL)) {
 				if ($(this).parent().is(fow_obj)) {
 					menu_entries['fow_show'] = { name:'Remove Fog of War', icon:'fa-mixcloud' };
 				} else {
@@ -4700,11 +4712,9 @@ $(document).ready(function() {
 
 		/* Fog of war
 		 */
-		if (fow_type != FOW_OFF) {
-			$('div.character').each(function() {
-				fow_char_distances[$(this).prop('id')] = fow_default_distance;
-			});
-		}
+		$('div.character').each(function() {
+			fow_char_distances[$(this).prop('id')] = fow_default_distance;
+		});
 
 		/* Library
 		 */
@@ -4867,7 +4877,7 @@ $(document).ready(function() {
 			 */
 			if (fow_type == FOW_REVEAL) {
 				fog_of_war_init(LAYER_FOG_OF_WAR, false);
-			} else if (fow_type != FOW_OFF) {
+			} else {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
 				if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
 					fog_of_war_set_distance(fow_default_distance);
@@ -4925,7 +4935,7 @@ $(document).ready(function() {
 
 		/* Menu tokens
 		 */
-		$('div.token img').on('contextmenu', object_contextmenu_player);
+		$('div.tokens div.token').on('contextmenu', object_contextmenu_player);
 
 		/* Menu (other) characters
 		 */
@@ -5039,6 +5049,96 @@ $(document).ready(function() {
 		activator: 'button.show_dm_notes',
 		style: 'danger',
 		header: 'DM notes'
+	});
+
+	wf_attack = $('div.attack').windowframe({
+		width: 500,
+		header: 'Attack',
+		open: function() {
+			wf_attack.find('input').focus();
+		},
+		buttons: {
+			'Ok': function() {
+				var bonus = parseInt(wf_attack.find('input').val());
+				wf_attack.close();
+
+				if (isNaN(bonus)) {
+					write_sidebar('Invalid attack bonus.');
+					return;
+				}
+
+				var obj = wf_attack.parent().parent().data('param');
+				var armor_class = parseInt(obj.attr('armor_class'));
+
+				var message = '';
+				var name = obj.find('span.name').text();
+				if (name != '') {
+					message += 'Target: ' + name + '\n';
+				} else if (obj.attr('type') != undefined) {
+					message += 'Target: ' + obj.attr('type') + '\n';
+				} else {
+					message += 'Target: ' + obj.prop('id') + '\n';
+				}
+
+				var type = wf_attack.find('select').val();
+
+				dice = [ '1d20' ];
+				if (type != 'Normal') {
+					dice.push('1d20');
+				}
+
+				dice_roll(dice, bonus, function(result, extra) {
+					var roll = result[0];
+
+					if (type == 'Advantage') {
+						if (result[1] > roll) {
+							roll = result[1];
+						}
+					} else if (type == 'Disadvantage') {
+						if (result[1] < roll) {
+							roll = result[1];
+						}
+					}
+
+					var details = '';
+					if (type != 'Normal') {
+						details += type + ': [' + result[0] + '] [' + result[1] + '] > [' + roll + ']\n';
+					}
+					details += 'Attack roll: [' + roll + ']';
+					if (bonus > 0) {
+						details += ' + ' + bonus + ' = ' + (roll + bonus);
+					}
+					details += '\n';
+
+					if (dungeon_master == false) {
+						message += details;
+					}
+
+					message += 'Result: ';
+
+					if (roll == 20) {
+						message += 'CRIT!';
+					} else if (((roll + bonus) >= armor_class) && (roll > 1)) {
+						message += 'hit!';
+					} else {
+						message += 'miss';
+					}
+
+					send_message(message, character_name);
+
+					if (dungeon_master) {
+						message = details;
+						if (obj.attr('armor_class') != undefined) {
+							message += 'Armor class: ' + obj.attr('armor_class');
+						}
+						write_sidebar(message);
+					}
+				});
+			},
+			'Cancel': function() {
+				wf_attack.close();
+			}
+		}
 	});
 
 	wf_journal = $('div.journal').windowframe({
@@ -5213,9 +5313,10 @@ $(document).ready(function() {
 		defined.empty();
 		var rolls = localStorage.getItem('dicerolls');
 		if (rolls == undefined) {
-			return;
+			rolls = [];
+		} else {
+			rolls = JSON.parse(rolls);
 		}
-		rolls = JSON.parse(rolls);
 
 		for ([key, value] of Object.entries(rolls)) {
 			rolls[key] = {
@@ -5251,7 +5352,6 @@ $(document).ready(function() {
 			button.find('input.roll').on('click', function() {
 				wf_dice_roll.close();
 
-				write_sidebar('Rolling for ' + $(this).attr('value').toLowerCase() + '.');
 				var dice = $(this).attr('title');
 				roll_dice(dice, dungeon_master == false);
 				input_history_add('/roll ' + dice);
@@ -5347,7 +5447,8 @@ $(document).ready(function() {
 	/* Other stuff
 	 */
 	$('div.playarea').mousedown(function(event) {
-		if (event.which == 3) {
+		var mac = (window.navigator.platform == 'MacIntel');
+		if ((event.which == 3) || (mac && (event.which == 1) && (ctrl_down))) {
 			var scr = screen_scroll();
 			mouse_x = event.clientX + scr.left - 16;
 			mouse_y = event.clientY + scr.top - 41;
@@ -5415,15 +5516,9 @@ $(document).ready(function() {
 
 	/* Touchscreens
 	 */
-	if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0)) {
-		$('div.character').on('click', function(event) {
-			event.type = 'contextmenu';
-			$(this).find('img').trigger(event);
-		});
-		$('div.token').on('click', function(event) {
-			event.type = 'contextmenu';
-			$(this).find('img').trigger(event);
-		});
+	if (mobile_device) {
+		$('div.characters div.character img').on('click', object_click_mobile);
+		$('div.tokens div.token img').on('click', object_click_mobile);
 	}
 });
 

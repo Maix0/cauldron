@@ -611,6 +611,10 @@
 				$this->settings->database_version = 3.3;
 			}
 
+			if ($this->settings->database_version === 3.3) {
+				$this->settings->database_version = 3.4;
+			}
+
 			return true;
 		}
 

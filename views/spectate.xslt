@@ -114,7 +114,7 @@
 <!-- Tokens -->
 <div class="tokens">
 <xsl:for-each select="tokens/token">
-<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
+<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; width:{width}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
 <xsl:if test="c_id!='' and c_found='no'">
 <xsl:attribute name="c_id"><xsl:value-of select="c_id" /></xsl:attribute>
 <xsl:attribute name="c_name"><xsl:value-of select="c_name" /></xsl:attribute>
@@ -124,7 +124,7 @@
 <xsl:if test="perc">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 </xsl:if>
-<img src="/resources/{../../resources_key}/tokens/{@id}.{extension}" title="token{instance_id}" style="width:{width}px; height:{height}px;" draggable="false" />
+<img src="/resources/{../../resources_key}/tokens/{@id}.{extension}" style="height:{height}px;" draggable="false" />
 <xsl:if test="name!=''">
 <span><xsl:value-of select="name" /></span>
 </xsl:if>
@@ -134,9 +134,9 @@
 <!-- Characters -->
 <div class="characters">
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" sheet="{sheet_url}">
+<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px; width:{width}px;" is_hidden="{hidden}" rotation="{rotation}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" sheet="{sheet_url}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-<img src="/resources/{../../resources_key}/characters/{src}" orig_src="{orig_src}" style="width:{width}px; height:{height}px;" draggable="false" />
+<img src="/resources/{../../resources_key}/characters/{src}" orig_src="{orig_src}" style="height:{height}px" draggable="false" />
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>

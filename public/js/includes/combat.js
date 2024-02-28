@@ -54,176 +54,6 @@ function _combat_window_reset() {
 	_combat_window_init.footer(null);
 }
 
-function combat_check_running() {
-	var bo = localStorage.getItem('combat_order');
-	if (bo == undefined) {
-		return;
-	}
-
-	var bg = localStorage.getItem('combat_adventure_id');
-	if (bg == undefined) {
-		_combat_stop();
-		return;
-	} else if (bg != adventure_id) {
-		_combat_stop();
-		return;
-	}
-
-	_combat_order = JSON.parse(bo);
-	combat_show_order(false, false);
-
-	_combat_add_buttons();
-}
-
-function combat_start() {
-	if ($('div.character').length == 0) {
-		write_sidebar('This map has no characters.');
-		return;
-	}
-
-	if (_combat_order.length > 0) {
-		write_sidebar('A combat has already been started. Type /next to go to the next round or /done to finish the current combat.');
-		combat_show_order(false, false);
-		return;
-	}
-
-	_combat_window_init.open();
-}
-
-function combat_show_order(first_round = false, send = true) {
-	if (first_round) {
-		send_message('Prepare for combat!', 'Dungeon Master', false);
-	}
-
-	var message = '';
-	var bullet = '&Rightarrow;';
-	_combat_order.forEach(function(value, key) {
-		message += bullet + ' ' + value.name + '\n';
-		bullet = '&boxh;';
-	});
-
-	if (send) {
-		send_message(message, _combat_name);
-	} else {
-		message_to_sidebar(_combat_name, message);
-	}
-}
-
-function combat_add(being) {
-	if (_combat_order.length == 0) {
-		write_sidebar(_combat_not_started);
-		return;
-	}
-
-	var present = false;
-	_combat_order.forEach(function(value, key) {
-		if (value.name == being) {
-			present = true;
-		}
-	});
-	if (present) {
-		write_sidebar(being + ' is already in the combat order list.');
-		return false;
-	}
-
-	var item = _combat_order.shift();
-	_combat_order.push(item);
-
-	item = {
-		key: 0,
-		name: being,
-		char_id: null
-	};
-	_combat_order.unshift(item);
-
-	combat_show_order();
-
-	localStorage.setItem('combat_order', JSON.stringify(_combat_order));
-}
-
-function combat_remove(being) {
-	if (_combat_order.length == 0) {
-		write_sidebar(_combat_not_started);
-		return;
-	}
-
-	var remove = null;
-	var found = false;
-	_combat_order.forEach(function(value, key) {
-		if (found == false) {
-			if (value.name == being) {
-				remove = key;
-				found = true;
-			} else if (value.name.substring(0, being.length) == being) {
-				if (remove == null) {
-					remove = key;
-				}
-			}
-		}
-	});
-
-	if (remove == null) {
-		write_sidebar(being + ' not in combat order.');
-		$('div.input input').val(input);
-		return;
-	}
-
-	send_message(_combat_order[remove].name + ' removed from combat.', _combat_name);
-	_combat_order.splice(remove, 1);
-
-	if (_combat_order.length == 0) {
-		combat_stop();
-	} else {
-		combat_show_order(false, false);
-
-		localStorage.setItem('combat_order', JSON.stringify(_combat_order));
-	}
-}
-
-function combat_next(being = '') {
-	if (_combat_order.length == 0) {
-		write_sidebar(_combat_not_started);
-		return;
-	}
-
-	var turn = null;
-	if (being != '') {
-		_combat_order.forEach(function(value, key) {
-			if (value.name.substring(0, being.length) == being) {
-				turn = key;
-			}
-		});
-
-		if (turn == null) {
-			write_sidebar(being + ' not in combat order list.');
-			$('div.input input').val(input);
-			return;
-		}
-
-		if (turn == 0) {
-			write_sidebar('Already its turn.');
-			return;
-		}
-
-		turn -= 1;
-	}
-
-	var item = _combat_order.shift();
-	_combat_order.push(item);
-
-	if (turn != null) {
-		var item = _combat_order[turn];
-		_combat_order.splice(turn, 1);
-		_combat_order.unshift(item);
-	}
-
-	combat_show_order();
-
-	_combat_send_turn();
-
-	localStorage.setItem('combat_order', JSON.stringify(_combat_order));
-}
-
 function _combat_send_turn() {
 	if (_combat_order[0].char_id != undefined) {
 		var data = {
@@ -413,3 +243,175 @@ $(document).ready(function() {
 		width: 300
 	});
 });
+
+/* Combat interface
+ */
+function combat_check_running() {
+	var bo = localStorage.getItem('combat_order');
+	if (bo == undefined) {
+		return;
+	}
+
+	var bg = localStorage.getItem('combat_adventure_id');
+	if (bg == undefined) {
+		_combat_stop();
+		return;
+	} else if (bg != adventure_id) {
+		_combat_stop();
+		return;
+	}
+
+	_combat_order = JSON.parse(bo);
+	combat_show_order(false, false);
+
+	_combat_add_buttons();
+}
+
+function combat_start() {
+	if ($('div.character').length == 0) {
+		write_sidebar('This map has no characters.');
+		return;
+	}
+
+	if (_combat_order.length > 0) {
+		write_sidebar('A combat has already been started. Type /next to go to the next round or /done to finish the current combat.');
+		combat_show_order(false, false);
+		return;
+	}
+
+	_combat_window_init.open();
+}
+
+function combat_show_order(first_round = false, send = true) {
+	if (first_round) {
+		send_message('Prepare for combat!', 'Dungeon Master', false);
+	}
+
+	var message = '';
+	var bullet = '&Rightarrow;';
+	_combat_order.forEach(function(value, key) {
+		message += bullet + ' ' + value.name + '\n';
+		bullet = '&boxh;';
+	});
+
+	if (send) {
+		send_message(message, _combat_name);
+	} else {
+		message_to_sidebar(_combat_name, message);
+	}
+}
+
+function combat_add(being) {
+	if (_combat_order.length == 0) {
+		write_sidebar(_combat_not_started);
+		return;
+	}
+
+	var present = false;
+	_combat_order.forEach(function(value, key) {
+		if (value.name == being) {
+			present = true;
+		}
+	});
+	if (present) {
+		write_sidebar(being + ' is already in the combat order list.');
+		return false;
+	}
+
+	var item = _combat_order.shift();
+	_combat_order.push(item);
+
+	item = {
+		key: 0,
+		name: being,
+		char_id: null
+	};
+	_combat_order.unshift(item);
+
+	combat_show_order();
+
+	localStorage.setItem('combat_order', JSON.stringify(_combat_order));
+}
+
+function combat_remove(being) {
+	if (_combat_order.length == 0) {
+		write_sidebar(_combat_not_started);
+		return;
+	}
+
+	var remove = null;
+	var found = false;
+	_combat_order.forEach(function(value, key) {
+		if (found == false) {
+			if (value.name == being) {
+				remove = key;
+				found = true;
+			} else if (value.name.substring(0, being.length) == being) {
+				if (remove == null) {
+					remove = key;
+				}
+			}
+		}
+	});
+
+	if (remove == null) {
+		write_sidebar(being + ' not in combat order.');
+		$('div.input input').val(input);
+		return;
+	}
+
+	send_message(_combat_order[remove].name + ' removed from combat.', _combat_name);
+	_combat_order.splice(remove, 1);
+
+	if (_combat_order.length == 0) {
+		combat_stop();
+	} else {
+		combat_show_order(false, false);
+
+		localStorage.setItem('combat_order', JSON.stringify(_combat_order));
+	}
+}
+
+function combat_next(being = '') {
+	if (_combat_order.length == 0) {
+		write_sidebar(_combat_not_started);
+		return;
+	}
+
+	var turn = null;
+	if (being != '') {
+		_combat_order.forEach(function(value, key) {
+			if (value.name.substring(0, being.length) == being) {
+				turn = key;
+			}
+		});
+
+		if (turn == null) {
+			write_sidebar(being + ' not in combat order list.');
+			$('div.input input').val(input);
+			return;
+		}
+
+		if (turn == 0) {
+			write_sidebar('Already its turn.');
+			return;
+		}
+
+		turn -= 1;
+	}
+
+	var item = _combat_order.shift();
+	_combat_order.push(item);
+
+	if (turn != null) {
+		var item = _combat_order[turn];
+		_combat_order.splice(turn, 1);
+		_combat_order.unshift(item);
+	}
+
+	combat_show_order();
+
+	_combat_send_turn();
+
+	localStorage.setItem('combat_order', JSON.stringify(_combat_order));
+}

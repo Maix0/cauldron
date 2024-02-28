@@ -1,3 +1,7 @@
+function _script_error(message) {
+	write_sidebar('<b>Script error</b><br />' + message);
+}
+
 function zone_group_change(init = false) {
 	if (init) {
 		$('input#copy_script').prop('checked', false);
@@ -8,10 +12,6 @@ function zone_group_change(init = false) {
 	} else {
 		$('div.copy_script').show();
 	}
-}
-
-function script_error(message) {
-	write_sidebar('<b>Script error</b><br />' + message);
 }
 
 function script_disable_all() {
@@ -116,7 +116,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				var points = parseInt(param);
 				if (isNaN(points)) {
 					if (debug) {
-						script_error('invalid damage points: ' + param);
+						_script_error('invalid damage points: ' + param);
 					}
 					break;
 				}
@@ -131,7 +131,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				var points = parseInt(param);
 				if (isNaN(points)) {
 					if (debug) {
-						script_error('Invalid healing points: ' + param);
+						_script_error('Invalid healing points: ' + param);
 					}
 					break;
 				}
@@ -148,7 +148,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 
 				if (isNaN(x) || isNaN(y)) {
 					if (debug) {
-						script_error('Invalid coordinate: ' + part[0]);
+						_script_error('Invalid coordinate: ' + part[0]);
 					}
 					break;
 				}
@@ -196,7 +196,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 			case 'name':
 				if (param.trim() == '') {
 					if (debug) {
-						script_error('No name specified.');
+						_script_error('No name specified.');
 					}
 					break;
 				}

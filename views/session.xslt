@@ -50,10 +50,6 @@
 
 <label for="name">Name:</label>
 <input type="text" id="name" name="name" value="{session/name}" class="form-control" />
-<xsl:if test="@persistent='yes'">
-<label for="expire">Expire date:</label>
-<input type="text" id="expire" name="expire" value="{session/expire}" class="form-control datetimepicker" />
-</xsl:if>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Update session" class="btn btn-default" />

@@ -102,7 +102,6 @@ function reset_dimension() {
 
 /* Grid
  */
-
 function init_grid(grid_cell_size) {
 	grid_init(grid_cell_size, 'rgba(240, 0, 0, 0.6)');
 
@@ -159,7 +158,7 @@ function init_grid(grid_cell_size) {
 		max: MAX_OFFSET,
 		create: function() {
 			handle_offset_x.text($(this).slider('value'));
-			$('div.playarea img.map').css('left', -map_offset_x + 'px');
+			$('div.playarea img.map,video').css('left', -map_offset_x + 'px');
 		},
 		slide: function(event, ui) {
 			handle_offset_x.text(ui.value);
@@ -176,7 +175,7 @@ function init_grid(grid_cell_size) {
 		max: MAX_OFFSET,
 		create: function() {
 			handle_offset_y.text($(this).slider('value'));
-			$('div.playarea img.map').css('top', -map_offset_y + 'px');
+			$('div.playarea img.map,video').css('top', -map_offset_y + 'px');
 		},
 		slide: function(event, ui) {
 			handle_offset_y.text(ui.value);
@@ -206,7 +205,7 @@ function init_grid(grid_cell_size) {
 
 	/* Add grid find
 	 */
-	$('div.btn-group').before('<div class="btn-group right"><input type="button" class="btn btn-primary finder" value="Grid finder" /></div>')
+	$('div.btn-group').first().before('<div class="btn-group right"><input type="button" class="btn btn-primary finder" value="Grid finder" /></div>')
 	$('div.btn-group').last().after('<p class="finder_info">Draw a ' + FINDER_SIZE + '&times;' + FINDER_SIZE + ' grid box in the middle of the map.</p>');
 	$('p.finder_info').css({
 		color: '#ff0000',
@@ -236,12 +235,17 @@ function init_grid(grid_cell_size) {
 				var pos = $('canvas').offset();
 				var width_x = Math.round(event.clientX - pos.left + window.scrollX) - from_x;
 				var width_y = Math.round(event.clientY - pos.top + window.scrollY) - from_y;
-				width = (width_x + width_y) / 2;
+				width = (Math.abs(width_x) + Math.abs(width_y)) / 2;
+
+				var sign_x = (width_x == 0) ? 0 : Math.round(width_x / Math.abs(width_x));
+				var sign_y = (width_y == 0) ? 0 : Math.round(width_y / Math.abs(width_y));
+
+				console.log(sign_x + ' : ' + sign_y);
 
 				grid_ctx.clearRect(0, 0, grid_canvas.width, grid_canvas.height);
 				grid_ctx.beginPath();
-				grid_ctx.fillRect(from_x, from_y, width, width);
-				grid_ctx.rect(from_x, from_y, width, width);
+				grid_ctx.fillRect(from_x, from_y, width * sign_x, width * sign_y);
+				grid_ctx.rect(from_x, from_y, width * sign_x, width * sign_y);
 				grid_ctx.stroke();
 			});
 
@@ -249,18 +253,24 @@ function init_grid(grid_cell_size) {
 				$('canvas').off('mousemove');
 
 				width = Math.abs(width);
-				var size = width / FINDER_SIZE;
-				$('input[name="grid_size"]').val(size);
 
-				var value = Math.floor(size);
+				var cell_size = (width - 1) / FINDER_SIZE;
+				if (cell_size < 20) {
+					cell_size = 20;
+					cauldron_alert('Grid cell size too small.');
+				}
+
+				$('input[name="grid_size"]').val(cell_size);
+
+				var value = Math.floor(cell_size);
 				slider_value.slider('value', value);
 				handle_value.text(value);
 
-				var fraction = Math.round((size - Math.floor(size)) * 100);
+				var fraction = Math.round((cell_size - Math.floor(cell_size)) * 100);
 				slider_fraction.slider('value', fraction);
 				handle_fraction.text(fraction);
 
-				var ofs_x = Math.round(from_x % Math.round(size));
+				var ofs_x = Math.round(from_x % cell_size);
 				if (ofs_x > MAX_OFFSET) {
 					ofs_x = 0;
 				}
@@ -268,7 +278,7 @@ function init_grid(grid_cell_size) {
 				handle_offset_x.text(ofs_x);
 				$('input[name="offset_x"]').val(ofs_x);
 
-				var ofs_y = Math.round(from_y % Math.round(size));
+				var ofs_y = Math.round(from_y % cell_size);
 				if (ofs_y > MAX_OFFSET) {
 					ofs_y = 0;
 				}
@@ -278,7 +288,7 @@ function init_grid(grid_cell_size) {
 
 				$('div.playarea div.map *').css('left', -ofs_x + 'px');
 				$('div.playarea div.map *').css('top', -ofs_y + 'px');
-				grid_draw(size);
+				grid_draw(cell_size);
 
 				$('input.finder').prop('disabled', false);
 				$('p.finder_info').hide();

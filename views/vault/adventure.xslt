@@ -38,7 +38,7 @@
 
 <div id="help">
 <p>All your adventures are listed here.</p>
-<p>After creating a new adventure, you will automatically be forwarded to the Maps section, where you can add one or more maps to your adventure.</p>
+<p>After creating a new adventure, you will automatically be forwarded to the Maps section, where you can add one or more maps to your adventure. To manually go to the Maps section, click the Back button and then the Maps icon.</p>
 </div>
 </xsl:template>
 

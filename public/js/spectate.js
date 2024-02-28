@@ -288,6 +288,7 @@ function object_view(obj, max_size = 300) {
 	var div_style = 'position:absolute; z-index:' + LAYER_VIEW + '; top:0; left:0; right:0; bottom:0; background-color:rgba(' + bgcolor + ', 0.8);';
 	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%)';
 	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px;';
+	var name = obj.find('span.name').text();
 
 	var transform = obj.find('img').css('transform');
 	if (transform != 'none') {
@@ -298,7 +299,12 @@ function object_view(obj, max_size = 300) {
 		img_style += ' border:1px solid #000000; background-color:#ffffff;';
 	}
 
-	var view = $('<div id="view" style="' + div_style + '" onClick="' + onclick +'"><span style="' + span_style + '"><img src="' + src + '" style="' + img_style + '" /></span></div>');
+	var view = '<div id="view" style="' + div_style + '" onClick="' + onclick +'"><span style="' + span_style + '"><img src="' + src + '" style="' + img_style + '" />';
+	if (name != '') {
+		view += '<div style="border:1px solid #000000; background-color:#ffffff; padding:3px; text-align:center;">' + name + '</div>';
+	}
+	view += '</span></div>';
+
 	$('body').append(view);
 }
 
@@ -577,8 +583,6 @@ $(document).ready(function() {
 			user_id: user_id
 		};
 		websocket_send(data);
-
-		write_sidebar('You are spectating.');
 	}
 
 	websocket.onmessage = function(event) {
@@ -599,7 +603,7 @@ $(document).ready(function() {
 			case 'alternate':
 				var img_size = data.size * grid_cell_size;
 				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/characters/' + data.src);
-				$('div#' + data.char_id).find('img').css('width', img_size + 'px');
+				$('div#' + data.char_id).css('width', img_size + 'px');
 				$('div#' + data.char_id).find('img').css('height', img_size + 'px');
 				break;
 			case 'audio':

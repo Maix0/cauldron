@@ -423,6 +423,9 @@
 			if (trim($weapon["roll"]) == "") {
 				$this->view->add_message("Invalid roll.");
 				$result = false;
+			} else if (strpos($weapon["roll"], "d") === false) {
+				$this->view->add_message("No dice found in roll.");
+				$result = false;
 			} else {
 				$roll = preg_replace('/ +/', "", $weapon["roll"]);
 				$parts = explode("+", $roll);

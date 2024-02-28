@@ -1,0 +1,32 @@
+#!/usr/bin/php
+<?php
+    chdir(__DIR__);
+    error_reporting(E_ALL & ~E_NOTICE);
+
+    require "../libraries/banshee/protocol/http.php";
+
+    $website = new \Banshee\Protocol\HTTPS("5e.tools");
+
+	$spells = array();
+	$books = array("bmt", "ftd", "phb", "scc", "tce", "xge");
+	foreach ($books as $book) {
+    	$result = $website->GET("/data/spells/spells-".$book.".json");
+    	$data = json_decode($result["body"], true);
+
+		$spells = array_merge($spells, $data["spell"]);
+	}
+
+	usort($spells, function($a, $b) {
+		return strcmp($a["name"], $b["name"]);
+	});
+
+	if (($fp = fopen("../public/data/spells", "w")) == false) {
+		return false;
+	}
+
+	fputs($fp, "<data>\n");
+	fputs($fp, str_replace("&", "&amp;", json_encode($spells))."\n");
+	fputs($fp, "</data>\n");
+
+	fclose($fp);
+?>

@@ -7,7 +7,15 @@
 	 */
 
 	class agenda_controller extends Banshee\controller {
-		private function show_month($month, $year) {
+		private function show_month($month = null, $year = null) {
+			if ($month == null) {
+				$month = (int)date_string("m");
+			}
+
+			if ($year == null) {
+				$year = (int)date("Y");
+			}
+
 			if (($appointments = $this->model->get_appointments_for_month($month, $year)) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
@@ -165,31 +173,24 @@
 					}
 					$this->view->close_tag();
 				}
-			} else if ($this->page->parameter_value(0, "current")) {
+			} else if ($this->page->parameter_numeric(0) && $this->page->parameter_numeric(1)) {
+				/* Show specific month
+				 */
+				$year = (int)$this->page->parameters[0];
+				if (($year < 1902) && ($year > 2037)) {
+					$year = null;
+				}
+
+				$month = (int)$this->page->parameters[1];
+				if (($month < 1) || ($month > 12)) {
+					$month = null;
+				}
+
+				$this->show_month($month, $year);
+			} else {
 				/* Show current month
 				 */
-				$_SESSION["calendar_month"] = (int)date_string("m");
-				$_SESSION["calendar_year"]  = (int)date("Y");
-				$this->show_month($_SESSION["calendar_month"], $_SESSION["calendar_year"]);
-			} else if ($this->page->parameter_numeric(0)) {
-				if ($this->page->parameter_numeric(1)) {
-					$m = (int)$this->page->parameters[1];
-					$y = (int)$this->page->parameters[0];
-
-					if (($m >= 1) && ($m <= 12) && ($y > 1902) && ($y <= 2037)) {
-						$_SESSION["calendar_month"] = $m;
-						$_SESSION["calendar_year"]  = $y;
-					}
-					$this->show_month($_SESSION["calendar_month"], $_SESSION["calendar_year"]);
-				} else {
-					/* Show month
-					 */
-					$this->show_month($_SESSION["calendar_month"], $_SESSION["calendar_year"]);
-				}
-			} else {
-				/* Show month
-				 */
-				$this->show_month($_SESSION["calendar_month"], $_SESSION["calendar_year"]);
+				$this->show_month();
 			}
 		}
 	}

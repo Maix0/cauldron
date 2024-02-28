@@ -5,11 +5,9 @@ const FOW_COVERED_CHECKS = 2;
 var fog_of_war_distance = 0;
 var fog_of_war_lights = {};
 
-var canvas = null;
-var canvas_width = 0;
-var canvas_height = 0;
-var ctx = null;
-var image_data = null;
+var fow_canvas = null;
+var fow_ctx = null;
+var fow_image_data = null;
 
 function get_edge_pos(obj_x, obj_y, wall_x, wall_y) {
 	var edge_x = 0;
@@ -23,10 +21,10 @@ function get_edge_pos(obj_x, obj_y, wall_x, wall_y) {
 			edge_y = obj_y;
 		}
 	} else if (wall_x > obj_x) {
-		edge_x = canvas.width;
+		edge_x = fow_canvas.width;
 
 		if (obj_x != wall_x) {
-			var factor = (1 / (wall_x - obj_x)) * (canvas.width - obj_x);
+			var factor = (1 / (wall_x - obj_x)) * (fow_canvas.width - obj_x);
 			edge_y = Math.round(obj_y - ((obj_y - wall_y) * factor));
 		} else {
 			edge_y = obj_y;
@@ -35,7 +33,7 @@ function get_edge_pos(obj_x, obj_y, wall_x, wall_y) {
 		edge_x = obj_x;
 
 		if (wall_y > obj_y) {
-			edge_y = canvas.height;
+			edge_y = fow_canvas.height;
 		}
 	}
 
@@ -74,7 +72,7 @@ function draw_fow_shape(ctx, obj_x, obj_y, pos1_x, pos1_y, pos2_x, pos2_y) {
 			if (edge_pos.top < obj_y) {
 				var corner_y = 0;
 			} else {
-				var corner_y = canvas.height;
+				var corner_y = fow_canvas.height;
 			}
 
 			ctx.lineTo(prev_edge_x, corner_y);
@@ -86,7 +84,7 @@ function draw_fow_shape(ctx, obj_x, obj_y, pos1_x, pos1_y, pos2_x, pos2_y) {
 			if (y < obj_y) {
 				var corner_y = 0;
 			} else {
-				var corner_y = canvas.height;
+				var corner_y = fow_canvas.height;
 			}
 
 			ctx.lineTo(prev_edge_x, corner_y);
@@ -125,14 +123,10 @@ function draw_fow_shape_for_construct(ctx, obj_x, obj_y, construct) {
 	draw_fow_shape(ctx, obj_x, obj_y, pos1_x, pos1_y, pos2_x, pos2_y);
 }
 
-function fog_of_war_remove() {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
 function draw_light_sphere(pos_x, pos_y, radius) {
 	var l_canvas = document.createElement('canvas');
-	l_canvas.width = canvas.width;
-	l_canvas.height = canvas.height;
+	l_canvas.width = fow_canvas.width;
+	l_canvas.height = fow_canvas.height;
 	var l_ctx = l_canvas.getContext('2d');
 
 	l_ctx.fillStyle = FOW_COLOR;
@@ -177,15 +171,25 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 
 		draw_fow_shape_for_construct(l_ctx, pos_x, pos_y, $(this));
 	});
+	
+	/* Blinders
+	 */
+	$('div.blinder').each(function() {
+		var pos1_x = parseInt($(this).attr('pos1_x'));
+		var pos1_y = parseInt($(this).attr('pos1_y'));
+		var pos2_x = parseInt($(this).attr('pos2_x'));
+		var pos2_y = parseInt($(this).attr('pos2_y'));
+		draw_fow_shape(l_ctx, pos_x, pos_y, pos1_x, pos1_y, pos2_x, pos2_y);
+	});
 
-	ctx.globalCompositeOperation = 'destination-in';
-	ctx.drawImage(l_canvas, 0, 0);
-	ctx.globalCompositeOperation = 'source-over';
+	fow_ctx.globalCompositeOperation = 'destination-in';
+	fow_ctx.drawImage(l_canvas, 0, 0);
+	fow_ctx.globalCompositeOperation = 'source-over';
 }
 
-function fog_of_war_covered(obj) {
-	if (image_data == null) {
-		image_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+function fog_of_war_covered(ctx, obj) {
+	if (fow_image_data == null) {
+		fow_image_data = ctx.getImageData(0, 0, fow_canvas.width, fow_canvas.height);
 	}
 
 	var obj_pos = object_position(obj);
@@ -197,9 +201,9 @@ function fog_of_war_covered(obj) {
 	var visible = 0;
 	for (var y = 1; y <= FOW_COVERED_CHECKS; y++) {
 		for (var x = 1; x <= FOW_COVERED_CHECKS; x++) {
-			var pos = (obj_y + y * step) * canvas.width;
+			var pos = (obj_y + y * step) * fow_canvas.width;
 			pos += (obj_x + x * step);
-			var transparancy = image_data.data[pos * 4 + 3];
+			var transparancy = fow_image_data.data[pos * 4 + 3];
 			if (transparancy < 192) {
 				visible++;
 			}
@@ -218,13 +222,13 @@ function fog_of_war_init(z_index) {
 	$('div.fog_of_war').append('<canvas id="fow_real" class="fow" width="' + width + '" height="' + height + '"></canvas>');
 	$('canvas#fow_real').css('z-index', z_index);
 
-	canvas = document.getElementById('fow_real');
+	fow_canvas = document.getElementById('fow_real');
 
-	if (ctx == null) {
-		ctx = canvas.getContext('2d');
-		ctx.fillStyle = FOW_COLOR;
-		ctx.strokeStyle = FOW_COLOR;
-		ctx.lineWidth = 1;
+	if (fow_ctx == null) {
+		fow_ctx = fow_canvas.getContext('2d');
+		fow_ctx.fillStyle = FOW_COLOR;
+		fow_ctx.strokeStyle = FOW_COLOR;
+		fow_ctx.lineWidth = 1;
 	}
 }
 
@@ -261,7 +265,7 @@ function fog_of_war_update(obj) {
 	var obj_y = obj_pos.top + half_cell;
 
 	if (fog_of_war_distance > 0) {
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		fow_ctx.fillRect(0, 0, fow_canvas.width, fow_canvas.height);
 
 		draw_light_sphere(obj_x, obj_y, fog_of_war_distance);
 
@@ -275,7 +279,7 @@ function fog_of_war_update(obj) {
 			draw_light_sphere(light[0] + half_cell, light[1] + half_cell, light[2] * grid_cell_size);
 		}
 	} else {
-		fog_of_war_remove();
+		fow_ctx.clearRect(0, 0, fow_canvas.width, fow_canvas.height);
 	}
 
 	/* Walls
@@ -285,7 +289,7 @@ function fog_of_war_update(obj) {
 			return true;
 		}
 
-		draw_fow_shape_for_construct(ctx, obj_x, obj_y, $(this));
+		draw_fow_shape_for_construct(fow_ctx, obj_x, obj_y, $(this));
 	});
 
 	/* Doors
@@ -297,7 +301,7 @@ function fog_of_war_update(obj) {
 			return true;
 		}
 
-		draw_fow_shape_for_construct(ctx, obj_x, obj_y, $(this));
+		draw_fow_shape_for_construct(fow_ctx, obj_x, obj_y, $(this));
 	});
 
 	/* Blinders
@@ -307,7 +311,7 @@ function fog_of_war_update(obj) {
 		var pos1_y = parseInt($(this).attr('pos1_y'));
 		var pos2_x = parseInt($(this).attr('pos2_x'));
 		var pos2_y = parseInt($(this).attr('pos2_y'));
-		draw_fow_shape(ctx, obj_x, obj_y, pos1_x, pos1_y, pos2_x, pos2_y);
+		draw_fow_shape(fow_ctx, obj_x, obj_y, pos1_x, pos1_y, pos2_x, pos2_y);
 	});
 
 	/* Zones
@@ -335,25 +339,25 @@ function fog_of_war_update(obj) {
 		var zone_height = $(this).height();
 
 		if (zone_pos.left + zone_width < obj_x) {
-			draw_fow_shape(ctx, obj_x, obj_y, zone_x + zone_width, zone_y, zone_x + zone_width, zone_y + zone_height);
+			draw_fow_shape(fow_ctx, obj_x, obj_y, zone_x + zone_width, zone_y, zone_x + zone_width, zone_y + zone_height);
 		} else if (zone_pos.left > obj_x) {
-			draw_fow_shape(ctx, obj_x, obj_y, zone_x, zone_y, zone_x, zone_y + zone_height);
+			draw_fow_shape(fow_ctx, obj_x, obj_y, zone_x, zone_y, zone_x, zone_y + zone_height);
 		}
 
 		if (zone_pos.top + zone_height < obj_y) {
-			draw_fow_shape(ctx, obj_x, obj_y, zone_x, zone_y + zone_height, zone_x + zone_width, zone_y + zone_height);
+			draw_fow_shape(fow_ctx, obj_x, obj_y, zone_x, zone_y + zone_height, zone_x + zone_width, zone_y + zone_height);
 		} else if (zone_pos.top > obj_y) {
-			draw_fow_shape(ctx, obj_x, obj_y, zone_x, zone_y, zone_x + zone_width, zone_y);
+			draw_fow_shape(fow_ctx, obj_x, obj_y, zone_x, zone_y, zone_x + zone_width, zone_y);
 		}
 	});
 
 	/* Hide covered objects
 	 */
-	image_data = null;
+	fow_image_data = null;
 	['character', 'token'].forEach(type => {
 		$('div.' + type).removeClass('fow_covered');
 		$('div.' + type).each(function() {
-			if (fog_of_war_covered($(this))) {
+			if (fog_of_war_covered(fow_ctx, $(this))) {
 				$(this).addClass('fow_covered');
 			}
 		});
@@ -361,5 +365,13 @@ function fog_of_war_update(obj) {
 }
 
 function fog_of_war_destroy() {
-	fog_of_war_remove();
+	$('div.fog_of_war canvas').remove();
+
+	fow_canvas = null;
+	fow_ctx = null;
+	fow_image_data = null;
+
+	['character', 'token'].forEach(type => {
+		$('div.' + type).removeClass('fow_covered');
+	});
 }

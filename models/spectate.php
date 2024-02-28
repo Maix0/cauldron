@@ -10,7 +10,7 @@
 			if ($this->user->is_admin == false) {
 				$query .= " and access>=%d and o.id=%d";
 			}
-			$query .= " having maps>0 order by a.timestamp desc";
+			$query .= " having maps>0 order by last_login desc";
 
 			return $this->db->execute($query, ADVENTURE_ACCESS_PLAYERS_SPECTATORS, $this->user->organisation_id);
 		}
