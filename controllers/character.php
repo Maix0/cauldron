@@ -60,6 +60,7 @@
 
 			foreach ($alternates as $alternate) {
 				$alternate["size"] = strtolower($sizes[$alternate["size"]]);
+				$alternate["token_type"] = $character["token_type"];
 				$this->view->record($alternate, "alternate");
 			}
 

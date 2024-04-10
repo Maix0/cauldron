@@ -354,6 +354,15 @@
 			return $this->db->update("characters", $character["id"], $data) !== false;
 		}
 
+		public function character_light($instance_id, $radius) {
+			if ($this->valid_character_instance_id($instance_id) == false) {
+				return false;
+			}
+
+			$data = array("light" => (int)$radius);
+			return $this->db->update("map_character", $instance_id, $data) !== false;
+		}
+
 		public function character_move($instance_id, $pos_x, $pos_y) {
 			if ($this->valid_character_instance_id($instance_id) == false) {
 				return false;
@@ -370,6 +379,19 @@
 
 			$data = array("rotation" => (int)$direction);
 			return $this->db->update("map_character", $instance_id, $data) !== false;
+		}
+
+		public function character_vision($instance_id, $vision) {
+			if ($this->valid_character_instance_id($instance_id) == false) {
+				return false;
+			}
+
+			if (($character = $this->get_character($instance_id)) == false) {
+				return false;
+			}
+
+			$data = array("vision" => (int)$vision);
+			return $this->db->update("characters", $character["id"], $data) !== false;
 		}
 
 		/* Door functions

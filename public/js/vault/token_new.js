@@ -88,10 +88,8 @@ var sources = {
 };
 
 function create_monster_list(monsters) {
-	console.log(monsters);
-
 	monsters.forEach(function(monster) {
-		var record = '<div class="well" name="' + monster.name.toLowerCase() + '" hp="' + monster.hp + '" ac="' + monster.ac + '">'
+		var record = '<div class="well" name="' + monster.name.toLowerCase() + '" hp="' + monster.hp + '" ac="' + monster.ac + '" size="' + monster.size + '">'
 		record += '<div>' + monster.name + '</div>'
 		record += '<div>Armor class: ' + monster.ac + ', hit points: ' + monster.hp + '</div>'
 		record += '<div>Source: ' + sources[monster.source]
@@ -128,6 +126,17 @@ function create_monster_list(monsters) {
 		$('input#name').val($(this).find('div').first().text());
 		$('input#hitpoints').val($(this).attr('hp'));
 		$('input#armor_class').val($(this).attr('ac'));
+
+		if ($(this).attr('size') == 'L') {
+			var size = 2;
+		} else if ($(this).attr('size') == 'H') {
+			var size = 3;
+		} else {
+			var size = 1;
+		}
+
+		$('input#width').val(size);
+		$('input#height').val(size);
 	});
 }
 

@@ -147,7 +147,7 @@
 		}
 
 		public function get_characters($map_id) {
-			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.rotation, i.hidden, ".
+			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.rotation, i.hidden, i.light, ".
 			         "a.id as alternate_id, a.extension as alternate_extension, a.size as alternate_size, ".
 					 "t.id as token_id, t.extension as token_extension, t.width as token_size ".
 			         "from characters c, map_character i, maps m, adventure_character l ".
@@ -267,7 +267,7 @@
 		}
 
 		public function get_tokens($map_id) {
-			$query = "select t.id, t.name as type, t.width, t.height, t.extension, ".
+			$query = "select t.id, t.name as type, t.width, t.height, t.extension, t.type as token_type, ".
 			         "c.id as c_id, c.name as c_name, c.image as c_src, hide as c_hide, found as c_found, ".
 			         "i.id as instance_id, i.name, i.pos_x, i.pos_y, i.rotation, i.hidden, i.armor_class, i.hitpoints, i.damage ".
 			         "from tokens t, map_token i ".
@@ -278,7 +278,7 @@
 		}
 
 		public function get_tokens_for_shape_change() {
-			$query = "select id, name, width as size, extension from tokens ".
+			$query = "select id, name, width as size, extension, type as token_type from tokens ".
 			         "where organisation_id=%d and shape_change=%d order by name";
 
 			return $this->db->execute($query, $this->user->organisation_id, YES);
@@ -294,6 +294,61 @@
 			$query = "select * from zones where map_id=%d";
 
 			return $this->db->execute($query, $map_id);
+		}
+
+		public function get_picture_directories() {
+			static $directories = null;
+
+			if ($directories === null) {
+				$directories = array();
+
+				$base = "resources/".$this->user->resources_key."/pictures/";
+
+				if (($dp = opendir($base)) != false) {
+					while (($directory = readdir($dp)) != false) {
+						if (substr($directory, 0, 1) == ".") {
+							continue;
+						}
+
+						if (is_dir($base.$directory) == false) {	
+							continue;
+						}
+
+						array_push($directories, $directory);
+					}
+					closedir($dp);
+				}
+			}
+
+			sort($directories);
+
+			return $directories;
+		}
+
+		public function get_pictures($directory) {
+			if ($directory != "") {
+				$directories = $this->get_picture_directories();
+				if (in_array($directory, $directories) == false) {
+					return false;
+				}
+			}
+
+			$files = array();
+
+			$base = "resources/".$this->user->resources_key."/pictures/".$directory."/";
+			if (($dp = opendir($base)) != false) {
+				while (($file = readdir($dp)) != false) {
+					if (is_file($base.$file)) {
+						array_push($files, $file);
+					}
+				}
+
+				closedir($dp);
+			}
+
+			sort($files);
+
+			return $files;
 		}
 	}
 ?>

@@ -55,14 +55,14 @@
 </xsl:if>
 
 <label for="title">Title:</label>
-<input type="text" id="title" name="title" value="{adventure/title}" maxlength="50" placeholder="The title of your adventure / campaign." class="form-control" />
+<input type="text" id="title" name="title" value="{adventure/title}" maxlength="50" placeholder="The title of this adventure / campaign." class="form-control" />
 <label for="image">Title background image URL (optional):</label>
 <div class="input-group">
 <input type="text" id="image" name="image" value="{adventure/image}" placeholder="The image to show in the Adventures page." class="form-control" />
 <span class="input-group-btn"><input type="button" value="Browse resources" class="btn btn-default browser" /></span>
 </div>
 <label for="introduction">Introduction story (optional):</label>
-<textarea id="introduction" name="introduction" class="form-control" placeholder="A story to introduce your adventure to your players."><xsl:value-of select="adventure/introduction" /></textarea>
+<textarea id="introduction" name="introduction" class="form-control" placeholder="A story to introduce this adventure to your players."><xsl:value-of select="adventure/introduction" /></textarea>
 <label for="access">Access rights:</label>
 <select id="access" name="access" class="form-control">
 <xsl:for-each select="access/level">
@@ -83,7 +83,8 @@
 </form>
 
 <div id="help">
-<p>When no background image is specified, a <a href="/files/default.jpg" target="_blank">default image</a> will be used. You can store your custom images in, for example, the root of your <a href="/vault/resources">Resources section</a> and then use '/resources/&lt;file name&gt;' as the URL.</p>
+<p><b>Title background image:</b> When no background image is specified, a <a href="/files/default.jpg" target="_blank">default image</a> will be used. You can store your custom images in, for example, the root of your <a href="/vault/resources">Resources section</a> and then use '/resources/&lt;file name&gt;' as the URL. You can also link to external images by using the full URL of that image.</p>
+<p><b>Access rights:</b> With this setting, you control who has access to this adventure.</p>
 </div>
 </xsl:template>
 
@@ -93,7 +94,7 @@
 //
 //-->
 <xsl:template match="market">
-<div class="filter">Filter by level:
+<div class="filter">Showing <span id="count"></span> adventures. Filter by level:
 <select class="form-control filter" onChange="javacript:filter_level()">
 <option value="">none</option>
 <xsl:for-each select="adventure/level[not(.=preceding::*)]">
@@ -113,10 +114,10 @@
 <span>Party level: <xsl:value-of select="level" /></span>
 </xsl:if>
 <xsl:if test="guide">
-<span><a href="{guide}">Adventure guide</a></span>
+<span><a href="{guide}" target="_blank">Adventure guide</a></span>
 </xsl:if>
 <xsl:for-each select="source/item">
-<span class="source"><a href="{.}">Source</a></span>
+<span class="source"><a href="{.}" target="_blank">Source</a></span>
 </xsl:for-each>
 <form action="/vault/adventure" method="post">
 <input type="hidden" name="adventure" value="{adventure}" />
@@ -133,7 +134,8 @@
 </div>
 
 <div id="help">
-<p>In the market, you browse through and import adventures that can be found for free on the internet. An adventure contains one or more maps and each map can contain constructs like walls, doors and windows. This allows you to quickly use Cauldron's fog of war and dynamic lighting features. Due to copyright restrictions, the maps don't contain any tokens. It's up to you to place the right tokens from your own collection on the map according to the adventure guide.</p>
+<p>In the market, you browse through and import adventures that can be found for free on the internet. An adventure contains one or more maps and each map can contain constructs like walls, doors and windows. This allows you to quickly use Cauldron's fog of war and dynamic lighting features.</p>
+<p>Due to copyright restrictions, the maps don't contain any tokens. It's up to you to place the right tokens from your own collection on the map according to the adventure guide.</p>
 </div>
 </xsl:template>
 

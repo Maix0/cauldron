@@ -198,7 +198,8 @@
 				"pos_x"    => $start_x,
 				"pos_y"    => $start_y,
 				"rotation" => null,
-				"hidden"   => NO);
+				"hidden"   => NO,
+				"light"    => 0);
 
 			$positions = array(
 				array( 0, -1), array( 1,  1), array(-1,  1), array(-1, -1), // cross
@@ -501,15 +502,31 @@
 				$index = file($file);
 
 				foreach ($index as $line) {
-					list($title, $file, $source) = explode(":", trim($line), 3);
+					if (substr($line, 0, 1) == "#") {
+						continue;
+					}
+
+					list($title, $file, $source) = explode("|", trim($line), 3);
+
+					if (strpos($file, ";") !== false) {
+						list($file, $url) = explode(";", $file);
+					} else {
+						$url = null;
+					}
 					list($base) = explode(".", $file, 2);
+
+					if ($url != null) {
+						$file = $url;
+					} else {
+						$file = "/files/market/".$dir."/".$file;
+					}
 
 					array_push($maps, array(
 						"title"      => $title,
 						"category"   => $dir,
 						"background" => $file,
 						"constructs" => $base.".cvm",
-						"thumbnail"  => $base."_thumbnail.jpg",
+						"thumbnail"  => $base."-thumbnail.jpg",
 						"source"     => $source));
 				}
 			}

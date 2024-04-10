@@ -4,11 +4,11 @@ function add_monster() {
 	$('div.monsters').append(
 		'<div class="panel panel-primary"><div class="panel-body">\n'+
 		'<label for="monster">Monster:</label>\n' +
-		'<input type="text" name="monsters[' + nr + '][monster]" class="form-control" />\n' +
+		'<input type="text" name="monsters[' + nr + '][monster]" maxlength="50" class="form-control" />\n' +
 		'<label for="count">Number of monsters:</label>\n' +
 		'<input type="text" name="monsters[' + nr + '][count]" class="form-control" />\n' +
 		'<label for="source">Source:</label>\n' +
-		'<input type="text" name="monsters[' + nr + '][source]" class="form-control" />\n' +
+		'<input type="text" name="monsters[' + nr + '][source]" maxlength="20" class="form-control" />\n' +
 		'<label for="cr">Challenge Rating:</label>\n' +
 		'<input type="text" name="monsters[' + nr + '][cr]" class="form-control cr" />\n' +
 		'</div></div>\n');

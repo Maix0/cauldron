@@ -150,6 +150,16 @@
 	}
 
 	if ($_view->add_layout_data) {
+		/* Cauldey
+		 */
+		if ($_SESSION["cauldey_activated"] ?? false) {
+			$_view->add_javascript("webui/jquery-ui.js");
+			$_view->add_javascript("webui/jquery.ui.touch-punch.js");
+			$_view->add_css("webui/jquery-ui.css");
+
+			$_view->add_javascript("includes/cauldey.js");
+		}
+
 		/* Prepend stylesheets to output
 		 */
 		$_view->add_css($_page->module.".css", true);

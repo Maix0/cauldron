@@ -165,6 +165,13 @@
 			}
 		}
 
+		public function post_vision() {
+			if (substr($_POST["instance_id"], 0, 9) == "character") {
+				$instance_id = substr($_POST["instance_id"], 9);
+				$this->model->character_vision($instance_id, $_POST["vision"]);
+			}
+		}
+
 		/* Collectables
 		 */
 		public function post_collectables_unused() {
@@ -249,6 +256,13 @@
 
 		/* Lights
 		 */
+		public function post_light() {
+			if (substr($_POST["instance_id"], 0, 9) == "character") {
+				$instance_id = substr($_POST["instance_id"], 9);
+				$this->model->character_light($instance_id, $_POST["radius"]);
+			}
+		}
+
 		public function post_light_radius() {
 			$this->model->light_radius($_POST["light_id"], $_POST["radius"]);
 		}

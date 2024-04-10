@@ -38,9 +38,16 @@
 				$result = false;
 			}
 
-			if (strlen($adventure["image"]) > 250) {
-				$this->view->add_message("Image URL is too long.");
-				$result = false;
+			if ($adventure["image"] != "") {
+				if ((substr($adventure["image"], 0, 8) != "https://") && (substr($adventure["image"], 0, 1) != "/")) {
+					$this->view->add_message("Invalid image URL.");
+					$result = false;
+				}
+
+				if (strlen($adventure["image"]) > 250) {
+					$this->view->add_message("Image URL is too long.");
+					$result = false;
+				}
 			}
 
 			return $result;
@@ -150,7 +157,7 @@
 				}
 
 				$query = "select t.name as type, t.width, t.height, p.name, p.pos_x, p.pos_y, ".
-				         "p.rotation, p.hidden, p.armor_class, p.hitpoints ".
+				         "p.rotation, p.hidden, p.armor_class, p.hitpoints, p. damage ".
 				         "from tokens t, map_token p where t.id=p.token_id and p.map_id=%d";
 				if (($tokens = $this->db->execute($query, $mapid["id"])) !== false) {
 					$map["tokens"] = $tokens;
@@ -184,6 +191,7 @@
 					if (substr($line, 0, 1) == "#") {
 						continue;
 					}
+
 					list($key, $value) = explode(":", trim($line), 2);
 
 					if ($key != "source") {
@@ -294,7 +302,7 @@
 						"hidden"      => (int)$token["hidden"],
 						"armor_class" => (int)$token["armor_class"],
 						"hitpoints"   => (int)$token["hitpoints"],
-						"damage"      => 0);
+						"damage"      => (int)($token["damage"] ?? 0));
 
 					if ($this->db->insert("map_token", $data) === false) {
 						$this->view->add_message("Error placing token.");

@@ -91,7 +91,7 @@
 <!-- Characters -->
 <div class="characters">
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
+<div id="character{instance_id}" class="character" style="left:{pos_x}px; top:{pos_y}px;" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" light="0">
 <img src="/resources/{/output/cauldron/resources_key}/characters/{@id}.{extension}" style="width:{../../@grid_cell_size}px; height:{../../@grid_cell_size}px;" />
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
@@ -109,7 +109,7 @@
 <div class="library">
 <xsl:for-each select="library/token">
 <div class="well well-sm">
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" style="max-width:{../../@grid_cell_size}px; max-height:{../../@grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" style="max-width:{../../@grid_cell_size}px; max-height:{../../@grid_cell_size}px;" class="icon {type}" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" type="{type}" />
 <div class="name"><xsl:value-of select="name" /></div>
 <div>Size: <xsl:value-of select="width" /> &#215; <xsl:value-of select="height" /></div>
 <div>HP: <xsl:value-of select="hitpoints" /></div>

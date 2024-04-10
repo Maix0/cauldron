@@ -217,6 +217,9 @@
 
 			$subject = sprintf("Submit at %s form at %s website", $page_title, $this->settings->head_title);
 			$mail = new \cauldron_email($subject, $sender_email, $sender_name);
+			if ($user->logged_in) {
+				$mail->reply_to($user->email, $user->fullname);
+			}
 			$message = file_get_contents("../extra/form_submit.txt");
 			$mail->set_message_fields(array(
 				"RESULT"  => $result,

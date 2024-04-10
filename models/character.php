@@ -39,7 +39,7 @@
 				}
 			} else {
 				list(, $extension) = explode("/", $token["type"], 2);
-				if (in_array($extension, array("gif", "jpeg", "png")) == false) {
+				if (in_array($extension, array("gif", "jpg", "jpeg", "png")) == false) {
 					$this->view->add_message("Invalid token.");
 					$result = false;
 				}
@@ -76,6 +76,18 @@
 			return $result;
 		}
 
+		private function valid_number($number, $label) {
+			if (is_numeric($number) == false) {
+				$this->view->add_message("Invalid ".strtolower($label).".");
+				return false;
+			} else if ($number < 1) {
+				$this->view->add_message($label." too low.");
+				return false;
+			}
+
+			return true;
+		}
+
 		public function save_okay($character, $token, $sheet) {
 			$result = true;
 
@@ -100,33 +112,33 @@
 			if (trim($character["name"]) == "") {
 				$this->view->add_message("Fill in the name.");
 				$result = false;
+			} else {
+				$name = preg_replace('/ +/', "", strtolower($character["name"]));
+				$forbidden = array("dm", "dungeonmaster", "gm", "gamemaster");
+
+				if (in_array($name, $forbidden)) {
+					$this->view->add_message("That name is not allowed.");
+					$result = false;
+				}
 			}
 
-			if (is_numeric($character["hitpoints"]) == false) {
-				$this->view->add_message("Invalid hit points.");
-				$result = false;
-			} else if ($character["hitpoints"] < 1) {
-				$this->view->add_message("Hit points too low.");
+			if ($this->valid_number($character["hitpoints"], "Hit points") == false) {
 				$result = false;
 			}
 
-			if (is_numeric($character["armor_class"]) == false) {
-				$this->view->add_message("Invalid armor class.");
-				$result = false;
-			} else if ($character["armor_class"] < 1) {
-				$this->view->add_message("Armor class too low.");
+			if ($this->valid_number($character["armor_class"], "Armor class") == false) {
 				$result = false;
 			} else if ($character["armor_class"] > 250) {
 				$this->view->add_message("Armor class too high.");
 				$result = false;
 			}
 
-			if ($this->token_upload_okay($token, $character["id"] ?? null) == false) {
+			if (is_numeric($character["initiative"]) == false) {
+				$this->view->add_message("Invalid initiative bonus.");
 				$result = false;
 			}
 
-			if (is_numeric($character["initiative"]) == false) {
-				$this->view->add_message("Invalid initiative bonus.");
+			if ($this->token_upload_okay($token, $character["id"] ?? null) == false) {
 				$result = false;
 			}
 
@@ -159,13 +171,14 @@
 		}
 
 		public function create_character($character, $token, $sheet) {
-			$keys = array("id", "user_id", "name", "initiative", "armor_class", "hitpoints", "damage", "token_type", "extension", "sheet", "sheet_url");
+			$keys = array("id", "user_id", "name", "initiative", "armor_class", "hitpoints", "damage", "vision", "token_type", "extension", "sheet", "sheet_url");
 
 			$character["id"] = null;
 			$character["user_id"] = $this->user->id;
 			$character["initiative"] = (int)$character["initiative"];
 			$character["hitpoints"] = (int)$character["hitpoints"];
 			$character["damage"] = 0;
+			$character["vision"] = 1;
 			$character["extension"] = "";
 			if ($character["sheet"] == "none") {
 				$character["sheet_url"] = null;
@@ -353,6 +366,16 @@
 		public function add_token($info, $token) {
 			$parts = pathinfo($token["name"]);
 
+			if (isset($parts["extension"]) == false) {
+				return false;
+			}
+
+			$query = "select token_type from characters where id=%d";
+			if (($character = $this->db->execute($query, $info["char_id"])) == false) {
+				return false;
+			}
+			$token_type = $character[0]["token_type"];
+
 			$data = array(
 				"id"           => null,
 				"character_id" => $info["char_id"],
@@ -366,7 +389,9 @@
 			$id = $this->db->last_insert_id;
 
 			$image = new \Banshee\image($token["tmp_name"]);
-			$image->rotate(180);
+			if ($token_type == "topdown") {
+				$image->rotate(180);
+			}
 			$image->save($token["tmp_name"]);
 
 			if (copy($token["tmp_name"], "resources/".$this->user->resources_key."/characters/".$info["char_id"]."_".$id.".".$parts["extension"]) == false) {

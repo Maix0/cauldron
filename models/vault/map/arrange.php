@@ -40,7 +40,8 @@
 				"map_id" => $map_id,
 				"pos_x"	 => 1,
 				"pos_y"	 => 1,
-				"hidden" => NO);
+				"hidden" => NO,
+				"light"  => 0);
 
 			foreach ($characters as $character) {
 				$data["character_id"] = $character["character_id"];

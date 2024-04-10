@@ -7,12 +7,33 @@ p.nomap {
 	margin-top:40px;
 }
 
+div.options {
+	margin:25px 0 25px 0;
+	max-width:900px;
+}
+
+div.options img {
+	float:left;
+	width:70px;
+	margin-right:15px;
+}
+
+div.options > div {
+	clear:left;
+	min-height:70px;
+	margin-bottom:15px;
+}
+
 img.cauldron {
 	float:right;
 	width:150px;
 	max-width:25%;
 	margin-left:25px;
 	margin-top:-15px;
+}
+
+div.options + p {
+	clear:left;
 }
 
 h1 {
@@ -28,6 +49,7 @@ div.row div.well {
 	background-position:center;
 	height:300px;
 	position:relative;
+	overflow:hidden;
 }
 
 div.row div.well h2 {
@@ -153,6 +175,31 @@ ul.audio {
 ul.audio li:hover {
 	cursor:pointer;
 	background:#ffffa0;
+}
+
+div.pictures select {
+	display:inline-block;
+	margin-left:5px;
+}
+
+div.pictures div.row {
+	max-height:600px;
+	overflow:auto;
+}
+
+div.pictures div.row div {
+	height:200px;
+	overflow:hidden;
+	margin-bottom:15px;
+}
+
+div.pictures img {
+	max-width:100%;
+	cursor:pointer;
+}
+div.pictures p {
+	margin-top:15px;
+	text-align:center;
 }
 
 /* Drawing
@@ -417,8 +464,11 @@ div.library img.icon {
 	float:left;
 	width:50px;
 	height:50px;
-	transform:rotate(180deg);
 	cursor:grab;
+}
+
+div.library img.topdown {
+	transform:rotate(180deg);
 }
 
 div.library div.well div {
@@ -428,7 +478,7 @@ div.library div.well div {
 	white-space:nowrap;
 }
 
-img.ui-draggable-dragging {
+img.ui-draggable-dragging.topdown {
 	transform:rotate(180deg);
 }
 
@@ -673,6 +723,32 @@ div.mine span {
 div.token span.conditions,
 div.character span.conditions {
 	background-color:#ffa0a0;
+}
+
+/* Dead character or NPC
+ */
+div.dead {
+	filter:drop-shadow(0 0 15px #800000);
+}
+
+div.dead img {
+	filter:drop-shadow(0 0 2px #800000);
+	opacity:0.6;
+}
+
+div.token.dead:after {
+	content:"dead";
+	display:block;
+	color:#ffffff;
+	background-color:#000000;
+	width:100%;
+	text-align:center;
+	font-size:9px;
+	border:1px solid #808080;
+}
+
+div.token.dead div.hitpoints {
+	display:none;
 }
 
 /* Night mode

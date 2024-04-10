@@ -1,5 +1,5 @@
 <?php
-	define("CAULDRON_VERSION", "3.4");
+	define("CAULDRON_VERSION", "3.5");
 
 	define("PLAYER_ROLE_ID", 2);
 	define("DUNGEON_MASTER_ROLE_ID", 3);
@@ -28,7 +28,7 @@
 	define("AGENDA_KEY_LENGTH", 10);
 
 	define("USER_SUB_DIRECTORIES", array("audio", "brushes", "characters",
-		"collectables", "effects", "maps", "tokens"));
+		"collectables", "effects", "maps", "pictures", "tokens"));
 
 	define("CONDITIONS", array("blinded", "charmed", "deafened", "exhausted",
 		"frightened", "grappled", "incapacitated", "invisible", "paralyzed",

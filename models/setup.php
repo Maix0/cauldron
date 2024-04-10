@@ -557,9 +557,9 @@
 
 				$this->db_query("CREATE TABLE story_encounter_monsters (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "story_encounter_id int(10) unsigned NOT NULL, monster varchar(50) NOT NULL, cr varchar(3) NOT NULL, ".
-				                "%S tinyint(3) unsigned NOT NULL, source varchar(15) NOT NULL, PRIMARY KEY (id), KEY story_encounter_id ".
+				                "%S tinyint(3) unsigned NOT NULL, %S varchar(15) NOT NULL, PRIMARY KEY (id), KEY story_encounter_id ".
 				                "(story_encounter_id), CONSTRAINT story_encounter_monsters_ibfk_1 FOREIGN KEY (story_encounter_id) ".
-				                "REFERENCES story_encounters (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci", "count");
+				                "REFERENCES story_encounters (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci", "count", "source");
 
 				$this->db_query("CREATE TABLE story_events (id int(10) unsigned NOT NULL AUTO_INCREMENT, adventure_id int(10) unsigned NOT NULL, ".
 				                "nr int(10) unsigned NOT NULL, title varchar(50) NOT NULL, description text NOT NULL, PRIMARY KEY (id), KEY adventure_id ".
@@ -613,6 +613,16 @@
 
 			if ($this->settings->database_version === 3.3) {
 				$this->settings->database_version = 3.4;
+			}
+
+			if ($this->settings->database_version === 3.4) {
+				$this->db_query("UPDATE lights set radius=250 where radius>250");
+				$this->db_query("ALTER TABLE lights CHANGE radius radius TINYINT UNSIGNED NOT NULL");
+				$this->db_query("ALTER TABLE tokens ADD %S ENUM(%s,%s) NOT NULL AFTER extension", "type", "topdown", "portrait");
+				$this->db_query("ALTER TABLE story_encounter_monsters CHANGE %S %S VARCHAR(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL", "source", "source");
+				$this->db_query("ALTER TABLE characters ADD vision TINYINT UNSIGNED NOT NULL AFTER sheet_url");
+
+				$this->settings->database_version = 3.5;
 			}
 
 			return true;

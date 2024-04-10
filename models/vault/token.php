@@ -13,6 +13,18 @@
 			return $token->get_token($token_id);
 		}
 
+		private function valid_number($number, $label) {
+			if (is_numeric($number) == false) {
+				$this->view->add_message("Invalid ".strtolower($label).".");
+				return false;
+			} else if ($number < 0) {
+				$this->view->add_message($label." too low.");
+				return false;
+			}
+
+			return true;
+		}
+
 		public function save_okay($token, $image) {
 			$result = true;
 
@@ -21,19 +33,19 @@
 				$result = false;
 			}
 
-			if (is_numeric($token["width"]) == false) {
-				$this->view->add_message("Invalid width.");
-				$result = false;
-			} else if ($token["width"] < 0) {
-				$this->view->add_message("Width too low.");
+			if ($this->valid_number($token["width"], "Width") == false) {
 				$result = false;
 			}
 
-			if (is_numeric($token["height"]) == false) {
-				$this->view->add_message("Invalid height.");
+			if ($this->valid_number($token["height"], "Height") == false) {
 				$result = false;
-			} else if ($token["height"] < 0) {
-				$this->view->add_message("Height too low.");
+			}
+
+			if ($this->valid_number($token["armor_class"], "Armor class") == false) {
+				$result = false;
+			}
+
+			if ($this->valid_number($token["hitpoints"], "Hit points") == false) {
 				$result = false;
 			}
 
@@ -44,7 +56,7 @@
 				}
 			} else {
 				list(, $extension) = explode("/", $image["type"], 2);
-				if (in_array($extension, array("gif", "jpg", "png")) == false) {
+				if (in_array($extension, array("gif", "jpg", "jpeg", "png", "webp")) == false) {
 					$this->view->add_message("Invalid image.");
 					$result = false;
 				} else if ($this->user->max_resources > 0) {
@@ -63,12 +75,12 @@
 
 		public function create_token($post, $image) {
 			$token = new token($this->db, $this->user->organisation_id, $this->user->resources_key);
-			return $token->create_token($post, $image);
+			return $token->create($post, $image);
 		}
 
 		public function update_token($post, $image) {
 			$token = new token($this->db, $this->user->organisation_id, $this->user->resources_key);
-			return $token->update_token($post, $image);
+			return $token->update($post, $image);
 		}
 
 		public function delete_okay($token) {
@@ -79,14 +91,14 @@
 				return false;
 			}
 
-			$query = "select distinct m.title from maps m, map_token t where m.id=t.map_id and token_id=%d order by title";
+			$query = "select distinct m.title, a.title as adventure from maps m, adventures a, map_token t where m.id=t.map_id and m.adventure_id=a.id and token_id=%d order by title";
 			if (($maps = $this->db->execute($query, $token["id"])) === false) {
 				$this->view->add_message("Database error.");
 				$result = false;
 			} else if (count($maps) > 0) {
 				$titles = array();
 				foreach ($maps as $map) {
-					array_push($titles, $map["title"]);
+					array_push($titles, "\"".$map["adventure"]." - ".$map["title"]."\"");
 				}
 				$this->view->add_message("This token is being used in the following maps: ".implode(", ", $titles));
 				$result = false;
@@ -97,7 +109,7 @@
 
 		public function delete_token($token_id) {
 			$token = new token($this->db, $this->user->organisation_id, $this->user->resources_key);
-			return $token->delete_token($token_id);
+			return $token->delete($token_id);
 		}
 	}
 ?>

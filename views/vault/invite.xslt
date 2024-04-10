@@ -17,13 +17,13 @@
 </div>
 
 <div id="help">
-<p>Share this code with your players, so they can use it to join your group while creating an account. Make sure that the code cannot easily be guessed by others. Remove the code when you no longer need players to join your group.</p>
+<p>Share this code with your players, so they can use it to join your group while creating an account. Make sure that the code cannot easily be guessed by other people. Remove the code when you no longer need players to join your group.</p>
 </div>
 </xsl:template>
 
 <!--
 //
-//  Show template
+//  Edit template
 //
 //-->
 <xsl:template match="edit">
@@ -33,7 +33,7 @@
 <label for="invitation_code">Invitation code:</label>
 <div class="input-group">
 <span class="input-group-addon"><xsl:value-of select="organisation_id" />-</span>
-<input type="text" id="invitation_code" name="invitation_code" value="{invitation_code}" class="form-control" />
+<input type="text" id="invitation_code" name="invitation_code" value="{invitation_code}" maxlength="50" class="form-control" />
 </div>
 
 <div class="btn-group edit">

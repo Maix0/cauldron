@@ -6,6 +6,8 @@ function filter_level() {
 	if (level != '') {
 		$('div.market div.adventure[level!="' + level + '"]').hide();
 	}
+
+	$('span#count').text($('div.market > div:visible').length);
 }
 
 function filter_category() {
@@ -16,6 +18,8 @@ function filter_category() {
 	if (category != '') {
 		$('div.market div.map[category!="' + category + '"]').hide();
 	}
+
+	$('span#count').text($('div.market > div:visible').length);
 }
 
 $(document).ready(function() {

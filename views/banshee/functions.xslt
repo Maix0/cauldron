@@ -121,9 +121,9 @@
 <xsl:template match="website_error">
 <xsl:choose>
 	<xsl:when test=".=200">Although no error occurred, you ended up at the error page.</xsl:when>
-	<xsl:when test=".=401">You are not authorized to view this page.</xsl:when>
-	<xsl:when test=".=403">You are not allowed to view this page.</xsl:when>
-	<xsl:when test=".=404">The requested page could not be found.</xsl:when>
+	<xsl:when test=".=401">Your character's level is too low to access this page.</xsl:when>
+	<xsl:when test=".=403">You tried to visit a page, but the Dungeon Master doesn't allow you access.</xsl:when>
+	<xsl:when test=".=404">You searched for a web page, but failed on your perception check.</xsl:when>
 	<xsl:otherwise>An internal error has occurred.</xsl:otherwise>
 </xsl:choose>
 </xsl:template>

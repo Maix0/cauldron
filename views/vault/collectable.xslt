@@ -53,7 +53,7 @@
 </xsl:if>
 
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{collectable/name}" placeholder="A reference for you as the Dungeon Master." class="form-control" />
+<input type="text" id="name" name="name" value="{collectable/name}" maxlength="50" placeholder="A reference for you as the Dungeon Master." class="form-control" />
 <label for="description">Description:</label>
 <textarea id="description" name="description" placeholder="To be shown to the players." class="form-control"><xsl:value-of select="collectable/description" /></textarea>
 <label for="image">Image:</label>
@@ -67,8 +67,8 @@
 <input readonly="readonly" value="{collectable/location}" class="form-control" />
 </xsl:if>
 <div class="option"><input type="checkbox" name="found"><xsl:if test="collectable/found='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Collectable has been found (visible in inventory).</div>
-<div class="option"><input type="checkbox" name="hide"><xsl:if test="collectable/hide='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Hide containing token when collectable is found.</div>
-<div class="option"><input type="checkbox" name="explain"><xsl:if test="collectable/explain='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Explain this collectable by revealing the desciption to the players.</div>
+<div class="option"><input type="checkbox" name="hide"><xsl:if test="collectable/hide='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Hide the containing token when the collectable is found.</div>
+<div class="option"><input type="checkbox" name="explain"><xsl:if test="collectable/explain='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>When found, explain the collectable by revealing the desciption to the players.</div>
 
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Save collectable" class="btn btn-default" />

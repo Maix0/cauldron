@@ -1,0 +1,26 @@
+div.cauldey {
+	width:500px;
+	z-index:5000;
+}
+
+div.cauldey span {
+	border-bottom:2px dashed #ff8000;
+	cursor:help;
+}
+
+div.cauldey div.message {
+	background-color:#ffffff;
+	padding:15px;
+	border:2px solid #000000;
+	border-radius:10px;
+	box-shadow:5px 5px 10px #404040;
+}
+
+div.cauldey img.chat {
+	position:relative;
+	left:300px;
+	top:-1.5px;
+	cursor:move;
+	filter:drop-shadow(0 0 5px #ffffff);
+	margin-bottom:-155px;
+}

@@ -148,7 +148,7 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 
 				if (isNaN(x) || isNaN(y)) {
 					if (debug) {
-						_script_error('Invalid coordinate: ' + part[0]);
+						_script_error('Invalid coordinate: ' + parts[0]);
 					}
 					break;
 				}

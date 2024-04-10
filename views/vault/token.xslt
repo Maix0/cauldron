@@ -27,7 +27,7 @@
 <xsl:for-each select="tokens/token">
 <div class="col-xs-12 col-sm-4 col-md-3 token">
 <div class="well well-sm" onClick="javascript:document.location='/{/output/page}/{@id}'">
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" class="icon" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" title="{name}" class="icon {type}" />
 <div class="name"><xsl:value-of select="name" /><xsl:if test="shape_change='yes'"><span class="shape_change">(sc)</span></xsl:if></div>
 <div>Size: <xsl:value-of select="width" /> &#215; <xsl:value-of select="height" /></div>
 <div>Hit points: <xsl:value-of select="hitpoints" /></div>
@@ -53,7 +53,7 @@
 <xsl:if test="token/@id">
 <input type="hidden" name="id" value="{token/@id}" />
 <input type="hidden" name="extension" value="{token/extension}" />
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{token/@id}.{token/extension}" class="token" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{token/@id}.{token/extension}" class="token {token/type}" />
 </xsl:if>
 
 <div class="row">
@@ -67,8 +67,14 @@
 <label for="image">Image (make sure the token is facing down):</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
-<input type="file" name="image" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name)" />Browse</label></span>
+<input type="file" name="image" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name); token_selected();" />Browse</label></span>
 <input type="text" id="upload-file-info" readonly="readonly" class="form-control" />
+</div>
+<div class="radio-group type">
+<input type="hidden" name="type_backup" value="{token/type}" />
+<span><input type="radio" name="type" value="topdown" disabled="disabled"><xsl:if test="token/type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top-down token image</span>
+<span><input type="radio" name="type" value="portrait" disabled="disabled"><xsl:if test="token/type='portrait'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Portrait token image</span>
+<span class="select">&lt;-- select the token type</span>
 </div>
 <label for="armor_class">Default armor class:</label>
 <input type="text" id="armor_class" name="armor_class" value="{token/armor_class}" class="form-control" />
@@ -90,7 +96,8 @@
 </form>
 
 <div id="help">
-<p>When a token is available for shape change, you can change a player's token into this appearance. Right-click a player's token and select 'Change shape'.</p>
+<p><b>Image:</b> Make sure select the right token type after you uploaded the token image. The character creation page of the <a href="/manual#character">online manual</a> explains the differences.</p>
+<p><b>Availble for shape change:</b> When a token is available for shape change, you can change a player's token into this appearance. While running an adventer, right-click a player's token and select 'Change shape'.</p>
 </div>
 </xsl:template>
 

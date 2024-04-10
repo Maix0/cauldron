@@ -12,24 +12,38 @@
 <xsl:if test="count(adventure)=0">
 <xsl:if test="@is_dm='no'">
 <p>There are no adventures available yet.</p>
-<p>Create a character if you haven't already done so. You need a character for each adventure you want to join. Your Dungeon Master can add you to his/her adventure.</p>
+<div id="help">
+Create a character if you haven't yet done so. To create a new character, click on the Characters link in the menu bar. You need a character for each adventure you want to join. When your Dungeon Master added your character to his/her adventure, that adventure will be listed on this page.
+</div>
 </xsl:if>
 <xsl:if test="@is_dm='yes'">
 <img src="/images/cauldron.png" class="cauldron" />
-<p>This is the page where you and your players will see an overview of the adventures you have created. All that's needed to create an adventure is explained in the <a href="/manual">manual</a>, but here's a short list to make it even more easy for you to get started.</p>
-<ul>
-<li>Go to the DM's Vault (see top menu bar) and click on the Adventures icon to create a new adventure or import one from the Adventure Market.</li>
-<li>If you created a new adventure, add one or more maps to your adventure. Multiple maps are available in the Map Market.</li>
-<li>Create accounts for your players via the <a href="/vault/user">DM's Vault Users section</a> or send them an <a href="/vault/invite">invite code</a> so they can create their account themselves.</li>
-<li>Let your players create their own character.</li>
-<li>Add those characters to your adventure via the <a href="/vault/players">DM's Vault Players section</a>.</li>
-<li>Start the adventure and have fun!</li>
-</ul>
-<p>I would appreciate it if you <a href="/questionnaire/1">answer a few questions</a> about Cauldron VTT. I will take less than a minute.</p>
-<div class="btn-group">
-<a href="/vault/adventure/new" class="btn btn-primary">Create your own adventure</a>
-<a href="/vault/adventure/market" class="btn btn-primary">Browse the adventure market</a>
+<p>This is the page where you and your players will see an overview of the adventures you have created. At the momment, you have no adventures. You have several options to create a new adventure.</p>
+
+<div class="options">
+<div>
+<img src="/images/icons/cauldey.png" />
+<div>Ask Cauldey to guide you through Cauldron VTT. In a few easy steps, you will create your first adventure in a minute. This is the best choice when you're new to Cauldron VTT.</div>
+<div><a href="/cauldey" class="btn btn-primary btn-xs">Choose this option</a></div>
 </div>
+<div>
+<img src="/images/icons/adventure.png" />
+<div>Go to the adventure market and import one of the available adventures with a single click. Choose this when you came here for the Curse of Strahd or the Lost Mine of Phandelver adventure.</div>
+<div><a href="/vault/adventure/market" class="btn btn-primary btn-xs">Choose this option</a></div>
+</div>
+<div>
+<img src="/images/icons/manual.png" />
+<div>Learn how Cauldron VTT works by reading the online manual and create your adventure on your own. Reading the manual is of course always good a good idea.</div>
+<div><a href="/manual#creating" class="btn btn-primary btn-xs">Choose this option</a></div>
+</div>
+<div>
+<img src="/images/cauldron.png" />
+<div>Go to the Dungeon Master's Vault and explore Cauldron VTT on your own. Only choose this when you're handy with computers and VTTs in general.</div>
+<div><a href="/vault" class="btn btn-primary btn-xs">Choose this option</a></div>
+</div>
+</div>
+
+<p>I would appreciate it if you <a href="/questionnaire/1">answer a few questions</a> about Cauldron VTT. I will take less than a minute.</p>
 </xsl:if>
 </xsl:if>
 <div class="row">
@@ -81,6 +95,7 @@
 <button class="btn btn-default btn-sm show_dm_notes">Map notes</button>
 </xsl:if>
 <button class="btn btn-default btn-sm pause">Pause</button>
+<button class="btn btn-default btn-sm pictures">Pictures</button>
 </xsl:if>
 </div>
 <div class="col-sm-6">
@@ -206,7 +221,7 @@
 <!-- Tokens -->
 <div class="tokens">
 <xsl:for-each select="tokens/token">
-<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; width:{width}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}">
+<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; width:{width}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" token_type="{token_type}">
 <xsl:if test="c_id!='' and c_found='no'">
 <xsl:attribute name="c_id"><xsl:value-of select="c_id" /></xsl:attribute>
 <xsl:attribute name="c_name"><xsl:value-of select="c_name" /></xsl:attribute>
@@ -228,13 +243,13 @@
 <!-- Shape change -->
 <div class="shape_change">
 <xsl:for-each select="shape_change/token">
-<div shape_id="{@id}" size="{size}" extension="{extension}" ><xsl:value-of select="name" /></div>
+<div shape_id="{@id}" size="{size}" extension="{extension}" token_type="{token_type}"><xsl:value-of select="name" /></div>
 </xsl:for-each>
 </div>
 <!-- Characters -->
 <div class="characters">
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px; width:{width}px;" is_hidden="{hidden}" rotation="{rotation}" token_type="{token_type}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" sheet="{sheet_url}">
+<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px; width:{width}px;" is_hidden="{hidden}" rotation="{rotation}" token_type="{token_type}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" vision="{vision}" light="{light}" sheet="{sheet_url}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
 <img src="/resources/{/output/cauldron/resources_key}/{src}" orig_src="{orig_src}" style="height:{height}px" />
 <span class="name"><xsl:value-of select="name" /></span>
@@ -302,7 +317,7 @@
 <div class="library">
 <xsl:for-each select="library/token">
 <div class="well well-sm">
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="max-width:{../../grid_cell_size}px; max-height:{../../grid_cell_size}px;" class="icon" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" />
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="max-width:{../../grid_cell_size}px; max-height:{../../grid_cell_size}px;" class="icon {type}" token_id="{@id}" obj_width="{width}" obj_height="{height}" armor_class="{armor_class}" hitpoints="{hitpoints}" type="{type}" />
 <div class="name"><xsl:value-of select="name" /></div>
 <div>Size: <xsl:value-of select="width" /> &#215; <xsl:value-of select="height" /></div>
 <div>HP: <xsl:value-of select="hitpoints" /></div>

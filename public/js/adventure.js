@@ -1,6 +1,3 @@
-const ROLL_NORMAL = 0;
-const ROLL_ADVANTAGE = 1;
-const ROLL_DISADVANTAGE = 2;
 const FOW_NONE = 0;
 const FOW_DAY_CELL = 1;
 const FOW_DAY_REAL = 2;
@@ -8,7 +5,7 @@ const FOW_NIGHT_CELL = 3;
 const FOW_NIGHT_REAL = 4;
 const FOW_REVEAL = 5;
 
-const DEFAULT_Z_INDEX = 10000;
+const DEFAULT_Z_INDEX = 1000;
 const LAYER_DRAWING = DEFAULT_Z_INDEX;
 const LAYER_GRID = DEFAULT_Z_INDEX + 1;
 const LAYER_ZONE = DEFAULT_Z_INDEX + 2;
@@ -45,29 +42,24 @@ var map_id = null;
 var user_id = null;
 var resources_key = null;
 var grid_cell_size = null;
-var z_index = DEFAULT_Z_INDEX;
 var dungeon_master = null;
 var my_name = null;
 var character_name = null;
 var character_steerable = true;
 var my_character = null;
 var wf_attack = null;
+var wf_audio_player = null;
 var wf_collectables = null;
-var wf_dice_roll = null;
 var wf_effect_create = null;
 var wf_journal = null;
-var wf_script_editor = null;
-var wf_script_manual = null;
+var wf_pictures = null;
 var wf_zone_create = null;
-var wf_play_audio = null;
 var temporary_hitpoints = 0;
 var keep_centered = true;
 var focus_obj = null;
 var fow_type = null;
 var fow_obj = null;
-var fow_default_distance = null;
-var fow_char_distances = {};
-var fow_light_char = {};
+var fow_map_distance = null;
 var input_history = null;
 var input_index = -1;
 var mouse_x = 0;
@@ -146,10 +138,11 @@ function map_image() {
 
 		var map_dialog = $(maps).windowframe({
 			header: 'Maps from Resources',
+			info: 'This tool allows you to only change the battle map image or video. You can use it when you have multiple maps of the same scenery, but with small changes.',
 		});
 
 		$('ul.map_image li').on('click', function() {
-			var map_url = $(this).text();
+			var map_url = url_encode($(this).text());
 			var resources_key = $('div.playarea').attr('resources_key');
 
 			map_url = map_url.substr(0, 11) + resources_key + map_url.substr(10);
@@ -304,199 +297,6 @@ function input_history_add(input) {
 	localStorage.setItem('input_history', JSON.stringify(input_history));
 }
 
-function dice_roll(dice, addition, callback) {
-	if ((localStorage.getItem('dice_type') == 'animated') && (typeof dice_roll_3d == 'function')) {
-		return dice_roll_3d(dice, addition, callback);
-	} else {
-		return dice_roll_quick(dice, addition, callback);
-	}
-}
-
-function dice_roll_quick(dice, addition, callback) {
-	var result = [];
-
-	for (i = 0; i < dice.length; i++) {
-		var parts = dice[i].split('d');
-		var count = parseInt(parts[0]);
-		var sides = parseInt(parts[1]);
-		var roll = Math.floor(Math.random() * sides) + 1;
-
-		result.push(roll);
-	}
-
-	callback(result, addition);
-}
-
-function roll_dice(dice_input, send_to_others = true) {
-	if (dice == '') {
-		wf_dice_roll.open();
-		return true;
-	}
-
-	if (dice_input.indexOf('d') == -1) {
-		return false;
-	}
-
-	dice_str = dice_input.replace(/ /g, '');
-	dice_str = dice_str.replace(/\+-/g, '-');
-	dice_str = dice_str.replace(/-/g, '+-');
-
-	var valid_dice = [2, 4, 6, 8, 10, 12, 20, 100];
-	var parts = dice_str.split('+');
-
-	if (parts.length > 7) {
-		return false;
-	}
-
-	var dice = [];
-	var addition = 0;
-
-	for (i = 0; i < parts.length; i++) {
-		var roll = parts[i].split('d');
-		if (roll.length > 2) {
-			return false;
-		} else if (roll.length == 2) {
-			if (roll[0] == '') {
-				parts[i] = '1' + parts[i];
-			} else {
-				var count = parseInt(roll[0]);
-				if (isNaN(count)) {
-					return false;
-				}
-			}
-
-			var sides = parseInt(roll[1]);
-			if (isNaN(sides)) {
-				return false;
-			}
-
-			if (valid_dice.includes(sides) == false) {
-				return false;
-			}
-
-			if (count > 25) {
-				return false;
-			}
-
-			dice.push(parts[i]);
-		} else {
-			var value = parseInt(roll[0]);
-			if (isNaN(value)) {
-				return false
-			}
-
-			addition += value;
-		}
-	}
-
-	dice_roll(dice, addition, function(result, addition) {
-		var message = 'Dice roll: ' + dice_input + '\n';
-		var total = addition;
-
-		result.forEach(function(roll) {
-			total += roll;
-		});
-
-		message += '[' + result.join('] + [') + ']';
-		if (addition > 0) {
-			message += ' + ' + addition;
-		}
-		message += ' = ' + total;
-
-		if (send_to_others) {
-			send_message(message, character_name);
-		} else {
-			write_sidebar(message);
-		}
-	});
-
-	return true;
-}
-
-function roll_d20(bonus, type = ROLL_NORMAL) {
-	if (bonus == '') {
-		bonus = 0;
-	} else {
-		bonus = parseInt(bonus);
-		if (isNaN(bonus)) {
-			write_sidebar('Invalid roll bonus.');
-			return false;
-		}
-	}
-
-	dice = [ '1d20' ];
-
-	if (type != ROLL_NORMAL) {
-		dice.push('1d20');
-	}
-
-	dice_roll(dice, bonus, function(result, bonus) {
-		var roll = result[0];
-
-		switch (type) {
-			case ROLL_ADVANTAGE:
-				var message = 'Advantage d';
-				break;
-			case ROLL_DISADVANTAGE:
-				var message = 'Disadvantage d';
-				break;
-			default:
-				var message = 'D';
-				break;
-		}
-
-		message += 'ice roll: 1d20';
-		if (bonus > 0) {
-			message += ' + ' + bonus;
-		} else if (bonus < 0) {
-			message += bonus;
-		}
-		message += '\n';
-
-		if (type != ROLL_NORMAL) {
-			var extra = result[1];
-
-			message += '[' + roll + '] [' + extra + '] > ';
-			if (type == ROLL_ADVANTAGE) {
-				if (extra > roll) {
-					roll = extra;
-				}
-			} else {
-				if (extra < roll) {
-					roll = extra;
-				}
-			}
-			message += '[' + roll + ']';
-
-			if ((roll == 20) && (bonus == 0)) {
-				message += ' CRIT!';
-			}
-
-			message += '\n';
-		}
-
-		if ((type == ROLL_NORMAL) || (bonus != 0)) {
-			message += '[' + roll + '] ';
-			if (bonus != 0) {
-				message += '+ ' + bonus + ' ';
-			}
-			message += '= ' + (roll + bonus);
-
-			if (roll == 20) {
-				message += ' CRIT!';
-			}
-		}
-
-		if (dungeon_master == false) {
-			send_message(message, character_name);
-		} else {
-			write_sidebar(message);
-		}
-	});
-
-	return true;
-}
-
 function show_help() {
 	var commands = {
 		'clear':                 'Clear this sidebar.',
@@ -506,7 +306,7 @@ function show_help() {
 		'history [clear]':       'Show or clear your input history.',
 		'labels [hide|show]':    'Manage character name labels and health bars visibility.',
 		'log &lt;message&gt;':   'Add message to journal.',
-		'roll &lt;dice&gt;':     'Roll dice.'
+		'roll &lt;dice&gt;':     'Roll one or more dice.'
 	};
 
 	var extra = dungeon_master ? {
@@ -518,7 +318,7 @@ function show_help() {
 		'night [0-4]':           'Set map night mode.',
 		'noscript':              'Disable all zone scripts.',
 		'ping':                  'See who\'s online in the session.',
-		'reload':                'Reload current page.',
+		'reload':                'Force everyone in the session to reload the map.',
 		'remove &lt;name&gt;':   'Remove one from the combat.',
 		'walls [hide|show]':     'Manage walls and windows visibility.'
 	} : {
@@ -535,7 +335,7 @@ function show_help() {
 	help.sort();
 
 	help.push('<b>&lt;message&gt;</b>: Send text message.<br />');
-	help.push('Right-click an icon or the map for a menu with options. Move a character via w, a, s and d and rotate via q and e.');
+	help.push('Right-click an icon or the map for a menu with options.');
 
 	write_sidebar(help.join('\n'));
 }
@@ -590,14 +390,26 @@ function interface_color(button, swap = true) {
 	}
 }
 
+function character_vision(obj) {
+	var char_vision = obj.attr('vision');
+
+	if (char_vision == undefined) {
+		return fow_map_distance;
+	}
+
+	char_vision = parseInt(char_vision);
+
+	if (char_vision == 0) {
+		return 0;
+	}
+
+	return Math.max(char_vision, fow_map_distance);
+}
+
 /* Object functions
  */
 function object_alive(obj) {
-	obj.css('background-color', '');
-	if (obj.attr('is_hidden') == 'no') {
-		obj.css('opacity', '1');
-	}
-	obj.find('div.hitpoints').css('display', 'block');
+	obj.removeClass('dead');
 }
 
 function object_contextmenu_dm(event) {
@@ -683,7 +495,8 @@ function object_create(icon, x, y) {
 	var armor_class = $(icon).attr('armor_class');
 	var hitpoints = $(icon).attr('hitpoints');
 	var type = $(icon).parent().find('div.name').text();
-	var rotation = 180;
+	var token_type = $(icon).attr('type');
+	var rotation = (token_type == 'topdown' ? 180 : 0);
 
 	var scr = screen_scroll();
 	x = coord_to_grid(x + scr.left - 30, false);
@@ -692,8 +505,8 @@ function object_create(icon, x, y) {
 	$.post('/object/create_token', {
 		map_id: map_id,
 		token_id: token_id,
-		pos_x: x / grid_cell_size,
-		pos_y: y / grid_cell_size,
+		pos_x: Math.round(x / grid_cell_size),
+		pos_y: Math.round(y / grid_cell_size),
 	}).done(function(data) {
 		var instance_id = $(data).find('instance_id').text();
 
@@ -711,7 +524,7 @@ function object_create(icon, x, y) {
 		};
 		websocket_send(data);
 
-		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + LAYER_TOKEN + '" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
+		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token ' + token_type + '" style="left:' + x + 'px; top:' + y + 'px; z-index:' + LAYER_TOKEN + '" type="' + type + '" is_hidden="no" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="" token_type="' + token_type + '">' +
 		          (hitpoints > 0 ? '<div class="hitpoints"><div class="damage" style="width:0%"></div></div>' : '') +
 		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px;" />' +
 		          '</div>';
@@ -823,6 +636,8 @@ function object_click_mobile(event) {
 
 function object_dblclick(event) {
 	event.stopPropagation();
+
+	key_to_direction = null;
 	
 	var obj = $(this).parent();
 
@@ -860,9 +675,7 @@ function object_dblclick(event) {
 };
 
 function object_dead(obj) {
-	obj.css('background-color', '#c03010');
-	obj.css('opacity', '0.7');
-	obj.find('div.hitpoints').css('display', 'none');
+	obj.addClass('dead');
 }
 
 function object_delete(obj) {
@@ -908,11 +721,6 @@ function object_hide_action(obj) {
 }
 
 function object_info(obj) {
-	if (obj.hasClass('light')) {
-		write_sidebar('Light number: ' + obj.attr('id').substring(5) + '<br />');
-		return;
-	}
-
 	var info = '';
 
 	if (obj.hasClass('zone') == false) {
@@ -946,6 +754,16 @@ function object_info(obj) {
 
 		if (obj.hasClass('character')) {
 			info += 'Initiative bonus: ' + obj.attr('initiative') + '<br />';
+
+			if (dungeon_master) {
+				var vision = character_vision(obj);
+				if (vision == 0) {
+					vision = 'infinite';
+				}
+				info += 'Vision distance: ' + vision + '<br />';
+
+				info += 'Light radius: ' + obj.attr('light') + '<br />';
+			}
 		}
 
 		var conditions = obj.find('span.conditions');
@@ -1000,7 +818,7 @@ function object_move(obj, speed = 200) {
 
 	if (obj.is(my_character)) {
 		char_pos_x = Math.round(pos.left / grid_cell_size);
-		char_pos_y =  Math.round(pos.top / grid_cell_size);
+		char_pos_y = Math.round(pos.top / grid_cell_size);
 		char_pos_changed = true;
 	} else if (obj.hasClass('effect') == false) {
 		$.post('/object/move', {
@@ -1017,13 +835,8 @@ function object_move(obj, speed = 200) {
 	}
 
 	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
-		if (obj.hasClass('character')) {
-			light_follow(obj);
-		} else if (obj.hasClass('light')) {
-			fog_of_war_light(obj);
-			if (fow_obj != null) {	
-				fog_of_war_update(fow_obj);
-			}
+		if (obj.hasClass('light') && (fow_obj != null)) {	
+			fog_of_war_update(fow_obj);
 		}
 	}
 }
@@ -1069,8 +882,8 @@ function object_rotate_command(obj, rotation, speed = 500) {
 
 function object_rotate_action(obj, rotation, speed = 500) {
 	var img = obj.find('img');
-	var width = img.width() / grid_cell_size;
-	var height = img.height() / grid_cell_size;
+	var width = Math.round(img.width() / grid_cell_size);
+	var height = Math.round(img.height() / grid_cell_size);
 
 	if ((width % 2) != (height % 2)) {
 		if (width > height) {
@@ -1141,8 +954,8 @@ function object_step(obj, x, y) {
 
 	/* Wall collision?
 	 */
-	var pos_x = pos.left / grid_cell_size;
-	var pos_y = pos.top / grid_cell_size;
+	var pos_x = Math.round(pos.left / grid_cell_size);
+	var pos_y = Math.round(pos.top / grid_cell_size);
 
 	if ((width == 1) && (height == 1)) {
 		/* 1 x 1
@@ -1243,7 +1056,7 @@ function object_steer(event) {
 		return;
 	}
 
-	if ((obj.attr('token_type') == 'topdown') || obj.hasClass('token')) {
+	if (obj.attr('token_type') == 'topdown') {
 		switch (event.which) {
 			case KB_ROTATE_LEFT:
 				object_turn(obj, -45);
@@ -1314,8 +1127,8 @@ function object_view(obj, max_size = 300) {
 	if (my_character != null) {
 		var char_pos = object_position(my_character);
 		var obj_pos = object_position(obj);
-		var diff_x = Math.abs(char_pos.left - obj_pos.left) / grid_cell_size;
-		var diff_y = Math.abs(char_pos.top - obj_pos.top) / grid_cell_size;
+		var diff_x = Math.round(Math.abs(char_pos.left - obj_pos.left) / grid_cell_size);
+		var diff_y = Math.round(Math.abs(char_pos.top - obj_pos.top) / grid_cell_size);
 
 		if ((diff_x > 2) || (diff_y > 2)) {
 			collectable_id = undefined;
@@ -1465,6 +1278,7 @@ function effect_create_final(effect_id, src, width, height) {
  */
 function measuring_stop() {
 	$('div.playarea').off('mousemove');
+	$('div.playarea').off('click');
 	$('div.ruler').remove();
 	$('p.measure').removeClass('measure');
 }
@@ -1626,7 +1440,7 @@ function door_show_open(door) {
 /* Light functions
  */
 function light_create_object(instance_id, pos_x, pos_y, radius) {
-	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; z-index:' + LAYER_LIGHT + '">';
+	var light = '<div id="light' + instance_id + '" src="/images/light_on.png" class="light" radius="' + radius + '" title="Radius: ' + radius + '" state="on" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px; z-index:' + LAYER_LIGHT + '">';
 	if (dungeon_master) {
 		light += '<img src="/images/light_on.png" style="width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px" />';
 	}
@@ -1636,10 +1450,6 @@ function light_create_object(instance_id, pos_x, pos_y, radius) {
 
 	/* Fog of War
 	 */
-	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
-		fog_of_war_light($('div#light' + instance_id));
-	}
-
 	if (my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
@@ -1650,8 +1460,8 @@ function light_create_object(instance_id, pos_x, pos_y, radius) {
 function light_create(pos_x, pos_y, radius) {
 	$.post('/object/create_light', {
 		map_id: map_id,
-		pos_x: pos_x / grid_cell_size,
-		pos_y: pos_y / grid_cell_size,
+		pos_x: Math.round(pos_x / grid_cell_size),
+		pos_y: Math.round(pos_y / grid_cell_size),
 		radius: radius
 	}).done(function(data) {
 		instance_id = $(data).find('instance_id').text();
@@ -1682,15 +1492,12 @@ function light_create(pos_x, pos_y, radius) {
 		$('div#light' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = {};
 
-			menu_entries['light_info'] = { name:'Get information', icon:'fa-info-circle' };
-
 			if ($(this).attr('state') == 'on') {
 				menu_entries['light_toggle'] = { name:'Turn off', icon:'fa-toggle-off' };
 			} else {
 				menu_entries['light_toggle'] = { name:'Turn on', icon:'fa-toggle-on' };
 			}
 
-			menu_entries['light_attach'] = { name:'Attach to character', icon:'fa-compress' };
 			menu_entries['light_delete'] = { name:'Delete', icon:'fa-trash' };
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -1701,32 +1508,12 @@ function light_create(pos_x, pos_y, radius) {
 	});
 }
 
-function light_follow(character, pos_x = null, pos_y = null) {
-	var fow_update = false;
+function light_radius(obj, radius) {
+	obj.attr('light', radius);
 
-	for (var [key, value] of Object.entries(fow_light_char)) {
-		if (character.prop('id') != value) {
-			continue;
-		}
-
-		if (pos_x == null) {
-			var pos = object_position(character);
-			pos_x = pos.left;
-			pos_y = pos.top;
-		}
-
-		var light = $('div#' + key);
-		light.css('left', pos_x + 'px');
-		light.css('top', pos_y + 'px');
-		object_move(light);
-
-		if (fow_obj != null) {
-			fow_update = true;
-			fog_of_war_light(light);
-		}
-	}
-
-	if (fow_update) {
+	if (my_character != null) {
+		fog_of_war_update(my_character);
+	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
 	}
 }
@@ -1734,10 +1521,6 @@ function light_follow(character, pos_x = null, pos_y = null) {
 function light_state(obj, state) {
 	obj.attr('state', state);
 	obj.find('img').attr('src', '/images/light_' + state + '.png');
-
-	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
-		fog_of_war_light(obj);
-	}
 
 	if (my_character != null) {
 		fog_of_war_update(my_character);
@@ -1768,20 +1551,13 @@ function light_toggle(light) {
 }
 
 function light_delete(obj) {
-	delete fow_light_char[obj.prop('id')];
-
-	obj.attr('state', 'delete');
-	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
-		fog_of_war_light(obj);
-	}
+	obj.remove();
 
 	if (my_character != null) {
 		fog_of_war_update(my_character);
 	} else if (fow_obj != null) {
 		fog_of_war_update(fow_obj);
 	}
-
-	obj.remove();
 }
 
 /* Wall functions
@@ -2069,8 +1845,8 @@ function zone_create_object(id, pos_x, pos_y, width, height, color, opacity, gro
 function zone_create(width, height, color, opacity, group, altitude) {
 	$.post('/object/create_zone', {
 		map_id: map_id,
-		pos_x: zone_x / grid_cell_size,
-		pos_y: zone_y / grid_cell_size,
+		pos_x: Math.round(zone_x / grid_cell_size),
+		pos_y: Math.round(zone_y / grid_cell_size),
 		width: width,
 		height: height,
 		color: color,
@@ -2402,7 +2178,7 @@ function handle_input(input) {
 			}
 			break;
 		case 'audio':
-			wf_play_audio.open();
+			wf_audio_player.open();
 			break;
 		case 'cauldron':
 			write_sidebar('<img src="/images/cauldron.png" draggable="false" />');
@@ -2424,13 +2200,13 @@ function handle_input(input) {
 			}
 			break;
 		case 'd20a':
-			if (roll_d20(param, ROLL_ADVANTAGE) == false) {
+			if (roll_d20(param, DICE_ROLL_ADVANTAGE) == false) {
 				$('div.input input').val(input);
 				return;
 			}
 			break;
 		case 'd20d':
-			if (roll_d20(param, ROLL_DISADVANTAGE) == false) {
+			if (roll_d20(param, DICE_ROLL_DISADVANTAGE) == false) {
 				$('div.input input').val(input);
 				return;
 			}
@@ -2528,11 +2304,12 @@ function handle_input(input) {
 			break;
 		case 'log':
 			if (param == '') {
-				return;
+				wf_journal.open();
+			} else {
+				journal_add_entry(character_name, param);
+				journal_save_entry(character_name, param);
+				write_sidebar('Journal entry added.');
 			}
-			journal_add_entry(character_name, param);
-			journal_save_entry(character_name, param);
-			write_sidebar('Journal entry added.');
 			return;
 		case 'next':
 			if (dungeon_master == false) {
@@ -2625,7 +2402,9 @@ function handle_input(input) {
 			combat_remove(param);
 			break;
 		case 'roll':
-			if (roll_dice(param) == false) {
+			if (param == '') {
+				wf_dice_roll.open();
+			} else if (roll_dice(param) == false) {
 				write_sidebar('Invalid dice roll.');
 				$('div.input input').val(input);
 				return;
@@ -2758,8 +2537,8 @@ function context_menu_handler(key) {
 			}
 			break;
 		case 'coordinates':
-			var pos_x = coord_to_grid(mouse_x, false) / grid_cell_size;
-			var pos_y = coord_to_grid(mouse_y, false) / grid_cell_size;
+			var pos_x = Math.round(coord_to_grid(mouse_x, false) / grid_cell_size);
+			var pos_y = Math.round(coord_to_grid(mouse_y, false) / grid_cell_size);
 			write_sidebar('Coordinates: ' + pos_x + ', ' + pos_y);
 			break;
 		case 'damage':
@@ -2869,8 +2648,8 @@ function context_menu_handler(key) {
 			effect_y = pos.top;
 
 			var src = $(this).find('img').prop('src');
-			var width = parseInt($(this).width()) / grid_cell_size;
-			var height = parseInt($(this).height()) / grid_cell_size;
+			var width = Math.round(parseInt($(this).width()) / grid_cell_size);
+			var height = Math.round(parseInt($(this).height()) / grid_cell_size);
 
 			var effect_id = effect_counter + '_' + map_id;
 			effect_create_object(effect_id, src, effect_x, effect_y, width, height);
@@ -2908,10 +2687,8 @@ function context_menu_handler(key) {
 			if (fow_obj == null) {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
 				if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
-					var distance = fow_char_distances[obj.prop('id')];
-					if (distance != undefined) {
-						fog_of_war_set_distance(distance);
-					}
+					var distance = character_vision(obj);
+					fog_of_war_set_distance(distance);
 				}
 
 				fog_of_war_update(obj);
@@ -2920,35 +2697,51 @@ function context_menu_handler(key) {
 				fog_of_war_destroy();
 				fow_obj = null;
 			} else {
+				var distance = character_vision(obj);
+				fog_of_war_set_distance(distance);
+
 				fog_of_war_update(obj);
 				fow_obj = obj;
 			}
 			break;
 		case 'fow_distance':
-			var distance = fow_char_distances[obj.prop('id')].toString();
-			cauldron_prompt('Distance:', distance, function(distance) {
-				distance = parseInt(distance);
-				if (isNaN(distance)) {
-					write_sidebar('Invalid distance.');
-					return;
-				} else if (distance < 0) {
-					write_sidebar('Invalid distance.');
-					return;
+			var distance = obj.attr('vision');
+			var info = 'The actual vision distance for a character is the highest value of this map\'s Default nightly Fog of War distance (' + fow_map_distance + ') and the character\'s vision distance. A light source carried by a character can of course increase that distance.<br />Enter 0 or leave empty for infinite. To use the map\'s value, enter 1.';
+			cauldron_info_prompt(info, 'Character vision distance:', distance, function(distance) {
+				if (distance == '') {
+					distance = 0;
+				} else {
+					distance = parseInt(distance);
+					if (isNaN(distance)) {
+						write_sidebar('Invalid distance.');
+						return;
+					} else if ((distance < 0) || (distance > 250)) {
+						write_sidebar('Distance out of range (0-250).');
+						return;
+					}
 				}
 
-				fow_char_distances[obj.prop('id')] = distance;
-
-				if (obj.is(fow_obj)) {
-					fog_of_war_set_distance(distance);
-					fog_of_war_update(fow_obj);
-				}
-
-				var data = {
-					action: 'fow_distance',
+				$.post('/object/vision', {
 					instance_id: obj.prop('id'),
-					distance: distance
-				};
-				websocket_send(data);
+					vision: distance
+				}).done(function() {
+					obj.attr('vision', distance);
+
+					var data = {
+						action: 'fow_distance',
+						instance_id: obj.prop('id'),
+						distance: distance
+					};
+					websocket_send(data);
+
+					distance = character_vision(obj);
+
+					if (obj.is(fow_obj)) {
+						fog_of_war_set_distance(distance);
+						fog_of_war_update(fow_obj);
+					}
+
+				});
 			});
 			break;
 		case 'handover':
@@ -3001,8 +2794,11 @@ function context_menu_handler(key) {
 						if (isNaN(radius)) {
 							write_sidebar('Invalid radius.');
 							return;
-						} else if (radius < 0) {
-							write_sidebar('Invalid radius.');
+						} else if (radius < 1) {
+							write_sidebar('Invalid radius (lower than 1).');
+							return;
+						} else if (radius > 250) {
+							write_sidebar('Invalid radius (too large).');
 							return;
 						}
 
@@ -3039,67 +2835,46 @@ function context_menu_handler(key) {
 				});
 			});
 			break;
-		case 'light_attach':
-			if (focus_obj == null) {
-				write_sidebar('Focus on a character first by double clicking it.');
-				break;
-			}
-
-			if (focus_obj.hasClass('character') == false) {
-				write_sidebar('Focus on a character first by double clicking it.');
-				break;
-			}
-
-			var pos = object_position(focus_obj);
-			obj.css('left', pos.left + 'px');
-			obj.css('top', pos.top + 'px');
-			object_move(obj);
-
-			if (fow_obj != null) {
-				fog_of_war_light(obj);
-				fog_of_war_update(fow_obj);
-			}
-
-			fow_light_char[obj.prop('id')] = focus_obj.prop('id');
-			break;
-		case 'light_detach':
-			for (var [key, value] of Object.entries(fow_light_char)) {
-				if (obj.attr('id') == value) {
-					delete fow_light_char[key];
-				}
-			}
-			break;
-		case 'light_info':
-			object_info(obj);
-			break;
-		case 'light_remove':
-			cauldron_confirm('Remove light?', function() {
-				for (var [key, value] of Object.entries(fow_light_char)) {
-					if (obj.attr('id') == value) {
-						delete fow_light_char[key];
-
-						$.post('/object/delete', {
-							instance_id: key,
-						}).done(function() {
-							var data = {
-								action: 'light_delete',
-								instance_id: key
-							};
-							websocket_send(data);
-
-							var light = $('div#' + key);
-							light_delete(light);
-						});
+		case 'light_radius':
+			var radius = obj.attr('light');
+			var info = 'Carrying a light source also affects what other players can see around this character. Enter 0 or leave empty for off.';
+			cauldron_info_prompt(info, 'Character light source radius:', radius, function(radius) {
+				if (radius == '') {
+					radius = 0;
+				} else {
+					if (isNaN(radius)) {
+						write_sidebar('Invalid radius.');
+						return;
+					} else if (radius < 0) {
+						write_sidebar('Invalid radius.');
+						return;
+					} else if (radius > 250) {
+						write_sidebar('Invalid radius (too large).');
+						return;
 					}
 				}
+
+				$.post('/object/light', {
+					instance_id: obj.prop('id'),
+					radius: radius
+				}).done(function() {
+					var data = {
+						action: 'light_radius',
+						instance_id: obj.prop('id'),
+						radius: radius
+					};
+					websocket_send(data);
+
+					light_radius(obj, radius);
+				});
 			});
 			break;
 		case 'light_toggle':
 			light_toggle(obj);
 			break;
 		case 'lower':
-			z_index--;
-			obj.css('z-index', z_index);
+			obj.parent().prepend(obj);
+
 			var data = {
 				action: 'lower',
 				instance_id: obj.prop('id')
@@ -3180,6 +2955,11 @@ function context_menu_handler(key) {
 				var shape = $('div.shape_change div[shape_id=' + shape_change_id + ']');
 				var filename = 'tokens/' + shape_change_id.toString() + '.' + shape.attr('extension');
 				var size = $('div.shape_change div[shape_id=' + shape_change_id + ']').attr('size');
+				var token_type = $('div.shape_change div[shape_id=' + shape_change_id + ']').attr('token_type');
+
+				if (token_type == 'portrait') {
+					object_rotate_command(obj, 0, 0);
+				}
 			}
 
 			obj.find('img').attr('src', '/resources/' + resources_key + '/' + filename);
@@ -3346,7 +3126,7 @@ function key_down(event) {
 			spell_effect_area_stop();
 			break;
 		case 192:
-			// r
+			// ~
 			if ($('div.diceroll:visible').length > 0) {
 				wf_dice_roll.close();
 			} else if (open_windows.length == 0) {
@@ -3390,7 +3170,7 @@ $(document).ready(function() {
 	character_name = $('div.playarea').attr('name');
 	dungeon_master = ($('div.playarea').attr('is_dm') == 'yes');
 	fow_type = parseInt($('div.playarea').attr('fog_of_war'));
-	fow_default_distance = parseInt($('div.playarea').attr('fow_distance'));
+	fow_map_distance = parseInt($('div.playarea').attr('fow_distance'));
 	var version = $('div.playarea').attr('version');
 	var ws_host = $('div.playarea').attr('ws_host');
 	var ws_port = $('div.playarea').attr('ws_port');
@@ -3489,7 +3269,8 @@ $(document).ready(function() {
 			 */
 			var data = {
 				action: 'request_init',
-				user_id: user_id
+				user_id: user_id,
+				char_id: my_character.prop('id')
 			};
 			websocket_send(data);
 		}
@@ -3629,16 +3410,21 @@ $(document).ready(function() {
 				});
 				break;
 			case 'fow_distance':
+				var distance = parseInt(data.distance);
+				if (isNaN(distance)) {
+					break;
+				}
+
+				var obj = $('div#' + data.instance_id);
+				obj.attr('vision', data.distance);
+
 				if (my_character == null) {
 					break;
 				} else if (my_character.prop('id') != data.instance_id) {
 					break;
 				}
 
-				var distance = parseInt(data.distance);
-				if (isNaN(distance)) {
-					break;
-				}
+				distance = character_vision(obj);
 
 				fog_of_war_set_distance(distance);
 				fog_of_war_update(my_character);
@@ -3714,13 +3500,17 @@ $(document).ready(function() {
 				var obj = $('div#' + data.instance_id);
 				light_delete(obj);
 				break;
+			case 'light_radius':
+				var obj = $('div#' + data.instance_id);
+				light_radius(obj, data.radius);
+				break;
 			case 'light_state':
 				var light = $('div#light' + data.light_id);
 				light_state(light, data.state);
 				break;
 			case 'lower':
-				z_index--;
-				$('div#' + data.instance_id).css('z-index', z_index);
+				var obj = $('div#' + data.instance_id);
+				obj.parent().prepend(obj);
 				break;
 			case 'map_image':
 				var image = $('<img src="' + data.url + '" />');
@@ -3746,7 +3536,6 @@ $(document).ready(function() {
 					obj.css('left', data.pos_x + 'px');
 					obj.css('top', data.pos_y + 'px');
 
-					fog_of_war_light(obj);
 					if (my_character != null) {
 						fog_of_war_update(my_character);
 					}
@@ -3792,13 +3581,6 @@ $(document).ready(function() {
 						fog_of_war_update(obj);
 					}
 				});
-
-				if (obj.hasClass('character') && dungeon_master && ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL))) {
-					light_follow(obj, data.pos_x, data.pos_y);
-					if (obj.is(fow_obj)) {
-						fog_of_war_update(fow_obj);
-					}
-				}
 				break;
 			case 'night':
 				$('div.night').css('background-color', 'rgba(0, 0, 0, ' + data.level + ')');
@@ -3840,6 +3622,7 @@ $(document).ready(function() {
 				}
 
 				var to_user_id = data.user_id;
+				var char_id = data.char_id;
 
 				if (pause) {
 					var data = {
@@ -3864,8 +3647,8 @@ $(document).ready(function() {
 						src: $(this).find('img').prop('src'),
 						pos_x: pos.left,
 						pos_y: pos.top,
-						width: $(this).width() / grid_cell_size,
-						height: $(this).height() / grid_cell_size
+						width: Math.round($(this).width() / grid_cell_size),
+						height: Math.round($(this).height() / grid_cell_size)
 					};
 					websocket_send(data);
 				});
@@ -4099,6 +3882,10 @@ $(document).ready(function() {
 
 		$('canvas#drawing').on('mousedown', function(event) {
 			if (event.button != 0) {
+				return;
+			}
+
+			if ($('div.ruler').length > 0) {	
 				return;
 			}
 
@@ -4407,10 +4194,6 @@ $(document).ready(function() {
 	/* Lights
 	 */
 	if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
-		$('div.light').each(function() {
-			fog_of_war_light($(this));
-		});
-
 		$('div.light').css('z-index', LAYER_LIGHT);
 	}
 
@@ -4462,6 +4245,12 @@ $(document).ready(function() {
 	$('div.character').each(function() {
 		$(this).css('z-index', LAYER_CHARACTER);
 		object_rotate_action($(this), $(this).attr('rotation'), 0);
+
+		if ($(this).attr('hitpoints') > 0) {
+			if ($(this).attr('damage') == $(this).attr('hitpoints')) {
+				object_dead($(this));
+			}
+		}
 	});
 
 	if (dungeon_master) {
@@ -4528,7 +4317,8 @@ $(document).ready(function() {
 		
 		$('div.light').each(function() {
 			var state = $(this).attr('state');
-			$(this).append('<img src="/images/light_' + state + '.png" class="light" style="width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" />');
+			var radius = $(this).attr('radius');
+			$(this).append('<img src="/images/light_' + state + '.png" title="Radius: ' + radius + '" style="width:' + grid_cell_size + 'px; height:' + grid_cell_size + 'px;" />');
 		});
 
 		$('div.light').draggable({
@@ -4547,15 +4337,12 @@ $(document).ready(function() {
 		$('div.light').on('contextmenu', function(event) {
 			var menu_entries = {};
 
-			menu_entries['light_info'] = { name:'Get information', icon:'fa-info-circle' };
-
 			if ($(this).attr('state') == 'on') {
 				menu_entries['light_toggle'] = { name:'Turn off', icon:'fa-toggle-off' };
 			} else {
 				menu_entries['light_toggle'] = { name:'Turn on', icon:'fa-toggle-on' };
 			}
 
-			menu_entries['light_attach'] = { name:'Attach to character', icon:'fa-compress' };
 			menu_entries['light_delete'] = { name:'Delete', icon:'fa-trash' };
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
@@ -4623,11 +4410,8 @@ $(document).ready(function() {
 				} else {
 					menu_entries['fow_show'] = { name:'Show its Fog of War', icon:'fa-cloud' };
 				}
-				menu_entries['fow_distance'] = { name:'Set Fog of War distance', icon:'fa-cloud-upload' };
-				if (Object.values(fow_light_char).includes($(this).parent().prop('id'))) {
-					menu_entries['light_detach'] = { name:'Detach light', icon:'fa-lightbulb-o' };
-					menu_entries['light_remove'] = { name:'Remove light', icon:'fa-circle' };
-				}
+				menu_entries['fow_distance'] = { name:'Set vision distance', icon:'fa-cloud-upload' };
+				menu_entries['light_radius'] = { name:'Set light radius', icon:'fa-lightbulb-o' };
 				menu_entries['sep3'] = '-';
 			}
 
@@ -4710,12 +4494,6 @@ $(document).ready(function() {
 		$('div.tokens').css('cursor', 'grab');
 		$('div.zones').css('cursor', 'grab');
 
-		/* Fog of war
-		 */
-		$('div.character').each(function() {
-			fow_char_distances[$(this).prop('id')] = fow_default_distance;
-		});
-
 		/* Library
 		 */
 		$('div.library img.icon').draggable({
@@ -4744,52 +4522,6 @@ $(document).ready(function() {
 			combat_start();
 		});
 
-		/* Audio dialog
-		 */
-		var audio_dialog = '<div></div>'
-		wf_play_audio = $(audio_dialog).windowframe({
-			activator: 'button.play_audio',
-			header: 'Audio files from Resources',
-			open: function() {
-				$.ajax('/adventure/audio').done(function(data) {
-					var files = $(data).find('audio sound');
-
-					if (files.length > 0) {
-						var audio = '<p>Select an audio file to play it.</p><ul class="audio">';
-						files.each(function() {
-							audio += '<li>/' + $(this).text() + '</li>';
-						});
-						audio += '</ul>';
-
-						wf_play_audio.append(audio);
-
-						$('ul.audio li').on('click', function() {
-							wf_play_audio.close();
-
-							$('div.input input').focus();
-
-							var filename = $(this).text();
-							filename = filename.substr(0, 11) + resources_key + filename.substr(10);
-
-							var data = {
-								action: 'audio',
-								filename: filename
-							};
-							websocket_send(data);
-
-							var audio = new Audio(filename);
-							audio.play();
-						});
-					} else {
-						wf_play_audio.append('<p>You have no audio files. Upload them to the \'audio\' directory in the DM\'s Vault Resources section.</p>');
-					}
-				});
-			},
-			close: function() {
-				$('ul.audio').empty();
-			}
-		});
-
 		if (fow_type == FOW_REVEAL) {
 			fog_of_war_init(LAYER_FOG_OF_WAR, true);
 		}
@@ -4797,6 +4529,33 @@ $(document).ready(function() {
 		/* Draw tools
 		 */
 		$('div.playarea').css('bottom', '90px');
+
+		/* Library filter
+		 */
+		var library_filter = function() {
+			var param = $('div.filter input').val().toLowerCase();
+
+			$('div.library div.well').each(function() {
+				var name = $(this).find('div.name').text().toLowerCase();
+				if (name.includes(param) == false) {
+					$(this).hide();
+				} else {
+					$(this).show();
+				}
+			});
+		};
+		$('div.filter input').on('keyup', library_filter);
+		library_filter();
+
+		/* Pictures button
+		 */
+		$('div.menu button.pictures').on('click', function() {
+		
+		});
+
+		/* Combat active?
+		 */
+		combat_check_running();
 	} else {
 		/* Player settings
 		 */
@@ -4880,7 +4639,8 @@ $(document).ready(function() {
 			} else {
 				fog_of_war_init(LAYER_FOG_OF_WAR);
 				if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
-					fog_of_war_set_distance(fow_default_distance);
+					var distance = character_vision(my_character);
+					fog_of_war_set_distance(distance);
 				}
 				fog_of_war_update(my_character);
 			}
@@ -5024,36 +4784,186 @@ $(document).ready(function() {
 
 	/* Windows
 	 */
-	wf_effect_create = $('div.effect_create').windowframe({
-		width: 530,
-		style: 'default',
-		header: 'Create effect',
-		footer: '<span class="effect_size">width: <input id="effect_width" type="number" value="1" min="1" /></span>' +
-		        '<span class="effect_size">height: <input id="effect_height" type="number" value="1" min="1" /></span>'
-	});
+	if (dungeon_master) {
+		var audio_content = '<div><ul class="audio"></ul></div';
+		wf_audio_player = $(audio_content).windowframe({
+			activator: 'button.play_audio',
+			header: 'Audio files from Resources',
+			info: 'This tool allows you to play audio files for everybody. It uses the files in the audio resources directory. The resources section can be found in the DM\'s Vault.',
+			open: function() {
+				var audio_list = wf_audio_player.find('ul');
+				audio_list.empty();
 
-	$('div.effect_create img').on('click', function() {
-		effect_create($(this));
-	});
+				$.ajax('/adventure/audio').done(function(data) {
+					var files = $(data).find('audio sound');
+					if (files.length > 0) {
+						files.each(function() {
+							audio_list.append('<li>/' + $(this).text() + '</li>');
+						});
+
+						audio_list.find('li').on('click', function() {
+							wf_audio_player.close();
+
+							$('div.input input').focus();
+
+							var filename = $(this).text();
+							filename = filename.substr(0, 11) + resources_key + filename.substr(10);
+
+							var data = {
+								action: 'audio',
+								filename: filename
+							};
+							websocket_send(data);
+
+							var audio = new Audio(filename);
+							audio.play();
+						});
+					} else {
+						wf_audio_player.append('<p>You have no audio files. Upload them to the \'audio\' directory in the DM\'s Vault Resources section.</p>');
+					}
+				});
+			}
+		});
+
+		wf_effect_create = $('div.effect_create').windowframe({
+			width: 530,
+			style: 'default',
+			header: 'Create effect',
+			footer: '<span class="effect_size">width: <input id="effect_width" type="number" value="1" min="1" /></span>' +
+					'<span class="effect_size">height: <input id="effect_height" type="number" value="1" min="1" /></span>'
+		});
+
+		$('div.effect_create img').on('click', function() {
+			effect_create($(this));
+		});
+
+		wf_dm_notes = $('div.dm_notes').windowframe({
+			activator: 'button.show_dm_notes',
+			style: 'danger',
+			header: 'DM notes'
+		});
+
+		var pictures_loaded = false;
+		wf_pictures = $('<div class="pictures"><div>Directory: <select class="form-control"></select></div><div class="row"></div></div>').windowframe({
+			activator: 'button.pictures',
+			style: 'primary',
+			header: 'Pictures',
+			info: 'This tool allows you to show pictures to everybody. It uses the files in the pictures resources directory. The resources section can be found in the DM\'s Vault.',
+			width: 900,
+			top: 100,
+			open: function() {
+				if (pictures_loaded == false) {
+					wf_pictures.find('select').trigger('change');
+				}
+			}
+		});
+
+		$.ajax('/adventure/picture_directories').done(function(data) {
+			var directories = wf_pictures.find('select');
+
+			directories.append('<option value="">[root]</option>');
+			$(data).find('directories directory').each(function() {
+				directories.append('<option>' + $(this).text() + '</option>');
+			});
+		});
+
+		wf_pictures.find('select').on('change', function() {
+			var directory = wf_pictures.find('select').val();
+			var pictures = wf_pictures.find('div.row');
+
+			wf_pictures.find('p').remove();
+			pictures.empty();
+
+			$.post('/adventure/pictures', {
+				directory: directory
+			}).done(function(data) {
+				if (directory != '') {
+					directory += '/';
+				}
+
+				if ($(data).find('files file').length == 0) {
+					wf_pictures.append('<p>No pictures found.</p>');
+				} else $(data).find('files file').each(function() {
+					var image = '<img src="/resources/' + resources_key + '/pictures/' + directory + $(this).text() + '" />';
+					pictures.append('<div class="col-xs-4">' + image + '</div>');
+				});
+
+				wf_pictures.find('img').on('click', function() {
+					var link = $(this).attr('src');
+					link = 'https://' + location.hostname + link;
+					send_message(link);
+
+					wf_pictures.close();
+				});
+
+				pictures_loaded = true;
+			});
+		});
+
+		wf_zone_create = $('div.zone_create').windowframe({
+			width: 450,
+			header: 'Create zone',
+			buttons: {
+				'Create': function() {
+					var width = parseInt($('input#width').val());
+					var height = parseInt($('input#height').val());
+					var color = $('input#color').val();
+					var opacity = parseFloat($('input#opacity').val());
+					var group = $('input#group').val();
+					var altitude = parseInt($('input#altitude').val());
+
+					if (isNaN(width)) {
+						write_sidebar('Invalid width.');
+						return;
+					} else if (isNaN(height)) {
+						write_sidebar('Invalid height.');
+						return;
+					} else if (isNaN(opacity)) {
+						write_sidebar('Invalid opacity.');
+						return;
+					}
+
+					if (opacity < 0) {
+						opacity = 0;
+					} else if (opacity > 1) {
+						opacity = 1;
+					}
+
+					zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
+					if (zone_x < 0) {
+						zone_x = 0;
+					}
+
+					zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
+					if (zone_y < 0) {
+						zone_y = 0;
+					}
+
+					zone_create(width, height, color, opacity, group, altitude);
+
+					$(this).close();
+				},
+				'Cancel': function() {
+					$(this).close();
+				}
+			}
+		});
+	}
 
 	wf_collectables = $('<div class="collectables"></div>').windowframe({
 		activator: 'button.show_collectables',
-		width: 700,
-		top: 150,
 		style: 'success',
 		header: 'Inventory',
+		info: 'This window shows all the collectables that have been found by the players during the adventure.',
+		width: 700,
+		top: 150,
 		open: collectables_show
-	});
-
-	wf_dm_notes = $('div.dm_notes').windowframe({
-		activator: 'button.show_dm_notes',
-		style: 'danger',
-		header: 'DM notes'
 	});
 
 	wf_attack = $('div.attack').windowframe({
 		width: 500,
 		header: 'Attack',
+		info: '<p>Use this tool to make a d20 attack roll against the selected creature. The result will be shown in the sidebar.</p><p>An advantage roll uses the highest score of two d20 dice rolls. A disadvantage roll uses the lowest score of two d20 dice rolls.</p><p>The attack roll is compared to the selected creature\'s armor class. The result is also shown in the sidebar.</p>',
 		open: function() {
 			wf_attack.find('input').focus();
 		},
@@ -5143,86 +5053,15 @@ $(document).ready(function() {
 
 	wf_journal = $('div.journal').windowframe({
 		activator: 'button.show_journal',
-		width: 1000,
-		height: 500,
 		style: 'info',
 		header: 'Journal',
+		info: 'Use the journal to keep track of the adventure. Entries are shared among all players and the dungeon master. The filter can be used to search for journal entries.',
+		width: 1000,
+		height: 500,
 		open: journal_show
 	});
 	$('div.journal textarea').on('keyup', function(event) {
 		event.stopPropagation();
-	});
-
-	wf_script_editor = $('div.script_editor').windowframe({
-		width: 500,
-		header: 'Event script',
-		buttons: {
-			'Save': function() {
-				script_save();
-				$(this).close();
-			},
-			'Cancel': function() {
-				$(this).close();
-			},
-			'Help': function() {
-				wf_script_manual.open();
-			}
-		}
-	});
-
-	wf_script_manual = $('div.script_manual').windowframe({
-		width: 1000,
-		height: 1000,
-		header: 'Script manual'
-	});
-
-	wf_zone_create = $('div.zone_create').windowframe({
-		width: 450,
-		header: 'Create zone',
-		buttons: {
-			'Create': function() {
-				var width = parseInt($('input#width').val());
-				var height = parseInt($('input#height').val());
-				var color = $('input#color').val();
-				var opacity = parseFloat($('input#opacity').val());
-				var group = $('input#group').val();
-				var altitude = parseInt($('input#altitude').val());
-
-				if (isNaN(width)) {
-					write_sidebar('Invalid width.');
-					return;
-				} else if (isNaN(height)) {
-					write_sidebar('Invalid height.');
-					return;
-				} else if (isNaN(opacity)) {
-					write_sidebar('Invalid opacity.');
-					return;
-				}
-
-				if (opacity < 0) {
-					opacity = 0;
-				} else if (opacity > 1) {
-					opacity = 1;
-				}
-
-				zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
-				if (zone_x < 0) {
-					zone_x = 0;
-				}
-
-				zone_y -= Math.floor((height - 1) / 2) * grid_cell_size;
-				if (zone_y < 0) {
-					zone_y = 0;
-				}
-
-				zone_create(width, height, color, opacity, group, altitude);
-
-				$(this).close();
-			},
-			'Cancel': function() {
-				$(this).close();
-			}
-		}
 	});
 
 	$('button.journal_write').on('click', function() {
@@ -5253,197 +5092,6 @@ $(document).ready(function() {
 		$('video').get(0).play();
 	});
 
-	/* Dice roll window
-	 */
-	var dice_window = '<div><div class="dicerolls_defined"></div><div class="diceroll">';
-	[ 4, 6, 8, 10, 12, 20 ].forEach(function(dice) {
-		dice = dice.toString();
-		dice_window += '<div class="dice"><img src="/images/d' + dice + '.png" title="d' + dice + '" /><select sides="' + dice + '" class="form-control">';
-		for (let d = 0; d <= 10; d++) {
-			dice_window += '<option>' + d.toString() + '</option>';
-		}
-		dice_window += '</select></div>';
-	});
-	dice_window += '<div class="dice"><img src="/images/plus.png" /><input type="text" class="form-control" /></div>'
-	dice_window += '</div>';
-
-	dice_roll_get = function() {
-		var roll = '';
-		$('div.diceroll select').each(function() {
-			var value = parseInt($(this).val());
-			if (value != 0) {
-				if (roll != '') {
-					roll += ' + ';
-				}
-				roll += value + 'd' + $(this).attr('sides');
-			}
-		});
-
-		if (roll == '') {
-			cauldron_alert('Select at least one dice.');
-			return false;
-		}
-
-		var plus = $('div.diceroll input').val();
-		if (isNaN(parseInt(plus))) {
-			cauldron_alert('Enter a number in the plus input field.');
-			return false;
-		}
-
-		if (plus.substr(0, 1) == '-') {
-			roll += plus;
-		} else if (plus != '0') {
-			roll += ' + ' + plus;
-		}
-
-		return roll;
-	}
-
-	dice_roll_init = function() {
-		if (typeof dice_roll_3d == 'undefined') {
-			wf_dice_roll.parent().find('select.dice-type').remove();
-		}
-
-		$('div.diceroll select').each(function() {
-			$(this).val('0');
-		});
-		$('div.diceroll input').val('0');
-
-		var defined = $('div.dicerolls_defined');
-		defined.empty();
-		var rolls = localStorage.getItem('dicerolls');
-		if (rolls == undefined) {
-			rolls = [];
-		} else {
-			rolls = JSON.parse(rolls);
-		}
-
-		for ([key, value] of Object.entries(rolls)) {
-			rolls[key] = {
-				roll: value,
-				global: true
-			};
-		};
-
-		$('div.weapons div').each(function() {
-			rolls[$(this).text()] = {
-				roll: $(this).attr('roll'),
-				global: false
-			};
-		});
-
-		rolls = Object.keys(rolls).sort().reduce((accumulator, key) => {
-			accumulator[key] = rolls[key];
-			return accumulator;
-		}, {});
-
-		for ([key, value] of Object.entries(rolls)) {
-			var roll = value['roll'];
-			var global = value['global'];
-
-			key = key.replace('"', '&quot;');
-
-			if (global) {
-				var button = $('<div class="btn-group"><input type="button" value="' + key + '" title="' + roll + '" class="btn btn-default roll" /><input type="button" value="X" class="btn btn-default remove" /></div>');
-			} else {
-				var button = $('<div class="btn-group"><input type="button" value="' + key + '" title="' + roll + '" class="btn btn-primary roll" /></div>');
-			}
-
-			button.find('input.roll').on('click', function() {
-				wf_dice_roll.close();
-
-				var dice = $(this).attr('title');
-				roll_dice(dice, dungeon_master == false);
-				input_history_add('/roll ' + dice);
-			});
-			button.find('input.remove').on('click', function() {
-				if (confirm('Delete dice?')) {
-					var key = $(this).parent().find('input.roll').attr('value');
-					var rolls = localStorage.getItem('dicerolls');
-					rolls = JSON.parse(rolls);
-					delete rolls[key];
-					localStorage.setItem('dicerolls', JSON.stringify(rolls));
-
-					dice_roll_init();
-				}
-			});
-			defined.append(button);
-		};
-	}
-
-	wf_dice_roll = $(dice_window).windowframe({
-		activator: 'button.show_dice',
-		header: 'Roll dice',
-		width: 665,
-		open: function() {
-			dice_roll_init();
-		},
-		buttons: {
-			'Roll': function() {
-				$(this).close();
-
-				var roll = dice_roll_get();
-				if (roll === false) {
-					return;
-				}
-				roll_dice(roll, dungeon_master == false);
-				input_history_add('/roll ' + roll);
-			},
-			'Save': function() {
-				var roll = dice_roll_get();
-				if (roll === false) {
-					return;
-				}
-
-				var name = prompt('Name this dice roll:');
-				if (name == null) {
-					return;
-				}
-
-				if (name.trim() == '') {
-					return;
-				}
-
-				var rolls = localStorage.getItem('dicerolls');
-				if (rolls == undefined) {
-					rolls = {};
-				} else {
-					rolls = JSON.parse(rolls);
-				}
-
-				rolls[name] = roll;
-
-				localStorage.setItem('dicerolls', JSON.stringify(rolls));
-
-				dice_roll_init();
-			}
-		}
-	});
-
-	if (localStorage.getItem('dice_type') == undefined) {
-		localStorage.setItem('dice_type', 'animated');
-	}
-
-	var dice_type_selector = $('<select style="float:right; width:110px; margin-top:15px" class="form-control dice-type"><option value="quick">Quick</option><option value="animated">Animated</option></select>');
-	if (localStorage.getItem('dice_type') == 'animated') {
-		dice_type_selector.find('option:last-child').attr('selected', 'selected');
-	}
-	dice_type_selector.on('change', function() {
-		localStorage.setItem('dice_type', $(this).val());
-	});
-	wf_dice_roll.parent().find('div.btn-group').before(dice_type_selector);
-
-	wf_dice_roll.find('div.dice img').on('dblclick', function() {
-		var dice = $(this).attr('title');
-		if (dice == undefined) {
-			return;
-		}
-
-		wf_dice_roll.close();
-
-		roll_dice('1' + dice, dungeon_master == false);
-	});
-
 	/* Other stuff
 	 */
 	$('div.playarea').mousedown(function(event) {
@@ -5453,23 +5101,6 @@ $(document).ready(function() {
 			mouse_x = event.clientX + scr.left - 16;
 			mouse_y = event.clientY + scr.top - 41;
 		}
-	});
-
-	if (dungeon_master) {
-		combat_check_running();
-	}
-
-	$('div.filter input').on('keyup',function() {
-		param = $(this).val().toLowerCase();
-
-		$('div.library div.well').each(function() {
-			var name = $(this).find('div.name').text().toLowerCase();
-			if (name.includes(param) == false) {
-				$(this).hide();
-			} else {
-				$(this).show();
-			}
-		});
 	});
 
 	var conditions = localStorage.getItem('conditions');

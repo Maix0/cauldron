@@ -173,17 +173,21 @@ function draw_circle(draw_x, draw_y) {
 /* Object functions
  */
 function object_alive(obj) {
-	obj.css('background-color', '');
-	if (obj.attr('is_hidden') == 'no') {
-		obj.css('opacity', '1');
-	}
-	obj.find('div.hitpoints').css('display', 'block');
+	obj.removeClass('dead');
+}
+
+
+function object_contextmenu(event) {
+	var menu_entries = {
+		'view': {name:'View', icon:'fa-search'}
+	};
+
+	show_context_menu($(this), event, menu_entries, context_menu_handler, LAYER_MENU);
+	return false;
 }
 
 function object_dead(obj) {
-	obj.css('background-color', '#c03010');
-	obj.css('opacity', '0.7');
-	obj.find('div.hitpoints').css('display', 'none');
+	obj.addClass('dead');
 }
 
 function object_hide(obj) {
@@ -615,6 +619,12 @@ $(document).ready(function() {
 				set_condition(obj, data.condition);
 				save_condition(obj, data.condition);
 				break;
+			case 'create':
+				var obj = '<div id="token' + data.instance_id + '" token_id="' + data.token_id +'" class="token" style="left:' + data.pos_x + 'px; top:' + data.pos_y + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + data.type + '" is_hidden="no" rotation="0" armor_class="' + data.armor_class + '" hitpoints="' + data.hitpoints + '" damage="0" name="">' +
+						  '<img src="' + data.url + '" style="width:' + data.width + 'px; height:' + data.height + 'px;" />' +
+						  '</div>';
+				$('div.playarea div.tokens').append(obj);
+				$('div#token' + data.instance_id).on('contextmenu', object_contextmenu);
 			case 'damage':
 				var obj = $('div#' + data.instance_id);
 				obj.attr('damage', data.damage);
@@ -624,6 +634,10 @@ $(document).ready(function() {
 				} else {
 					object_alive(obj);
 				}
+				break;
+			case 'delete':
+				var obj = $('div#' + data.instance_id);
+				obj.remove();
 				break;
 			case 'done':
 				battle_done();
@@ -849,14 +863,7 @@ $(document).ready(function() {
 
 	/* Menu tokens
 	 */
-	$('div.token img').on('contextmenu', function(event) {
-		var menu_entries = {
-			'view': {name:'View', icon:'fa-search'}
-		};
-
-		show_context_menu($(this), event, menu_entries, context_menu_handler, LAYER_MENU);
-		return false;
-	});
+	$('div.token img').on('contextmenu', object_contextmenu);
 
 	/* Menu characters
 	 */

@@ -27,6 +27,12 @@
 				$this->view->add_javascript("vault/token_new.js");
 			}
 
+			$this->view->add_javascript("vault/token_edit.js");
+
+			if (isset($token["type"]) == false) {
+				$token["type"] = $token["type_backup"];
+			}
+
 			$this->view->open_tag("edit");
 			$this->view->record($token, "token");
 			$this->view->close_tag();
@@ -48,7 +54,7 @@
 						/* Create token
 						 */
 						if ($this->model->create_token($_POST, $_FILES["image"]) === false) {
-							$this->view->add_message("Error creating token.");
+							$this->view->add_message("Error creating token. Possibly, the file extension is wrong (.jpg instead of .webp).");
 							$this->show_token_form($_POST);
 						} else {
 							$this->user->log_action("token %d created", $this->db->last_insert_id);
@@ -91,8 +97,9 @@
 				$token = array(
 					"width"       => 1,
 					"height"      => 1,
+					"type"        => "topdown",
 					"armor_class" => 10,
-					"hitpoints"   => 0);
+					"hitpoints"   => 4);
 				$this->show_token_form($token);
 			} else if ($this->page->parameter_numeric(0)) {
 				/* Edit token

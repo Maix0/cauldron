@@ -57,17 +57,28 @@
 
 			if (is_array($invite["characters"] ?? null)) {
 				$format = implode(", ", array_fill(1, count($invite["characters"]), "%d"));
-				$query = "select user_id from characters where id in (".$format.")";
+				$query = "select user_id, name from characters where id in (".$format.")";
 				if (($characters = $this->db->execute($query, $invite["characters"])) == false) {
 					$result = false;
 				} else {
 					$players = array();
+					$names = array();
+
 					foreach ($characters as $character) {
 						if (in_array($character["user_id"], $players)) {
 							$this->view->add_message("You may select only one character per player.");
 							$result = false;
+							break;
 						} else {
 							array_push($players, $character["user_id"]);
+						}
+
+						$name = strtolower($character["name"]);
+						if (in_array($name, $names)) {
+							$this->view->add_message("You can't select multiple characters with the same name.");
+							$result = false;
+						} else {
+							array_push($names, $name);
 						}
 
 						if ($character["user_id"] == $this->user->id) {

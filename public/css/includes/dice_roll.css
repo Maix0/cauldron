@@ -1,0 +1,36 @@
+/* Dice rolling
+ */
+div.diceroll div.dice {
+	display:inline-block;
+	margin-right:15px;
+	margin-top:15px;
+}
+
+div.diceroll div.dice img {
+	width:75px;
+	display:block;
+	margin-bottom:5px;
+	cursor:pointer;
+}
+
+div.diceroll div.dice:last-child img {
+	cursor:default;
+}
+
+div.diceroll div.dice select {
+	width:75px;
+	text-align:center;
+}
+
+div.diceroll div.dice input {
+	width:75px;
+	text-align:center;
+}
+
+div.dicerolls_defined input.remove {
+	padding:6px 10px;
+}
+
+div.dicerolls_defined .btn {
+	padding:6px 24px;
+}

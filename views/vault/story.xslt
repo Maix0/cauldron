@@ -11,9 +11,18 @@
 //-->
 <xsl:template match="overview">
 <xsl:apply-templates select="adventures_pulldown" />
+<div class="row tools">
+<div class="col-sm-6 col-xs-12">
+<div class="buttons btn-group">
+<button class="btn btn-default show_spells">Show spells</button>
+<button class="btn btn-default show_dice">Roll dice</button>
+</div>
+</div><div class="col-sm-6 col-xs-12">
 <div class="filter input-group">
 <input type="text" name="create" placeholder="Filter" class="form-control" onKeyup="javascript:filter_adjust()" />
 <span class="input-group-btn"><input type="button" value="X" class="btn btn-default" onClick="javascript:filter_clear()" /></span>
+</div>
+</div>
 </div>
 
 <div class="story">
@@ -103,8 +112,8 @@
 </a>
 <xsl:for-each select="monsters/item">
 <div class="col-xs-2  col-md-1 count"><xsl:value-of select="count" /> &#xd7;</div>
-<div class="col-xs-10 col-md-6 monster"><xsl:value-of select="monster" /></div>
-<div class="col-xs-3  col-md-2 source"><xsl:value-of select="source" /></div>
+<div class="col-xs-10 col-md-5 monster"><xsl:value-of select="monster" /></div>
+<div class="col-xs-3  col-md-3 source"><xsl:value-of select="source" /></div>
 <div class="col-xs-3  col-md-1 cr">CR <xsl:value-of select="cr" /></div>
 <div class="col-xs-3  col-md-1 xp"><xsl:value-of select="xp" /> XP</div>
 <div class="col-xs-3  col-md-1 xp"><xsl:value-of select="total_xp" /> XP</div>
@@ -133,6 +142,8 @@
 <p>Describe all the possible events that can happen during the adventure, like parts of the main quest, side quests, decision making points or objectives to reach.</p>
 <h3>Encounters</h3>
 <p>This section allows you to create possible encounters. It calculates the total XP of the encouter for you.</p>
+<h3>Tool buttons</h3>
+<p>The spells list and the dice rolling are available in case you use this screen while running your game.</p>
 </div>
 </xsl:template>
 
@@ -170,11 +181,11 @@
 </xsl:if>
 
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{npc/name}" class="form-control" />
+<input type="text" id="name" name="name" value="{npc/name}" maxlength="50" class="form-control" />
 <label for="cr">Challenge Rating:</label>
 <input type="text" id="cr" name="cr" value="{npc/cr}" class="form-control cr" />
 <label for="type">Race, sex and/or class:</label>
-<input type="text" id="type" name="type" value="{npc/type}" class="form-control" />
+<input type="text" id="type" name="type" value="{npc/type}" maxlength="50" class="form-control" />
 <label for="description">Background, intentions, plans and/or role in the adventure:</label>
 <textarea id="description" name="description" class="form-control"><xsl:value-of select="npc/description" /></textarea>
 
@@ -201,9 +212,9 @@
 </xsl:if>
 
 <label for="name">Name:</label>
-<input type="text" id="name" name="name" value="{object/name}" class="form-control" />
+<input type="text" id="name" name="name" value="{object/name}" maxlength="50" class="form-control" />
 <label for="located">Located in:</label>
-<input type="text" id="located" name="located" value="{object/located}" class="form-control" />
+<input type="text" id="located" name="located" value="{object/located}" maxlength="50" class="form-control" />
 <label for="description">Description:</label>
 <p>If this is an object, what does it look like and what is it for? If this is a location, what does it look like, what's happening here and what can be found here?</p>
 <textarea id="description" name="description" class="form-control"><xsl:value-of select="object/description" /></textarea>
@@ -231,7 +242,7 @@
 </xsl:if>
 
 <label for="title">Title:</label>
-<input type="text" id="title" name="title" value="{event/title}" class="form-control" />
+<input type="text" id="title" name="title" value="{event/title}" maxlength="100" class="form-control" />
 <label for="description">Event:</label>
 <textarea id="description" name="description" class="form-control"><xsl:value-of select="event/description" /></textarea>
 
@@ -258,17 +269,17 @@
 </xsl:if>
 
 <label for="title">Title:</label>
-<input type="text" id="title" name="title" value="{encounter/title}" class="form-control" />
+<input type="text" id="title" name="title" value="{encounter/title}" maxlength="50" class="form-control" />
 
 <div class="monsters">
 <xsl:for-each select="encounter/monsters/item">
 <div class="panel panel-primary"><div class="panel-body">
 <label>Monster:</label>
-<input type="text" name="monsters[{position()}][monster]" value="{monster}" class="form-control" />
+<input type="text" name="monsters[{position()}][monster]" value="{monster}" maxlength="50" class="form-control" />
 <label>Number of monsters:</label>
 <input type="text" name="monsters[{position()}][count]" value="{count}" class="form-control" />
 <label>Source:</label>
-<input type="text" name="monsters[{position()}][source]" value="{source}" class="form-control" />
+<input type="text" name="monsters[{position()}][source]" value="{source}" maxlength="20" class="form-control" />
 <label for="cr">Challenge Rating:</label>
 <input type="text" name="monsters[{position()}][cr]" value="{cr}" class="form-control cr" />
 </div></div>
@@ -287,6 +298,10 @@
 </xsl:if>
 </div>
 </form>
+
+<div id="help">
+<p>There is limited room for the source, so use abbreviations, like MM:286 instead of Monster Manual page 286.</p>
+</div>
 </xsl:template>
 
 <!--

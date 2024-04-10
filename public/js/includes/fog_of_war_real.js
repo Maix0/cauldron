@@ -3,7 +3,6 @@ const FOW_LIGHT_EDGE = 0.75;
 const FOW_COVERED_CHECKS = 2;
 
 var fog_of_war_distance = 0;
-var fog_of_war_lights = {};
 
 var fow_canvas = null;
 var fow_ctx = null;
@@ -134,7 +133,7 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 	l_ctx.lineWidth = 1;
 	l_ctx.fillRect(0, 0, l_canvas.width, l_canvas.height);
 
-	radius += Math.round(grid_cell_size * 0.7);
+	radius -= Math.round(grid_cell_size * 0.4);
 
 	/* Draw sphere
 	 */
@@ -240,24 +239,6 @@ function fog_of_war_set_distance(distance) {
 	fog_of_war_distance = distance;
 }
 
-function fog_of_war_light(light) {
-	var id = light.prop('id');
-	var state = light.attr('state');
-
-	if (state == 'delete') {
-		delete fog_of_war_lights[id];
-	} else {
-		var pos = object_position(light);
-		var radius = parseInt(light.attr('radius'));
-
-		if (isNaN(radius)) {
-			return;
-		}
-
-		fog_of_war_lights[id] = [pos.left, pos.top, radius, state];
-	}
-}
-
 function fog_of_war_update(obj) {
 	var half_cell = (grid_cell_size >> 1);
 	var obj_pos = object_position(obj);
@@ -269,15 +250,26 @@ function fog_of_war_update(obj) {
 
 		draw_light_sphere(obj_x, obj_y, fog_of_war_distance);
 
-		for (var key in fog_of_war_lights) {
-			var light = fog_of_war_lights[key];
-
-			if (light[3] == 'off') {
-				continue;
+		$('.light').each(function() {
+			if ($(this).attr('state') != 'on') {
+				return true;
 			}
 
-			draw_light_sphere(light[0] + half_cell, light[1] + half_cell, light[2] * grid_cell_size);
-		}
+			var pos = object_position($(this));
+			var radius = parseInt($(this).attr('radius'));
+
+			draw_light_sphere(pos.left + half_cell, pos.top + half_cell, radius * grid_cell_size);
+		});
+
+		$('div.character').each(function() {
+			var radius = parseInt($(this).attr('light'));
+
+			if (radius > 0) {
+				var pos = object_position($(this));
+
+				draw_light_sphere(pos.left + half_cell, pos.top + half_cell, radius * grid_cell_size);
+			}
+		});
 	} else {
 		fow_ctx.clearRect(0, 0, fow_canvas.width, fow_canvas.height);
 	}

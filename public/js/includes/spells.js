@@ -254,8 +254,9 @@ $(window).ready(function() {
 
 		_spells_window = $(content).windowframe({	
 			activator: 'button.show_spells',
-			header: 'Dungeons & Dragons 5e spells',
 			style: 'warning',
+			header: 'Dungeons & Dragons 5e spells',
+			info: 'This window shows most of the Dungeon & Dragons 5th edition magic spells. Use the filter to search for spells by name.',
 			width: 800
 		});
 

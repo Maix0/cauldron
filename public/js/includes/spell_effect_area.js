@@ -52,12 +52,12 @@ function spell_effect_area_clear() {
 function spell_effect_area_stop() {
 	$('div.playarea').off('mousemove');
 
+	spell_effect_area_clear();
+
 	var data = {
 		action: 'sea_clear'
 	};
 	websocket_send(data);
-
-	spell_effect_area_clear();
 
 	sea_active = false;
 }

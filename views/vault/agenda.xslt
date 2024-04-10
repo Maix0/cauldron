@@ -58,6 +58,10 @@
 <a href="/{/output/page}/new" class="btn btn-default">New appointment</a>
 <a href="/cms" class="btn btn-default">Back</a>
 </div>
+
+<div id="help">
+<p>Here you can enter the dates of the sessions you've planned. They can be shared via an iCal link as explained in the <a href="/agenda">agenda page</a>'s help function.</p>
+</div>
 </xsl:template>
 
 <!--

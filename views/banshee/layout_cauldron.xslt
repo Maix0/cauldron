@@ -101,6 +101,7 @@ div.wrapper > div.header {
 			<span>Cauldron v<xsl:value-of select="/output/cauldron/version" /></span>
 			<span><a href="/privacy">Privacy statement</a></span>
 			<span>Join on <a href="https://www.reddit.com/r/CauldronVTT/" target="_blank">Reddit</a></span>
+			<span>Join on <a href="https://discord.gg/w8FB93taYJ" target="_blank">Discord</a></span>
 			<xsl:if test="/output/user">
 			<span>Logged in as <a href="/account"><xsl:value-of select="/output/user" /></a></span>
 			<span><a href="/session">Session manager</a></span>

@@ -228,7 +228,7 @@
 //
 //-->
 <xsl:template match="market">
-<div class="filter">Filter by category:
+<div class="filter">Showing <span id="count"></span> maps. Filter by category:
 <select class="form-control filter" onChange="javacript:filter_category()">
 <option value="">none</option>
 <xsl:for-each select="map/category[not(.=preceding::*)]">
@@ -244,7 +244,7 @@
 <div class="panel panel-primary">
 <div class="panel-heading"><xsl:value-of select="title" /></div>
 <div class="panel-body">
-<img src="/files/market/{category}/{thumbnail}" full="/files/market/{category}/{background}" />
+<img src="/files/market/{category}/{thumbnail}" full="{background}" />
 </div>
 <div class="panel-footer">
 <xsl:if test="source!=''">

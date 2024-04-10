@@ -36,6 +36,10 @@
 				$this->set_image_format("png");
 				$this->load($image);
 				return;
+			} else if (substr($image, -5) == ".webp") {
+				$this->set_image_format("webp");
+				$this->load($image);
+				return;
 			} else if (substr($image, 0, 5) == "/tmp/") {
 				$image = file_get_contents($image);
 			}
@@ -48,6 +52,9 @@
 				$this->from_string($image);
 			} else if (substr($image, 1, 3) == "PNG") {
 				$this->set_image_format("png");
+				$this->from_string($image);
+			} else if (substr($image, 8, 4) == "WEBP") {
+				$this->set_image_format("webp");
 				$this->from_string($image);
 			}
 		}

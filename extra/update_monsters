@@ -83,7 +83,9 @@
 				$cr = $cr["cr"];
 			}
 
-			$monster = sprintf("%s:%s:%s:%s:%s:%s", $name, $cr, $ac, $hp, $source, $page);
+			$size = ($monster["size"][0] ?? "M");
+
+			$monster = sprintf("%s:%s:%s:%s:%s:%s:%s", $name, $cr, $ac, $hp, $size, $source, $page);
 			array_push($list, $monster);
 		}
 	}
@@ -96,13 +98,14 @@
 	$monsters = array();
 	foreach ($list as $i => $monster) {
 		$monster = str_replace("\"", "\\\"", $monster);
-		list($name, $cr, $ac, $hp, $source, $page) = explode(":", $monster);
+		list($name, $cr, $ac, $hp, $size, $source, $page) = explode(":", $monster);
 
 		array_push($monsters, array(
 			"name"   => $name,
 			"cr"     => $cr,
 			"hp"     => $hp,
 			"ac"     => $ac,
+			"size"   => $size,
 			"source" => $source,
 			"page"   => $page));
 	}

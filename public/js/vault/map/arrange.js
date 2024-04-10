@@ -1,4 +1,4 @@
-const DEFAULT_Z_INDEX = 10000;
+const DEFAULT_Z_INDEX = 1000;
 const LAYER_TOKEN = DEFAULT_Z_INDEX;
 const LAYER_CHARACTER = DEFAULT_Z_INDEX + 1;
 const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 2;
@@ -14,6 +14,8 @@ const FOW_REVEAL = 5;
 
 const DOOR_SECRET = '#a0a000';
 const DOOR_OPEN = '#40c040';
+
+const SNAP_MARGE = 5;
 
 const OBJECT_HIDDEN_FADE = 0.6;
 
@@ -112,11 +114,11 @@ function tokens_highlight() {
 	}
 }
 
-function coord_to_grid(coord, edge = true) {
+function coord_to_grid(coord, to_nearest_edge = true) {
 	var delta = coord % grid_cell_size;
 	coord -= delta;
 
-	if (edge && (delta > (grid_cell_size >> 1))) {
+	if (to_nearest_edge && (delta > (grid_cell_size >> 1))) {
 		coord += grid_cell_size;
 	}
 
@@ -187,20 +189,18 @@ function set_condition(obj, condition, set_only = true) {
 function object_armor_class(obj) {
 	var armor_class = obj.attr('armor_class');
 
-	if ((armor_class = prompt('Armor class:', armor_class)) == undefined) {
-		return;
-	}
+	cauldron_prompt('Armor class:', armor_class, function(armor_class) {
+		if (isNaN(armor_class)) {
+			write_sidebar('Invalid armor class.');
+			return;
+		}
 
-	if (isNaN(armor_class)) {
-		write_sidebar('Invalid armor class.');
-		return;
-	}
+		obj.attr('armor_class', armor_class);
 
-	obj.attr('armor_class', armor_class);
-
-	$.post('/object/armor_class', {
-		instance_id: obj.prop('id'),
-		armor_class: armor_class
+		$.post('/object/armor_class', {
+			instance_id: obj.prop('id'),
+			armor_class: armor_class
+		});
 	});
 }
 
@@ -225,6 +225,7 @@ function object_token_context_menu(obj) {
 			'sep1': '-',
 			'armor_class': { name:'Set armor class', icon:'fa-shield' },
 			'hitpoints': { name:'Set hitpoints', icon:'fa-heartbeat' },
+			'damage': { name:'Set damage', icon:'fa-warning' },
 			'sep2': '-',
 			'distance': { name:'Measure distance', icon:'fa-map-signs' },
 			'coordinates': { name:'Get coordinates', icon:'fa-flag' },
@@ -254,8 +255,9 @@ function object_create(icon, x, y) {
 		var url = $(icon).attr('src');
 		var armor_class = $(icon).attr('armor_class');
 		var hitpoints = $(icon).attr('hitpoints');
+		var damage = 0;
 		var type = $(icon).parent().find('div.name').text();
-		var rotation = 180;
+		var rotation = ($(icon).attr('type') == 'topdown' ? 180 : 0);
 		var hidden = 'no';
 
 		var scr = screen_scroll();
@@ -264,11 +266,12 @@ function object_create(icon, x, y) {
 	} else {
 		// Duplicated token
 		var token_id = $(icon).parent().attr('token_id');
-		var width = $(icon).width();
-		var height = $(icon).height();
+		var width = $(icon).outerWidth();
+		var height = $(icon).outerHeight();
 		var url = $(icon).attr('src');
 		var armor_class = $(icon).parent().attr('armor_class');
 		var hitpoints = $(icon).parent().attr('hitpoints');
+		var damage = $(icon).parent().attr('damage');
 		var type = $(icon).parent().attr('type');
 		var rotation = $(icon).parent().attr('rotation');
 		var hidden = $(icon).parent().attr('is_hidden');
@@ -280,16 +283,23 @@ function object_create(icon, x, y) {
 	$.post('/object/create_token', {
 		map_id: map_id,
 		token_id: token_id,
-		pos_x: x / grid_cell_size,
-		pos_y: y / grid_cell_size,
+		pos_x: Math.round(x / grid_cell_size),
+		pos_y: Math.round(y / grid_cell_size),
 	}).done(function(data) {
 		var instance_id = $(data).find('instance_id').text();
 
-		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + type + '" is_hidden="' + hidden + '" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="0" name="">' +
-		          '<img src="' + url + '" style="width:' + width + 'px; height:' + height + 'px;" />' +
+		var obj = '<div id="token' + instance_id + '" token_id="' + token_id +'" class="token" style="left:' + x + 'px; top:' + y + 'px; width:' + width + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + type + '" is_hidden="' + hidden + '" rotation="0" armor_class="' + armor_class + '" hitpoints="' + hitpoints + '" damage="' + damage + '" name="">' +
+		          '<img src="' + url + '" style="height:' + height + 'px" />' +
 		          '</div>';
 
 		$('div.playarea div.tokens').append(obj);
+
+		if (parseInt(armor_class) != 10) {
+			$.post('/object/armor_class', {
+				instance_id: 'token' + instance_id,
+				armor_class: armor_class
+			});
+		}
 
 		if (parseInt(hitpoints) > 0) {
 			$.post('/object/hitpoints', {
@@ -298,10 +308,10 @@ function object_create(icon, x, y) {
 			});
 		}
 
-		if (parseInt(armor_class) != 10) {
-			$.post('/object/armor_class', {
+		if (parseInt(damage) > 0) {
+			$.post('/object/damage', {
 				instance_id: 'token' + instance_id,
-				armor_class: armor_class
+				damage: damage
 			});
 		}
 
@@ -322,6 +332,31 @@ function object_create(icon, x, y) {
 		object_token_context_menu($('div.playarea div#token' + instance_id));
 	}).fail(function() {
 		write_sidebar('Error creating object.');
+	});
+}
+
+function object_damage(obj) {
+	var hitpoints = obj.attr('hitpoints');
+	var damage = obj.attr('damage');
+
+	cauldron_prompt('Damage (hitpoints=' + hitpoints + '):', damage, function(damage) {
+		if (isNaN(damage)) {
+			write_sidebar('Invalid damage.');
+			return;
+		}
+
+		if (damage < 0) {
+			damage = 0;
+		} else if (damage > hitpoints) {
+			damage = hitpoints;
+		}
+
+		obj.attr('damage', damage);
+
+		$.post('/object/damage', {
+			instance_id: obj.prop('id'),
+			damage: damage
+		});
 	});
 }
 
@@ -351,7 +386,6 @@ function object_delete(obj) {
 	}).done(function() {
 		if ((fow_obj != null) && obj.hasClass('light')) {
 			obj.attr('state', 'delete');
-			fog_of_war_light(obj);
 			fog_of_war_update(fow_obj);
 		}
 
@@ -386,20 +420,18 @@ function object_hide_command(obj) {
 function object_hitpoints(obj) {
 	var hitpoints = obj.attr('hitpoints');
 
-	if ((hitpoints = prompt('Hitpoints:', hitpoints)) == undefined) {
-		return;
-	}
+	cauldron_prompt('Hitpoints:', hitpoints, function(hitpoints) {
+		if (isNaN(hitpoints)) {
+			write_sidebar('Invalid hitpoints.');
+			return;
+		}
 
-	if (isNaN(hitpoints)) {
-		write_sidebar('Invalid hitpoints.');
-		return;
-	}
+		obj.attr('hitpoints', hitpoints);
 
-	obj.attr('hitpoints', hitpoints);
-
-	$.post('/object/hitpoints', {
-		instance_id: obj.prop('id'),
-		hitpoints: hitpoints
+		$.post('/object/hitpoints', {
+			instance_id: obj.prop('id'),
+			hitpoints: hitpoints
+		});
 	});
 }
 
@@ -462,8 +494,8 @@ function object_move(obj) {
 	$.post('/object/move', {
 		instance_id: obj.prop('id'),
 		map_id: map_id,
-		pos_x: (pos.left / grid_cell_size),
-		pos_y: (pos.top / grid_cell_size)
+		pos_x: Math.round(pos.left / grid_cell_size),
+		pos_y: Math.round(pos.top / grid_cell_size)
 	});
 
 	if (obj.hasClass('zone')) {
@@ -473,7 +505,6 @@ function object_move(obj) {
 	if (obj.is(fow_obj)) {
 		fog_of_war_update(obj);
 	} else if (obj.hasClass('light')) {
-		fog_of_war_light(obj);
 		if (fow_obj != null) {
 			fog_of_war_update(fow_obj);
 		}
@@ -587,8 +618,8 @@ function object_rotate_command(obj, rotation) {
 
 function object_rotate_action(obj, rotation) {
 	var img = obj.find('img');
-	var width = img.width() / grid_cell_size;
-	var height = img.height() / grid_cell_size;
+	var width = Math.round(img.width() / grid_cell_size);
+	var height = Math.round(img.height() / grid_cell_size);
 
 	if ((width % 2) != (height % 2)) {
 		if (width > height) {
@@ -641,13 +672,11 @@ function blinder_create_command() {
 	wall_stop();
 
 	var check_coords = function(bx, by, blinder, edge) {
-		const marge = 5;
-
 		x = parseInt(blinder.attr('pos' + edge + '_x'));
 		y = parseInt(blinder.attr('pos' + edge + '_y'));
 
-		if ((bx > x - marge) && (bx < x + marge)) {
-			if ((by > y - marge) && (by < y + marge)) {
+		if ((bx > x - SNAP_MARGE) && (bx < x + SNAP_MARGE)) {
+			if ((by > y - SNAP_MARGE) && (by < y + SNAP_MARGE)) {
 				return [x, y];
 			}
 		}
@@ -663,6 +692,19 @@ function blinder_create_command() {
 			[blinder_x, blinder_y] = check_coords(blinder_x, blinder_y, $(this), 1);
 			[blinder_x, blinder_y] = check_coords(blinder_x, blinder_y, $(this), 2);
 		});
+
+		if ((blinder_x == mouse_x) && (blinder_y == mouse_y)) {
+			var edge_x = coord_to_grid(blinder_x, true);
+			var edge_y = coord_to_grid(blinder_y, true);
+
+			if ((Math.abs(edge_x - blinder_x) < SNAP_MARGE)) {
+				blinder_x = edge_x;
+			}
+
+			if ((Math.abs(edge_y - blinder_y) < SNAP_MARGE)) {
+				blinder_y = edge_y;
+			}
+		}
 	} else {
 		var blinder_x = coord_to_grid(mouse_x, true);
 		var blinder_y = coord_to_grid(mouse_y, true);
@@ -848,8 +890,8 @@ function door_create_command() {
 	measuring_stop();
 	wall_stop();
 
-	door_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-	door_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+	door_x = Math.round(coord_to_grid(mouse_x, true) / grid_cell_size);
+	door_y = Math.round(coord_to_grid(mouse_y, true) / grid_cell_size);
 
 	var door = '<div id="new_door" class="door" pos_x="' + door_x + '" pos_y="' + door_y + '" state="closed" length="0" direction="horizontal" />';
 	$('div.playarea div.doors').append(door);
@@ -862,8 +904,8 @@ function door_create_command() {
 
 		var pos_x = door_x;
 		var pos_y = door_y;
-		var end_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-		var end_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+		var end_x = Math.round(coord_to_grid(mouse_x, true) / grid_cell_size);
+		var end_y = Math.round(coord_to_grid(mouse_y, true) / grid_cell_size);
 
 		var diff_x = Math.abs(end_x - pos_x);
 		var diff_y = Math.abs(end_y - pos_y);
@@ -1056,7 +1098,6 @@ function light_create(pos_x, pos_y, radius) {
 		});
 
 		if (fow_obj != null) {
-			fog_of_war_light($('img#light' + instance_id));
 			fog_of_war_update(fow_obj);
 		}
 	}).fail(function(data) {
@@ -1079,7 +1120,6 @@ function light_set(light_id, state) {
 		light.attr('src', '/images/light_' + state + '.png');
 
 		if (fow_obj != null) {
-			fog_of_war_light(light);
 			fog_of_war_update(fow_obj);
 		}
 	});
@@ -1099,8 +1139,8 @@ function wall_create_command(key) {
 	measuring_stop();
 	wall_stop();
 
-	wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-	wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+	wall_x = Math.round(coord_to_grid(mouse_x, true) / grid_cell_size);
+	wall_y = Math.round(coord_to_grid(mouse_y, true) / grid_cell_size);
 
 	var type = (key == 'wall_create') ? 'wall' : 'wall window';
 	var transparent = (key == 'wall_create') ? 'no' : 'yes';
@@ -1115,8 +1155,8 @@ function wall_create_command(key) {
 
 		var pos_x = wall_x;
 		var pos_y = wall_y;
-		var end_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-		var end_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+		var end_x = Math.round(coord_to_grid(mouse_x, true) / grid_cell_size);
+		var end_y = Math.round(coord_to_grid(mouse_y, true) / grid_cell_size);
 
 		var diff_x = Math.abs(end_x - pos_x);
 		var diff_y = Math.abs(end_y - pos_y);
@@ -1165,8 +1205,8 @@ function wall_create_command(key) {
 		wall_create_action(pos_x, pos_y, length, direction, key == 'window_create');
 
 		if (ctrl_down) {
-			wall_x = coord_to_grid(mouse_x, true) / grid_cell_size;
-			wall_y = coord_to_grid(mouse_y, true) / grid_cell_size;
+			wall_x = Math.round(coord_to_grid(mouse_x, true) / grid_cell_size);
+			wall_y = Math.round(coord_to_grid(mouse_y, true) / grid_cell_size);
 
 			var type = (key == 'wall_create') ? 'wall' : 'wall window';
 			var wall = '<div id="new_wall" class="' + type + '" pos_x="' + wall_x + '" pos_y="' + wall_y + '" length="0" direction="horizontal" transparent="' + transparent + '" />';
@@ -1284,8 +1324,8 @@ function zone_init_presence() {
 function zone_create(width, height, color, opacity, group, altitude) {
 	$.post('/object/create_zone', {
 		map_id: map_id,
-		pos_x: zone_x / grid_cell_size,
-		pos_y: zone_y / grid_cell_size,
+		pos_x: Math.round(zone_x / grid_cell_size),
+		pos_y: Math.round(zone_y / grid_cell_size),
 		width: width,
 		height: height,
 		color: color,
@@ -1391,8 +1431,9 @@ function collectables_select(obj) {
 		});
 
 		var wf_collectables = $(body).windowframe({
-			style: 'default',
+			style: 'primary',
 			header: 'Collectables',
+			info: 'There is where place a collectable in a token on the map. A collectable is an object that players can find. When found, the collectable is added to the player\'s inventory.</p></p>Before you can assign a collectable to a token, you first have to create it. This can be done in the <a href="/vault/collectable">Collectables section</a> of the DM\'s Vault.',
 			buttons: {
 				'Save': function() {
 					var collectable_id = $('div.collectables select').val();
@@ -1444,9 +1485,12 @@ function context_menu_handler(key) {
 			collectables_select(obj);
 			break;
 		case 'coordinates':
-			var pos_x = coord_to_grid(mouse_x, false) / grid_cell_size;
-			var pos_y = coord_to_grid(mouse_y, false) / grid_cell_size;
+			var pos_x = Math.round(coord_to_grid(mouse_x, false) / grid_cell_size);
+			var pos_y = Math.round(coord_to_grid(mouse_y, false) / grid_cell_size);
 			write_sidebar('Coordinates: ' + pos_x + ', ' + pos_y);
+			break;
+		case 'damage':
+			object_damage(obj);
 			break;
 		case 'delete':
 			cauldron_confirm('Delete object?', function() {
@@ -1510,7 +1554,7 @@ function context_menu_handler(key) {
 				ruler_position(to_x, to_y);
 			});
 
-			$('div.playarea').on('click', function(event) {
+			$('div.playarea').one('click', function(event) {
 				measuring_stop();
 			});
 
@@ -1610,27 +1654,28 @@ function context_menu_handler(key) {
 			break;
 		case 'fow':
 			if (fow_obj == null) {
-				fog_of_war_set_distance(0);
-				var distance = $('div.fog_of_war').attr('distance');
-				if ((distance = prompt('Fog of War distance (leave empty for unlimited distance):', distance)) != undefined) {
-					if (distance != '') {
+				if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
+					var distance = $('div.fog_of_war').attr('distance');
+
+					if ((distance = prompt('Fog of War distance:', distance)) != undefined) {
 						distance = parseInt(distance);
 						if (isNaN(distance)) {
 							write_sidebar('Invalid distance.');
+							break;
 						} else if (distance < 1) {
 							write_sidebar('Invalid distance.');
-						} else {
-							fog_of_war_set_distance(distance);
-							$('img.light').each(function() {
-								fog_of_war_light($(this));
-							});
+							break;
 						}
-					}
 
+						fog_of_war_init(LAYER_FOG_OF_WAR);
+						fog_of_war_set_distance(distance);
+					}
+				} else {
 					fog_of_war_init(LAYER_FOG_OF_WAR);
-					fog_of_war_update(obj);
-					fow_obj = obj;
 				}
+
+				fog_of_war_update(obj);
+				fow_obj = obj;
 			} else if (obj.is(fow_obj)) {
 				fog_of_war_destroy();
 				fow_obj = null;
@@ -1643,8 +1688,8 @@ function context_menu_handler(key) {
 			object_info(obj);
 			break;
 		case 'light_create':
-			var pos_x = coord_to_grid(mouse_x, false) / grid_cell_size;
-			var pos_y = coord_to_grid(mouse_y, false) / grid_cell_size;
+			var pos_x = Math.round(coord_to_grid(mouse_x, false) / grid_cell_size);
+			var pos_y = Math.round(coord_to_grid(mouse_y, false) / grid_cell_size);
 
 			wf_light_create = $('<div><label for="light_new">Light radius:</label><input id="light_new" type="text" value="3" class="form-control" /></div>').windowframe({
 				width: 530,
@@ -1658,7 +1703,10 @@ function context_menu_handler(key) {
 							write_sidebar('Invalid radius.');
 							return;
 						} else if (radius < 0) {
-							write_sidebar('Invalid radius.');
+							write_sidebar('Invalid radius (negative).');
+							return;
+						} else if (radius > 250) {
+							write_sidebar('Invalid radius (too large).');
 							return;
 						}
 
@@ -1699,7 +1747,6 @@ function context_menu_handler(key) {
 							obj.attr('title', 'Radius: ' + obj.attr('radius'));
 
 							if (fow_obj != null) {
-								fog_of_war_light(obj);
 								fog_of_war_update(fow_obj);
 							}
 						});

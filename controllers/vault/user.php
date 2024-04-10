@@ -16,7 +16,12 @@
 			handle_table_sort("adminuser_order", array("id", "username", "fullname", "email", "status"), array("username", "id"));
 			$paging = new \Banshee\pagination($this->view, "admin_users", $this->settings->admin_page_size, $user_count);
 
-			$users = $this->model->get_users($_SESSION["adminuser_order"], $paging->offset, $paging->size);
+			if ($user_count == 0) {
+				$users = array();
+			} else {
+				$users = $this->model->get_users($_SESSION["adminuser_order"], $paging->offset, $paging->size);
+			}
+
 			$roles = $this->model->get_roles();
 			if (($users === false) || ($roles === false)) {
 				$this->view->add_tag("result", "Database error.");
@@ -42,7 +47,9 @@
 			}
 			$this->view->close_tag();
 
-			$paging->show_browse_links();
+			if (empty($_SESSION["user_search"])) {
+				$paging->show_browse_links();
+			}
 
 			$this->view->close_tag();
 		}
@@ -116,6 +123,10 @@
 		}
 
 		public function execute() {
+			if (isset($_GET["order"]) == false) {
+				$_SESSION["user_search"] = null;
+			}
+
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				if ($_POST["submit_button"] == "Save user") {
 					/* Fix password
@@ -180,6 +191,11 @@
 						$this->user->log_action("user %s deleted", $username);
 						$this->show_user_overview();
 					}
+				} else if ($_POST["submit_button"] == "search") {
+					/* Search
+					 */
+					$_SESSION["user_search"] = $_POST["search"];
+					$this->show_user_overview();
 				} else {
 					$this->show_user_overview();
 				}

@@ -40,8 +40,23 @@
 				$query .= "where organisation_id=%d ";
 				array_push($args, $this->user->organisation_id);
 			}
-			$query .= "order by %S,%S limit %d,%d";
-			array_push($args, $order, $offset, $limit);
+
+			if (empty($_SESSION["user_search"]) == false) {
+				$search_columns = array("username", "fullname", "email");
+				foreach ($search_columns as $i => $column) {
+					$search_columns[$i] = $column." like %s";
+					array_push($args, "%".$_SESSION["user_search"]."%");
+				}
+				$query .= " having (".implode(" or ", $search_columns).")";
+			}
+
+			$query .= " order by %S,%S";
+			array_push($args, $order);
+
+			if (empty($_SESSION["user_search"])) {
+				$query .= " limit %d,%d";
+				array_push($args, $offset, $limit);
+			};
 
 			if (($users = $this->db->execute($query, $args)) === false) {
 				return false;

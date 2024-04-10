@@ -6,6 +6,22 @@ function array_remove(arr, val) {
 	return arr;
 }
 
+function url_encode(uri) {
+	if (uri != undefined) {
+		var parts = uri.split('/');
+
+		parts.forEach(function(value, key) {
+			value = encodeURIComponent(value);
+			value = value.replace(/'/g, '%27');
+			parts[key] = value;
+		});
+
+		uri = parts.join('/');
+	}
+
+	return uri;
+}
+
 /* Dialogs windows
  */
 function cauldron_alert(message, title = 'Cauldron alert', callback_close = undefined) {
@@ -92,6 +108,10 @@ function cauldron_confirm(message, callback_yes, callback_no = undefined) {
 }
 
 function cauldron_prompt(message, input, callback_okay, callback_cancel = undefined) {
+	cauldron_info_prompt(null, message, input, callback_okay, callback_cancel);
+}
+
+function cauldron_info_prompt(info, message, input, callback_okay, callback_cancel = undefined) {
 	var dialog =
 		'<div class="cauldron_dialog">' +
 		'<label>' + message + '</label>' + 
@@ -99,8 +119,14 @@ function cauldron_prompt(message, input, callback_okay, callback_cancel = undefi
 		'<div class="btn-group">' +
 		'<input type="button" value="Ok" class="btn btn-default" />' +
 		'<input type="button" value="Cancel" class="btn btn-default" />' +
-		'</div>' +
 		'</div>';
+	
+	if (info != null) {
+		dialog += '<div style="margin-top:15px">' + info + '</div>';
+	}
+
+	dialog += '</div>';
+
 	var prompt_window = $(dialog).windowframe({
 		header: 'Input',
 		width: 500,

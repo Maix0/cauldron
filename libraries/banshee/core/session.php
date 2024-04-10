@@ -197,7 +197,7 @@
 				"domain"   => "",
 				"secure"   => is_true(ENFORCE_HTTPS),
 				"httponly" => true,
-				"samesite" => "strict");
+				"samesite" => "lax");
 			setcookie(self::SESSION_NAME, $this->session_id, $options);
 			$_COOKIE[self::SESSION_NAME] = $this->session_id;
 
@@ -250,7 +250,7 @@
 				"domain"   => "",
 				"secure"   => is_true(ENFORCE_HTTPS),
 				"httponly" => true,
-				"samesite" => "strict");
+				"samesite" => "lax");
 			setcookie(self::SESSION_LOGIN, $login_id, $options);
 			$_COOKIE[self::SESSION_LOGIN] = $login_id;
 

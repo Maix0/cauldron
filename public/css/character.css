@@ -82,6 +82,9 @@ div.alternate {
 
 div.alternate img.token {
 	width:100%;
+}
+
+div.alternate img.token.topdown {
 	transform:rotate(180deg);
 }
 

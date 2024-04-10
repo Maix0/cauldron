@@ -1,18 +1,19 @@
 const FOW_COLOR = '#202020';
-const CELL_PADDING = 0.25;
-const POINTS_VISIBLE = 2;
+const FOW_CELL_PADDING = 0.25;
+const FOW_POINTS_VISIBLE = 2;
+const FOW_DISTANCE_ADJUST = -0.4;
 
 var fog_of_war_map_width = null;
 var fog_of_war_map_height = null;
 var fog_of_war_checks = [
 	[1, 0.5, 0.5],
-	[2, 0.5, CELL_PADDING],
-	[4, 1 - CELL_PADDING, 0.5],
-	[8, 0.5, 1 - CELL_PADDING],
-	[16, CELL_PADDING, 0.5]];
+	[2, 0.5, FOW_CELL_PADDING],
+	[4, 1 - FOW_CELL_PADDING, 0.5],
+	[8, 0.5, 1 - FOW_CELL_PADDING],
+	[16, FOW_CELL_PADDING, 0.5]];
 var fog_of_war_spot_max = null;
 var fog_of_war_distance = 0;
-var fog_of_war_lights = {};
+var fog_of_war_lights = null;
 
 /* Check if two lines cross
  */
@@ -163,20 +164,16 @@ function enlightened(x, y) {
 		top: y
 	}
 
-	for (var key in fog_of_war_lights) {
-		var light = fog_of_war_lights[key];
+	var enlight = false;
 
-		if (light[3] == 'off') {
-			continue;
+	for (light of fog_of_war_lights) {
+		var light_pos = {
+			left: light[0],
+			top: light[1]
 		}
+		var radius = light[2];
 
 		var light_spot = fog_of_war_spot_max;
-		var light_pos = {
-			left: light[0] + (grid_cell_size >> 1),
-			top: light[1] + (grid_cell_size >> 1)
-		}
-		var radius = light[2] * grid_cell_size;
-
 		var light_altitude = 0;
 
 		if (distance(light_pos, x, y) > radius) {
@@ -219,10 +216,10 @@ function enlightened(x, y) {
 			light_spot >>= 1;
 		}
 
-		if (fog_of_war_bits >= POINTS_VISIBLE) {
+		if (fog_of_war_bits >= FOW_POINTS_VISIBLE) {
 			return true;
 		}
-	}
+	};
 
 	return false;
 }
@@ -251,36 +248,46 @@ function fog_of_war_init(z_index) {
 
 function fog_of_war_set_distance(distance) {
 	if (distance > 0) {
-		distance = (distance + 0.7) * grid_cell_size;
+		distance = Math.round((distance + FOW_DISTANCE_ADJUST) * grid_cell_size);
 	}
 
 	fog_of_war_distance = distance;
-}
-
-function fog_of_war_light(light) {
-	var id = light.prop('id');
-	var state = light.attr('state');
-
-	if (state == 'delete') {
-		delete fog_of_war_lights[id];
-	} else {
-		var pos = object_position(light);
-		var radius = parseInt(light.attr('radius'));
-
-		if (isNaN(radius)) {
-			return;
-		}
-
-		radius += 0.7;
-
-		fog_of_war_lights[id] = [pos.left, pos.top, radius, state];
-	}
 }
 
 function fog_of_war_update(obj) {
 	if (fog_of_war_spot_max == null) {
 		return;
 	}
+
+	fog_of_war_lights = [];
+
+	$('.light').each(function() {
+		if ($(this).attr('state') != 'on') {
+			return true;
+		}
+
+		var pos = object_position($(this));
+		pos.left += (grid_cell_size >> 1);
+		pos.top += (grid_cell_size >> 1);
+
+		var radius = (parseInt($(this).attr('radius')) + FOW_DISTANCE_ADJUST) * grid_cell_size;
+
+		fog_of_war_lights.push([pos.left, pos.top, radius]);
+	});
+
+	$('div.character').each(function() {
+		if ($(this).attr('light') == '0') {
+			return true;
+		}
+
+		var pos = object_position($(this));
+		pos.left += (grid_cell_size >> 1);
+		pos.top += (grid_cell_size >> 1);
+
+		var radius = (parseInt($(this).attr('light')) + FOW_DISTANCE_ADJUST) * grid_cell_size;
+
+		fog_of_war_lights.push([pos.left, pos.top, radius]);
+	});
 
 	var pos = object_position(obj);
 
@@ -315,6 +322,8 @@ function fog_of_war_update(obj) {
 		}
 	}
 
+	/* Walls
+	 */
 	$('div.wall').each(function() {
 		if ($(this).attr('transparent') == 'yes') {
 			return true;
@@ -323,6 +332,8 @@ function fog_of_war_update(obj) {
 		fog_of_war_spots = check_vision(char_pos, $(this), fog_of_war_spots);
 	});
 
+	/* Doors
+	 */
 	$('div.door').each(function() {
 		if ($(this).attr('state') == 'open') {
 			return true;
@@ -333,6 +344,8 @@ function fog_of_war_update(obj) {
 		fog_of_war_spots = check_vision(char_pos, $(this), fog_of_war_spots);
 	});
 
+	/* Zones
+	 */
 	$('div.zone').each(function() {
 		var zone_altitude = $(this).attr('altitude');
 		if (zone_altitude <= my_altitude) {
@@ -370,7 +383,7 @@ function fog_of_war_update(obj) {
 				fog_of_war_cell >>= 1;
 			}
 
-			if (fog_of_war_bits < POINTS_VISIBLE) {
+			if (fog_of_war_bits < FOW_POINTS_VISIBLE) {
 				$('div#fog_of_war_' + x + '_' + y).show();
 			} else {
 				$('div#fog_of_war_' + x + '_' + y).hide();

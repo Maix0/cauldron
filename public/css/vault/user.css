@@ -36,3 +36,11 @@ div#as_dialog {
 		display:none;
 	}
 }
+
+@media (min-width:768px) {
+	form.search {
+		float:right;
+		margin-top:-45px;
+		margin-right:150px;
+	}
+}

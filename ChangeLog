@@ -1,3 +1,14 @@
+cauldron (3.5) stable; urgency=low
+
+  * Added pictures window.
+  * Added player lights.
+  * Added extra help information.
+  * Spells and dice roll options in Story module.
+  * Support for portrait NPC/monster tokens.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 10 Apr 2024 08:51:34 +0200
+
 cauldron (3.4) stable; urgency=low
 
   * Added spells information window.

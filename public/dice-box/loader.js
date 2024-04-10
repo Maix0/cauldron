@@ -1,3 +1,5 @@
+const DICEBOX_INCLUDED = true;
+
 $(document).ready(function() {
 	$('head').append('<link rel="stylesheet" type="text/css" href="/dice-box/stylesheet.css">');
 	$('body').prepend('<div id="dice-box"></div>');

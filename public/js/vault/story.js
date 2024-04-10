@@ -1,3 +1,18 @@
+const dungeon_master = true;
+
+function write_sidebar(message) {
+	cauldron_alert(message);
+
+	var container = $('div.diceroll').parent().parent();
+
+	if (container.find('div.history').length == 0) {
+		container.append('<h2>Previous rolls</h2>');
+		container.append('<div class="history"></div>');
+	}
+
+	container.find('div.history').prepend('<pre>' + message + '</pre>');
+}
+
 function sortable_events() {
 	var adventure_id = $('form.adventures_pulldown select').val();
 

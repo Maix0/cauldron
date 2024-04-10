@@ -34,7 +34,7 @@
 </div>
 
 <xsl:if test="count(characters/character)&lt;characters/@max">
-<div class="btn-group left">
+<div class="btn-group">
 <a href="/{/output/page}/new" class="btn btn-default">New character</a>
 </div>
 </xsl:if>
@@ -105,7 +105,8 @@
 </form>
 
 <div id="help">
-<p>When uploading a token image, you must set the right token type. Each type is controlled via the keyboard in a different way. With a portrait token, W is always up, S is always down, A is always left an D is always right. With a top-down token, you can use the same keys, but which direction the token moves depends on the direction the token is looking. A top-down token is rotated via Q and E.</p>
+<p><b>Token image:</b> When uploading a token image, you must set the right token type. Each type is controlled via the keyboard in a different way. With a portrait token, W is always up, S is always down, A is always left an D is always right. With a top-down token, you can use the same keys, but which direction the token moves depends on the direction the token is looking. A top-down token is rotated via Q and E.</p>
+<p>The <a href="/manual#character">online manual</a> explains the differences between the token types.</p>
 <p>You can change your keyboard layout in your <a href="/account">account settings</a>. Cauldron VTT supports Azerty, Qwerty and Qwertz keyboards.</p>
 </div>
 </xsl:template>
@@ -127,7 +128,7 @@
 <input type="text" id="name" name="name" value="{../name}" maxlength="25" class="form-control" />
 <label for="size">Size:</label>
 <select name="size" class="form-control"><xsl:for-each select="sizes/size"><option value="{@value}"><xsl:if test="../../../size=@value"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if><xsl:value-of select="." /></option></xsl:for-each></select>
-<label for="token">Alternate token (make sure the token is facing down):</label>
+<label for="token">Alternate token image (use same type as character's token!):</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
 <input type="file" name="token" style="display:none" class="form-control" onChange="$('#upload-token').val(this.files[0].name)" />Select image</label></span>
@@ -144,11 +145,15 @@
 <div class="col-sm-8">
 <div class="row">
 <xsl:for-each select="alternate">
-<div class="col-md-3 col-sm-4 col-xs-6"><div class="alternate"><img src="/resources/{/output/cauldron/resources_key}/characters/{character_id}_{@id}.{extension}" class="token" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="token_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
+<div class="col-md-3 col-sm-4 col-xs-6"><div class="alternate"><img src="/resources/{/output/cauldron/resources_key}/characters/{character_id}_{@id}.{extension}" class="token {token_type}" /><span><xsl:value-of select="name" /></span><span><xsl:value-of select="size" /></span><form action="/{/output/page}" method="post"><input type="hidden" name="token_id" value="{@id}" /><input type="submit" name="submit_button" value="delete" class="btn btn-default btn-xs" onClick="javascript:return confirm('DELETE: Are you sure?')" /></form></div></div>
 </xsl:for-each>
 </div>
 </div>
 
+</div>
+
+<div id="help">
+<p>Make sure you only use tokens images of the same type as the character's token image. If your character has a top-down token image, only use top-down tokens images here. If your character has a portrait token image, only use portrait tokens images here.</p>
 </div>
 </xsl:template>
 
@@ -195,8 +200,8 @@
 </div>
 
 <div id="help">
-<p>The weapons and their dice rolls will be added to the Dice roll window when you're playing an adventure.</p>
-<p>The roll field must contain a valid dice roll string, like '1d8+2' or '3d6'.</p>
+<p>Add your character's weapons and their damage rolls. These weapons will be added as blue buttons to the Dice roll window during a session.</p>
+<p>The roll field must contain a valid dice roll, like '1d8+2' or '3d6'.</p>
 <p>You can of course also add rolls for spells and even ability checks here.</p>
 </div>
 </xsl:template>

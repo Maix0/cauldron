@@ -18,6 +18,14 @@
 //
 //-->
 <xsl:template match="overview">
+<form action="/{/output/page}" method="post" class="search">
+<div class="input-group">
+<input type="text" id="search" name="search" value="{@search}" placeholder="Search" class="form-control" />
+<span class="input-group-btn"><input type="button" value="X" class="btn btn-default" onClick="javascript:$('input#search').val(''); $(this).parent().parent().parent().submit();" /></span>
+</div>
+<input type="hidden" name="submit_button" value="search" />
+</form>
+
 <table class="table table-striped table-hover table-condensed">
 <thead>
 <tr>

@@ -29,6 +29,8 @@
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("adventures.js");
 
+			$this->view->add_help_button();
+
 			$this->view->open_tag("adventures", array("is_dm" => $is_dm));
 			foreach ($adventures as $adventure) {
 				$adventure["image"] = $this->model->resource_path($adventure["image"]);
@@ -190,6 +192,7 @@
 				$this->view->add_javascript("includes/context_menu.js");
 				$this->view->add_javascript("includes/library.js");
 				$this->view->add_javascript("includes/script.js");
+				$this->view->add_javascript("includes/dice_roll.js");
 				$this->view->add_javascript("includes/combat.js");
 				$this->view->add_javascript("includes/spells.js");
 				$this->view->add_javascript("includes/spell_effect_area.js");
@@ -215,6 +218,7 @@
 				$this->view->add_css("webui/jquery-ui.css");
 				$this->view->add_css("banshee/font-awesome.css");
 				$this->view->add_css("includes/context_menu.css");
+				$this->view->add_css("includes/dice_roll.css");
 				$this->view->add_css("includes/combat.css");
 				$this->view->add_css("includes/spells.css");
 			}
@@ -349,8 +353,6 @@
 						} else if ($zone["opacity"] > 0.8) {
 							$zone["opacity"] = 0.8;
 						}
-					} else {
-						//unset($zone["script"]);
 					}
 					$this->view->record($zone, "zone");
 				}
@@ -399,11 +401,11 @@
 					$character["perc"] = round(100 * $character["damage"] / $character["hitpoints"]);
 					$character["orig_src"] = "characters/".$character["id"].".".$character["extension"];
 					if ($character["token_id"] != null) {
-						$character["src"] = "tokens/".$character["token_id"].".".$character["extension"];
+						$character["src"] = "tokens/".$character["token_id"].".".$character["token_extension"];
 						$character["width"] *= $character["token_size"];
 						$character["height"] *= $character["token_size"];
 					} else if ($character["alternate_id"] != null) {
-						$character["src"] = "characters/".$character["id"]."_".$character["alternate_id"].".".$character["extension"];
+						$character["src"] = "characters/".$character["id"]."_".$character["alternate_id"].".".$character["alternate_extension"];
 						$character["width"] *= $character["alternate_size"];
 						$character["height"] *= $character["alternate_size"];
 					} else {
@@ -503,6 +505,30 @@
 			$this->view->close_tag();
 		}
 
+		private function show_picture_directories() {
+			if (($directories = $this->model->get_picture_directories()) === false) {
+				return false;
+			}
+
+			$this->view->open_tag("directories");
+			foreach ($directories as $directory) {
+				$this->view->add_tag("directory", $directory);
+			}
+			$this->view->close_tag();
+		}
+
+		private function show_pictures() {
+			if (($files = $this->model->get_pictures($_POST["directory"])) === false) {	
+				return false;
+			}
+
+			$this->view->open_tag("files");
+			foreach ($files as $file) {
+				$this->view->add_tag("file", $file);
+			}
+			$this->view->close_tag();
+		}
+
 		public function execute() {
 			$this->view->title = "Adventures";
 
@@ -511,6 +537,10 @@
 					$this->show_map_resources();
 				} else if ($this->page->parameter_value(0, "audio")) {
 					$this->show_audio_resources();
+				} else if ($this->page->parameter_value(0, "picture_directories")) {
+					$this->show_picture_directories();
+				} else if ($this->page->parameter_value(0, "pictures")) {
+					$this->show_pictures();
 				}
 			} else if ($this->page->parameter_numeric(0)) {
 				$this->run_adventure($this->page->parameters[0]);
