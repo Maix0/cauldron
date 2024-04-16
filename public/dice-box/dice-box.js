@@ -21,7 +21,11 @@ Box.onRollComplete = function(rollResult) {
 	var results = [];
 	rollResult.forEach(function(dice) {
 		dice.rolls.forEach(function(roll) {
-			results.push(roll.value);
+			if ((roll.sides == 'd10') && (roll.value == 0)) {
+				results.push(10);
+			} else {
+				results.push(roll.value);
+			}
 		});
 	});
 
