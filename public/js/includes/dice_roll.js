@@ -17,11 +17,14 @@ function dice_roll_quick(dice, addition, callback) {
 
 	for (i = 0; i < dice.length; i++) {
 		var parts = dice[i].split('d');
+
 		var count = parseInt(parts[0]);
 		var sides = parseInt(parts[1]);
-		var roll = Math.floor(Math.random() * sides) + 1;
 
-		result.push(roll);
+		for (c = 0; c < count; c++) {
+			var roll = Math.floor(Math.random() * sides) + 1;
+			result.push(roll);
+		}
 	}
 
 	callback(result, addition);
