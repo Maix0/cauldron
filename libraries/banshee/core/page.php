@@ -180,7 +180,7 @@
 		 * OUTPUT: string module identifier
 		 * ERROR:  null
 		 */
-		private function module_on_disk($url, $pages) {
+		public function module_on_disk($url, $pages) {
 			$module = null;
 			$url_parts = explode("/", $url);
 

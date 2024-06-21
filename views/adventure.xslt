@@ -20,28 +20,39 @@ Create a character if you haven't yet done so. To create a new character, click 
 <img src="/images/cauldron.png" class="cauldron" />
 <p>This is the page where you and your players will see an overview of the adventures you have created. At the momment, you have no adventures. You have several options to create a new adventure.</p>
 
-<div class="options">
-<div>
-<img src="/images/icons/cauldey.png" />
-<div>Ask Cauldey to guide you through Cauldron VTT. In a few easy steps, you will create your first adventure in a minute. This is the best choice when you're new to Cauldron VTT.</div>
-<div><a href="/cauldey" class="btn btn-primary btn-xs">Choose this option</a></div>
+<div class="row options"><div class="col-lg-6 col-md-12">
+
+<div class="panel panel-default">
+<div class="panel-heading">Be guided</div>
+<div class="panel-body"><img src="/images/icons/cauldey.png" />Ask Cauldey to guide you through Cauldron VTT. In a few easy steps, you will create your first adventure in a minute. This is the best choice when you're new to Cauldron VTT.</div>
+<div class="panel-footer"><a href="/cauldey" class="btn btn-primary btn-xs">Choose this option</a></div>
 </div>
-<div>
-<img src="/images/icons/adventure.png" />
-<div>Go to the adventure market and import one of the available adventures with a single click. Choose this when you came here for the Curse of Strahd or the Lost Mine of Phandelver adventure.</div>
-<div><a href="/vault/adventure/market" class="btn btn-primary btn-xs">Choose this option</a></div>
+
+</div><div class="col-lg-6 col-md-12">
+
+<div class="panel panel-default">
+<div class="panel-heading">Import an adventure</div>
+<div class="panel-body"><img src="/images/icons/adventure.png" />Go to the adventure market and import one of the available adventures with a single click. Choose this when you came here for the Curse of Strahd or the Lost Mine of Phandelver adventure.</div>
+<div class="panel-footer"><a href="/vault/adventure/market" class="btn btn-primary btn-xs">Choose this option</a></div>
 </div>
-<div>
-<img src="/images/icons/manual.png" />
-<div>Learn how Cauldron VTT works by reading the online manual and create your adventure on your own. Reading the manual is of course always good a good idea.</div>
-<div><a href="/manual#creating" class="btn btn-primary btn-xs">Choose this option</a></div>
+
+</div><div class="col-lg-6 col-md-12">
+
+<div class="panel panel-default">
+<div class="panel-heading">Read the manual</div>
+<div class="panel-body"><img src="/images/icons/manual.png" />Learn how Cauldron VTT works by reading the online manual and create an adventure on your own. Reading the manual is of course always good a good idea.</div>
+<div class="panel-footer"><a href="/manual#creating" class="btn btn-primary btn-xs">Choose this option</a></div>
 </div>
-<div>
-<img src="/images/cauldron.png" />
-<div>Go to the Dungeon Master's Vault and explore Cauldron VTT on your own. Only choose this when you're handy with computers and VTTs in general.</div>
-<div><a href="/vault" class="btn btn-primary btn-xs">Choose this option</a></div>
+
+</div><div class="col-lg-6 col-md-12">
+
+<div class="panel panel-default">
+<div class="panel-heading">Explorer on your own</div>
+<div class="panel-body"><img src="/images/cauldron.png" />Go to the Dungeon Master's Vault and explore Cauldron VTT on your own. Only choose this when you're handy with computers and VTTs in general.</div>
+<div class="panel-footer"><a href="/vault" class="btn btn-primary btn-xs">Choose this option</a></div>
 </div>
-</div>
+
+</div></div>
 
 <p>I would appreciate it if you <a href="/questionnaire/1">answer a few questions</a> about Cauldron VTT. I will take less than a minute.</p>
 </xsl:if>
@@ -135,6 +146,16 @@ Create a character if you haven't yet done so. To create a new character, click 
 <div><label>Attack bonus:</label><input type="text" value="0" class="form-control" /></div>
 <div><label>Attack type:</label><select class="form-control"><option>Normal</option><option>Advantage</option><option>Disadvantage</option></select></div>
 </div>
+<!-- Conditions -->
+<div class="conditions">
+<xsl:for-each select="conditions/condition">
+<div con_id="{@id}"><xsl:value-of select="." /></div>
+</xsl:for-each>
+</div>
+<!-- DM notes -->
+<xsl:if test="map/dm_notes!=''">
+<div class="dm_notes"><xsl:value-of disable-output-escaping="yes" select="map/dm_notes" /></div>
+</xsl:if>
 <!-- Journal -->
 <div class="journal" style="display:none">
 <div class="input-group">
@@ -152,16 +173,6 @@ Create a character if you haven't yet done so. To create a new character, click 
 <div class="col-xs-10"><textarea class="form-control"></textarea></div>
 <div class="col-xs-2"><button class="btn btn-default journal_write">Add</button></div>
 </div>
-</div>
-<!-- DM notes -->
-<xsl:if test="map/dm_notes!=''">
-<div class="dm_notes"><xsl:value-of disable-output-escaping="yes" select="map/dm_notes" /></div>
-</xsl:if>
-<!-- Conditions -->
-<div class="conditions">
-<xsl:for-each select="conditions/condition">
-<div con_id="{@id}"><xsl:value-of select="." /></div>
-</xsl:for-each>
 </div>
 <!-- Zone create -->
 <xsl:call-template name="zone_create" />
@@ -182,16 +193,38 @@ Create a character if you haven't yet done so. To create a new character, click 
 </xsl:text></xsl:if>
 <!-- Night mode -->
 <div class="night"></div>
-<!-- Grid -->
-<div class="grid"></div>
 <!-- Drawing -->
 <div class="drawing">
-<canvas id="spell-effect-area" width="{map/width}" height="{map/height}" />
+<canvas id="drawing" width="{map/width}" height="{map/height}" />
 </div>
+<!-- Grid -->
+<div class="grid"></div>
 <!-- Zones -->
 <div class="zones">
 <xsl:for-each select="zones/zone">
 <div id="zone{@id}" class="zone" altitude="{altitude}" style="left:{pos_x}px; top:{pos_y}px; background-color:{color}; width:{width}px; height:{height}px; opacity:{opacity};"><xsl:if test="group!=''"><xsl:attribute name="group"><xsl:value-of select="group" /></xsl:attribute></xsl:if><xsl:if test="script!=''"><div class="script"><xsl:value-of select="script" /></div></xsl:if></div>
+</xsl:for-each>
+</div>
+<!-- Effects -->
+<div class="effects"></div>
+<!-- Tokens -->
+<div class="tokens">
+<xsl:for-each select="tokens/token">
+<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; width:{width}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" token_type="{token_type}" name="{name}">
+<xsl:if test="c_id!='' and c_found='no'">
+<xsl:attribute name="c_id"><xsl:value-of select="c_id" /></xsl:attribute>
+<xsl:attribute name="c_name"><xsl:value-of select="c_name" /></xsl:attribute>
+<xsl:attribute name="c_src"><xsl:value-of select="c_src" /></xsl:attribute>
+<xsl:attribute name="c_hide"><xsl:value-of select="c_hide" /></xsl:attribute>
+</xsl:if>
+<xsl:if test="perc">
+<div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
+</xsl:if>
+<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="height:{height}px;" draggable="false" />
+<xsl:if test="name!=''">
+<span class="name" known="{known}"><xsl:value-of select="name" /></span>
+</xsl:if>
+</div>
 </xsl:for-each>
 </div>
 <!-- Walls -->
@@ -206,52 +239,24 @@ Create a character if you haven't yet done so. To create a new character, click 
 <div id="door{@id}" class="door" pos_x="{pos_x}" pos_y="{pos_y}" length="{length}" direction="{direction}" state="{state}" secret="{secret}" bars="{bars}" />
 </xsl:for-each>
 </div>
-<!-- Lights -->
-<div class="lights">
-<xsl:for-each select="lights/light">
-<div id="light{@id}" class="light" radius="{radius}" state="{state}" style="left:{pos_x}px; top:{pos_y}px; width:{../../grid_cell_size}px; height:{../../grid_cell_size}px;" />
-</xsl:for-each>
-</div>
 <!-- Blinders -->
 <div class="blinders">
 <xsl:for-each select="blinders/blinder">
 <div id="blinder{@id}" class="blinder" pos1_x="{pos1_x}" pos1_y="{pos1_y}" pos2_x="{pos2_x}" pos2_y="{pos2_y}" />
 </xsl:for-each>
 </div>
-<!-- Tokens -->
-<div class="tokens">
-<xsl:for-each select="tokens/token">
-<div id="token{instance_id}" class="token" style="left:{pos_x}px; top:{pos_y}px; width:{width}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" token_type="{token_type}">
-<xsl:if test="c_id!='' and c_found='no'">
-<xsl:attribute name="c_id"><xsl:value-of select="c_id" /></xsl:attribute>
-<xsl:attribute name="c_name"><xsl:value-of select="c_name" /></xsl:attribute>
-<xsl:attribute name="c_src"><xsl:value-of select="c_src" /></xsl:attribute>
-<xsl:attribute name="c_hide"><xsl:value-of select="c_hide" /></xsl:attribute>
-</xsl:if>
-<xsl:if test="perc">
-<div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-</xsl:if>
-<img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="height:{height}px;" />
-<xsl:if test="name!=''">
-<span class="name"><xsl:value-of select="name" /></span>
-</xsl:if>
-</div>
-</xsl:for-each>
-</div>
-<!-- Effects -->
-<div class="effects"></div>
-<!-- Shape change -->
-<div class="shape_change">
-<xsl:for-each select="shape_change/token">
-<div shape_id="{@id}" size="{size}" extension="{extension}" token_type="{token_type}"><xsl:value-of select="name" /></div>
+<!-- Lights -->
+<div class="lights">
+<xsl:for-each select="lights/light">
+<div id="light{@id}" class="light" radius="{radius}" state="{state}" style="left:{pos_x}px; top:{pos_y}px; width:{../../grid_cell_size}px; height:{../../grid_cell_size}px;" />
 </xsl:for-each>
 </div>
 <!-- Characters -->
 <div class="characters">
 <xsl:for-each select="characters/character">
-<div id="character{instance_id}" char_id="{@id}" class="character" style="left:{pos_x}px; top:{pos_y}px; width:{width}px;" is_hidden="{hidden}" rotation="{rotation}" token_type="{token_type}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" vision="{vision}" light="{light}" sheet="{sheet_url}">
+<div id="character{instance_id}" char_id="{@id}" player="{player}" class="character" style="left:{pos_x}px; top:{pos_y}px; width:{width}px;" is_hidden="{hidden}" rotation="{rotation}" token_type="{token_type}" initiative="{initiative}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" vision="{vision}" light="{light}" sheet="{sheet_url}">
 <div class="hitpoints"><div class="damage" style="width:{perc}%" /></div>
-<img src="/resources/{/output/cauldron/resources_key}/{src}" orig_src="{orig_src}" style="height:{height}px" />
+<img src="/resources/{/output/cauldron/resources_key}/{src}" orig_src="{orig_src}" style="height:{height}px" draggable="false" />
 <span class="name"><xsl:value-of select="name" /></span>
 </div>
 </xsl:for-each>
@@ -260,6 +265,12 @@ Create a character if you haven't yet done so. To create a new character, click 
 <div class="fog_of_war"></div>
 <!-- Markers -->
 <div class="markers"></div>
+</div>
+<!-- Shape change -->
+<div class="shape_change">
+<xsl:for-each select="shape_change/token">
+<div shape_id="{@id}" size="{size}" extension="{extension}" token_type="{token_type}"><xsl:value-of select="name" /></div>
+</xsl:for-each>
 </div>
 <!-- Character alternate icons -->
 <div class="alternates">
@@ -273,6 +284,12 @@ Create a character if you haven't yet done so. To create a new character, click 
 <div roll="{roll}"><xsl:value-of select="name" /></div>
 </xsl:for-each>
 </div>
+</div>
+<!-- Custom dice -->
+<div class="custom-dice">
+<xsl:for-each select="custom_dice/dice">
+<div name="{name}"><xsl:value-of select="sides" /></div>
+</xsl:for-each>
 </div>
 <!-- Drawing tools -->
 <xsl:if test="@is_dm='yes'">

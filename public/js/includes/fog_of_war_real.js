@@ -8,6 +8,8 @@ var fow_canvas = null;
 var fow_ctx = null;
 var fow_image_data = null;
 
+var fow_pattern = null;
+
 function get_edge_pos(obj_x, obj_y, wall_x, wall_y) {
 	var edge_x = 0;
 	var edge_y = 0;
@@ -128,8 +130,8 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 	l_canvas.height = fow_canvas.height;
 	var l_ctx = l_canvas.getContext('2d');
 
-	l_ctx.fillStyle = FOW_COLOR;
-	l_ctx.strokeStyle = FOW_COLOR;
+	l_ctx.fillStyle = fow_pattern;
+	l_ctx.strokeStyle = fow_pattern;
 	l_ctx.lineWidth = 1;
 	l_ctx.fillRect(0, 0, l_canvas.width, l_canvas.height);
 
@@ -147,7 +149,7 @@ function draw_light_sphere(pos_x, pos_y, radius) {
 	l_ctx.fillRect(pos_x - radius, pos_y - radius, 2 * radius, 2 * radius);
 
 	l_ctx.globalCompositeOperation = 'source-over';
-	l_ctx.fillStyle = FOW_COLOR;
+	l_ctx.fillStyle = fow_pattern;
 
 	/* Walls
 	 */
@@ -223,12 +225,30 @@ function fog_of_war_init(z_index) {
 
 	fow_canvas = document.getElementById('fow_real');
 
+	fow_pattern = FOW_COLOR;
+
 	if (fow_ctx == null) {
 		fow_ctx = fow_canvas.getContext('2d');
-		fow_ctx.fillStyle = FOW_COLOR;
-		fow_ctx.strokeStyle = FOW_COLOR;
+		fow_ctx.fillStyle = fow_pattern;
+		fow_ctx.strokeStyle = fow_pattern;
 		fow_ctx.lineWidth = 1;
 	}
+}
+
+function fog_of_war_pattern(pattern, obj) {
+	if (pattern == null) {
+		pattern = '/images/fow.jpg';
+	}
+
+	$('<img src="' + pattern + '" />').on('load', function() {
+		fow_pattern = fow_ctx.createPattern($(this)[0], 'repeat');
+		fow_ctx.fillStyle = fow_pattern;
+		fow_ctx.strokeStyle = fow_pattern;
+
+		if (obj != null) {
+			fog_of_war_update(obj);
+		}
+	});
 }
 
 function fog_of_war_set_distance(distance) {

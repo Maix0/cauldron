@@ -147,13 +147,13 @@
 		}
 
 		public function get_characters($map_id) {
-			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.rotation, i.hidden, i.light, ".
+			$query = "select c.*, i.id as instance_id, i.pos_x, i.pos_y, i.rotation, i.hidden, i.light, u.fullname as player, ".
 			         "a.id as alternate_id, a.extension as alternate_extension, a.size as alternate_size, ".
 					 "t.id as token_id, t.extension as token_extension, t.width as token_size ".
-			         "from characters c, map_character i, maps m, adventure_character l ".
+			         "from characters c, users u, map_character i, maps m, adventure_character l ".
 			         "left join character_icons a on l.alternate_icon_id=a.id ".
 			         "left join tokens t on l.token_id=t.id ".
-			         "where c.id=i.character_id and i.map_id=%d and m.id=i.map_id ".
+			         "where c.id=i.character_id and i.map_id=%d and m.id=i.map_id and c.user_id=u.id ".
 			         "and l.adventure_id=m.adventure_id and l.character_id=c.id ".
 			         "order by id desc";
 
@@ -269,7 +269,7 @@
 		public function get_tokens($map_id) {
 			$query = "select t.id, t.name as type, t.width, t.height, t.extension, t.type as token_type, ".
 			         "c.id as c_id, c.name as c_name, c.image as c_src, hide as c_hide, found as c_found, ".
-			         "i.id as instance_id, i.name, i.pos_x, i.pos_y, i.rotation, i.hidden, i.armor_class, i.hitpoints, i.damage ".
+			         "i.id as instance_id, i.name, i.known, i.pos_x, i.pos_y, i.rotation, i.hidden, i.armor_class, i.hitpoints, i.damage ".
 			         "from tokens t, map_token i ".
 					 "left join collectables c on c.map_token_id=i.id ".
 			         "where t.id=i.token_id and i.map_id=%d order by i.id";
@@ -349,6 +349,12 @@
 			sort($files);
 
 			return $files;
+		}
+
+		public function get_custom_dice($dm_id) {
+			$query = "select * from custom_dice where user_id=%d order by name";
+
+			return $this->db->execute($query, $dm_id);
 		}
 	}
 ?>

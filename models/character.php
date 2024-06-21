@@ -174,6 +174,7 @@
 			$keys = array("id", "user_id", "name", "initiative", "armor_class", "hitpoints", "damage", "vision", "token_type", "extension", "sheet", "sheet_url");
 
 			$character["id"] = null;
+			$character["name"] = substr($character["name"], 0, 20);
 			$character["user_id"] = $this->user->id;
 			$character["initiative"] = (int)$character["initiative"];
 			$character["hitpoints"] = (int)$character["hitpoints"];
@@ -214,6 +215,8 @@
 
 		public function update_character($character, $token, $sheet) {
 			$keys = array("name", "initiative", "armor_class", "hitpoints", "sheet", "sheet_url");
+
+			$character["name"] = substr($character["name"], 0, 20);
 
 			if ($token["error"] == 0) {
 				if (($current = $this->get_character($character["id"])) == false) {

@@ -37,6 +37,9 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 
 						if (flip_y) {
 							e.clientY -= $(this).parent().outerHeight();
+							if (e.clientY < 0) {
+								e.clientY = 0;
+							}
 						}
 
 						if (flip_x) {
@@ -94,6 +97,10 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 
 	if (flip_y) {
 		menu_y -= menu.outerHeight();
+		if (menu_y < 0) {
+			menu_y = 0;
+		}
+
 		if (settings.main == false) {
 			menu_y += 24;
 		}

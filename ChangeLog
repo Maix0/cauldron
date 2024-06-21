@@ -1,3 +1,14 @@
+cauldron (3.6) stable; urgency=low
+
+  * Added custom dice.
+  * Token name optionally visible to players.
+  * Added token ZIP archive upload functionality.
+  * Added whisper command.
+  * Bugfix: a 3D d10 dice roll with value 0 is now seen as 10.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 21 Jun 2024 12:32:47 +0200
+
 cauldron (3.5) stable; urgency=low
 
   * Added pictures window.

@@ -101,7 +101,7 @@
 			if ($_user->logged_in || is_false(HIDE_MENU_FOR_VISITORS)) {
 				/* Normal menu
 				 */
-				$menu = new menu($_database, $_view);
+				$menu = new menu($_database, $_page, $_view);
 				if ($_user->logged_in == false) {
 					$menu->set_start_point("public");
 				} else {

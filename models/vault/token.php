@@ -1,6 +1,6 @@
 <?php
 	class vault_token_model extends Banshee\model {
-		private $columns = array();
+		private $valid_extensions = array("gif", "jpg", "jpeg", "png", "webp");
 
 		public function get_tokens() {
 			$query = "select * from tokens where organisation_id=%d order by name";
@@ -56,7 +56,7 @@
 				}
 			} else {
 				list(, $extension) = explode("/", $image["type"], 2);
-				if (in_array($extension, array("gif", "jpg", "jpeg", "png", "webp")) == false) {
+				if (in_array($extension, $this->valid_extensions) == false) {
 					$this->view->add_message("Invalid image.");
 					$result = false;
 				} else if ($this->user->max_resources > 0) {
@@ -110,6 +110,87 @@
 		public function delete_token($token_id) {
 			$token = new token($this->db, $this->user->organisation_id, $this->user->resources_key);
 			return $token->delete($token_id);
+		}
+
+		public function archive_okay($archive, $post) {
+			$result = true;
+
+			if ($archive["error"] != 0) {
+				$this->view->add_message("Error uploading archive.");
+				$result = false;
+			} else {
+				$pathinfo = pathinfo($archive["name"]);
+				if ($pathinfo["extension"] != "zip") {
+					$this->view->add_message("Invalid archive.");
+					$result = false;
+				}
+			}
+
+			return $result;
+		}
+
+		public function process_archive($archive, $post) {
+			$zip = new \ZipArchive;
+			if ($zip->open($archive["tmp_name"]) !== true) {
+				return false;
+			}
+
+			$directory = "resources/".$this->user->resources_key."/tokens/";
+
+			if (($tempdir = tempnam(sys_get_temp_dir(), "cauldron")) == false) {
+				return false;
+			}
+			unlink($tempdir);
+			if (mkdir($tempdir) == false) {
+				return false;
+			}
+
+			for ($i = 0; $i < $zip->numFiles; $i++) {
+				$stat = $zip->statIndex($i);
+				$pathinfo = pathinfo($stat["name"]);
+
+				if (isset($pathinfo["extension"]) == false) {
+					continue;
+				} else if (in_array($pathinfo["extension"], $this->valid_extensions) == false) {
+					continue;
+				}
+
+				$zip->extractTo($tempdir, $stat["name"]);
+				$tempfile = $tempdir."/".$stat["name"];
+
+				$data = array(
+					"name"         => $pathinfo["filename"],
+					"width"        => 1,
+					"height"       => 1,
+					"type"         => $post["type"],
+					"armor_class"  => TOKEN_DEFAULT_AC, 
+					"hitpoints"    => TOKEN_DEFAULT_HP,
+					"shape_change" => false);
+
+				$image = array(
+					"error"        => 0,
+					"tmp_name"     => $tempfile,
+					"extension"    => $pathinfo["extension"]);
+				
+				$token = new token($this->db, $this->user->organisation_id, $this->user->resources_key);
+				$token->create($data, $image);
+
+				unlink($tempfile);
+
+				if ($pathinfo["dirname"] != ".") {
+					$parts = explode("/", $pathinfo["dirname"]);
+					while (count($parts) > 0) {
+						rmdir($tempdir."/".implode("/", $parts));
+						array_pop($parts);
+					}
+				}
+			}
+
+			rmdir($tempdir);
+
+			$zip->close();
+
+			return true;
 		}
 	}
 ?>

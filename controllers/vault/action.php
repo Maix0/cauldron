@@ -14,9 +14,9 @@
 				$_SESSION["admin_actionlog_size"] = $this->model->get_log_size();
 			}
 
-			$paging = new \Banshee\pagination($this->view, "admin_actionlog", $this->settings->admin_page_size, $_SESSION["admin_actionlog_size"]);
+			$pagination = new \Banshee\pagination($this->view, "admin_actionlog", $this->settings->admin_page_size, $_SESSION["admin_actionlog_size"]);
 
-			if (($log = $this->model->get_action_log($paging->offset, $paging->size)) === false) {
+			if (($log = $this->model->get_action_log($pagination->offset, $pagination->size)) === false) {
 				$this->view->add_tag("result", "Error reading action log.");
 				return;
 			}
@@ -50,7 +50,7 @@
 			}
 			$this->view->close_tag();
 
-			$paging->show_browse_links();
+			$pagination->show_browse_links();
 
 			$this->view->close_tag();
 		}

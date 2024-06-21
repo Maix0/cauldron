@@ -19,6 +19,7 @@
 				"Adventure creation" => array(
 					"Tokens"        => array("vault/token", "token.png"),
 					"Resources"     => array("vault/resources", "resources.png"),
+					"Dice"          => array("vault/dice", "dice.png"),
 					"Adventures"    => array("vault/adventure", "adventure.png"),
 					"Maps"          => array("vault/map", "map.png"),
 					"Collectables"  => array("vault/collectable", "collectables.png"),

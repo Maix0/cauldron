@@ -3,6 +3,7 @@ const DICE_ROLL_ADVANTAGE = 1;
 const DICE_ROLL_DISADVANTAGE = 2;
 
 var wf_dice_roll = null;
+var custom_dice = [];
 
 function dice_roll(dice, addition, callback) {
 	if ((localStorage.getItem('dice_type') == 'animated') && (typeof dice_roll_3d == 'function')) {
@@ -47,7 +48,7 @@ function roll_dice(dice_input, send_to_others = true) {
 	var valid_dice = [2, 4, 6, 8, 10, 12, 20, 100];
 	var parts = dice_str.split('+');
 
-	if (parts.length > 7) {
+	if (parts.length > 20) {
 		return false;
 	}
 
@@ -61,6 +62,7 @@ function roll_dice(dice_input, send_to_others = true) {
 		} else if (roll.length == 2) {
 			if (roll[0] == '') {
 				parts[i] = '1' + parts[i];
+				var count = 1;
 			} else {
 				var count = parseInt(roll[0]);
 				if (isNaN(count)) {
@@ -82,6 +84,10 @@ function roll_dice(dice_input, send_to_others = true) {
 			}
 
 			dice.push(parts[i]);
+
+			if (sides == 100) {
+				dice.push(count + 'd10');
+			}
 		} else {
 			var value = parseInt(roll[0]);
 			if (isNaN(value)) {
@@ -103,6 +109,8 @@ function roll_dice(dice_input, send_to_others = true) {
 		message += '[' + result.join('] + [') + ']';
 		if (addition > 0) {
 			message += ' + ' + addition;
+		} else if (addition < 0) {
+			message += ' - ' + Math.abs(addition);
 		}
 		message += ' = ' + total;
 
@@ -207,7 +215,7 @@ $(document).ready(function() {
 	[ 4, 6, 8, 10, 12, 20 ].forEach(function(dice) {
 		dice = dice.toString();
 		dice_window += '<div class="dice"><img src="/images/d' + dice + '.png" title="d' + dice + '" /><select sides="' + dice + '" class="form-control">';
-		for (let d = 0; d <= 10; d++) {
+		for (let d = 0; d <= 20; d++) {
 			dice_window += '<option>' + d.toString() + '</option>';
 		}
 		dice_window += '</select></div>';
@@ -318,7 +326,7 @@ $(document).ready(function() {
 		activator: 'button.show_dice',
 		header: 'Dice roll',
 		info: '<p>Use this tool to roll dice. The option \'animated\' rolls a 3D dice on the screen and shows the result in the sidebar. The option \'quick\' only shows the roll results in the sidebar.</p><p>Use the Save button to save a dice selection. They appear at the top of the dice roll window. The blue buttons represent the weapons you added to your character in the <a href="/character">Characters</a> page.</p>',
-		width: 665,
+		width: 650,
 		open: function() {
 			dice_roll_init();
 		},
@@ -378,8 +386,10 @@ $(document).ready(function() {
 		roll_dice('1' + dice, dungeon_master == false);
 	});
 
+	/* Roll type selector
+	 */
 	if (typeof DICEBOX_INCLUDED !== 'undefined') {
-		var dice_type_selector = $('<select style="float:right; width:110px; margin-top:15px" class="form-control dice-type"><option value="quick">Quick</option><option value="animated">Animated</option></select>');
+		var dice_type_selector = $('<select class="form-control dice-type"><option value="quick">Quick</option><option value="animated">Animated</option></select>');
 		if (localStorage.getItem('dice_type') == 'animated') {
 			dice_type_selector.find('option:last-child').attr('selected', 'selected');
 		}
@@ -387,5 +397,46 @@ $(document).ready(function() {
 			localStorage.setItem('dice_type', $(this).val());
 		});
 		wf_dice_roll.parent().find('div.btn-group').before(dice_type_selector);
+	}
+
+	/* Custom dice
+	 */
+	if ($('div.custom-dice div').length > 0) {
+		var custom_dice_selector = $('<select class="form-control custom-dice"><option value="-1">Roll custom dice</option></select>');
+
+		var count = 0;
+		$('div.custom-dice div').each(function() {
+			custom_dice[count] = JSON.parse($(this).text());
+			var sides = custom_dice[count].length;
+			custom_dice_selector.append('<option value="' + count + '">' + $(this).attr('name') + ' (d' + sides + ')</option>');
+
+			count++;
+		});
+
+		custom_dice_selector.on('change', function() {
+			var dice = parseInt($(this).val());
+			var name = $(this).find('option:nth-of-type(' + (dice + 2) + ')').text();
+
+			$(this).val('-1');
+			wf_dice_roll.close();
+
+			if (dice == -1) {
+				return;
+			}
+
+			var dice = custom_dice[dice];
+			var side = Math.floor(Math.random() * dice.length);
+
+			var text = dice[side];
+
+			var message = 'Custom dice roll.\n' + name + '\n-&gt; ' + text;
+			if (dungeon_master == false) {
+				send_message(message, my_name);
+			} else {
+				write_sidebar(message);
+			}
+		});
+
+		wf_dice_roll.parent().find('div.btn-group').before(custom_dice_selector);
 	}
 });

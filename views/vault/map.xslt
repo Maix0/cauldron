@@ -118,7 +118,7 @@
 
 <div id="help">
 <p>This is where you add a map to your adventure. Specify at least the title of your map and the URL to the map image or video.</p>
-<p><b>Map impage/video URL:</b> The URL can point to a resource at another website. Click the 'Browse resources' to list all the available maps in the '<a href="/vault/resources/maps">maps</a>' directory in your Resources section. If you want to create a map on which you will only draw, choose the /files/emtpy_map.png file.</p>
+<p><b>Map impage/video URL:</b> This is where you select the battle map image. You can upload a new file, which will be stored in your resources, or you can specify a URL to an online image. To use a previously uploaded image file, click the 'Browse resources' button. This will list all the available maps in the 'maps' directory in your Resources section. If you want to create a map on which you will only draw, choose the /files/emtpy_map.png file.</p>
 <p><b>Background audio URL:</b> Use a URL to an actual audio file, not to a YouTube or Spotify page.</p>
 </div>
 </xsl:template>

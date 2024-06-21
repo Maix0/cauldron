@@ -7,34 +7,32 @@ p.nomap {
 	margin-top:40px;
 }
 
-div.options {
-	margin:25px 0 25px 0;
-	max-width:900px;
-}
-
 div.options img {
 	float:left;
 	width:70px;
 	margin-right:15px;
 }
 
-div.options > div {
-	clear:left;
-	min-height:70px;
-	margin-bottom:15px;
+div.options div.panel-heading {
+	font-weight:bold;
+}
+
+div.options div.panel-footer {
+	text-align:right;
 }
 
 img.cauldron {
 	float:right;
-	width:150px;
+	width:120px;
 	max-width:25%;
 	margin-left:25px;
-	margin-top:-15px;
+	margin-top:-75px;
 }
 
 div.options + p {
 	clear:left;
 }
+
 
 h1 {
 	white-space:nowrap;
@@ -200,6 +198,10 @@ div.pictures img {
 div.pictures p {
 	margin-top:15px;
 	text-align:center;
+}
+
+div.custom-dice {
+	display:none;
 }
 
 /* Drawing
@@ -370,6 +372,10 @@ div.effect_create img.effect {
 	cursor:pointer;
 }
 
+div.effects div.effect img {
+	user-select:none;
+}
+
 /* Journal
  */
 div.journal div.session {
@@ -504,6 +510,11 @@ div.library + div.sidebar {
 
 div.sidebar img {
 	max-width:100%;
+	user-select:none;
+}
+
+div.sidebar a {
+	color:#f08000;
 }
 
 div.sidebar b {
@@ -528,6 +539,12 @@ div.input {
 	bottom:5px;
 	width:195px;
 	height:45px;
+}
+
+div.sidebar span.help {
+	display:inline-block;
+	text-indent:-10px;
+	margin-left:10px;
 }
 
 div.sidebar span.history {
@@ -561,6 +578,17 @@ div.sidebar div.sea-text {
 	div.playarea + div.sidebar {
 		top:40px;
 	}
+}
+
+/* Sidebar expanded
+ */
+div.sidebar_expanded b {
+	color:#4040a0;
+}
+
+div.sidebar_expanded img {
+	max-width:100%;
+	user-select:none;
 }
 
 /* Draw tools
@@ -698,6 +726,7 @@ div.hitpoints div.damage {
 div.token img,
 div.character img {
 	width:inherit;
+	user-select:none;
 }
 
 div.token span,
@@ -714,10 +743,15 @@ div.marker span {
 	white-space:nowrap;
 	overflow:hidden;
 	text-overflow:ellipsis;
+	user-select:none;
 }
 div.mine span {
 	border-color:#404040;
 	background-color:#c0c0ff;
+}
+
+div.token span[known="no"] {
+	background-color:#a0a0a0;
 }
 
 div.token span.conditions,
@@ -823,6 +857,10 @@ div.dark div.playarea {
 	background-color:#101010;
 }
 
+div.dark div.sidebar a {
+	color:#ffa040;
+}
+
 div.dark div.sidebar p {
 	color:#e0e0e0;
 }
@@ -851,5 +889,9 @@ div.dark div.draw-explain {
 }
 
 div.dark div.sidebar div.sea-text {
+	color:#e0e0e0;
+}
+
+div.dark div.sidebar div.expand {
 	color:#e0e0e0;
 }

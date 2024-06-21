@@ -50,7 +50,7 @@
 <div class="col-xs-3  col-md-2 header cr"><xsl:value-of select="cr" /></div>
 <div class="col-xs-12 col-md-5 header type"><xsl:value-of select="type" /></div>
 </a>
-<div class="col-xs-12 body"><xsl:value-of select="description" disable-output-escaping="yes" /></div>
+<div class="col-xs-12 body maxheight"><xsl:value-of select="description" disable-output-escaping="yes" /></div>
 </div>
 </div>
 </xsl:for-each>
@@ -70,7 +70,7 @@
 <div class="col-xs-3 header located"><xsl:value-of select="located" /></div>
 <div class="col-xs-1 header handle"><span class="fa fa-arrows-v"></span></div>
 </a>
-<div class="col-xs-12 body"><xsl:value-of select="description" disable-output-escaping="yes" /></div>
+<div class="col-xs-12 body maxheight"><xsl:value-of select="description" disable-output-escaping="yes" /></div>
 </div>
 </div>
 </xsl:for-each>
@@ -91,7 +91,7 @@
 <div class="col-xs-2 header nr"><xsl:value-of select="total_xp" /></div>
 <div class="col-xs-1 header handle"><span class="fa fa-arrows-v"></span></div>
 </a>
-<div class="col-xs-12 body"><xsl:value-of select="description" disable-output-escaping="yes" /></div>
+<div class="col-xs-12 body maxheight"><xsl:value-of select="description" disable-output-escaping="yes" /></div>
 </div>
 </div>
 </xsl:for-each>
@@ -124,6 +124,12 @@
 <div class="row add">
 <div class="col-xs-12"><a href="/{/output/page}/encounter/new" class="btn btn-default">+</a></div>
 </div>
+</div>
+
+<div class="custom-dice">
+<xsl:for-each select="custom_dice/dice">
+<div name="{name}"><xsl:value-of select="sides" /></div>
+</xsl:for-each>
 </div>
 
 <div class="btn-group">

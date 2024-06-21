@@ -22,7 +22,7 @@
 		 */
 		public function __construct() {
 			$arguments = func_get_args();
-			call_user_func_array(array("parent", "__construct"), $arguments);
+			call_user_func_array(array(parent::class, "__construct"), $arguments);
 
 			$this->max_steps = count($this->forms) - 1;
 

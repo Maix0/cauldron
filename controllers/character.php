@@ -1,5 +1,7 @@
 <?php
 	class character_controller extends Banshee\controller {
+		protected $prevent_repost = true;
+
 		private function show_overview() {
 			if (($characters = $this->model->get_characters()) === false) {
 				$this->view->add_tag("result", "Database error.");
@@ -218,7 +220,7 @@
 			} else if ($this->page->parameter_value(0, "new")) {
 				/* New character
 				 */
-				$character = array("hitpoints" => 1, "armor_class" => 10, "initiative" => 0, "token_type" => "topdown", "sheet" => "none");
+				$character = array("hitpoints" => 1, "armor_class" => 10, "initiative" => 0, "token_type" => "portrait", "sheet" => "none");
 				$this->show_character_form($character);
 			} else if ($this->page->parameter_numeric(0)) {
 				/* Edit character

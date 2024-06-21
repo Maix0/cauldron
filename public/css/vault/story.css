@@ -36,6 +36,11 @@ div.story div.item {
 div.story div.item div {
 	background-color:#ffffff;
 	padding:5px 15px;
+	overflow:auto;
+}
+
+div.story div.item div.maxheight {
+	max-height:200px;
 }
 
 div.story div.row a div.header {
@@ -118,6 +123,10 @@ mark {
 
 h2 button.fa {
 	font-size:16px;
+}
+
+div.custom-dice {
+	display:none;
 }
 
 @media print {

@@ -89,7 +89,8 @@
 			display: 'none', position: 'absolute',
 			boxShadow: '10px 10px 20px #303030',
 			maxWidth: settings.width + 'px',
-			width: '100%', zIndex: 1
+			width: '100%', zIndex: 1,
+			marginBottom: '0px'
 		});
 		if (settings.height != undefined) {
 			windowframe.find('div.panel-body').css({
@@ -111,49 +112,17 @@
 			windowframe.data('info', info_window.parent().parent());
 		}
 
-		/* Drag windowframe
+		/* Draggable
 		 */
-		windowframe.find('div.panel-heading').mousedown(function() {
-			windowframe_to_top(windowframe);
-
-			var pos = windowframe.position();
-			mouse_offset_x = event.pageX - pos.left;
-			mouse_offset_y = event.pageY - pos.top;
-
-			$('div.windowframe_overlay').mousemove(function() {	
-				/* Check horizontal boundaries
-				 */
-				var pos_x = event.pageX - mouse_offset_x;
-				if (pos_x + settings.width > window.innerWidth) {
-					pos_x = window.innerWidth - settings.width;
-				}
-				if (pos_x < 0) {
-					pos_x = 0;
-				}
-				windowframe.css('left', pos_x + 'px');
-
-				/* Check vertical boundaries
-				 */
-				var pos_y = event.pageY - mouse_offset_y;
-				var height = windowframe.outerHeight(false);
-				if (pos_y + height > window.innerHeight) {
-					pos_y = window.innerHeight - height;
-				}
-				if (pos_y < 0) {
-					pos_y = 0;
-				}
-				windowframe.css('top', pos_y + 'px');
-
-				unselect_text();
-			});
-
-			$('body').css('cursor', 'grab');
-
-			$('body').mouseup(function() {
-				$('div.windowframe_overlay').off('mousemove');
+		windowframe.draggable({
+			containment: 'div.wrapper',
+			handle: 'div.panel-heading',
+			start: function() {
+				$(this).css('cursor', 'grab');
+			},
+			stop: function() {
 				$(this).css('cursor', '');
-				$(this).off('mouseup');
-			});
+			}
 		});
 
 		if (settings.activator != undefined) {
@@ -331,7 +300,14 @@
 
 	var destroy = function() {
 		var windowframe_id = $(this).data('windowframe_id');
-		$('div.windowframe_overlay div#windowframe' + windowframe_id).remove();
+		var windowframe = $('div.windowframe_overlay div#windowframe' + windowframe_id);
+
+		var info = windowframe.data('info');
+		if (info != undefined) {
+			info.remove();
+		}
+
+		windowframe.remove();
 
 		delete $(this);
 

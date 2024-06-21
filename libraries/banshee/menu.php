@@ -10,6 +10,7 @@
 
 	class menu {
 		private $db = null;
+		private $page = null;
 		private $view = null;
 		private $parent_id = null;
 		private $depth = 1;
@@ -21,8 +22,9 @@
 		 * OUTPUT: -
 		 * ERROR:  -
 		 */
-		public function __construct($db, $view) {
+		public function __construct($db, $page, $view) {
 			$this->db = $db;
+			$this->page = $page;
 			$this->view = $view;
 		}
 
@@ -94,11 +96,16 @@
 			foreach ($menu as $item) {
 				$element = array();
 
-				if (($this->user !== null) && ($item["link"][0] == "/")) {
-					if (($module = ltrim($item["link"], "/")) != "") {
-						list($module) = explode("?", $module, 2);
-						$module = trim($module, "/");
-						if ($this->user->access_allowed($module) == false) {
+				list($page) = explode("?", $item["link"], 2);
+				if (($page = trim($page, "/")) != "") {
+					if (($module = $this->page->module_on_disk($page, config_file("public_modules"))) !== null) {
+						$page = $module;
+					} else if (($module = $this->page->module_on_disk($page, config_file("private_modules"))) !== null) {
+						$page = $module;
+					}
+
+					if (($this->user !== null) && ($item["link"][0] == "/")) {
+						if ($this->user->access_allowed($page) == false) {
 							continue;
 						}
 					}

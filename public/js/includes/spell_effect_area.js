@@ -10,7 +10,16 @@ var sea_active = false;
 var sea_cone_angle = null;
 
 function spell_effect_area_init() {
-	sea_canvas = document.getElementById('spell-effect-area');
+	var map = $('div.playarea > div');
+	var width = Math.round(map.width());
+	var height = Math.round(map.height());
+
+	$('div.drawing').append('<canvas id="spell-effect-area" width="' + width + '" height="' + height + '" />');
+
+	sea_canvas = $('canvas#spell-effect-area');
+	sea_canvas.css('z-index', LAYER_DRAWING);
+	sea_canvas = sea_canvas[0];
+
 	sea_ctx = sea_canvas.getContext('2d');
 
 	sea_ctx.lineWidth = 2;
@@ -74,7 +83,7 @@ function sea_message(message) {
 }
 
 function spell_effect_area_change_cone_angle() {
-	cauldron_prompt('Enter the new cone angle. Only values between ' + SEA_CONE_ANGLE_MIN + ' and ' + SEA_CONE_ANGLE_MAX + ' are valid. Use ' + SEA_CONE_ANGLE + ' for D&D 5e.', sea_cone_angle.toString(), function(value) {
+	cauldron_info_prompt('Only values between ' + SEA_CONE_ANGLE_MIN + ' and ' + SEA_CONE_ANGLE_MAX + ' are valid. Use ' + SEA_CONE_ANGLE + ' for D&D 5e.', 'Cone angle:', sea_cone_angle.toString(), function(value) {
 		value = parseFloat(value);
 		if (isNaN(value)) {
 			cauldron_alert('Invalid angle.');
@@ -90,6 +99,16 @@ function spell_effect_area_change_cone_angle() {
 		}
 
 		sea_cone_angle = value;
+
+		if (dungeon_master == false) {
+			var data = {
+				action: 'say',
+				to_char_id: 0,
+				name: my_name,
+				mesg: 'Spell effect area cone angle changed to ' + sea_cone_angle + '.'
+			};
+			websocket_send(data);
+		}
 
 		localStorage.setItem('sea_cone_angle', sea_cone_angle);
 	});

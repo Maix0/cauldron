@@ -38,6 +38,12 @@
 			$this->view->close_tag();
 		}
 
+		private function show_archive_form($archive) {
+			$this->view->open_tag("archive");
+			$this->view->record($archive, "archive");
+			$this->view->close_tag();
+		}
+
 		public function execute() {
 			if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				if ($_POST["submit_button"] == "Save token") {
@@ -71,6 +77,18 @@
 							$this->show_overview();
 						}
 					}
+				} else if ($_POST["submit_button"] == "Upload archive") {
+					/* Archive
+					 */
+					if ($this->model->archive_okay($_FILES["archive"], $_POST) == false) {
+						$this->show_archive_form($_POST);
+					} else if ($this->model->process_archive($_FILES["archive"], $_POST) == false) {
+						$this->view->add_message("Error processing archive.");
+						$this->show_archive_form($_POST);
+					} else {
+						$this->user->log_action("token archive uploaded");
+						$this->show_overview();
+					}
 				} else if ($_POST["submit_button"] == "Delete token") {
 					/* Delete token
 					 */
@@ -97,10 +115,14 @@
 				$token = array(
 					"width"       => 1,
 					"height"      => 1,
-					"type"        => "topdown",
-					"armor_class" => 10,
-					"hitpoints"   => 4);
+					"type"        => "portrait",
+					"armor_class" => TOKEN_DEFAULT_AC,
+					"hitpoints"   => TOKEN_DEFAULT_HP);
 				$this->show_token_form($token);
+			} else if ($this->page->parameter_value(0, "archive")) {
+				$archive = array(
+					"type"        => "portrait");
+				$this->show_archive_form($archive);
 			} else if ($this->page->parameter_numeric(0)) {
 				/* Edit token
 				 */

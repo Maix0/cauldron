@@ -38,9 +38,11 @@ Zone group: <input id="zone_group" type="text" maxlength="10" onKeyUp="javascrip
 <li><b>heal &lt;points&gt;:</b> Heal the triggering character.</li>
 <li><b>move [+/-]&lt;x&gt;,[+/-]&lt;y&gt; [slide]:</b> Move the triggering character the x,y grid position. If there is a plus or minus sign in front of the x or y, the movement will be relative to the current position of the character. Adding 'slide' animates the movement, otherwise it's instant.</li>
 <li><b>name &lt;name&gt;:</b> Use this name when sending messages via 'write' and 'write_all'.</li>
+<li><b>token &lt;name&gt; show|hide:</b> Show or hide a token.</li>
 <li><b>write &lt;message&gt;:</b> Write a message to the user of the triggering character. The Dungeon Master receives a copy of this message.</li>
 <li><b>write_all &lt;message&gt;:</b> Write a message to everybody. In this message, the word 'character' will be replaced with the name of the triggering character.</li>
 <li><b>write_dm &lt;message&gt;:</b> Write a message to the Dungeon Master. In this message, the word 'character' will be replaced with the name of the triggering character.</li>
+<li><b>zone &lt;group&gt; show|hide:</b> Show or hide a zone group for the triggering character.</li>
 </ul>
 <p>You can add comments to your script. A comment line starts with a hash (#).</p>
 <p>The zone group is an identifier that defines to what group a zone belongs. If a character leaves a zone and at the same time enters another zone that belongs to the same group, the leave and enter events are replaced with a single move event for the zone that the chararacter enters.</p>
@@ -59,7 +61,7 @@ Zone group: <input id="zone_group" type="text" maxlength="10" onKeyUp="javascrip
 <label for="height">Height:</label>
 <input type="text" id="height" value="3" class="form-control" />
 <label for="color">Color:</label>
-<input type="text" id="color" value="#ff0000" class="form-control" />
+<input type="text" id="color" value="#ff0000" maxlength="7" class="form-control" />
 <label for="opacity">Opacity:</label>
 <input type="text" id="opacity" value="0.2" class="form-control" />
 <label for="altitude">Altitude:</label>

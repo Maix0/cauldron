@@ -246,6 +246,9 @@ function fog_of_war_init(z_index) {
 	}
 }
 
+function fog_of_war_pattern(pattern, obj) {
+}
+
 function fog_of_war_set_distance(distance) {
 	if (distance > 0) {
 		distance = Math.round((distance + FOW_DISTANCE_ADJUST) * grid_cell_size);

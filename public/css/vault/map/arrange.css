@@ -20,8 +20,8 @@ div.character img {
 	width:inherit;
 }
 
-div.character span,
-div.token span {
+div.character span.name,
+div.token span.name {
 	display:block;
 	font-size:9px;
 	text-align:center;
@@ -33,6 +33,10 @@ div.token span {
 	white-space:nowrap;
 	overflow:hidden;
 	text-overflow:ellipsis;
+}
+
+div.token span.name[known="no"] {
+	background-color:#a0a0a0;
 }
 
 select#collectable {

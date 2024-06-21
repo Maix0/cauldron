@@ -1,4 +1,8 @@
 const dungeon_master = true;
+const character_name = '';
+
+function send_message(message, name) {
+}
 
 function write_sidebar(message) {
 	cauldron_alert(message);
@@ -140,6 +144,16 @@ $(document).ready(function() {
 
 		if (localStorage.getItem('story_fold_' + button_nr) == 'true') {
 			$(this).trigger('click');
+		}
+	});
+
+	$('div.body').on('dblclick', function() {
+		$(this).toggleClass('maxheight');
+
+		if (window.getSelection) {
+			window.getSelection().removeAllRanges();
+		} else if (document.selection) {
+			document.selection.empty();
 		}
 	});
 

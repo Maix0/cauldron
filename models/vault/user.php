@@ -428,6 +428,7 @@
 
 			array_push($queries,
 				array("update journal set user_id=null where user_id=%d", $user_id),
+				array("delete from custom_dice where user_id=%d", $user_id),
 				array("delete from agenda where user_id=%d", $user_id),
 				array("delete from sessions where user_id=%d", $user_id),
 				array("delete from user_role where user_id=%d", $user_id),

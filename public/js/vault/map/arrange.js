@@ -555,7 +555,7 @@ function object_move(obj) {
 			}
 		} else {
 			if (zone_presence[char_id].includes(zone_id)) {
-				zone_presence = array_remove(zone_presence, zone_id);
+				zone_presence = zone_presence.remove(zone_id);
 				zone_event = 'leave';
 			}
 		}
@@ -580,19 +580,54 @@ function object_move(obj) {
 }
 
 function object_name(obj) {
-	cauldron_prompt('Name:', obj.attr('name'), function(name) {
-		obj.attr('name', name);
+	var c_name = '';
+	var c_known = 'yes';
 
-		obj.find('span').remove();
-		if (name != '') {
-			obj.append('<span class="name">' + name + '</span>');
+	var name_span = obj.find('span.name');
+	if (name_span.length != 0) {
+		c_name = name_span.text();
+		c_known = name_span.attr('known');
+	}
+
+	var body = '<div class="token_name"><label for="name">Name:</label><input type="text" id="name" value="' + c_name + '" class="form-control" /><label for="known">Visible to players: <input type="checkbox" id="known"' + ((c_known == 'yes' ) ? ' checked' : '') + ' /></label></div>';
+	var wf_name = $(body).windowframe({
+		style: 'primary',
+		header: 'Token name',
+		buttons: {
+			'Ok': function() {
+				var name = wf_name.find('input#name').val();
+				var known = wf_name.find('input#known').is(':checked') ? 'yes' : 'no';
+
+				obj.attr('name', name);
+
+				obj.find('span').remove();
+				if (name != '') {
+					obj.append('<span class="name" known="' + known + '">' + name + '</span>');
+				}
+
+				$.post('/object/name', {
+					instance_id: obj.prop('id'),
+					name: name
+				});
+
+				$.post('/object/known', {
+					instance_id: obj.prop('id'),
+					known: known
+				});
+
+				$(this).close();
+			},
+			'Cancel': function() {
+				$(this).close();
+			}
+		},
+		close: function() {
+			wf_name.destroy();
+			delete body;
 		}
-
-		$.post('/object/name', {
-			instance_id: obj.prop('id'),
-			name: name
-		});
 	});
+
+	wf_name.open();
 }
 
 function object_position(obj) {
@@ -1691,7 +1726,7 @@ function context_menu_handler(key) {
 			var pos_x = Math.round(coord_to_grid(mouse_x, false) / grid_cell_size);
 			var pos_y = Math.round(coord_to_grid(mouse_y, false) / grid_cell_size);
 
-			wf_light_create = $('<div><label for="light_new">Light radius:</label><input id="light_new" type="text" value="3" class="form-control" /></div>').windowframe({
+			var wf_light_create = $('<div><label for="light_new">Light radius:</label><input id="light_new" type="text" value="3" class="form-control" /></div>').windowframe({
 				width: 530,
 				style: 'danger',
 				header: 'Create light',
@@ -2050,6 +2085,11 @@ $(document).ready(function() {
 					return;
 				} else if (isNaN(opacity)) {
 					write_sidebar('Invalid opacity.');
+					return;
+				}
+
+				if (color.substr(0, 1) != '#') {
+					write_sidebar('Invalid color.');
 					return;
 				}
 

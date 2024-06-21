@@ -625,6 +625,18 @@
 				$this->settings->database_version = 3.5;
 			}
 
+			if ($this->settings->database_version === 3.5) {
+				$this->db_query("ALTER TABLE map_token ADD known BOOLEAN NOT NULL AFTER %S", "name");
+				$this->db_query("UPDATE map_token SET known=%s", YES);
+				$this->db_query("CREATE TABLE custom_dice (id int(10) unsigned NOT NULL AUTO_INCREMENT, user_id int(10) unsigned NOT NULL, ".
+				                "name varchar(25) NOT NULL, sides text NOT NULL, PRIMARY KEY (id), KEY user_id (user_id), ".
+				                "CONSTRAINT custom_dice_ibfk_1 FOREIGN KEY (user_id) REFERENCES users (id)) ".
+				                "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+				$this->db_query("ALTER TABLE zones CHANGE altitude altitude TINYINT(3) UNSIGNED NOT NULL");
+
+				$this->settings->database_version = 3.6;
+			}
+
 			return true;
 		}
 

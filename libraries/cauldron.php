@@ -1,5 +1,5 @@
 <?php
-	define("CAULDRON_VERSION", "3.5");
+	define("CAULDRON_VERSION", "3.6");
 
 	define("PLAYER_ROLE_ID", 2);
 	define("DUNGEON_MASTER_ROLE_ID", 3);
@@ -33,6 +33,9 @@
 	define("CONDITIONS", array("blinded", "charmed", "deafened", "exhausted",
 		"frightened", "grappled", "incapacitated", "invisible", "paralyzed",
 		"petrified", "poisoned", "prone", "restrained", "stunned", "unconscious"));
+
+	define("TOKEN_DEFAULT_AC", 10);
+	define("TOKEN_DEFAULT_HP", 4);
 
 	define("CR_to_XP", array(
 		"0"   => 10,

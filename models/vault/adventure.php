@@ -156,7 +156,7 @@
 					return false;
 				}
 
-				$query = "select t.name as type, t.width, t.height, p.name, p.pos_x, p.pos_y, ".
+				$query = "select t.name as type, t.width, t.height, p.name, p.known, p.pos_x, p.pos_y, ".
 				         "p.rotation, p.hidden, p.armor_class, p.hitpoints, p. damage ".
 				         "from tokens t, map_token p where t.id=p.token_id and p.map_id=%d";
 				if (($tokens = $this->db->execute($query, $mapid["id"])) !== false) {
@@ -296,6 +296,7 @@
 						"map_id"      => $map_id,
 						"token_id"    => (int)$token_id,
 						"name"        => $token["name"],
+						"known"       => $token["known"] ?? YES,
 						"pos_x"       => (int)$token["pos_x"],
 						"pos_y"       => (int)$token["pos_y"],
 						"rotation"    => (int)$token["rotation"],

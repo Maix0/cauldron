@@ -21,17 +21,22 @@ var _spells_window = null;
 var _spells_list = {};
 
 function spell_roll_dice(dice) {
+	if (dungeon_master == false) {
+		var spell = _spells_window.find('div.details h2').text();
+		send_message('Casting ' + spell + '.', character_name);
+	}
+
 	_spells_window.close();
 
 	roll_dice(dice, dungeon_master == false);
 }
 
 function spell_change(spell) {
-	$('div.spells select option').each(function() {
-		if (spell.toLowerCase() == $(this).text().toLowerCase()) {
-			$('div.spells select').val($(this).text());
-			$('div.spells select').trigger('change');
-			$('div.spells').parent().scrollTop(0);
+	spell = spell.toLowerCase();
+	_spells_window.find('div.select div').each(function() {
+		if (spell == $(this).text().toLowerCase()) {
+			$(this).trigger('click');
+			return false;
 		}
 	});
 }
@@ -71,20 +76,41 @@ function _spell_rewrite_entry(entry) {
 			case '@filter':
 			case '@item':
 			case '@quickref':
-			case '@scaledice':
 				parts = item.split('|');
 				item = parts.shift();
 				break;
 			case '@d20':
 				item = '+' + item;
 				break;
+			case '@dice':
 			case '@damage':
 				item = '<a href="javascript:spell_roll_dice(\'' + item + '\')">' + item + '</a>';
 				break;
+			case '@scaledice':
 			case '@scaledamage':
-			case '@status':
 				parts = item.split('|');
-				item = parts.pop();
+				var base = parts[0];
+				var levels = parts[1].split('-');
+				var addition = parts[2];
+
+				item = addition;
+
+				if (levels.length == 2) {
+					var first = parseInt(levels[0]);
+					var last = parseInt(levels[1]);
+
+					if ((isNaN(first) == false) && (isNaN(last) == false)) {
+						var extra = '';
+						var range = [];
+
+						for (level = first + 1; level <= last; level++) {
+							extra += ' + ' + addition;
+							range.push('<a href="javascript:spell_roll_dice(\'' + base + extra + '\')">' + level + '</a>');
+						}
+
+						item += ' (' + range.join(', ') + ')';
+					}
+				}
 				break;
 			case '@spell':
 				item = '<a href="javascript:spell_change(\'' + item + '\')">' + item + '</a>';
@@ -226,6 +252,15 @@ function _spell_show_details(name) {
 	 */
 	details.append('<p><b>Source:</b> ' + spell_sources[spell.source] + ', page ' + spell.page + '</p>');
 
+	/* Link to chat button
+	 */
+	details.append('<div class="btn-group"><button class="btn btn-default btn-xs tochat">Link to chat</button></div>');
+
+	details.find('button.tochat').on('click', function() {
+		var spell = _spells_window.find('h2').text();
+		send_message('spell:' + spell, character_name);
+	});
+
 	var container = $('div.spells div.details');
 	container.empty();
 	container.append(details);
@@ -235,7 +270,7 @@ $(window).ready(function() {
 	$.get('/data/spells', function(data) {
 		var spells = JSON.parse($(data).text().replaceAll('&amp;', '&'));
 
-		var content = $('<div class="spells"><input type="text" class="form-control" placeholder="Filter" /><div class="select"></div><div class="details"></div></div>');
+		var content = $('<div class="spells"><div class="input-group"><input type="text" class="form-control" placeholder="Filter" /><span class="input-group-btn"><button class="btn btn-default clear">X</button></span></div><div class="select"></div><div class="details"></div></div>');
 		var list = content.find('div.select');
 
 		spells.forEach(function(spell) {
@@ -257,18 +292,36 @@ $(window).ready(function() {
 			style: 'warning',
 			header: 'Dungeons & Dragons 5e spells',
 			info: 'This window shows most of the Dungeon & Dragons 5th edition magic spells. Use the filter to search for spells by name.',
-			width: 800
+			width: 800,
+			open: function() {
+				_spells_window.find('input').focus();
+			}
 		});
 
-		$('div.spells input').on('keyup', function() {
-			$('div.spells div.select div').show();
+		_spells_window.find('input').on('keyup', function() {
+			_spells_window.find('div.select div').show();
 
 			var filter = $(this).val().toLowerCase();
-			$('div.spells div.select div').each(function() {
-				if ($(this).text().toLowerCase().includes(filter) == false) {
+			_spells_window.find('div.select div').each(function() {
+				var name = $(this).text().toLowerCase();
+
+				if (name.includes(filter) == false) {
 					$(this).hide();
 				}
+
+				if (name == filter) {
+					$(this).trigger('click');
+				}
 			});
+
+			var visible = _spells_window.find('div.select div:visible');
+			if (visible.length == 1) {
+				visible.first().trigger('click');
+			}
+		});
+
+		_spells_window.find('button.clear').on('click', function() {
+			_spells_window.find('input').val('').trigger('keyup').focus();
 		});
 
 		list.find('div').first().trigger('click');
@@ -277,6 +330,10 @@ $(window).ready(function() {
 
 /* Fog of War interface
  */
-function show_spells() {
+function show_spells(spell = null) {
 	_spells_window.open();
+
+	if (spell != null) {
+		spell_change(spell);
+	}
 }

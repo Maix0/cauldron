@@ -1,5 +1,11 @@
 <?php
 	class vault_story_model extends cauldron_model {
+		public function get_custom_dice($dm_id) {
+			$query = "select * from custom_dice where user_id=%d order by name";
+
+			return $this->db->execute($query, $dm_id);
+		}
+
 		/* Adventure
 		 */
 		public function get_story($adventure_id) {
@@ -96,7 +102,7 @@
 		public function delete_npc_okay($npc) {
 			$result = true;
 
-			if ($this->get_npc($event["id"]) == false) {
+			if ($this->get_npc($npc["id"]) == false) {
 				$this->view->add_message("NPC not found.");
 				$result = false;
 			}
@@ -169,8 +175,8 @@
 		public function delete_object_okay($object) {
 			$result = true;
 
-			if ($this->get_object($event["id"]) == false) {
-				$this->view->add_message("NPC not found.");
+			if ($this->get_object($object["id"]) == false) {
+				$this->view->add_message("Object not found.");
 				$result = false;
 			}
 

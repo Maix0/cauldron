@@ -1,4 +1,7 @@
-const FOW_COLOR_SHADOW = '#181818';
+const FOW_COLOR = '#181818';
+
+var fow_pattern = null;
+var fow_is_dm = null;
 
 function fog_of_war_clear_circle(x, y, r) {
 	drawing_ctx.beginPath();
@@ -11,23 +14,34 @@ function fog_of_war_clear_circle(x, y, r) {
 /* Fog of war interface
  */
 function fog_of_war_init(z_index, is_dungeon_master) {
-	if (is_dungeon_master == false) {
+	fow_is_dm = is_dungeon_master;
+
+	if (fow_is_dm == false) {
 		$('div.playarea div.effects').after($('div.drawing'));
 		$('div.drawing canvas').css('position', 'relative');
 		$('div.drawing canvas').css('z-index', z_index);
 	}
 
-	fog_of_war_reset(is_dungeon_master);
+	fow_pattern = FOW_COLOR;
+
+	$('<img src="/images/fow.jpg" />').on('load', function() {
+		fow_pattern = drawing_ctx.createPattern($(this)[0], 'repeat');
+
+		fog_of_war_reset();
+	});
 }
 
-function fog_of_war_reset(is_dungeon_master) {
+function fog_of_war_pattern(pattern, obj) {
+}
+
+function fog_of_war_reset() {
 	drawing_ctx.beginPath();
 	drawing_ctx.globalCompositeOperation = 'source-over';
 	drawing_ctx.rect(0, 0, drawing_canvas.width, drawing_canvas.height)
-	if (is_dungeon_master) {
+	if (fow_is_dm) {
 		drawing_ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
 	} else {
-		drawing_ctx.fillStyle = FOW_COLOR_SHADOW;
+		drawing_ctx.fillStyle = fow_pattern;
 	}
 	drawing_ctx.fill();
 
@@ -38,7 +52,7 @@ function fog_of_war_reset(is_dungeon_master) {
 	var y = parseInt($('div.playarea').attr('start_y')) * grid_cell_size + half_grid;
 	fog_of_war_clear_circle(x, y, r);
 
-	if (is_dungeon_master) {
+	if (fow_is_dm) {
 		$('div.characters div.character').each(function() {
 			var pos = object_position($(this));
 			var x = pos.left + half_grid;

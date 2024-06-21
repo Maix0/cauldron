@@ -26,6 +26,7 @@
 				$this->view->title = "Welcome to Cauldron VTT";
 			}
 
+			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("adventures.js");
 
@@ -104,6 +105,11 @@
 				}
 
 				if (($conditions = $this->model->get_conditions()) === false) {
+					$this->view->add_tag("result", "Database error.");
+					return;
+				}
+
+				if (($custom_dice = $this->model->get_custom_dice($adventure["dm_id"])) === false) {
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
@@ -363,6 +369,7 @@
 				$this->view->open_tag("tokens");
 				foreach ($tokens as $token) {
 					$token["type"] = rtrim($token["type"], " 01234567890");
+					$token["known"] = show_boolean($token["known"]);
 					$token["pos_x"] *= $grid_cell_size;
 					$token["pos_y"] *= $grid_cell_size;
 					$token["width"] *= $grid_cell_size;
@@ -474,6 +481,14 @@
 				foreach ($brushes as $brush) {
 					$info = pathinfo($brush);
 					$this->view->add_tag("brush", $brush, array("name" => $info["filename"]));
+				}
+				$this->view->close_tag();
+
+				/* Custom dice
+				 */
+				$this->view->open_tag("custom_dice");
+				foreach ($custom_dice as $dice) {
+					$this->view->record($dice, "dice");
 				}
 				$this->view->close_tag();
 			}

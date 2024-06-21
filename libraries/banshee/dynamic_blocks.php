@@ -24,7 +24,7 @@
 
 			$xml = new Core\xml($db);
 			$arguments = array($database, $settings, $user, $page, $xml, $language);
-			call_user_func_array(array("parent", "__construct"), $arguments);
+			call_user_func_array(array(parent::class, "__construct"), $arguments);
 
 			$this->class = array_pop(explode("\\", static::class));
 		}

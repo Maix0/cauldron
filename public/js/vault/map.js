@@ -24,11 +24,11 @@ function init_map_edit() {
 	/* Init resources browser
 	 */
 	$.ajax('/vault/map/maps').done(function(data) {
-		var list = '<div><ul class="browse-list">';
+		var list = '<ul class="browse-list">';
 		$(data).find('map').each(function() {
 			list += '<li>/' + $(this).text() + '</li>';
 		});
-		list += '</ul></div>';
+		list += '</ul>';
 
 		var map_dialog = $(list).windowframe({
 			activator: 'input.map_browser',
@@ -74,7 +74,7 @@ function init_map_edit() {
 			$(data).find('audio').each(function() {
 				list += '<li>/' + $(this).text() + '</li>';
 			});
-			list += '</div>';
+			list += '</ul>';
 
 			audio_dialog.append(list);
 

@@ -6,6 +6,10 @@ div.diceroll div.dice {
 	margin-top:15px;
 }
 
+div.diceroll div.dice:last-child {
+	margin-right:0;
+}
+
 div.diceroll div.dice img {
 	width:75px;
 	display:block;
@@ -33,4 +37,17 @@ div.dicerolls_defined input.remove {
 
 div.dicerolls_defined .btn {
 	padding:6px 24px;
+}
+
+select.dice-type {
+	float:right;
+	width:110px;
+	margin-top:15px;
+}
+
+select.custom-dice {
+	float:right;
+	margin-top:15px;
+	margin-right:15px;
+	width:150px;
 }

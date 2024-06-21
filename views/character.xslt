@@ -19,7 +19,7 @@
 <a href="{/output/page}/{@id}" title="Edit character"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
 </div>
 <div class="panel-body">
-<img src="/resources/{/output/cauldron/resources_key}/characters/{@id}.{extension}" class="token {token_type}" />
+<img src="/resources/{/output/cauldron/resources_key}/characters/{@id}.{extension}" class="token {token_type}" draggable="false" />
 <div>Hit points: <xsl:value-of select="hitpoints" /></div>
 <div>Armor class: <xsl:value-of select="armor_class" /></div>
 <div>Initiative bonus: <xsl:value-of select="initiative" /></div>
@@ -74,8 +74,8 @@
 </div>
 <div class="radio-group token_type">
 <input type="hidden" name="token_type_backup" value="{character/token_type}" />
-<span><input type="radio" name="token_type" value="topdown" disabled="disabled"><xsl:if test="character/token_type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top-down token image</span>
 <span><input type="radio" name="token_type" value="portrait" disabled="disabled"><xsl:if test="character/token_type='portrait'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Portrait token image</span>
+<span><input type="radio" name="token_type" value="topdown" disabled="disabled"><xsl:if test="character/token_type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top-down token image</span>
 <span class="select">&lt;-- select the token type</span>
 </div>
 <label for="sheet">Character sheet:</label>
@@ -92,7 +92,7 @@
 </div>
 </div>
 <div class="sheet_url">
-<input type="text" id="sheet_url" name="sheet_url" value="{character/sheet_url}" class="form-control" />
+<input type="text" id="sheet_url" name="sheet_url" value="{character/sheet_url}" maxlength="255" class="form-control" />
 </div>
 
 <div class="btn-group">

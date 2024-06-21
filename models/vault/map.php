@@ -155,7 +155,7 @@
 						$this->view->add_message("Map file not found.");
 						$result = false;
 					}
-				} else if (substr($url, 0, 4) != "http") {
+				} else if ((substr($url, 0, 4) != "http") && ($map["method"] == "url")) {
 					$this->view->add_message("Invalid map URL.");
 					$result = false;
 				}

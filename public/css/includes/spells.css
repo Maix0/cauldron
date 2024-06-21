@@ -3,8 +3,12 @@ div.spells {
 	min-height:500px;
 }
 
-div.spells input {
+div.spells div.input-group {
 	width:150px;
+}
+
+div.spells div.input-group button {
+	padding:6px 10px;
 }
 
 div.spells div.select {

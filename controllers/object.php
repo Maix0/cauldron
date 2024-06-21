@@ -145,6 +145,13 @@
 			}
 		}
 
+		public function post_known() {
+			if (substr($_POST["instance_id"], 0, 5) == "token") {
+				$instance_id = substr($_POST["instance_id"], 5);
+				$this->model->token_known($instance_id, $_POST["known"]);
+			}
+		}
+
 		public function post_rotate() {
 			if (substr($_POST["instance_id"], 0, 9) == "character") {
 				$instance_id = substr($_POST["instance_id"], 9);

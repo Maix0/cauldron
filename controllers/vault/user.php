@@ -14,12 +14,12 @@
 			}
 
 			handle_table_sort("adminuser_order", array("id", "username", "fullname", "email", "status"), array("username", "id"));
-			$paging = new \Banshee\pagination($this->view, "admin_users", $this->settings->admin_page_size, $user_count);
+			$pagination = new \Banshee\pagination($this->view, "admin_users", $this->settings->admin_page_size, $user_count);
 
 			if ($user_count == 0) {
 				$users = array();
 			} else {
-				$users = $this->model->get_users($_SESSION["adminuser_order"], $paging->offset, $paging->size);
+				$users = $this->model->get_users($_SESSION["adminuser_order"], $pagination->offset, $pagination->size);
 			}
 
 			$roles = $this->model->get_roles();
@@ -48,7 +48,7 @@
 			$this->view->close_tag();
 
 			if (empty($_SESSION["user_search"])) {
-				$paging->show_browse_links();
+				$pagination->show_browse_links();
 			}
 
 			$this->view->close_tag();

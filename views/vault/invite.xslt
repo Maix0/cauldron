@@ -50,6 +50,7 @@
 //
 //-->
 <xsl:template match="content">
+<img src="/images/icons/invite.png" class="title_icon" />
 <h1>Invitation code</h1>
 <xsl:apply-templates select="show" />
 <xsl:apply-templates select="edit" />

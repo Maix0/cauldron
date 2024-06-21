@@ -1,11 +1,3 @@
-function array_remove(arr, val) {
-	arr = arr.filter(function(item) {
-		return item !== val
-	});
-
-	return arr;
-}
-
 function url_encode(uri) {
 	if (uri != undefined) {
 		var parts = uri.split('/');
@@ -21,6 +13,24 @@ function url_encode(uri) {
 
 	return uri;
 }
+
+Array.prototype.remove = function(val) {
+	var arr = this.filter(function(item) {
+		return item !== val
+	});
+
+	return arr
+}
+
+String.prototype.explode = function(separator, limit) {
+	const array = this.split(separator);
+
+	if (limit !== undefined && array.length >= limit) {
+		array.push(array.splice(limit - 1).join(separator));
+	}
+
+	return array;
+};
 
 /* Dialogs windows
  */

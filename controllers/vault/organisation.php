@@ -6,9 +6,9 @@
 				return;
 			}
 
-			$paging = new \Banshee\pagination($this->view, "organisations", $this->settings->admin_page_size, $organisation_count);
+			$pagination = new \Banshee\pagination($this->view, "organisations", $this->settings->admin_page_size, $organisation_count);
 
-			if (($organisations = $this->model->get_organisations($paging->offset, $paging->size)) === false) {
+			if (($organisations = $this->model->get_organisations($pagination->offset, $pagination->size)) === false) {
 				$this->view->add_tag("result", "Database error.");
 				return;
 			}
@@ -22,7 +22,7 @@
 			}
 			$this->view->close_tag();
 
-			$paging->show_browse_links();
+			$pagination->show_browse_links();
 
 			$this->view->close_tag();
 		}

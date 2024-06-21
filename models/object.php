@@ -112,6 +112,7 @@
 				"map_id"      => (int)$token["map_id"],
 				"token_id"    => (int)$token["token_id"],
 				"name"        => null,
+				"known"       => YES,
 				"pos_x"       => (int)$token["pos_x"],
 				"pos_y"       => (int)$token["pos_y"],
 				"rotation"    => 0,
@@ -191,7 +192,16 @@
 				return false;
 			}
 
-			$data = array("name" => (trim($name) == "") ? null : $name);
+			$data = array("name" => (trim($name) != "") ? $name : null);
+			return $this->db->update("map_token", $instance_id, $data) !== false;
+		}
+
+		public function token_known($instance_id, $known) {
+			if ($this->valid_token_instance_id($instance_id) == false) {
+				return false;
+			}
+
+			$data = array("known" => is_true($known) ? YES : NO);
 			return $this->db->update("map_token", $instance_id, $data) !== false;
 		}
 

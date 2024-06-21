@@ -35,6 +35,11 @@
 				return;
 			}
 
+			if (($custom_dice = $this->model->get_custom_dice($this->user->id)) === false) {
+				$this->view->add_tag("result", "Database error.");
+				return;
+			}
+
 			$this->view->add_css("banshee/font-awesome.css");
 			$this->view->add_css("includes/spells.css");
 			$this->view->add_css("includes/dice_roll.css");
@@ -117,6 +122,14 @@
 			$this->view->open_tag("encounters");
 			foreach ($encounters as $encounter) {
 				$this->view->record($encounter, "encounter", array(), true);
+			}
+			$this->view->close_tag();
+
+			/* Custom dice
+			 */
+			$this->view->open_tag("custom_dice");
+			foreach ($custom_dice as $dice) {
+				$this->view->record($dice, "dice");
 			}
 			$this->view->close_tag();
 

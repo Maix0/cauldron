@@ -6,19 +6,20 @@ const FOW_NIGHT_REAL = 4;
 const FOW_REVEAL = 5;
 
 const DEFAULT_Z_INDEX = 1000;
-const LAYER_DRAWING = DEFAULT_Z_INDEX;
-const LAYER_GRID = DEFAULT_Z_INDEX + 1;
-const LAYER_ZONE = DEFAULT_Z_INDEX + 2;
-const LAYER_EFFECT = DEFAULT_Z_INDEX + 3;
-const LAYER_TOKEN = DEFAULT_Z_INDEX + 4;
-const LAYER_CONSTRUCT = DEFAULT_Z_INDEX + 5;
-const LAYER_LIGHT = DEFAULT_Z_INDEX + 6;
-const LAYER_CHARACTER = DEFAULT_Z_INDEX + 7;
-const LAYER_CHARACTER_OWN = DEFAULT_Z_INDEX + 8;
-const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 9;
-const LAYER_MARKER = DEFAULT_Z_INDEX + 10;
-const LAYER_MENU = DEFAULT_Z_INDEX + 11;
-const LAYER_VIEW = DEFAULT_Z_INDEX + 2000;
+const LAYER_NIGHT = DEFAULT_Z_INDEX;
+const LAYER_DRAWING = DEFAULT_Z_INDEX + 1;
+const LAYER_GRID = DEFAULT_Z_INDEX + 2;
+const LAYER_ZONE = DEFAULT_Z_INDEX + 3;
+const LAYER_EFFECT = DEFAULT_Z_INDEX + 4;
+const LAYER_TOKEN = DEFAULT_Z_INDEX + 5;
+const LAYER_CONSTRUCT = DEFAULT_Z_INDEX + 6;
+const LAYER_LIGHT = DEFAULT_Z_INDEX + 7;
+const LAYER_CHARACTER = DEFAULT_Z_INDEX + 8;
+const LAYER_CHARACTER_OWN = DEFAULT_Z_INDEX + 9;
+const LAYER_FOG_OF_WAR = DEFAULT_Z_INDEX + 10;
+const LAYER_MARKER = DEFAULT_Z_INDEX + 11;
+const LAYER_MENU = DEFAULT_Z_INDEX + 12;
+const LAYER_VIEW = DEFAULT_Z_INDEX + 20000;
 
 const DOOR_SECRET = '#a0a000';
 const DOOR_OPEN = '#40c040';
@@ -136,9 +137,12 @@ function map_image() {
 		});
 		maps += '</ul></div>';
 
-		var map_dialog = $(maps).windowframe({
+		var wf_map_dialog = $(maps).windowframe({
 			header: 'Maps from Resources',
 			info: 'This tool allows you to only change the battle map image or video. You can use it when you have multiple maps of the same scenery, but with small changes.',
+			close: function() {
+				wf_map_dialog.destroy();
+			}
 		});
 
 		$('ul.map_image li').on('click', function() {
@@ -146,7 +150,7 @@ function map_image() {
 			var resources_key = $('div.playarea').attr('resources_key');
 
 			map_url = map_url.substr(0, 11) + resources_key + map_url.substr(10);
-			map_dialog.close();
+			wf_map_dialog.close();
 
 			var data = {
 				action: 'map_image',
@@ -161,7 +165,7 @@ function map_image() {
 			});
 		});
 
-		map_dialog.open();
+		wf_map_dialog.open();
 	});
 }
 
@@ -237,6 +241,8 @@ function write_sidebar(message) {
 	message = message.replace(/\n/g, '<br />');
 	sidebar.append('<p>' + message + '</p>');
 	sidebar.prop('scrollTop', sidebar.prop('scrollHeight'));
+
+	$('div.sidebar_expanded').append('<p>' + message + '</p>');
 }
 
 function show_image(img) {
@@ -244,10 +250,17 @@ function show_image(img) {
 		return;
 	}
 
-	var image = '<div class="image_overlay" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); filter:drop-shadow(#000000 10px 10px 5px); max-width:80%; max-height:80%; cursor:pointer" /></div>';
+	var image = '<div class="image_overlay" onClick="javascript:$(this).remove()"><img src="' + $(img).attr('src') + '" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); filter:drop-shadow(#000000 10px 10px 5px); max-width:80%; max-height:80%; cursor:pointer" draggable="false" /></div>';
 
 	$('body').append(image);
 	$('body div.image_overlay').show();
+}
+
+function make_spell_link(text, offset) {
+	var spell = text.substring(offset);
+	var link = spell.replace(/'/g, '\\\'').replace(/"/g, '');
+
+	return '<a href="javascript:show_spells(\'' + link + '\')">' + spell + '</a>';
 }
 
 function message_to_sidebar(name, message) {
@@ -257,10 +270,14 @@ function message_to_sidebar(name, message) {
 		var images = ['gif', 'jpg', 'jpeg', 'png', 'webp'];
 
 		if (images.includes(extension)) {
-			message = '<img src="' + message + '" style="cursor:pointer;" onClick="javascript:show_image(this)" />';
+			message = '<img src="' + message + '" style="cursor:pointer;" onClick="javascript:show_image(this)" draggable="false" />';
 		} else {
 			message = '<a href="' + message + '" target="_blank">' + message + '</a>';
 		}
+	} else if (message.substring(0, 6) == 'spell:') {
+		message = make_spell_link(message, 6);
+	} else if (message.substring(0, 9) == 'Casting: ') {
+		message = 'Casting ' + make_spell_link(message, 9) + '.';
 	} else {
 		message = message.replace(/</g, '&lt;').replace(/\n/g, '<br />');
 	}
@@ -299,14 +316,16 @@ function input_history_add(input) {
 
 function show_help() {
 	var commands = {
-		'clear':                 'Clear this sidebar.',
-		'd20 [&lt;bonus&gt]':    'Roll d20 dice.',
-		'd20a [&lt;bonus&gt]':   'Roll d20 dice with advantage.',
-		'd20d [&lt;bonus&gt]':   'Roll d20 dice with disadvantage.',
-		'history [clear]':       'Show or clear your input history.',
-		'labels [hide|show]':    'Manage character name labels and health bars visibility.',
-		'log &lt;message&gt;':   'Add message to journal.',
-		'roll &lt;dice&gt;':     'Roll one or more dice.'
+		'clear':                   'Clear this sidebar.',
+		'd20 [&lt;bonus&gt]':      'Roll d20 dice.',
+		'd20a [&lt;bonus&gt]':     'Roll d20 dice with advantage.',
+		'd20d [&lt;bonus&gt]':     'Roll d20 dice with disadvantage.',
+		'fow [&lt;image url&gt;]': 'Enable Fog of War texture.',
+		'history [clear]':         'Show or clear your input history.',
+		'labels hide|show':        'Manage character name labels and health bars visibility.',
+		'log &lt;message&gt;':     'Add message to journal.',
+		'roll &lt;dice&gt;':       'Roll one or more dice.',
+		'whisper &lt;name&gt;|dm &lt;message&gt;': 'Send a message to a specific player or character or the Dungeon Master.'
 	};
 
 	var extra = dungeon_master ? {
@@ -315,12 +334,12 @@ function show_help() {
 		'dmroll &lt;dice&gt;':   'Privately roll dice.',
 		'done':                  'End the combat.',
 		'next [&lt;name&gt;]':   'Next turn in combat.',
-		'night [0-4]':           'Set map night mode.',
+		'night 0-4':             'Set map night mode.',
 		'noscript':              'Disable all zone scripts.',
 		'ping':                  'See who\'s online in the session.',
 		'reload':                'Force everyone in the session to reload the map.',
 		'remove &lt;name&gt;':   'Remove one from the combat.',
-		'walls [hide|show]':     'Manage walls and windows visibility.'
+		'walls hide|show':       'Manage walls and windows visibility.'
 	} : {
 		'damage &lt;points&gt;': 'Damage your character.',
 		'heal &lt;points&gt;':   'Heal your character.'
@@ -329,13 +348,14 @@ function show_help() {
 	var help = [];
 	Object.assign(commands, extra);
 	for (const [key, value] of Object.entries(commands)) {
-		help.push('<b>/' + key + '</b>: ' + value);
+		help.push('<span class="help"><b>/' + key + '</b>: ' + value + '</span>');
 	}
 
 	help.sort();
 
-	help.push('<b>&lt;message&gt;</b>: Send text message.<br />');
+	help.push('<span class="help"><b>&lt;message&gt;</b>: Send text message.</span><br />');
 	help.push('Right-click an icon or the map for a menu with options.');
+	help.push('Holding CTRL whiling clicking the sidebar shows its content in a larger window.');
 
 	write_sidebar(help.join('\n'));
 }
@@ -430,6 +450,14 @@ function object_contextmenu_dm(event) {
 	};
 	menu_entries['rotate'] = { name:'Rotate', icon:'fa-compass', items:rotate };
 
+	if ($(this).parent().find('span.name').length > 0) {
+		if ($(this).parent().find('span.name').attr('known') == 'yes') {
+			menu_entries['unknown'] = { name:'Make unknown', icon:'fa-question' };
+		} else {
+			menu_entries['known'] = { name:'Make known', icon:'fa-question' };
+		}
+	}
+
 	menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
 	menu_entries['sep1'] = '-';
 	menu_entries['handover'] = { name:'Hand over', icon:'fa-hand-stop-o' };
@@ -438,7 +466,8 @@ function object_contextmenu_dm(event) {
 	menu_entries['marker'] = { name:'Set marker', icon:'fa-map-marker' };
 	menu_entries['distance'] = { name:'Measure distance', icon:'fa-map-signs' };
 	menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
-	menu_entries['zone_create'] = { name:'Zone', icon:'fa-square-o' };
+	menu_entries['focus'] = { name:'Focus', icon:'fa-binoculars' };
+	menu_entries['zone_create'] = { name:'Create zone', icon:'fa-square-o' };
 	menu_entries['sep3'] = '-';
 	menu_entries['sea'] = sea_submenu;
 	menu_entries['attack'] = { name:'Attack', icon:'fa-legal' };
@@ -636,10 +665,12 @@ function object_click_mobile(event) {
 
 function object_dblclick(event) {
 	event.stopPropagation();
-
-	key_to_direction = null;
 	
-	var obj = $(this).parent();
+	object_focus($(this).parent());
+}
+
+function object_focus(obj) {
+	key_to_direction = null;
 
 	if (ctrl_down) {
 		if (obj.attr('is_hidden') == 'yes') {
@@ -714,7 +745,7 @@ function object_hide_action(obj) {
 	if (dungeon_master) {
 		obj.fadeTo(0, OBJECT_HIDDEN_FADE);
 	} else {
-		obj.hide(100);
+		obj.hide();
 	}
 
 	obj.attr('is_hidden', 'yes');
@@ -922,6 +953,24 @@ function object_rotate_action(obj, rotation, speed = 500) {
 	obj.attr('rotation', rotation);
 }
 
+function object_show_action(obj) {
+	if (dungeon_master) {
+		obj.fadeTo(0, 1);
+	} else {
+		obj.show();
+	}
+
+	obj.attr('is_hidden', 'no');
+
+	/* Fog of War
+	 */
+	if (my_character != null) {
+		fog_of_war_update(my_character);
+	} else if (fow_obj != null) {
+		fog_of_war_update(fow_obj);
+	}
+}
+
 function object_show_command(obj) {
 	object_show_action(obj);
 
@@ -936,14 +985,26 @@ function object_show_command(obj) {
 	});
 }
 
-function object_show_action(obj) {
-	if (dungeon_master) {
-		obj.fadeTo(0, 1);
-	} else {
-		obj.show(100);
-	}
+function object_show_fow(obj) {
+	if (fow_obj == null) {
+		fog_of_war_init(LAYER_FOG_OF_WAR);
+		if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
+			var distance = character_vision(obj);
+			fog_of_war_set_distance(distance);
+		}
 
-	obj.attr('is_hidden', 'no');
+		fog_of_war_update(obj);
+		fow_obj = obj;
+	} else if (obj.is(fow_obj)) {
+		fog_of_war_destroy();
+		fow_obj = null;
+	} else {
+		var distance = character_vision(obj);
+		fog_of_war_set_distance(distance);
+
+		fog_of_war_update(obj);
+		fow_obj = obj;
+	}
 }
 
 function object_step(obj, x, y) {
@@ -1037,6 +1098,8 @@ function object_steer(event) {
 
 	if ($('div.input input:focus').length > 0) {
 		return;
+	} else if ($('div.windowframe_overlay > div:visible').length > 0) {
+		return;
 	}
 
 	if (my_character != null) {
@@ -1110,6 +1173,14 @@ function object_steer(event) {
 	object_step(obj, x, y);
 }
 
+function object_toggle_presence(obj) {
+	if (obj.attr('is_hidden') == 'yes') {
+		object_show_command(obj);
+	} else {
+		object_hide_command(obj);
+	}
+}
+
 function object_turn(obj, direction) {
 	var rotation = parseInt(obj.attr('rotation')) + direction;
 	if (rotation < 0) {
@@ -1151,6 +1222,7 @@ function object_view(obj, max_size = 300) {
 	var container_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px; position:absolute; top:100px; left:100px;';
 	var description = obj.find('img').attr('description');
 	var name = obj.find('span.name').text();
+	var known = (obj.find('span.name').attr('known') == 'yes');
 
 	var transform = obj.find('img').css('transform');
 	if ((transform != 'none') && (collectable_id == undefined)) {
@@ -1166,7 +1238,7 @@ function object_view(obj, max_size = 300) {
 		view += '<img src="' + container_src + '" style="' + container_style + '" />';
 	}
 	view += '<span style="' + span_style + '"><img src="' + src + '" style="' + img_style + '" />';
-	if (name != '') {
+	if ((name != '') && known) {
 		view += '<div style="margin-top:30px; border:1px solid #000000; background-color:#ffffff; padding:3px; text-align:center;">' + name + '</div>';
 	}
 	if ((description != undefined) && (description != '')) {
@@ -1201,7 +1273,7 @@ function effect_create_object(effect_id, src, pos_x, pos_y, width, height) {
 	width *= grid_cell_size;
 	height *= grid_cell_size;
 
-	var effect = $('<div id="' + effect_id +'" class="effect" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + width + 'px; height:' + height + 'px; z-index:' + LAYER_EFFECT + ';"><img src="' + src + '" style="width:100%; height:100%;" /></div>');
+	var effect = $('<div id="' + effect_id +'" class="effect" style="position:absolute; left:' + pos_x + 'px; top:' + pos_y + 'px; width:' + width + 'px; height:' + height + 'px; z-index:' + LAYER_EFFECT + ';"><img src="' + src + '" style="width:100%; height:100%;" draggable="false" /></div>');
 
 	$('div.playarea div.effects').append(effect);
 }
@@ -1752,7 +1824,7 @@ function zone_check_events(obj, pos) {
 			}
 		} else {
 			if (zone_presence.includes(zone_id)) {
-				zone_presence = array_remove(zone_presence, zone_id);
+				zone_presence = zone_presence.remove(zone_id);
 				zone_event = 'leave';
 			}
 		}
@@ -2120,7 +2192,7 @@ function set_condition(obj, condition, only_set = false) {
 			if (only_set) {
 				return;
 			}
-			conditions = array_remove(conditions, condition);
+			conditions = conditions.remove(condition);
 		} else {
 			conditions.push(condition);
 			conditions.sort();
@@ -2151,17 +2223,22 @@ function handle_input(input) {
 	}
 
 	if (input.substring(0, 1) != '/') {
-		if (input.substring(0, 4).toLowerCase() == "dice") {
+		input = input.replace(/ +/g, ' ');
+		if (input.substring(0, 9).toLowerCase() == 'dice roll') {
 			return;
 		}
+		if (input.substring(0, 16).toLowerCase() == 'custom dice roll') {
+			return;
+		}
+
 		send_message(input, character_name);
 		input_history_add(input);
 		return;
 	}
 
-	var parts = input.split(' ', 1);
+	var parts = input.explode(' ', 2);
 	var command = parts[0].substring(1);
-	var param = input.substring(parts[0].length + 1).trim();
+	var param = (parts.length > 1) ? parts[1].trim() : '';
 
 	switch (command) {
 		case 'add':
@@ -2242,6 +2319,15 @@ function handle_input(input) {
 			}
 
 			combat_stop();
+			break;
+		case 'expand':
+			expand_sidebar();
+			break;
+		case 'fow':
+			var pattern = (param != '') ? param : null;
+			var obj = (my_character != null) ? my_character : fow_obj;
+
+			fog_of_war_pattern(pattern, obj);
 			break;
 		case 'heal':
 			if (my_character == null) {
@@ -2410,6 +2496,9 @@ function handle_input(input) {
 				return;
 			}
 			break;
+		case 'spells':
+			show_spells();
+			break;
 		case 'version':
 			var version = $('div.playarea').attr('version');
 			write_sidebar('Cauldron v' + version + '.');
@@ -2426,6 +2515,57 @@ function handle_input(input) {
 				$('div.wall').css('display', 'block');
 				$('div.blinder').css('display', 'block');
 			}
+			break;
+		case 'whisper':
+			var parts = param.explode(' ', 2);
+			if (parts.length != 2) {
+				write_sidebar('Specify name and message.');
+				return;
+			}
+
+			var name = parts[0].toLowerCase();
+			var text = parts[1].trim();
+
+			if (name != 'dm') {
+				var char_id = undefined;
+				$('div.character').each(function() {
+					if ($(this).attr('player').substr(0, name.length).toLowerCase() == name) {
+						if (char_id != undefined) {
+							write_sidebar(name + ' is ambiguous.');
+							return;
+						}
+
+						char_id = $(this).prop('id');
+					}
+
+					if ($(this).find('span.name').text().substr(0, name.length).toLowerCase() == name) {
+						if ((char_id != undefined) && (char_id != $(this).prop('id'))) {
+							write_sidebar(name + ' is ambiguous.');
+							return;
+						}
+
+						char_id = $(this).prop('id');
+					}
+				});
+			} else {
+				char_id = 0;
+			}
+
+			if (char_id == undefined) {
+				write_sidebar('Unknown character or player.');
+				return;
+			}
+
+			var data = {
+				action: 'say',
+				to_char_id: char_id,
+				name: character_name,
+				mesg: text
+			};
+			websocket_send(data);
+
+			var receiver = (char_id == 0) ? 'the Dungeon Master' : $('div#' + char_id).attr('player');
+			write_sidebar('Message sent to ' + receiver + '.');
 			break;
 		default:
 			write_sidebar('Unknown command.');
@@ -2575,6 +2715,7 @@ function context_menu_handler(key) {
 				ruler.css('width', distance + 'px');
 				ruler.css('height', '4px');
 				ruler.css('transform', 'rotate(' + angle + 'deg)');
+				ruler.css('z-index', LAYER_MARKER);
 
 				measure_diff_x = Math.round(Math.abs(to_x - ruler_x) / grid_cell_size);
 				measure_diff_y = Math.round(Math.abs(to_y - ruler_y) / grid_cell_size);
@@ -2683,26 +2824,11 @@ function context_menu_handler(key) {
 
 			drawing_history.push(data);
 			break;
+		case 'focus':
+			object_focus(obj);
+			break;
 		case 'fow_show':
-			if (fow_obj == null) {
-				fog_of_war_init(LAYER_FOG_OF_WAR);
-				if ((fow_type == FOW_NIGHT_CELL) || (fow_type == FOW_NIGHT_REAL)) {
-					var distance = character_vision(obj);
-					fog_of_war_set_distance(distance);
-				}
-
-				fog_of_war_update(obj);
-				fow_obj = obj;
-			} else if (obj.is(fow_obj)) {
-				fog_of_war_destroy();
-				fow_obj = null;
-			} else {
-				var distance = character_vision(obj);
-				fog_of_war_set_distance(distance);
-
-				fog_of_war_update(obj);
-				fow_obj = obj;
-			}
+			object_show_fow(obj);
 			break;
 		case 'fow_distance':
 			var distance = obj.attr('vision');
@@ -2761,6 +2887,8 @@ function context_menu_handler(key) {
 				owner_id: focus_obj.prop('id')
 			};
 			websocket_send(data);
+
+			write_sidebar(focus_obj.attr('player') + ' can now control this token.');
 			break;
 		case 'heal':
 			var max_hp = obj.attr('hitpoints');
@@ -2778,6 +2906,21 @@ function context_menu_handler(key) {
 			break;
 		case 'info':
 			object_info(obj);
+			break;
+		case 'known':
+			$.post('/object/known', {
+				instance_id: obj.prop('id'),
+				known: 'yes'
+			}).done(function() {
+				obj.find('span.name').attr('known', 'yes');
+
+				var data = {
+					action: 'known',
+					instance_id: obj.prop('id'),
+					known: 'yes'
+				};
+				websocket_send(data);
+			});
 			break;
 		case 'light_create':
 			var pos_x = coord_to_grid(mouse_x, false);
@@ -2922,11 +3065,7 @@ function context_menu_handler(key) {
 			});
 			break;
 		case 'presence':
-			if (obj.attr('is_hidden') == 'yes') {
-				object_show_command(obj);
-			} else {
-				object_hide_command(obj);
-			}
+			object_toggle_presence(obj);
 			break;
 		case 'rotate':
 			var compass = { 'n':   0, 'ne':  45, 'e':  90, 'se': 135,
@@ -3012,6 +3151,8 @@ function context_menu_handler(key) {
 				instance_id: obj.prop('id')
 			};
 			websocket_send(data);
+
+			write_sidebar('Players no longer control this token.');
 			break;
 		case 'temphp':
 			cauldron_prompt('Temporary hit points:', temporary_hitpoints.toString(), function(points) {
@@ -3040,6 +3181,21 @@ function context_menu_handler(key) {
 			}
 
 			object_hide_command(obj);
+			break;
+		case 'unknown':
+			$.post('/object/known', {
+				instance_id: obj.prop('id'),
+				known: 'no'
+			}).done(function() {
+				obj.find('span.name').attr('known', 'no');
+
+				var data = {
+					action: 'known',
+					instance_id: obj.prop('id'),
+					known: 'no'
+				};
+				websocket_send(data);
+			});
 			break;
 		case 'view':
 			object_view(obj);
@@ -3089,15 +3245,13 @@ function key_down(event) {
 		return;
 	}
 
+	if ($('div.filter input:focus').length > 0) {
+		return;
+	}
+
 	var open_windows = $('div.windowframe_overlay > div:visible');
 
 	switch (event.which) {
-		case 9:
-			// TAB
-			if (open_windows.length == 0) {
-				toggle_fullscreen();
-			}
-			break;
 		case 16:
 			// Shift
 			shift_down = true;
@@ -3133,6 +3287,31 @@ function key_down(event) {
 				wf_dice_roll.open();
 			}
 			break;
+	}
+
+	if (open_windows.length > 0) {
+		return;
+	}
+
+	switch (event.which) {
+		case 9:
+			// TAB
+			toggle_fullscreen();
+			break;
+		case 70:
+			// f
+			if (dungeon_master && (focus_obj != null) && focus_obj.hasClass('character')) {
+				object_show_fow(focus_obj);
+			}
+			break;
+		case 80:
+			// p
+			if (dungeon_master && focus_obj != null) {
+				object_toggle_presence(focus_obj);
+			}
+			break;
+		default:
+			console.log(event.which);
 	}
 }
 
@@ -3335,7 +3514,7 @@ $(document).ready(function() {
 				break;
 			case 'create':
 				var obj = '<div id="token' + data.instance_id + '" token_id="' + data.token_id +'" class="token" style="left:' + data.pos_x + 'px; top:' + data.pos_y + 'px; z-index:' + DEFAULT_Z_INDEX + '" type="' + data.type + '" is_hidden="no" rotation="0" armor_class="' + data.armor_class + '" hitpoints="' + data.hitpoints + '" damage="0" name="">' +
-						  '<img src="' + data.url + '" style="width:' + data.width + 'px; height:' + data.height + 'px;" />' +
+						  '<img src="' + data.url + '" style="width:' + data.width + 'px; height:' + data.height + 'px;" draggable="false" />' +
 						  '</div>';
 				$('div.playarea div.tokens').append(obj);
 				$('div#token' + data.instance_id).on('contextmenu', object_contextmenu_player);
@@ -3367,7 +3546,7 @@ $(document).ready(function() {
 				drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
 
 				if (fow_type == FOW_REVEAL) {
-					fog_of_war_reset(false);
+					fog_of_war_reset();
 				}
 				break
 			case 'draw_color':
@@ -3493,6 +3672,11 @@ $(document).ready(function() {
 				journal_add_entry(data.name, data.content);
 				write_sidebar(data.name + ' added a journal entry.');
 				break;
+			case 'known':
+				var obj = $('div#' + data.instance_id);
+				obj.find('span.name').attr('known', data.known);
+				obj.find('span.name').css('display', (data.known == 'yes') ? 'block' : 'none');
+				break;
 			case 'light_create':
 				light_create_object(data.instance_id, data.pos_x, data.pos_y, data.radius);
 				break;
@@ -3562,7 +3746,7 @@ $(document).ready(function() {
 							}
 						} else {
 							if (zone_presence.includes(data.instance_id)) {
-								zone_presence = array_remove(zone_presence, data.instance_id);
+								zone_presence = zone_presence.remove(data.instance_id);
 							}
 						}
 					}
@@ -3802,6 +3986,22 @@ $(document).ready(function() {
 	var width = Math.round(map.width());
 	var height = Math.round(map.height());
 
+	/* Layers
+	 */
+	$('div.night').css('z-index', LAYER_NIGHT);
+	$('div.drawing').css('z-index', LAYER_DRAWING);
+	$('div.grid').css('z-index', LAYER_GRID);
+	$('div.zones').css('z-index', LAYER_ZONE);
+	$('div.walls').css('z-index', LAYER_CONSTRUCT);
+	$('div.doors').css('z-index', LAYER_CONSTRUCT);
+	$('div.blinders').css('z-index', LAYER_CONSTRUCT);
+	$('div.lights').css('z-index', LAYER_LIGHT);
+	$('div.tokens').css('z-index', LAYER_TOKEN);
+	$('div.effects').css('z-index', LAYER_EFFECT);
+	$('div.characters').css('z-index', LAYER_CHARACTER);
+	$('div.markers').css('z-index', LAYER_MARKER);
+	$('div.fog_of_war').css('z-index', LAYER_FOG_OF_WAR);
+
 	/* Night mode
 	 */
 	$('div.night').css({
@@ -3846,9 +4046,9 @@ $(document).ready(function() {
 
 	/* Drawing
 	 */
-	$('div.drawing').prepend('<canvas id="drawing" width="' + width + '" height="' + height + '" />');
-	$('div.drawing canvas').css('z-index', LAYER_DRAWING);
-	drawing_canvas = document.getElementById('drawing');
+	drawing_canvas = $('canvas#drawing');
+	drawing_canvas.css('z-index', LAYER_DRAWING);
+	drawing_canvas = drawing_canvas[0];
 
 	drawing_ctx = drawing_canvas.getContext('2d');
 	drawing_ctx.lineWidth = DRAW_DEFAULT_WIDTH;
@@ -4071,7 +4271,7 @@ $(document).ready(function() {
 			}
 			clear_dialog += '</div>';
 
-			var clear_window = $(clear_dialog).windowframe({
+			var wf_clear_window = $(clear_dialog).windowframe({
 				header: 'Remove map items',
 				buttons: {
 					'Remove': function() {
@@ -4099,12 +4299,12 @@ $(document).ready(function() {
 						drawing_ctx.clearRect(0, 0, drawing_canvas.width, drawing_canvas.height);
 
 						if (fow_type == FOW_REVEAL) {
-							fog_of_war_reset(true);
+							fog_of_war_reset();
 						}
 
 						/* Effects
 						 */
-						if (clear_window.find('input.remove_effects').prop('checked')) {
+						if (wf_clear_window.find('input.remove_effects').prop('checked')) {
 							$('div.effect').each(function() {
 								var data = {
 									action: 'effect_delete',
@@ -4118,7 +4318,7 @@ $(document).ready(function() {
 
 						/* Tokens
 						 */
-						if (clear_window.find('input.remove_tokens').prop('checked')) {
+						if (wf_clear_window.find('input.remove_tokens').prop('checked')) {
 							$('div.token').each(function() {
 								object_delete($(this));
 							});
@@ -4126,7 +4326,7 @@ $(document).ready(function() {
 
 						/* Zones
 						 */
-						if (clear_window.find('input.remove_zones').prop('checked')) {
+						if (wf_clear_window.find('input.remove_zones').prop('checked')) {
 							$('div.zone').each(function() {
 								zone_delete($(this));
 							});
@@ -4136,12 +4336,14 @@ $(document).ready(function() {
 					},
 					'Cancel': function() {
 						$(this).close();
-					}
+					},
+				},
+				close: function() {
+					wf_clear_window.destroy();
 				}
-					
 			});
 
-			clear_window.open();
+			wf_clear_window.open();
 		});
 	}
 
@@ -4165,6 +4367,14 @@ $(document).ready(function() {
 
 			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
+		});
+
+		$('div.door').on('dblclick', function(event) {
+			if ($(this).attr('state') == 'open') {
+				door_make_closed($(this));
+			} else {
+				door_make_open($(this));
+			}
 		});
 	}
 
@@ -4402,6 +4612,7 @@ $(document).ready(function() {
 			menu_entries['sep1'] = '-';
 			menu_entries['distance'] = { name:'Measure distance', icon:'fa-map-signs' };
 			menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
+			menu_entries['focus'] = { name:'Focus', icon:'fa-binoculars' };
 			menu_entries['sep2'] = '-';
 
 			if ((fow_type != FOW_NONE) && (fow_type != FOW_REVEAL)) {
@@ -4628,6 +4839,10 @@ $(document).ready(function() {
 				return false;
 			});
 
+			/* Unknown tokens
+			 */
+			$('div.token span.name[known="no"]').css('display', 'none');
+
 			/* Zone presence
 			 */
 			zone_init_presence();
@@ -4755,9 +4970,39 @@ $(document).ready(function() {
 		});
 	}
 
+	/* Sidebar expand
+	 */
+	expand_sidebar = function() {
+		var content = $('div.sidebar').clone();
+		content.removeClass('sidebar').addClass('sidebar_expanded');
+		content.find('div.expand').remove();
+
+		var wf_expanded = $(content).windowframe({
+			header: 'Sidebar expanded',
+			width: 1000,
+			height: 600,
+			open: function() {
+				var container = wf_expanded.parent();
+				container.scrollTop(container.prop("scrollHeight"));
+			},
+			close: function() {
+				wf_expanded.destroy();
+			}
+		});
+
+		wf_expanded.parent().css('background-image', 'url(/images/layout/background-bright.png)');
+
+		wf_expanded.open();
+	};
+
+	$('div.sidebar').on('click', function() {
+		if (ctrl_down) {
+			expand_sidebar();
+		}
+	});
+
 	/* Input field
 	 */
-
 	$('div.input input').on('keyup', function (e) {
 		if ((e.key === 'Enter') || (e.keyCode === 13)) {
 			var input = $(this).val();
@@ -4920,6 +5165,11 @@ $(document).ready(function() {
 						return;
 					} else if (isNaN(opacity)) {
 						write_sidebar('Invalid opacity.');
+						return;
+					}
+
+					if (color.substr(0, 1) != '#') {
+						write_sidebar('Invalid color.');
 						return;
 					}
 
@@ -5151,6 +5401,18 @@ $(document).ready(function() {
 		$('div.characters div.character img').on('click', object_click_mobile);
 		$('div.tokens div.token img').on('click', object_click_mobile);
 	}
+
+	/* Cauldron20 browser extension
+	 */
+	window.setTimeout(function() {
+		$('div.topbar div.btn-group button:nth-of-type(2)').on('click', function() {
+			window.setTimeout(function() {
+				$('div#customOverlay').draggable({
+					containment: 'div.playarea > div'
+				});
+			}, 500);
+		});
+	}, 1000);
 });
 
 $(window).on('load', function() {

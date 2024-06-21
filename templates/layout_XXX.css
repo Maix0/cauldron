@@ -1,0 +1,146 @@
+* {
+	margin:0;
+	padding:0;
+}
+
+html, body {
+	height:100%;
+}
+
+div.wrapper {
+	min-height:100%;
+	position:relative;
+}
+
+h1 {
+	font-size:32px;
+	margin-top:0;
+}
+
+h2 {
+	font-size:24px;
+	margin-bottom:0;
+}
+
+h3 {
+	font-size:18px;
+}
+
+ul {
+	padding-left:15px;
+}
+
+div.left {
+	float:left;
+}
+
+div.right {
+	float:right;
+}
+
+div.clear {
+	clear:both;
+}
+
+img.title_icon {
+	float:right;
+	margin-top:-20px;
+	margin-bottom:-20px;
+}
+
+/* Header
+ */
+nav.navbar {
+	margin-bottom:0;
+	border-radius:0
+}
+
+/* Content
+ */
+div.content div.container {
+	padding-top:25px;
+	padding-bottom:75px;
+	position:relative;
+}
+
+@media (max-width:767px) {
+	div.content div.container {
+		padding-bottom:150px;
+	}
+}
+
+input.form-control, textarea.form-control, select.form-control {
+	max-width:500px;
+	margin-bottom:5px;
+}
+
+@media (max-width:767px) {
+	input.form-control, textarea.form-control, select.form-control {
+		font-size:16px;
+	}
+}
+
+textarea.form-control {
+	height:75px;
+}
+
+div.btn-group {
+	margin:15px 10px 10px 0;
+}
+
+.btn {
+	padding:4px 24px;
+}
+
+.btn-xs {
+	padding:0 16px;
+}
+
+div.input-group .btn {
+	padding-top:6px;
+	padding-bottom:6px;
+}
+
+table.table-hover tbody tr:hover {
+	cursor:pointer;
+}
+
+/* Footer
+ */
+div.footer {
+	position:absolute;
+	bottom:0;
+	height:50px;
+	width:100%;
+	background-color:#f0f0f0;
+	border-top:1px solid #e0e0e0;
+	padding-top:15px;
+	text-align:center;
+	color:#a0a0a0;
+	font-size:12px;
+}
+
+div.footer a {
+	color:#606060;
+}
+
+@media (min-width:768px) {
+	div.footer span:before {
+		content:"|";
+		margin:0 20px;
+	}
+	div.footer span:first-child:before {
+		content:"";
+		margin:0;
+	}
+}
+
+@media (max-width:767px) {
+	div.footer {
+		height:125px;
+	}
+	div.footer span {
+		display:block;
+		margin-bottom:10px;
+	}
+}

@@ -85,12 +85,10 @@
 			} else if (($map["fog_of_war"] == FOW_DAY_CELL) || ($map["fog_of_war"] == FOW_NIGHT_CELL)) {
 				$type = "cell";
 			} else {
-				$type = null;
+				$type = "none";
 			}
 
-			if ($type !== null) {
-				$this->view->add_javascript("includes/fog_of_war_".$type.".js");
-			}
+			$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 
 			$this->view->add_css("banshee/font-awesome.css");
 		   	$this->view->add_css("includes/context_menu.css");
@@ -193,6 +191,7 @@
 				$token["width"] *= $grid_cell_size;
 				$token["height"] *= $grid_cell_size;
 				$token["hidden"] = show_boolean($token["hidden"]);
+				$token["known"] = show_boolean($token["known"]);
 				$this->view->record($token, "token");
 			}
 			$this->view->close_tag();

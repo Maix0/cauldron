@@ -26,8 +26,8 @@ function filter_zone_events(zone_events) {
 				var enter_group_id = $('div#' + enter_zone_id).attr('group');
 				if (enter_group_id != undefined) {
 					if (leave_group_id == enter_group_id) {
-						zone_events.leave = array_remove(zone_events.leave, leave_zone_id);
-						zone_events.enter = array_remove(zone_events.enter, enter_zone_id);
+						zone_events.leave = zone_events.leave.remove(leave_zone_id);
+						zone_events.enter = zone_events.enter.remove(enter_zone_id);
 						zone_events.move.push(enter_zone_id);
 					}
 				}
@@ -65,9 +65,9 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 			continue;
 		}
 
-		var parts = line.split(/ +/, 1);
+		var parts = line.explode(' ', 2);
 		var command = parts[0];
-		var param = line.substring(parts[0].length + 1).trim();
+		var param = (parts.length > 1) ? parts[1].trim() : '';
 
 		if (command == 'event') {
 			valid_triggers = param.split(/, */);
@@ -140,9 +140,9 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				write_sidebar('You\'ve taken ' + points + ' healing!');
 				break;
 			case 'move':
-				var parts = param.split(/ +/);
+				var parts = param.explode(' ', 2);
 
-				var coord = parts[0].split(/, */);
+				var coord = parts[0].split(',');
 				var x = parseInt(coord[0]);
 				var y = parseInt(coord[1]);
 
@@ -166,7 +166,11 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				x *= grid_cell_size;
 				y *= grid_cell_size;
 
-				var slide = ((parts[1] == 'silde') || ((parts[1] != undefined) && (parts[1] != '0')));
+				if (parts.length <= 1) {
+					var slide = false;
+				} else {
+					var slide = (parts[1].trim() == 'slide');
+				}
 
 				character.stop(false, true);
 				if (slide) {
@@ -202,6 +206,32 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 				}
 
 				speaker = param;
+				break;
+			case 'token':
+				var parts = param.split(' ');
+				if (parts.length == 1) {
+					break;
+				}
+
+				var action = parts.pop();
+				var name = parts.join(' ');
+				var token = $('div.token[name="' + name + '"]');
+
+				if (token.length == 0) {
+					if (debug) {
+						write_sidebar('No token named ' + name + ' found.');
+					}
+				} else if (token.length > 1) {
+					if (debug) {
+						write_sidebar('Multiple tokens named ' + name + '.');
+					}
+				} else if (action == 'show') {
+					object_show_command(token);
+				} else if (action == 'hide') {
+					object_hide_command(token);
+				} else if (debug) {
+					write_sidebar('Invalid token action.');
+				}
 				break;
 			case 'write':
 				param = param.replace('character', name);
@@ -254,6 +284,28 @@ function zone_run_script(zone_id, char_id, trigger, pos_x, pos_y, debug = false)
 					websocket_send(data);
 				} else {
 					write_sidebar('<b>Message to DM:</b><span class="say">' + param + '</span>');
+				}
+				break;
+			case 'zone':
+				var parts = param.split(' ');
+				if (parts.length == 1) {
+					break;
+				}
+
+				var action = parts.pop();
+				var group = parts.join(' ');
+				var zones = $('div.zone[group="' + group + '"]');
+
+				if (zones.length == 0) {
+					if (debug) {
+						write_sidebar('No ' + group + ' zones found.');
+					}
+				} else if (action == 'show') {
+					zones.css('opacity', debug ? 0.8 : 1);
+				} else if (action == 'hide') {
+					zones.css('opacity', debug ? 0.2 : 0);
+				} else if (debug) {
+					write_sidebar('Invalid zone action.');
 				}
 				break;
 			default:

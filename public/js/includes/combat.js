@@ -99,7 +99,7 @@ function _combat_add_buttons() {
 	});
 
 	buttons.find('button.add').on('click', function() {
-		cauldron_prompt('New monster\'s name:', '', function(name) {
+		cauldron_prompt('New enemy\'s name:', '', function(name) {
 			if (name != '') {
 				combat_add(name);
 			}
@@ -203,6 +203,8 @@ $(document).ready(function() {
 
 				if (_combat_order.length == 0) {
 					error = 'Combat list is empty.';
+				} else if (_combat_order.length == 1) {
+					error = 'More combat groups required.';
 				}
 
 				if (error !== null) {
@@ -363,7 +365,7 @@ function combat_remove(being) {
 	send_message(_combat_order[remove].name + ' removed from combat.', _combat_name);
 	_combat_order.splice(remove, 1);
 
-	if (_combat_order.length == 0) {
+	if (_combat_order.length <= 1) {
 		combat_stop();
 	} else {
 		combat_show_order(false, false);

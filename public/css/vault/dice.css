@@ -1,0 +1,7 @@
+table.table th:nth-child(2) {
+	width:100px;
+}
+
+span.input-group-addon {
+	width:40px;
+}

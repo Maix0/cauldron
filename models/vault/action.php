@@ -7,50 +7,47 @@
 	 */
 
 	class vault_action_model extends Banshee\model {
-		public function get_log_size() {
+		private $log = null;
+
+		private function read_logfile() {
+			if ($this->log !== null) {
+				return;
+			}
+
+			$this->log = array();
+
 			if (($fp = fopen("../logfiles/actions.log", "r")) == false) {
 				return false;
 			}
 
-			$count = 0;
 			while (($line = fgets($fp)) != false) {
-				$count++;
+				array_unshift($this->log, trim($line));
 			}
 
 			fclose($fp);
+		}
 
-			return $count;
+		public function get_log_size() {
+			$this->read_logfile();
+
+			return count($this->log);
 		}
 
 		public function get_action_log($offset, $size) {
-			if (($fp = fopen("../logfiles/actions.log", "r")) == false) {
-				return false;
-			}
+			$this->read_logfile();
 
-			$count = 0;
-			$log = array();
-			while (($line = fgets($fp)) != false) {
-				$entry = explode("|", chop($line));
+			$log = array_slice($this->log, $offset, $size);
 
-				if (count($entry) < 4) {
-					continue;
-				}
-
-				array_unshift($log, array(
+			foreach ($log as $i => $line) {
+				$entry = explode("|", $line);
+				$log[$i] = array(
 					"ip"        => $entry[0],
 					"timestamp" => $entry[1],
 					"user_id"   => $entry[2],
-					"event"     => $entry[3] ?? ""));
-
-				if ($count >= $size + $offset) {
-					array_pop($log);
-				} else {
-					$count++;
-				}
+					"event"     => $entry[3] ?? "");
 			}
-			fclose($fp);
 
-			return array_slice($log, $offset);
+			return $log;
 		}
 
 		public function get_user($user_id) {

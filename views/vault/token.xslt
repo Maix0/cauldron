@@ -12,6 +12,7 @@
 <div class="col-sm-6 col-xs-12">
 <div class="btn-group">
 <a href="/{/output/page}/new" class="btn btn-default">New token</a>
+<a href="/{/output/page}/archive" class="btn btn-default">Upload archive</a>
 <a href="/vault" class="btn btn-default">Back</a>
 </div>
 </div>
@@ -64,7 +65,7 @@
 <input type="text" id="width" name="width" value="{token/width}" class="form-control" />
 <label for="height">Height:</label>
 <input type="text" id="height" name="height" value="{token/height}" class="form-control" />
-<label for="image">Image (make sure the token is facing down):</label>
+<label for="image">Image file:</label>
 <div class="input-group">
 <span class="input-group-btn"><label class="btn btn-default">
 <input type="file" name="image" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name); token_selected();" />Browse</label></span>
@@ -72,8 +73,8 @@
 </div>
 <div class="radio-group type">
 <input type="hidden" name="type_backup" value="{token/type}" />
-<span><input type="radio" name="type" value="topdown" disabled="disabled"><xsl:if test="token/type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top-down token image</span>
 <span><input type="radio" name="type" value="portrait" disabled="disabled"><xsl:if test="token/type='portrait'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Portrait token image</span>
+<span><input type="radio" name="type" value="topdown" disabled="disabled"><xsl:if test="token/type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top-down token image</span>
 <span class="select">&lt;-- select the token type</span>
 </div>
 <label for="armor_class">Default armor class:</label>
@@ -103,6 +104,39 @@
 
 <!--
 //
+//  Archive template
+//
+//-->
+<xsl:template match="archive">
+<xsl:call-template name="show_messages" />
+<form action="/{/output/page}" method="post" enctype="multipart/form-data">
+<label for="image">ZIP archive file:</label>
+<div class="input-group">
+<span class="input-group-btn"><label class="btn btn-default">
+<input type="file" name="archive" style="display:none" class="form-control" onChange="$('#upload-file-info').val(this.files[0].name); token_selected();" />Browse</label></span>
+<input type="text" id="upload-file-info" readonly="readonly" class="form-control" />
+</div>
+<div class="radio-group type">
+<input type="hidden" name="type_backup" value="{archive/type}" />
+<span><input type="radio" name="type" value="portrait"><xsl:if test="archive/type='portrait'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Portrait token images</span>
+<span><input type="radio" name="type" value="topdown"><xsl:if test="archive/type='topdown'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if></input>Top-down token images</span>
+</div>
+
+<div class="btn-group">
+<input type="submit" name="submit_button" value="Upload archive" class="btn btn-default" />
+<a href="/{/output/page}" class="btn btn-default">Cancel</a>
+<xsl:if test="token/@id">
+</xsl:if>
+</div>
+</form>
+
+<div id="help">
+<p>Here you can upload an archive file containing token images. The token's filename will be the token's name. All the tokens in the archive have to be of the same type (portrait or top-down).</p>
+</div>
+</xsl:template>
+
+<!--
+//
 //  Content template
 //
 //-->
@@ -111,6 +145,7 @@
 <h1>Token collection</h1>
 <xsl:apply-templates select="overview" />
 <xsl:apply-templates select="edit" />
+<xsl:apply-templates select="archive" />
 <xsl:apply-templates select="result" />
 </xsl:template>
 
