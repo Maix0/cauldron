@@ -23,6 +23,7 @@
 					$this->user->log_action("switched to user_id %d", $_POST["user_id"]);
 					$_SESSION["user_switch"] = $this->user->id;
 					unset($_SESSION["edit_adventure_id"]);
+					unset($_SESSION["token_search"]);
 					$this->user->session->set_user_id((int)$_POST["user_id"]);
 					$this->view->add_tag("result", "User switch successfull.", array("url" => $this->settings->start_page));
 				}

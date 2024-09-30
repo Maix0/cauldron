@@ -88,7 +88,7 @@ $(document).ready(function() {
 			/* Adventure
 			 */
 			if (cauldey_title('Cauldey')) {
-				cauldey_says('<p>Hi, my name is Cauldey. I\m here to help you creating your first adventure in Cauldron VTT.</p><p>This chat balloon can contain red dashed underlined words, which refurrrr to elements on the screen. Hover your mouse over <span object="img.chat">this text</span> to see me highlighted.</p><p>This chat balloon is moveable. Drag me to move the balloon when it overlaps controls, like the menu or help button.</p>' + dm_vault_text + '<p>And oh, I promise, I won\'t eat your mouse... for now...</p>');
+				cauldey_says('<p>Hi, my name is Cauldey. I\m here to help you creating your first adventure in Cauldron VTT.</p><p>This chat balloon may contain red dashed underlined words, which refurrrr to elements on the screen. Hover your mouse over <span object="img.chat">this text</span> to see me highlighted.</p><p>This chat balloon is moveable. Drag me to move the balloon when it overlaps controls, like the menu or the help button.</p>' + dm_vault_text + '<p>And oh, I promise, I won\'t eat your mouse... for now...</p>');
 			} else if (cauldey_url('/vault/adventure') == false) {
 				if (cauldey_title('Dungeon Master\'s Vault')) {
 					cauldey_says('This is the DM\'s Vault main menu. The first thing we are going to do is creating a new adventure. To do so, click on the <span object="a[href=\'/vault/adventure\']" padding="10">Adventures icon</span>.');

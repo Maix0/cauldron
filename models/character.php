@@ -124,6 +124,9 @@
 
 			if ($this->valid_number($character["hitpoints"], "Hit points") == false) {
 				$result = false;
+			} else if ($character["hitpoints"] > 65000) {
+				$this->view->add_message("Hit points too high.");
+				$result = false;
 			}
 
 			if ($this->valid_number($character["armor_class"], "Armor class") == false) {
@@ -241,6 +244,8 @@
 					$query = "update map_character set rotation=%d where character_id=%d";
 					$this->db->query($query, 0, $character["id"]);
 				}
+			} else if ($character["sheet"] == "file") {
+				$character["sheet"] = "none";
 			}
 
 			$sheet_url = "resources/".$this->user->resources_key."/characters/".$character["id"].".pdf";

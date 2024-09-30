@@ -44,8 +44,6 @@
 			$this->view->add_css("includes/spells.css");
 			$this->view->add_css("includes/dice_roll.css");
 
-			$this->view->add_javascript("webui/jquery-ui.js");
-			$this->view->add_javascript("webui/jquery.ui.touch-punch.js");
 			$this->view->add_javascript("banshee/jquery.mark.js");
 			$this->view->add_javascript("includes/library.js");
 			$this->view->add_javascript("includes/spells.js");

@@ -1,4 +1,5 @@
 const FOW_COLOR = '#181818';
+const FOW_COLOR_DM = 'rgba(0, 0, 0, 0.5)';
 
 var fow_pattern = null;
 var fow_is_dm = null;
@@ -39,7 +40,7 @@ function fog_of_war_reset() {
 	drawing_ctx.globalCompositeOperation = 'source-over';
 	drawing_ctx.rect(0, 0, drawing_canvas.width, drawing_canvas.height)
 	if (fow_is_dm) {
-		drawing_ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+		drawing_ctx.fillStyle = FOW_COLOR_DM;
 	} else {
 		drawing_ctx.fillStyle = fow_pattern;
 	}

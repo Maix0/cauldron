@@ -1,5 +1,5 @@
 <?php
-	define("CAULDRON_VERSION", "3.6");
+	define("CAULDRON_VERSION", "3.7");
 
 	define("PLAYER_ROLE_ID", 2);
 	define("DUNGEON_MASTER_ROLE_ID", 3);

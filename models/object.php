@@ -27,6 +27,16 @@
 			return true;
 		}
 
+		public function save_player_notes($adventure_id, $notes) {
+			if ($this->valid_adventure_id($adventure_id) == false) {
+				return false;
+			}
+
+			$data = array("notes" => substr($notes, 0, 255));
+
+			return $this->db->update("adventures", $adventure_id, $data) !== false;
+		}
+
 		/* Map functions
 		 */
 		private function valid_map_id($map_id) {
@@ -192,7 +202,9 @@
 				return false;
 			}
 
-			$data = array("name" => (trim($name) != "") ? $name : null);
+			$name = substr(trim($name), 0, 50);
+
+			$data = array("name" => ($name != "") ? $name : null);
 			return $this->db->update("map_token", $instance_id, $data) !== false;
 		}
 

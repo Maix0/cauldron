@@ -54,7 +54,7 @@
 		var close_button = '<span class="glyphicon glyphicon-remove close" aria-hidden="true"></span>';
 		var info_button = '<span class="glyphicon glyphicon-info-sign close" aria-hidden="true" style="margin-right:10px"></span>';
 		var windowframe = '<div id="windowframe' + id + '" class="panel panel-' + settings.style + '" onMouseDown="javascript:event.stopPropagation()">' +
-		             '<div class="panel-heading">' + settings.header + close_button + (settings.info != undefined ? info_button : '') + '</div>' +
+		             '<div class="panel-heading"><span class="title">' + settings.header + '</span>' + close_button + (settings.info != undefined ? info_button : '') + '</div>' +
 		             '<div class="panel-body"></div>' +
 					 (settings.footer != '' ? '<div class="panel-footer">' + settings.footer + '</div>' : '') +
 		             '</div>';

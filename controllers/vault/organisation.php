@@ -33,11 +33,12 @@
 					$this->view->add_tag("result", "Database error.");
 					return;
 				}
+
+				if (($size = $this->model->get_directory_size("resources/".$organisation["resources_key"])) === false) {
+					$size = 0;
+				}
 			} else {
 				$users = array();
-			}
-
-			if (($size = $this->model->get_directory_size("resources/".$organisation["resources_key"])) === false) {
 				$size = 0;
 			}
 

@@ -34,15 +34,15 @@ $(document).ready(function() {
 	filter_category();
 
 	var preview_window = $('<div class="preview"><img src="" /></div>').windowframe({
-		header: 'Map preview',
 		top: 50,
 		width: 1000
 	});
 
 	$('div.market div.map img').on('click', function() {
-		var img = preview_window.find('img');
+		var title = $(this).parent().parent().find('div.panel-heading').text();
+		preview_window.parent().parent().find('div.panel-heading span.title').text(title + ' map preview');
 
-		if (img.attr('src') != $(this).attr('full')) {
+		if ($(this).attr('src') != $(this).attr('full')) {
 			preview_window.find('img').attr('src', '');
 			preview_window.find('img').attr('src', $(this).attr('full'));
 		}

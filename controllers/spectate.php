@@ -119,8 +119,6 @@
 			$this->view->title = $adventure["title"];
 			$this->view->set_layout("adventure");
 
-			$this->view->add_javascript("webui/jquery-ui.js");
-			$this->view->add_javascript("webui/jquery.ui.touch-punch.js");
 			$this->view->add_javascript("includes/context_menu.js");
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("includes/library.js");

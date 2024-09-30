@@ -26,7 +26,6 @@
 		}
 
 		private function show_menu_form($menu) {
-			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("banshee/jquery.menueditor.js");
 			$this->view->add_javascript("vault/menu.js");
 

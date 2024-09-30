@@ -220,14 +220,16 @@ function init_grid(grid_cell_size) {
 		$('div.playarea div.map *').css('top', '0');
 		grid_ctx.clearRect(0, 0, grid_canvas.width, grid_canvas.height)
 
-		var from_x = 0;
-		var from_y = 0;
-		var width = 0;
+		var possible_sizes = []
+		$('span.sizes').text().split(', ').forEach(function(value) {
+			possible_sizes.push(parseInt(value));
+		});
 
 		$('canvas').one('mousedown', function(event) {
 			var pos = $('canvas').offset();
-			from_x = Math.round(event.clientX - pos.left + window.scrollX);
-			from_y = Math.round(event.clientY - pos.top + window.scrollY);
+			var from_x = Math.max(Math.round(event.clientX - pos.left + window.scrollX), 0);
+			var from_y = Math.max(Math.round(event.clientY - pos.top + window.scrollY), 0);
+			var width = 0;
 
 			grid_ctx.fillStyle = 'rgba(255, 96, 32, 0.2)';
 
@@ -239,8 +241,6 @@ function init_grid(grid_cell_size) {
 
 				var sign_x = (width_x == 0) ? 0 : Math.round(width_x / Math.abs(width_x));
 				var sign_y = (width_y == 0) ? 0 : Math.round(width_y / Math.abs(width_y));
-
-				console.log(sign_x + ' : ' + sign_y);
 
 				grid_ctx.clearRect(0, 0, grid_canvas.width, grid_canvas.height);
 				grid_ctx.beginPath();
@@ -257,7 +257,14 @@ function init_grid(grid_cell_size) {
 				var cell_size = (width - 1) / FINDER_SIZE;
 				if (cell_size < 20) {
 					cell_size = 20;
-					cauldron_alert('Grid cell size too small.');
+					cauldron_alert('Grid cell size is too small.');
+				} else {
+					possible_sizes.forEach(function(size) {
+						if (100 * Math.abs(size - cell_size) / cell_size <= 2) {
+							cell_size = size;
+							return false;
+						}
+					});
 				}
 
 				$('input[name="grid_size"]').val(cell_size);
@@ -273,6 +280,10 @@ function init_grid(grid_cell_size) {
 				var ofs_x = Math.round(from_x % cell_size);
 				if (ofs_x > MAX_OFFSET) {
 					ofs_x = 0;
+				} else if (possible_sizes.length > 0) {
+					if ((100 * ofs_x / cell_size <= 3) || (100 * (ofs_x - cell_size) / cell_size <= 2)) {
+						ofs_x = 0;
+					}
 				}
 				slider_offset_x.slider('value', ofs_x);
 				handle_offset_x.text(ofs_x);
@@ -281,6 +292,10 @@ function init_grid(grid_cell_size) {
 				var ofs_y = Math.round(from_y % cell_size);
 				if (ofs_y > MAX_OFFSET) {
 					ofs_y = 0;
+				} else if (possible_sizes > 0) {
+					if ((100 * ofs_y / cell_size <= 3) || (100 * (ofs_y - cell_size) / cell_size <= 2)) {
+						ofs_y = 0;
+					}
 				}
 				slider_offset_y.slider('value', ofs_y);
 				handle_offset_y.text(ofs_y);

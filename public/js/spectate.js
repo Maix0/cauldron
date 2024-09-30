@@ -31,6 +31,7 @@ var drawing_canvas = null;
 var drawing_ctx = null;
 var fullscreen = false
 var fullscreen_backup = undefined;
+var reveal_message = false;
 
 function websocket_send(data) {
 	if (websocket == null) {
@@ -182,7 +183,7 @@ function object_contextmenu(event) {
 		'view': {name:'View', icon:'fa-search'}
 	};
 
-	show_context_menu($(this), event, menu_entries, context_menu_handler, LAYER_MENU);
+	context_menu_show($(this), event, menu_entries, context_menu_handler, LAYER_MENU);
 	return false;
 }
 
@@ -587,6 +588,12 @@ $(document).ready(function() {
 			user_id: user_id
 		};
 		websocket_send(data);
+
+		var data = {
+			action: 'scan',
+			user_id: user_id
+		};
+		websocket_send(data);
 	}
 
 	websocket.onmessage = function(event) {
@@ -606,7 +613,7 @@ $(document).ready(function() {
 		switch (data.action) {
 			case 'alternate':
 				var img_size = data.size * grid_cell_size;
-				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/characters/' + data.src);
+				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/' + data.src);
 				$('div#' + data.char_id).css('width', img_size + 'px');
 				$('div#' + data.char_id).find('img').css('height', img_size + 'px');
 				break;
@@ -727,12 +734,25 @@ $(document).ready(function() {
 			case 'reload':
 				document.location = '/spectate/' + adventure_id;
 				break;
+			case 'reveal':
+				if (reveal_message == false) {
+					write_sidebar('Present in this map:');
+					reveal_message = true;
+				}
+				write_sidebar('&ndash; ' + data.name);
+				break;
 			case 'rotate':
 				var obj = $('div#' + data.instance_id);
 				object_rotate(obj, data.rotation, data.speed);
 				break;
 			case 'say':
 				message_to_sidebar(data.name, data.mesg);
+				break;
+			case 'shape':
+				var size = parseInt(data.size)
+				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/' + data.src);
+				$('div#' + data.char_id).css('width', (grid_cell_size * size) + 'px');
+				$('div#' + data.char_id).find('img').css('height', (grid_cell_size * size) + 'px');
 				break;
 			case 'show':
 				var obj = $('div#' + data.instance_id);
@@ -879,7 +899,7 @@ $(document).ready(function() {
 			menu_entries['sheet'] = { name:'View character sheet', icon:'fa-file-text-o' };
 		}
 
-		show_context_menu($(this), event, menu_entries, context_menu_handler, LAYER_MENU);
+		context_menu_show($(this), event, menu_entries, context_menu_handler, LAYER_MENU);
 		return false;
 	});
 
@@ -941,6 +961,44 @@ $(document).ready(function() {
 	});
 
 	$('div.menu').css('z-index', LAYER_MENU);
+
+	/* Drag map
+	 */
+	$('div.playarea').on('mousedown', function(event) {
+		if (event.button != 1) {
+			return true;
+		}
+
+		context_menu_remove();
+
+		$('div.playarea').css('cursor', 'grab');
+
+		var scr = screen_scroll();
+		var from_x = event.clientX + scr.left - 16;
+		var from_y = event.clientY + scr.top - 41;
+
+		$('div.playarea').on('mousemove', function(event) {
+			var scr = screen_scroll();
+			var to_x = event.clientX + scr.left - 16;
+			var to_y = event.clientY + scr.top - 41;
+
+			var dx = from_x - to_x;
+			var dy = from_y - to_y;
+
+			$('div.playarea').scrollLeft(scr.left + dx);
+			$('div.playarea').scrollTop(scr.top + dy);
+		});
+
+		var map_move_stop = function() {
+			$('div.playarea').css('cursor', 'default');
+			$('div.playarea').off('mousemove');
+		};
+
+		$('div.playarea').one('mouseup', map_move_stop);
+		$('div.playarea').one('mouseleave', map_move_stop);
+
+		return false;
+	});
 
 	/* Fullscreen
 	*/

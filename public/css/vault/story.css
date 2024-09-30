@@ -13,8 +13,22 @@ div.global {
 	border-radius:3px;
 }
 
+div.collapsed div.body {
+	display:none;
+}
+
+div.row div.link a {
+	margin-top:15px;
+	margin-bottom:10px;
+	float:right;
+}
+
+div.encounters div.link a {
+	margin-top:0;
+}
+
 div.story div.row {
-	margin-bottom:15px;
+	margin-bottom:10px;
 }
 
 div.story span.section {
@@ -33,18 +47,15 @@ div.story div.item {
 	padding:0 15px;
 }
 
-div.story div.item div {
+div.story div.item > div {
 	background-color:#ffffff;
 	padding:5px 15px;
 	overflow:auto;
 }
 
-div.story div.item div.maxheight {
-	max-height:200px;
-}
-
-div.story div.row a div.header {
+div.story div.row div.header {
 	color:#333333;
+	cursor:pointer;
 }
 
 div.story div.row div {
@@ -138,12 +149,18 @@ div.custom-dice {
 	button.help,
 	button.fa,
 	div.handle,
+	div.link,
 	div.add,
 	div.btn-group,
 	div.footer,
 	div.alert,
+	div.nr,
 	.players {
 		display:none;
+	}
+
+	div.body {
+		display:block;
 	}
 
 	div.global {
@@ -166,6 +183,10 @@ div.custom-dice {
 	div.story div.body {
 		margin-top:-5px;
 		margin-left:20px;
+	}
+
+	div.collapsed div.body {
+		display:block;
 	}
 
 	div.story {
@@ -196,10 +217,6 @@ div.custom-dice {
 
 	div.located {
 		text-align:right;
-	}
-
-	div.nr {
-		display:none;
 	}
 
 	div.count,

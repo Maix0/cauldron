@@ -43,7 +43,7 @@
 <div class="btn-group">
 <input type="submit" name="submit_button" value="Login" class="btn btn-default" />
 <xsl:if test="/output/page/@url!='/'">
-<a href="/{previous}" class="btn btn-default">Cancel</a>
+<a href="/" class="btn btn-default">Cancel</a>
 </xsl:if>
 </div>
 </form>

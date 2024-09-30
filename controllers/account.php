@@ -21,10 +21,7 @@
 			}
 
 			if (is_true(USE_AUTHENTICATOR)) {
-				$this->view->add_javascript("webui/jquery-ui.js");
 				$this->view->add_javascript("account.js");
-
-				$this->view->add_css("webui/jquery-ui.css");
 			}
 
 			$this->view->open_tag("edit", array(

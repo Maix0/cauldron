@@ -43,14 +43,15 @@
 
 <h2>Non-Player Characters</h2>
 <xsl:for-each select="npcs/npc">
-<div class="row npcs">
+<div class="row npcs collapsed">
 <div class="item">
-<a href="/{/output/page}/npc/{@id}">
 <div class="col-xs-9 col-md-5 header title npc_name"><xsl:value-of select="name" /></div>
 <div class="col-xs-3  col-md-2 header cr"><xsl:value-of select="cr" /></div>
 <div class="col-xs-12 col-md-5 header type"><xsl:value-of select="type" /></div>
-</a>
-<div class="col-xs-12 body maxheight"><xsl:value-of select="description" disable-output-escaping="yes" /></div>
+<div class="col-xs-12 body">
+<xsl:value-of select="description" disable-output-escaping="yes" />
+<div class="link"><a href="/{/output/page}/npc/{@id}" class="btn btn-default btn-xs">edit</a></div>
+</div>
 </div>
 </div>
 </xsl:for-each>
@@ -63,14 +64,15 @@
 <h2>Objects and locations</h2>
 <div class="sortable" type="objects">
 <xsl:for-each select="objects/object">
-<div class="row objects">
+<div class="row objects collapsed">
 <div class="item" item_id="{@id}">
-<a href="/{/output/page}/object/{@id}">
-<div class="col-xs-8 header title name"><xsl:value-of select="name" /></div>
-<div class="col-xs-3 header located"><xsl:value-of select="located" /></div>
+<div class="col-sm-8 col-xs-12 header title name"><xsl:value-of select="name" /></div>
+<div class="col-sm-3 col-xs-11 header located"><xsl:value-of select="located" /></div>
 <div class="col-xs-1 header handle"><span class="fa fa-arrows-v"></span></div>
-</a>
-<div class="col-xs-12 body maxheight"><xsl:value-of select="description" disable-output-escaping="yes" /></div>
+<div class="col-xs-12 body">
+<xsl:value-of select="description" disable-output-escaping="yes" />
+<div class="link"><a href="/{/output/page}/object/{@id}" class="btn btn-default btn-xs">edit</a></div>
+</div>
 </div>
 </div>
 </xsl:for-each>
@@ -84,14 +86,15 @@
 <h2>Events</h2>
 <div class="sortable" type="events">
 <xsl:for-each select="events/event">
-<div class="row events">
+<div class="row events collapsed">
 <div class="item" item_id="{@id}">
-<a href="/{/output/page}/event/{@id}">
 <div class="col-xs-9 header title name"><xsl:value-of select="title" /></div>
 <div class="col-xs-2 header nr"><xsl:value-of select="total_xp" /></div>
 <div class="col-xs-1 header handle"><span class="fa fa-arrows-v"></span></div>
-</a>
-<div class="col-xs-12 body maxheight"><xsl:value-of select="description" disable-output-escaping="yes" /></div>
+<div class="col-xs-12 body">
+<xsl:value-of select="description" disable-output-escaping="yes" />
+<div class="link"><a href="/{/output/page}/event/{@id}" class="btn btn-default btn-xs">edit</a></div>
+</div>
 </div>
 </div>
 </xsl:for-each>
@@ -104,12 +107,11 @@
 <div class="story">
 <h2>Encounters</h2>
 <xsl:for-each select="encounters/encounter">
-<div class="row encounters">
+<div class="row encounters collapsed">
 <div class="item">
-<a href="/{/output/page}/encounter/{@id}">
 <div class="col-xs-9 header title"><xsl:value-of select="title" /></div>
 <div class="col-xs-3 header xp"><xsl:value-of select="total_xp" /> XP</div>
-</a>
+<div class="body">
 <xsl:for-each select="monsters/item">
 <div class="col-xs-2  col-md-1 count"><xsl:value-of select="count" /> &#xd7;</div>
 <div class="col-xs-10 col-md-5 monster"><xsl:value-of select="monster" /></div>
@@ -118,6 +120,8 @@
 <div class="col-xs-3  col-md-1 xp"><xsl:value-of select="xp" /> XP</div>
 <div class="col-xs-3  col-md-1 xp"><xsl:value-of select="total_xp" /> XP</div>
 </xsl:for-each>
+<div class="link"><a href="/{/output/page}/encounter/{@id}" class="btn btn-default btn-xs">edit</a></div>
+</div>
 </div>
 </div>
 </xsl:for-each>

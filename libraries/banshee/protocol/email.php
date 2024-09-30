@@ -61,7 +61,7 @@
 				return false;
 			}
 
-			return preg_match("/^[0-9A-Za-z]([-+_.~]?[0-9A-Za-z])*@[0-9A-Za-z]([-.]?[0-9A-Za-z])*\\.[A-Za-z]{2,4}$/", $email) === 1;
+			return preg_match("/^[0-9A-Za-z]([-+_.~]?[0-9A-Za-z])*@[0-9A-Za-z]([-.]?[0-9A-Za-z])*\\.([A-Za-z])+$/", $email) === 1;
 		}
 
 		/* Combine name and e-mail address

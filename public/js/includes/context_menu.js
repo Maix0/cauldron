@@ -1,4 +1,4 @@
-function show_context_menu(obj, event, menu_entries, callback, options) {
+function context_menu_show(obj, event, menu_entries, callback, options) {
 	var settings = {
 		root: 'body',
 		z_index: 1,
@@ -50,7 +50,7 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 
 						var opt = Object.assign({}, options, { main: false });
 
-						show_context_menu(obj, e, value.items, callback, opt);
+						context_menu_show(obj, e, value.items, callback, opt);
 					});
 				} else {
 					item.hover(function() {
@@ -115,7 +115,11 @@ function show_context_menu(obj, event, menu_entries, callback, options) {
 	menu.css('display', '');
 
 	$(document).one('mousedown', function() {
-		$('body div.context_menu').remove();
+		context_menu_remove();
 		return false;
 	});
+}
+
+function context_menu_remove() {
+	$('body div.context_menu').remove();
 }

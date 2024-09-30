@@ -266,6 +266,8 @@ Create a character if you haven't yet done so. To create a new character, click 
 <!-- Markers -->
 <div class="markers"></div>
 </div>
+<!-- Player notes -->
+<div class="notes"><xsl:value-of select="notes" /></div>
 <!-- Shape change -->
 <div class="shape_change">
 <xsl:for-each select="shape_change/token">

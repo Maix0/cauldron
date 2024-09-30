@@ -112,7 +112,7 @@ $(document).ready(function() {
 			}
 		};
 
-		show_context_menu($(this), event, menu_entries, handler, 100);
+		context_menu_show($(this), event, menu_entries, handler, 100);
 		return false;
 	});
 

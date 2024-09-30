@@ -159,7 +159,7 @@
 				$tempfile = $tempdir."/".$stat["name"];
 
 				$data = array(
-					"name"         => $pathinfo["filename"],
+					"name"         => substr($pathinfo["filename"], 0, 50),
 					"width"        => 1,
 					"height"       => 1,
 					"type"         => $post["type"],

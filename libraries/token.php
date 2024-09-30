@@ -48,6 +48,7 @@
 
 			$token["id"] = null;
 			$token["organisation_id"] = $this->organisation_id;
+			$token["name"] = substr($token["name"], 0, 50);
 			$token["shape_change"] = is_true($token["shape_change"] ?? false) ? YES : NO;
 			$token["extension"] = $image["extension"];
 
@@ -71,6 +72,7 @@
 				return false;
 			}
 
+			$token["name"] = substr($token["name"], 0, 50);
 			$token["shape_change"] = is_true($token["shape_change"] ?? false) ? YES : NO;
 
 			if ($image["error"] == 0) {

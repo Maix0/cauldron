@@ -54,13 +54,14 @@
 		}
 
 		public function create_adventure($adventure) {
-			$keys = array("id", "title", "image", "introduction", "dm_id", "access", "story");
+			$keys = array("id", "title", "image", "introduction", "dm_id", "access", "story", "notes");
 
 			$adventure["id"] = null;
 			$adventure["title"] = substr($adventure["title"], 0, 50);
 			$adventure["dm_id"] = $this->user->id;
 			$adventure["active_map_id"] = null;
 			$adventure["story"] = "";
+			$adventure["notes"] = "";
 
 			return $this->db->insert("adventures", $adventure, $keys) !== false;
 		}

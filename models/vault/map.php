@@ -171,8 +171,8 @@
 			if (valid_input($map["fow_distance"], VALIDATE_NUMBERS, VALIDATE_NONEMPTY) == false) {
 				$this->view->add_message("Invalid FoW distance.");
 				$result = false;
-			} else if ((int)$map["fow_distance"] == 0) {
-				$this->view->add_message("Invalid FoW distance.");
+			} else if (($map["fow_distance"] == 0) || ($map["fow_distance"] > 250)) {
+				$this->view->add_message("Invalid Fog of War distance (1-250).");
 				$result = false;
 			}
 
@@ -543,9 +543,7 @@
 		}
 
 		public function import_map($map) {
-			$adventure_id = $_SESSION["edit_adventure_id"];
-
-			if (isset($adventure_id) == false) {
+			if (isset($_SESSION["edit_adventure_id"]) == false) {
 				$this->view->add_message("No adventure selected.");
 				return false;
 			}
@@ -566,7 +564,7 @@
 			}
 
 			$query = "select count(*) as count from maps where adventure_id=%d and title=%s";
-			if (($result = $this->db->execute($query, $adventure_id, $map["title"])) == false) {
+			if (($result = $this->db->execute($query, $_SESSION["edit_adventure_id"], $map["title"])) == false) {
 				$this->view->add_message("Adventure query error.");
 				return false;
 			}

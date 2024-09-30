@@ -126,9 +126,7 @@
 						$item .= "</select>\n";
 						break;
 					case "date":
-						$this->view->add_javascript("webui/jquery-ui.js");
 						$this->view->add_javascript("banshee/datepicker.js");
-						$this->view->add_css("webui/jquery-ui.css");
 						$item = "<input type=\"text\" id=\"".$elem_id."\" name=\"".$elem_id."\" value=\"".$value."\" class=\"form-control datepicker\" >\n";
 						break;
 					default:

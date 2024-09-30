@@ -157,7 +157,7 @@
 				$this->view->add_message("The username and full name cannot be empty.");
 				$result = false;
 			} else if (valid_input($user["username"], VALIDATE_NONCAPITALS.VALIDATE_NUMBERS."@.-") == false) {
-				$this->view->add_message("Invalid characters in username.");
+				$this->view->add_message("Invalid characters in username. Use only lowercase characters or an e-mail address.");
 				$result = false;
 			} else if (($check = $this->db->entry("users", $user["username"], "username")) === false) {
 				$this->view->add_message("Database error.");
@@ -173,7 +173,7 @@
 			 */
 			if (isset($user["id"]) == false) {
 				if (($user["password"] == "") && is_false($user["generate"] ?? false)) {
-					$this->view->add_message("Fill in the password or let Banshee generate one.");
+					$this->view->add_message("Fill in the password or let Cauldron VTT generate one.");
 					$result = false;
 				}
 			}

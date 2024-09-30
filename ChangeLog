@@ -1,3 +1,14 @@
+cauldron (3.7) stable; urgency=low
+
+  * Added Fog of War brush for manually reveal mode.
+  * Added command to change 3D dice color.
+  * Player notes added to inventory panel.
+  * Drag map via middle mouse button.
+  * Drag multiple (character) tokens via CTRL key and middle mouse button.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 29 Sep 2024 08:25:41 +0200
+
 cauldron (3.6) stable; urgency=low
 
   * Added custom dice.

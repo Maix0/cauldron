@@ -43,6 +43,8 @@ var map_id = null;
 var user_id = null;
 var resources_key = null;
 var grid_cell_size = null;
+var map_width = null;
+var map_height = null;
 var dungeon_master = null;
 var my_name = null;
 var character_name = null;
@@ -69,9 +71,6 @@ var night_level = 0;
 var effect_counter = 1;
 var effect_x = 0;
 var effect_y = 0;
-var stick_to = null;
-var stick_to_x = 0;
-var stick_to_y = 0;
 var zone_presence = [];
 var zone_x = 0;
 var zone_y = 0;
@@ -86,6 +85,7 @@ var alt_down = false;
 var drawing_canvas = null;
 var drawing_ctx = null;
 var drawing_history = [];
+var drawing_mode = 'source-over';
 var fullscreen = false
 var fullscreen_backup = undefined;
 var pause = false;
@@ -95,6 +95,7 @@ var key_to_direction = null;
 var brushes = {};
 var sea_submenu = null;
 var mobile_device = false;
+var player_notes = null;
 
 var char_pos_x = 0;
 var char_pos_y = 0;
@@ -176,6 +177,12 @@ function screen_scroll() {
 	scr.top = Math.round($('div.playarea').scrollTop());
 
 	return scr;
+}
+
+function store_mouse_position() {
+	var scr = screen_scroll();
+	mouse_x = event.clientX + scr.left - 16;
+	mouse_y = event.clientY + scr.top - 41;
 }
 
 function scroll_to_my_character(speed = 1000) {
@@ -316,15 +323,16 @@ function input_history_add(input) {
 
 function show_help() {
 	var commands = {
-		'clear':                   'Clear this sidebar.',
-		'd20 [&lt;bonus&gt]':      'Roll d20 dice.',
-		'd20a [&lt;bonus&gt]':     'Roll d20 dice with advantage.',
-		'd20d [&lt;bonus&gt]':     'Roll d20 dice with disadvantage.',
-		'fow [&lt;image url&gt;]': 'Enable Fog of War texture.',
-		'history [clear]':         'Show or clear your input history.',
-		'labels hide|show':        'Manage character name labels and health bars visibility.',
-		'log &lt;message&gt;':     'Add message to journal.',
-		'roll &lt;dice&gt;':       'Roll one or more dice.',
+		'clear':                     'Clear this sidebar.',
+		'd20 [&lt;bonus&gt]':        'Roll d20 dice.',
+		'd20a [&lt;bonus&gt]':       'Roll d20 dice with advantage.',
+		'd20d [&lt;bonus&gt]':       'Roll d20 dice with disadvantage.',
+		'dicecolor #&lt;rrggbb&gt;': 'Change the color of the 3D dice.',
+		'fow [&lt;image url&gt;]':   'Enable Fog of War texture.',
+		'history [clear]':           'Show or clear your input history.',
+		'labels hide|show':          'Manage character name labels and health bars visibility.',
+		'log &lt;message&gt;':       'Add message to journal.',
+		'roll &lt;dice&gt;':         'Roll one or more dice.',
 		'whisper &lt;name&gt;|dm &lt;message&gt;': 'Send a message to a specific player or character or the Dungeon Master.'
 	};
 
@@ -355,7 +363,9 @@ function show_help() {
 
 	help.push('<span class="help"><b>&lt;message&gt;</b>: Send text message.</span><br />');
 	help.push('Right-click an icon or the map for a menu with options.');
-	help.push('Holding CTRL whiling clicking the sidebar shows its content in a larger window.');
+	help.push('Use the middle mouse button to move the map.');
+	help.push('Holding the CTRL key while using the middle mouse button allows you to select multiple tokens and characters.');
+	help.push('Holding CTRL while clicking the sidebar shows its content in a larger window.');
 
 	write_sidebar(help.join('\n'));
 }
@@ -432,78 +442,107 @@ function object_alive(obj) {
 	obj.removeClass('dead');
 }
 
+function object_click(event) {
+	if ($(this).parent().is(focus_obj)) {
+		event.stopPropagation();
+	}
+}
+
+function object_click_mobile(event) {
+	event.type = 'contextmenu';
+	$(this).trigger(event);
+}
+
 function object_contextmenu_dm(event) {
+	var obj = $(this).parent();
+
 	var menu_entries = {};
 
-	menu_entries['info'] = { name:'Get information', icon:'fa-info-circle' };
-	menu_entries['view'] = { name:'View', icon:'fa-search' };
-
-	var rotate = {
-		'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
-		'rotate_ne': { name:'North East' },
-		'rotate_e':  { name:'East', icon:'fa-arrow-circle-right' },
-		'rotate_se': { name:'South East' },
-		'rotate_s':  { name:'South', icon:'fa-arrow-circle-down' },
-		'rotate_sw': { name:'South West' },
-		'rotate_w':  { name:'West', icon:'fa-arrow-circle-left' },
-		'rotate_nw': { name:'North West' }
-	};
-	menu_entries['rotate'] = { name:'Rotate', icon:'fa-compass', items:rotate };
-
-	if ($(this).parent().find('span.name').length > 0) {
-		if ($(this).parent().find('span.name').attr('known') == 'yes') {
-			menu_entries['unknown'] = { name:'Make unknown', icon:'fa-question' };
-		} else {
-			menu_entries['known'] = { name:'Make known', icon:'fa-question' };
-		}
-	}
-
-	menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
-	menu_entries['sep1'] = '-';
-	menu_entries['handover'] = { name:'Hand over', icon:'fa-hand-stop-o' };
-	menu_entries['takeback'] = { name:'Take back', icon:'fa-hand-grab-o' };
-	menu_entries['sep2'] = '-';
-	menu_entries['marker'] = { name:'Set marker', icon:'fa-map-marker' };
-	menu_entries['distance'] = { name:'Measure distance', icon:'fa-map-signs' };
-	menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
-	menu_entries['focus'] = { name:'Focus', icon:'fa-binoculars' };
-	menu_entries['zone_create'] = { name:'Create zone', icon:'fa-square-o' };
-	menu_entries['sep3'] = '-';
-	menu_entries['sea'] = sea_submenu;
-	menu_entries['attack'] = { name:'Attack', icon:'fa-legal' };
-
-	var hitpoints = parseInt($(this).parent().attr('hitpoints'));
-	if (hitpoints > 0) {
+	if (obj.hasClass('selected')) {
 		menu_entries['damage'] = { name:'Damage', icon:'fa-warning' };
 		menu_entries['heal'] = { name:'Heal', icon:'fa-medkit' };
+		if ($('div.character.selected').length == 0) {
+			menu_entries['sep1'] = '-';
+			menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
+			menu_entries['handover'] = { name:'Hand over', icon:'fa-hand-stop-o' };
+			menu_entries['takeback'] = { name:'Take back', icon:'fa-hand-grab-o' };
+			menu_entries['sep2'] = '-';
+			menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
+		}
+	} else {
+		menu_entries['info'] = { name:'Get information', icon:'fa-info-circle' };
+		menu_entries['view'] = { name:'View', icon:'fa-search' };
+
+		var rotate = {
+			'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
+			'rotate_ne': { name:'North East' },
+			'rotate_e':  { name:'East', icon:'fa-arrow-circle-right' },
+			'rotate_se': { name:'South East' },
+			'rotate_s':  { name:'South', icon:'fa-arrow-circle-down' },
+			'rotate_sw': { name:'South West' },
+			'rotate_w':  { name:'West', icon:'fa-arrow-circle-left' },
+			'rotate_nw': { name:'North West' }
+		};
+		if (obj.attr('token_type') == 'topdown') {
+			menu_entries['rotate'] = { name:'Rotate', icon:'fa-compass', items:rotate };
+		}
+
+		if (obj.find('span.name').length > 0) {
+			if (obj.find('span.name').attr('known') == 'yes') {
+				menu_entries['unknown'] = { name:'Make unknown', icon:'fa-question' };
+			} else {
+				menu_entries['known'] = { name:'Make known', icon:'fa-question' };
+			}
+		}
+
+		menu_entries['presence'] = { name:'Toggle presence', icon:'fa-low-vision' };
+		menu_entries['sep1'] = '-';
+		menu_entries['handover'] = { name:'Hand over', icon:'fa-hand-stop-o' };
+		menu_entries['takeback'] = { name:'Take back', icon:'fa-hand-grab-o' };
+		menu_entries['sep2'] = '-';
+		menu_entries['marker'] = { name:'Set marker', icon:'fa-map-marker' };
+		menu_entries['distance'] = { name:'Measure distance', icon:'fa-map-signs' };
+		menu_entries['coordinates'] = { name:'Get coordinates', icon:'fa-flag' };
+		menu_entries['focus'] = { name:'Focus', icon:'fa-binoculars' };
+		menu_entries['zone_create'] = { name:'Create zone', icon:'fa-square-o' };
+		menu_entries['sep3'] = '-';
+		menu_entries['sea'] = sea_submenu;
+		menu_entries['attack'] = { name:'Attack', icon:'fa-legal' };
+
+		var hitpoints = parseInt(obj.attr('hitpoints'));
+		if (hitpoints > 0) {
+			menu_entries['damage'] = { name:'Damage', icon:'fa-warning' };
+			menu_entries['heal'] = { name:'Heal', icon:'fa-medkit' };
+		}
+
+		var has = obj.find('span.conditions').text().split(',');
+		var conditions = {};
+		conditions['condition_0'] = { name: 'None' };
+		conditions['sep0'] = '-';
+		$('div.conditions div').each(function() {
+			var con_id = $(this).attr('con_id');
+			var name = $(this).text();
+			var icon = has.includes(name) ? 'fa-check-square-o' : 'fa-square-o';
+			conditions['condition_' + con_id] = { name: name, icon: icon};
+		});
+
+		menu_entries['sep4'] = '-';
+		menu_entries['conditions'] = { name:'Set condition', icon:'fa-heartbeat', items:conditions};
+		menu_entries['sep5'] = '-';
+		menu_entries['lower'] = { name:'Lower', icon:'fa-arrow-down' };
+		menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
 	}
 
-	var has = $(this).parent().find('span.conditions').text().split(',');
-	var conditions = {};
-	conditions['condition_0'] = { name: 'None' };
-	conditions['sep0'] = '-';
-	$('div.conditions div').each(function() {
-		var con_id = $(this).attr('con_id');
-		var name = $(this).text();
-		var icon = has.includes(name) ? 'fa-check-square-o' : 'fa-square-o';
-		conditions['condition_' + con_id] = { name: name, icon: icon};
-	});
-
-	menu_entries['sep4'] = '-';
-	menu_entries['conditions'] = { name:'Set condition', icon:'fa-heartbeat', items:conditions};
-	menu_entries['sep5'] = '-';
-	menu_entries['lower'] = { name:'Lower', icon:'fa-arrow-down' };
-	menu_entries['delete'] = { name:'Delete', icon:'fa-trash' };
-
-	show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+	context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 
 	return false;
 }
 
 function object_contextmenu_player(event) {
+	$('div.selected').removeClass('selected');
+
 	var menu_entries = {
 		'view': { name:'View', icon:'fa-search' },
-		'stick': { name:'Stick to / unstick', icon:'fa-lock' },
 		'sep1': '-',
 		'sea': sea_submenu,
 		'attack': { name:'Attack', icon:'fa-legal' },
@@ -512,7 +551,7 @@ function object_contextmenu_player(event) {
 		'distance': { name:'Measure distance', icon:'fa-map-signs' }
 	};
 
-	show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+	context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 	return false;
 }
 
@@ -578,10 +617,14 @@ function object_create(icon, x, y) {
 			object_rotate_command($('div#token' + instance_id), rotation, 0);
 		}
 
+		$('div.playarea div#token' + instance_id).on('mousedown', object_mouse_down);
+
 		$('div.playarea div#token' + instance_id).draggable({
-			stop: function(event, ui) {
-				object_move($(this));
-			}
+			containment: 'div.playarea > div',
+			handle: 'img',
+			start: object_drag_start,
+			drag: object_drag_drag,
+			stop: object_drag_stop
 		});
 
 		if (mobile_device) {
@@ -652,21 +695,63 @@ function object_damage_action(obj, damage, percentage) {
 	}
 }
 
-function object_click(event) {
-	if ($(this).parent().is(focus_obj)) {
-		event.stopPropagation();
-	}
-}
-
-function object_click_mobile(event) {
-	event.type = 'contextmenu';
-	$(this).trigger(event);
-}
-
 function object_dblclick(event) {
 	event.stopPropagation();
 	
 	object_focus($(this).parent());
+}
+
+function object_drag_start(event, ui) {
+	context_menu_remove();
+
+	var pos_drag = object_position(ui.helper);
+
+	$('div.token.selected, div.character.selected').each(function() {
+		if ($(this).is(ui.helper)) {
+			return true;
+		}
+
+		var pos_obj = object_position($(this));
+
+		$(this).attr('diff_x', Math.round(pos_obj.left - pos_drag.left));
+		$(this).attr('diff_y', Math.round(pos_obj.top - pos_drag.top));
+	});
+}
+
+function object_drag_drag(event, ui) {
+	$('div.token.selected, div.character.selected').each(function() {	
+		if ($(this).is(ui.helper)) {
+			return true;
+		}
+
+		var diff_x = parseInt($(this).attr('diff_x'));
+		var diff_y = parseInt($(this).attr('diff_y'));
+
+		var pos_x = Math.max(Math.round(ui.position.left + diff_x), 0);
+		var pos_y = Math.max(Math.round(ui.position.top + diff_y), 0);
+		pos_x = Math.min(pos_x, map_width - $(this).width());
+		pos_y = Math.min(pos_y, map_height - $(this).height());
+
+		$(this).css({
+			left: pos_x + 'px',
+			top: pos_y + 'px'
+		});
+	});
+}
+
+function object_drag_stop(event, ui) {
+	object_move($(this));
+
+	$('div.token.selected, div.character.selected').each(function() {	
+		if ($(this).is(ui.helper)) {
+			return true;
+		}
+
+		$(this).removeAttr('diff_x');
+		$(this).removeAttr('diff_y');
+
+		object_move($(this));
+	});
 }
 
 function object_focus(obj) {
@@ -815,6 +900,25 @@ function object_info(obj) {
 	write_sidebar(info);
 }
 
+function object_mouse_down(event) {
+	context_menu_remove();
+	store_mouse_position();
+
+	if ((event.which == 2) && ctrl_down) {
+		if ($(this).hasClass('selected')) {
+			$(this).removeClass('selected');
+		} else if ($(this).hasClass('ui-draggable')) {
+			$(this).addClass('selected');
+		}
+	} else if ($(this).hasClass('selected') == false) {
+		$('div.selected').removeClass('selected');
+	}
+
+	event.stopPropagation();
+
+	return false;
+}
+
 function object_move(obj, speed = 200) {
 	var map = $('div.playarea div');
 	var max_x = map.width() - obj.width();
@@ -870,16 +974,6 @@ function object_move(obj, speed = 200) {
 			fog_of_war_update(fow_obj);
 		}
 	}
-}
-
-function object_move_to_sticked(obj) {
-	var pos = object_position(obj);
-	var new_x = (pos.left + stick_to_x * grid_cell_size).toString();
-	var new_y = (pos.top + stick_to_y * grid_cell_size).toString();
-
-	my_character.css('left', new_x + 'px');
-	my_character.css('top', new_y + 'px');
-	object_move(my_character);
 }
 
 function object_position(obj) {
@@ -1077,11 +1171,6 @@ function object_step(obj, x, y) {
 
 	zone_check_events(obj, pos);
 
-	if (stick_to != null) {
-		stick_to_x += x;
-		stick_to_y += y;
-	}
-
 	if (keep_centered) {
 		scroll_to_my_character(0);
 	}
@@ -1175,9 +1264,21 @@ function object_steer(event) {
 
 function object_toggle_presence(obj) {
 	if (obj.attr('is_hidden') == 'yes') {
-		object_show_command(obj);
+		if (obj.hasClass('selected')) {
+			$('div.selected').each(function() {
+				object_show_command($(this));
+			});
+		} else {
+			object_show_command(obj);
+		}
 	} else {
-		object_hide_command(obj);
+		if (obj.hasClass('selected')) {
+			$('div.selected').each(function() {
+				object_hide_command($(this));
+			});
+		} else {
+			object_hide_command(obj);
+		}
 	}
 }
 
@@ -1192,7 +1293,7 @@ function object_turn(obj, direction) {
 	object_rotate_command(obj, rotation, 100);
 }
 
-function object_view(obj, max_size = 300) {
+function object_view(obj, max_size = 500) {
 	var collectable_id = obj.attr('c_id');
 
 	if (my_character != null) {
@@ -1206,6 +1307,8 @@ function object_view(obj, max_size = 300) {
 		}
 	}
 
+	var min_size = Math.min(max_size, 200);
+
 	var src = obj.find('img').prop('src');
 	if (collectable_id != undefined) {
 		var container_src = src;
@@ -1218,7 +1321,7 @@ function object_view(obj, max_size = 300) {
 	var onclick = 'javascript:$(this).remove();';
 	var div_style = 'position:absolute; z-index:' + LAYER_VIEW + '; top:0; left:0; right:0; bottom:0; background-color:rgba(' + bgcolor + ', 0.8);';
 	var span_style = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);';
-	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px; margin:0 auto;';
+	var img_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px; min-width:' + min_size + 'px; min-height:' + min_size + 'px; margin:0 auto;';
 	var container_style = 'display:block; max-width:' + max_size + 'px; max-height:' + max_size + 'px; position:absolute; top:100px; left:100px;';
 	var description = obj.find('img').attr('description');
 	var name = obj.find('span.name').text();
@@ -1341,7 +1444,7 @@ function effect_create_final(effect_id, src, width, height) {
 			'effect_delete': { name:'Delete', icon:'fa-trash' }
 		};
 
-		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+		context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 		return false;
 	});
 }
@@ -1572,7 +1675,7 @@ function light_create(pos_x, pos_y, radius) {
 
 			menu_entries['light_delete'] = { name:'Delete', icon:'fa-trash' };
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
 	}).fail(function(data) {
@@ -1954,7 +2057,7 @@ function zone_create(width, height, color, opacity, group, altitude) {
 		$('div#zone' + instance_id).on('contextmenu', function(event) {
 			var menu_entries = zone_menu;
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
 	}).fail(function(data) {
@@ -2039,6 +2142,24 @@ function collectables_show() {
 				row.append(collectable);
 			});
 		}
+
+		var notes = $('<textarea class="form-control notes" maxlength="250" placeholder="Player notes">' + player_notes + '</textarea>');
+		notes.on('change', function() {
+			var body = wf_collectables.body();
+			player_notes = body.find('textarea.notes').val();
+
+			$.post('/object/player_notes', {
+				adventure_id: adventure_id,
+				notes: player_notes
+			});
+
+			var data = {
+				action: 'player_notes',
+				notes: player_notes
+			};
+			websocket_send(data);
+		});
+		body.append(notes);
 
 		if (dungeon_master) {
 			$.post('/object/collectables/all', {
@@ -2301,6 +2422,16 @@ function handle_input(input) {
 			}
 
 			object_damage_command(my_character, points);
+			break;
+		case 'dicecolor':
+			if ((param.length != 7) || (param.substr(0, 1) != '#')) {
+				write_sidebar('Invalid color.');
+				return;
+			}
+			if (typeof dicebox_color != 'function') {
+				return;
+			}
+			dicebox_color(param);
 			break;
 		case 'dmroll':
 			if (dungeon_master == false) {
@@ -2679,7 +2810,7 @@ function context_menu_handler(key) {
 		case 'coordinates':
 			var pos_x = Math.round(coord_to_grid(mouse_x, false) / grid_cell_size);
 			var pos_y = Math.round(coord_to_grid(mouse_y, false) / grid_cell_size);
-			write_sidebar('Coordinates: ' + pos_x + ', ' + pos_y);
+			write_sidebar('Coordinates: ' + pos_x + ',' + pos_y);
 			break;
 		case 'damage':
 			var max_hp = obj.attr('hitpoints');
@@ -2692,12 +2823,24 @@ function context_menu_handler(key) {
 					return;
 				}
 
-				object_damage_command(obj, points);
+				if (obj.hasClass('selected')) {
+					$('div.selected').each(function() {
+						object_damage_command($(this), points);
+					});
+				} else {
+					object_damage_command(obj, points);
+				}
 			});
 			break;
 		case 'delete':
-			cauldron_confirm('Delete object?', function() {
-				object_delete(obj);
+			cauldron_confirm('Delete object(s)?', function() {
+				if (obj.hasClass('selected')) {
+					$('div.token.selected').each(function() {
+						object_delete($(this));
+					});
+				} else {
+					object_delete(obj);
+				}
 			});
 			break;
 		case 'distance':
@@ -2881,12 +3024,23 @@ function context_menu_handler(key) {
 				return;
 			}
 
-			var data = {
-				action: 'handover',
-				instance_id: obj.prop('id'),
-				owner_id: focus_obj.prop('id')
-			};
-			websocket_send(data);
+			var objects = [];
+			if (obj.hasClass('selected')) {
+				$('div.token.selected').each(function() {
+					objects.push($(this));
+				});
+			} else {
+				objects.push(obj);
+			}
+
+			objects.forEach(function(object) {
+				var data = {
+					action: 'handover',
+					instance_id: object.prop('id'),
+					owner_id: focus_obj.prop('id')
+				};
+				websocket_send(data);
+			});
 
 			write_sidebar(focus_obj.attr('player') + ' can now control this token.');
 			break;
@@ -2901,7 +3055,13 @@ function context_menu_handler(key) {
 					return;
 				}
 
-				object_damage_command(obj, -points);
+				if (obj.hasClass('selected')) {
+					$('div.selected').each(function() {
+						object_damage_command($(this), -points);
+					});
+				} else {
+					object_damage_command(obj, -points);
+				}
 			});
 			break;
 		case 'info':
@@ -3124,33 +3284,23 @@ function context_menu_handler(key) {
 			var sheet_url = $('div.characters div.character[char_id="' + char_id + '"]').attr('sheet');
 			window.open(sheet_url, '_blank');
 			break;
-		case 'stick':
-			var obj_pos = object_position(obj);
-			var obj_x = Math.floor(obj_pos.left / grid_cell_size);
-			var obj_y = Math.floor(obj_pos.top / grid_cell_size);
-
-			var my_pos = object_position(my_character);
-			var my_x = Math.floor(my_pos.left / grid_cell_size);
-			var my_y = Math.floor(my_pos.top / grid_cell_size);
-
-			stick_to_x = my_x - obj_x;
-			stick_to_y = my_y - obj_y;
-
-			if ((Math.abs(stick_to_x) > 3) || (Math.abs(stick_to_y) > 3)) {
-				stick_to = null;
-				write_sidebar('Object too far.');
-			} else if (obj.prop('id') == stick_to) {
-				stick_to = null;
-			} else {
-				stick_to = obj.prop('id');
-			}
-			break;
 		case 'takeback':
-			var data = {
-				action: 'takeback',
-				instance_id: obj.prop('id')
-			};
-			websocket_send(data);
+			var objects = [];
+			if (obj.hasClass('selected')) {
+				$('div.token.selected').each(function() {
+					objects.push($(this));
+				});
+			} else {
+				objects.push(obj);
+			}
+
+			objects.forEach(function(object) {
+				var data = {
+					action: 'takeback',
+					instance_id: object.prop('id')
+				};
+				websocket_send(data);
+			});
 
 			write_sidebar('Players no longer control this token.');
 			break;
@@ -3171,14 +3321,11 @@ function context_menu_handler(key) {
 				instance_id: obj.prop('id'),
 				char_id: obj.attr('char_id'),
 				hitpoints: obj.attr('hitpoints'),
-				map_id: travel_map_id
+				travel_map_id: travel_map_id
 			};
 			websocket_send(data);
 
-			var parts = window.location.pathname.split('/');
-			if (parts.length == 3) {
-				window.open('/adventure/' + adventure_id + '/' + travel_map_id);
-			}
+			window.open('/adventure/' + adventure_id + '/' + travel_map_id);
 
 			object_hide_command(obj);
 			break;
@@ -3275,7 +3422,7 @@ function key_down(event) {
 			$('p.measure').remove();
 			measuring_stop();
 			open_windows.close();
-			$('body div.context_menu').remove();
+			context_menu_remove();
 			$('div.menu').hide();
 			spell_effect_area_stop();
 			break;
@@ -3310,8 +3457,6 @@ function key_down(event) {
 				object_toggle_presence(focus_obj);
 			}
 			break;
-		default:
-			console.log(event.which);
 	}
 }
 
@@ -3342,6 +3487,8 @@ $(document).ready(function() {
 	group_key = $('div.playarea').attr('group_key');
 	adventure_id = parseInt($('div.playarea').attr('adventure_id'));
 	map_id = parseInt($('div.playarea').attr('map_id'));
+	map_width = $('div.playarea > div').width();
+	map_height = $('div.playarea > div').height();
 	user_id = parseInt($('div.playarea').attr('user_id'));
 	resources_key = $('div.playarea').attr('resources_key');
 	grid_cell_size = parseInt($('div.playarea').attr('grid_cell_size'));
@@ -3350,6 +3497,7 @@ $(document).ready(function() {
 	dungeon_master = ($('div.playarea').attr('is_dm') == 'yes');
 	fow_type = parseInt($('div.playarea').attr('fog_of_war'));
 	fow_map_distance = parseInt($('div.playarea').attr('fow_distance'));
+	player_notes = $('div.playarea div.notes').text();
 	var version = $('div.playarea').attr('version');
 	var ws_host = $('div.playarea').attr('ws_host');
 	var ws_port = $('div.playarea').attr('ws_port');
@@ -3442,6 +3590,7 @@ $(document).ready(function() {
 			 */
 			if (my_character.attr('is_hidden') == 'yes') {
 				object_show_command(my_character);
+				scroll_to_my_character();
 			}
 
 			/* Request map status from DM
@@ -3619,16 +3768,23 @@ $(document).ready(function() {
 					var handle = 'img';
 				}
 
-				$('div#' + data.instance_id).draggable({
+				var obj = $('div#' + data.instance_id);
+
+				obj.draggable({
 					containment: 'div.playarea > div',
 					handle: handle,
 					stop: function(event, ui) {
 						object_move($(this));
-						if ($(this).prop('id') == stick_to) {
-							object_move_to_sticked($(this));
-						}
 					}
 				});
+
+				if (obj.hasClass('token') || obj.hasClass('character')) {
+					obj.draggable({
+						start: object_drag_start,
+						drag: object_drag_drag,
+						stop: object_drag_stop
+					});
+				}
 
 				if (data.instance_id.substring(0, 4) == 'zone') {
 					return;
@@ -3636,11 +3792,14 @@ $(document).ready(function() {
 					return;
 				}
 
-				$('div#' + data.instance_id + ' img').off('contextmenu');
-				$('div#' + data.instance_id + ' img').on('contextmenu', function(event) {
+				obj.find('img').off('contextmenu');
+				obj.find('img').on('contextmenu', function(event) {
+					$('div.selected').removeClass('selected');
+
 					var menu_entries = {
 						'info': { name:'Get infomation', icon:'fa-info-circle' },
-						'stick': { name:'Stick to / unstick', icon:'fa-lock' },
+						'view': { name:'View', icon:'fa-search' },
+						'sep1': '-',
 						'rotate': { name:'Rotate', icon:'fa-compass', items:{
 							'rotate_n':  { name:'North', icon:'fa-arrow-circle-up' },
 							'rotate_ne': { name:'North East' },
@@ -3652,13 +3811,19 @@ $(document).ready(function() {
 							'rotate_nw': { name:'North West' }
 						}},
 						'lower': { name:'Lower', icon:'fa-arrow-down' },
-						'sep1': '-',
+						'sep2': '-',
+						'sea': sea_submenu,
 						'attack': { name:'Attack', icon:'fa-legal' },
-						'damage': { name:'Damage', icon:'fa-warning' },
-						'heal': { name:'Heal', icon:'fa-medkit' }
+						'sep3': '-',
+						'marker': { name:'Set marker', icon:'fa-map-marker' },
+						'distance': { name:'Measure distance', icon:'fa-map-signs' }
 					};
 
-					show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+					if (obj.attr('token_type') == 'portrait') {
+						delete menu_entries['rotate'];
+					}
+
+					context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 					return false;
 				});
 
@@ -3755,10 +3920,6 @@ $(document).ready(function() {
 						scroll_to_my_character(0);
 					}
 
-					if (data.instance_id == stick_to) {
-						object_move_to_sticked(obj);
-					}
-
 					/* Fog of War
 					 */
 					if (obj.is(fow_obj) || obj.is(my_character)) {
@@ -3789,6 +3950,13 @@ $(document).ready(function() {
 					name: my_name + ' (' + character_name + ')'
 				};
 				websocket_send(data);
+				break;
+			case 'player_notes':
+				player_notes = data.notes;
+				var notes = $('div.collectables textarea.notes');
+				if (notes.length > 0) {
+					notes.val(player_notes);
+				}
 				break;
 			case 'pong':
 				if (dungeon_master) {
@@ -3867,6 +4035,13 @@ $(document).ready(function() {
 			case 'sea_clear':
 				spell_effect_area_clear();
 				break;
+			case 'scan':
+				var data = {
+					action: 'reveal',
+					name: character_name
+				};
+				websocket_send(data);
+				break;
 			case 'shape':
 				var size = parseInt(data.size)
 				$('div#' + data.char_id).find('img').attr('src', '/resources/' + resources_key + '/' + data.src);
@@ -3881,26 +4056,14 @@ $(document).ready(function() {
 				$('div#' + data.instance_id).css('cursor', 'default');
 				$('div#' + data.instance_id).find('img').css('cursor', 'default');
 				$('div#' + data.instance_id).draggable('destroy');
+				$('div#' + data.instance_id).removeClass('selected');
 
 				$('div#' + data.instance_id + ' img').off('contextmenu');
-				$('div#' + data.instance_id + ' img').on('contextmenu', function(event) {
-					var menu_entries = {
-						'view': { name:'View', icon:'fa-search' },
-						'stick': { name:'Stick to / unstick', icon:'fa-lock' },
-						'attack': { name:'Attack', icon:'fa-legal' }
-					};
-
-					show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
-					return false;
-				});
-
-				if (data.instance_id == stick_to) {
-					stick_to = null;
-				}
+				$('div#' + data.instance_id + ' img').on('contextmenu', object_contextmenu_player);
 				break;
 			case 'travel':
 				if (data.instance_id == my_character.prop('id')) {
-					document.location = '/adventure/' + adventure_id + '/' + data.map_id;
+					document.location = '/adventure/' + adventure_id + '/' + data.travel_map_id;
 				}
 				break;
 			case 'turn':
@@ -4082,11 +4245,12 @@ $(document).ready(function() {
 
 		$('canvas#drawing').on('mousedown', function(event) {
 			if (event.button != 0) {
-				return;
+				return true;
 			}
 
 			if ($('div.ruler').length > 0) {	
-				return;
+				$(this).remove();
+				return true;
 			}
 
 			var pos = $('div.playarea').position();
@@ -4103,7 +4267,7 @@ $(document).ready(function() {
 					drawing_ctx.lineWidth = DRAW_ERASE_THICK;
 				}
 			} else if (ctrl_down) {
-				drawing_ctx.globalCompositeOperation = 'source-over';
+				drawing_ctx.globalCompositeOperation = drawing_mode;
 				drawing_ctx.lineWidth = parseInt($('div#draw_width div').text());
 			} else {
 				return;
@@ -4210,6 +4374,7 @@ $(document).ready(function() {
 			var color = $(this).css('background-color');
 
 			drawing_ctx.strokeStyle = color;
+			drawing_mode = 'source-over';
 
 			var data = {
 				action: 'draw_color',
@@ -4224,12 +4389,18 @@ $(document).ready(function() {
 		});
 
 		$('div.draw-tools div.draw-brushes span').on('click', function() {
-			var img = new Image();
-			img.src = $(this).attr('brush');
-			img.onload = function() {
-				var pattern = drawing_ctx.createPattern(img, 'repeat');
-				drawing_ctx.strokeStyle = pattern;
-			};
+			if ($(this).attr('title') == 'Fog of War') {
+				drawing_ctx.strokeStyle = FOW_COLOR_DM;
+				drawing_mode = 'xor';
+			} else {
+				var img = new Image();
+				img.src = $(this).attr('brush');
+				img.onload = function() {
+					var pattern = drawing_ctx.createPattern(img, 'repeat');
+					drawing_ctx.strokeStyle = pattern;
+				};
+				drawing_mode = 'source-over';
+			}
 
 			var data = {
 				action: 'draw_brush',
@@ -4245,7 +4416,7 @@ $(document).ready(function() {
 
 		$('div.draw-tools div.draw-brushes span').on('contextmenu', function(event) {
 			menu_entries = {
-				'fill_texture': { name:'Fill map with textture', icon:'fa-square' }
+				'fill_texture': { name:'Fill map with texture', icon:'fa-square' }
 			};
 
 			var menu_settings = {
@@ -4253,7 +4424,7 @@ $(document).ready(function() {
 				z_index: LAYER_MENU
 			};
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_settings);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_settings);
 			return false;
 			
 		});
@@ -4365,7 +4536,7 @@ $(document).ready(function() {
 				menu_entries['door_open'] = { name:'Open', icon:'fa-toggle-on' };
 			}
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
 
@@ -4397,7 +4568,7 @@ $(document).ready(function() {
 			menu_entries['window_open'] = { name:'Open', icon:'fa-toggle-on' };
 		}
 
-		show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+		context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 		return false;
 	});
 
@@ -4491,20 +4662,14 @@ $(document).ready(function() {
 			$(this).attr('title', 'HP: ' + hitpoints);
 		});
 
-		$('div.token').draggable({
+		/* Drag multiple tokens and characters
+		 */
+		$('div.token, div.character').draggable({
 			containment: 'div.playarea > div',
 			handle: 'img',
-			stop: function(event, ui) {
-				object_move($(this));
-			}
-		});
-
-		$('div.character').draggable({
-			containment: 'div.playarea > div',
-			handle: 'img',
-			stop: function(event, ui) {
-				object_move($(this));
-			}
+			start: object_drag_start,
+			drag: object_drag_drag,
+			stop: object_drag_stop
 		});
 
 		if (mobile_device == false) {
@@ -4555,7 +4720,7 @@ $(document).ready(function() {
 
 			menu_entries['light_delete'] = { name:'Delete', icon:'fa-trash' };
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
 
@@ -4585,7 +4750,7 @@ $(document).ready(function() {
 		$('div.zone').on('contextmenu', function(event) {
 			var menu_entries = zone_menu;
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
 
@@ -4596,6 +4761,8 @@ $(document).ready(function() {
 		/* Menu characters
 		 */
 		$('div.character img').on('contextmenu', function(event) {
+			$('div.selected').removeClass('selected');
+
 			var menu_entries = {
 				'info': { name:'Get information', icon:'fa-info-circle' },
 				'view': { name:'View', icon:'fa-search' }
@@ -4672,7 +4839,8 @@ $(document).ready(function() {
 				menu_entries['send'] = { name:'Send to map', icon:'fa-compass', items:maps};
 			}
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
+
 			return false;
 		});
 
@@ -4695,7 +4863,7 @@ $(document).ready(function() {
 				delete menu_entries['light_create'];
 			}
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
 
@@ -4758,12 +4926,6 @@ $(document).ready(function() {
 		$('div.filter input').on('keyup', library_filter);
 		library_filter();
 
-		/* Pictures button
-		 */
-		$('div.menu button.pictures').on('click', function() {
-		
-		});
-
 		/* Combat active?
 		 */
 		combat_check_running();
@@ -4781,7 +4943,6 @@ $(document).ready(function() {
 					containment: 'div.playarea > div',
 					handle: 'img',
 					stop: function(event, ui) {
-						stick_to = null;
 						object_move($(this));
 					}
 				});
@@ -4835,7 +4996,7 @@ $(document).ready(function() {
 					menu_entries['alternates'] = { name:'Change icon', icon:'fa-user-circle', items:icons };
 				}
 
-				show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+				context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 				return false;
 			});
 
@@ -4926,7 +5087,7 @@ $(document).ready(function() {
 				'distance': { name:'Measure distance', icon:'fa-map-signs' },
 			};
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
 
@@ -4939,7 +5100,7 @@ $(document).ready(function() {
 				'sea': sea_submenu
 			};
 
-			show_context_menu($(this), event, menu_entries, context_menu_handler, menu_defaults);
+			context_menu_show($(this), event, menu_entries, context_menu_handler, menu_defaults);
 			return false;
 		});
 
@@ -4969,6 +5130,119 @@ $(document).ready(function() {
 			brushes[src] = image;
 		});
 	}
+
+	/* Mouse down on tokens and characters for icon selector
+	 */
+	$('div.token, div.character').on('mousedown', object_mouse_down);
+
+	/* Select multiple tokens and characters.
+	 */
+	$('div.playarea').on('mousedown', function(event) {
+		$('div.token, div.character').removeClass('selected');
+
+		if ((event.which != 2) || (ctrl_down == false)) {
+			return true;
+		}
+
+		if ($('div.playarea div.icon-selector').length > 0) {
+			return true;
+		}
+
+		context_menu_remove();
+
+		$('div.playarea').append('<div class="icon-selector"></div>');
+		$('div.icon-selector').css('z-index', DEFAULT_Z_INDEX + 4);
+
+		var scr = screen_scroll();
+		var icon_selector_x1 = event.clientX + scr.left - 16;
+		var icon_selector_y1 = event.clientY + scr.top - 41;
+		var icon_selector_x2 = icon_selector_x1;
+		var icon_selector_y2 = icon_selector_y1;
+
+		$('div.playarea').on('mousemove', function(event) {
+			var scr = screen_scroll();
+			icon_selector_x2 = event.clientX + scr.left - 16;
+			icon_selector_y2 = event.clientY + scr.top - 41;
+
+			$('div.icon-selector').css({
+				left: Math.min(icon_selector_x1, icon_selector_x2),
+				top: Math.min(icon_selector_y1, icon_selector_y2),
+				width: Math.abs(icon_selector_x1 - icon_selector_x2) + 'px',
+				height: Math.abs(icon_selector_y1 - icon_selector_y2) + 'px'
+			});
+		});
+
+		var icon_selector_stop = function() {
+			$('div.playarea').off('mousemove');
+			$('div.playarea').off('mouseup');
+			$('div.playarea div.icon-selector').remove();
+		};
+
+		$('div.playarea').one('mouseleave', icon_selector_stop);
+
+		$('div.playarea').one('mouseup', function() {
+			icon_selector_stop();
+
+			var x1 = Math.min(icon_selector_x1, icon_selector_x2);
+			var y1 = Math.min(icon_selector_y1, icon_selector_y2);
+			var x2 = Math.max(icon_selector_x1, icon_selector_x2);
+			var y2 = Math.max(icon_selector_y1, icon_selector_y2);
+
+			$('div.token, div.character').each(function() {
+				if ($(this).hasClass('ui-draggable') == false) {	
+					return true;
+				}
+
+				var pos = object_position($(this));
+				var x = pos.left + Math.round($(this).find('img').width() / 2);
+				var y = pos.top + Math.round($(this).find('img').height() / 2);
+
+				if ((x >= x1) && (x <= x2) && (y >= y1) && (y <= y2)) {
+					$(this).addClass('selected');
+				}
+			});
+		});
+
+		return false;
+	});
+
+	/* Drag map
+	 */
+	$('div.playarea').on('mousedown', function(event) {
+		if ((event.button != 1) || ctrl_down) {
+			return true;
+		}
+
+		context_menu_remove();
+
+		$('div.playarea').css('cursor', 'grab');
+
+		var scr = screen_scroll();
+		var from_x = event.clientX + scr.left - 16;
+		var from_y = event.clientY + scr.top - 41;
+
+		$('div.playarea').on('mousemove', function(event) {
+			var scr = screen_scroll();
+			var to_x = event.clientX + scr.left - 16;
+			var to_y = event.clientY + scr.top - 41;
+
+			var dx = from_x - to_x;
+			var dy = from_y - to_y;
+
+			$('div.playarea').scrollLeft(scr.left + dx);
+			$('div.playarea').scrollTop(scr.top + dy);
+		});
+
+		var map_move_stop = function() {
+			$('div.playarea').css('cursor', 'default');
+			$('div.playarea').off('mousemove');
+		};
+
+		$('div.playarea').one('mouseup', map_move_stop);
+		$('div.playarea').one('mouseleave', map_move_stop);
+
+		return false;
+	});
 
 	/* Sidebar expand
 	 */
@@ -5071,7 +5345,7 @@ $(document).ready(function() {
 		});
 
 		wf_effect_create = $('div.effect_create').windowframe({
-			width: 530,
+			width: 540,
 			style: 'default',
 			header: 'Create effect',
 			footer: '<span class="effect_size">width: <input id="effect_width" type="number" value="1" min="1" /></span>' +
@@ -5166,6 +5440,9 @@ $(document).ready(function() {
 					} else if (isNaN(opacity)) {
 						write_sidebar('Invalid opacity.');
 						return;
+					} else if (isNaN(altitude)) {
+						write_sidebar('Invalid altitude.');
+						return;
 					}
 
 					if (color.substr(0, 1) != '#') {
@@ -5177,6 +5454,11 @@ $(document).ready(function() {
 						opacity = 0;
 					} else if (opacity > 1) {
 						opacity = 1;
+					}
+
+					if ((altitude < 0) || (altitude > 250)) {
+						write_sidebar('Altitude out of range (0 - 250).');
+						return;
 					}
 
 					zone_x -= Math.floor((width - 1) / 2) * grid_cell_size;
@@ -5347,9 +5629,7 @@ $(document).ready(function() {
 	$('div.playarea').mousedown(function(event) {
 		var mac = (window.navigator.platform == 'MacIntel');
 		if ((event.which == 3) || (mac && (event.which == 1) && (ctrl_down))) {
-			var scr = screen_scroll();
-			mouse_x = event.clientX + scr.left - 16;
-			mouse_y = event.clientY + scr.top - 41;
+			store_mouse_position();
 		}
 	});
 

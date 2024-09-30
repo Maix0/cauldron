@@ -117,6 +117,8 @@
 		/* Add javascripts to output
 		 */
 		$_view->add_javascript("webui/jquery.js");
+		$_view->add_javascript("webui/jquery-ui.js");
+		$_view->add_javascript("webui/jquery.ui.touch-punch.js");
 		$_view->add_javascript("webui/bootstrap.js");
 
 		$_view->open_tag("content", array("mobile" => show_boolean($_view->mobile)));
@@ -153,10 +155,6 @@
 		/* Cauldey
 		 */
 		if ($_SESSION["cauldey_activated"] ?? false) {
-			$_view->add_javascript("webui/jquery-ui.js");
-			$_view->add_javascript("webui/jquery.ui.touch-punch.js");
-			$_view->add_css("webui/jquery-ui.css");
-
 			$_view->add_javascript("includes/cauldey.js");
 		}
 
@@ -165,6 +163,7 @@
 		$_view->add_css($_page->module.".css", true);
 		$_view->add_css("banshee/layout_".$_view->layout.".css", true);
 		$_view->add_css("banshee/banshee.css", true);
+		$_view->add_css("webui/jquery-ui.css", true);
 		$_view->add_css("webui/bootstrap-theme.css", true);
 		$_view->add_css("webui/bootstrap.css", true);
 

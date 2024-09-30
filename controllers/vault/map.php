@@ -63,13 +63,10 @@
 		}
 
 		private function show_grid_form($map) {
-			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("vault/map.js");
 			$this->view->add_javascript("includes/grid.js");
 			$this->view->add_javascript("includes/library.js");
 			$this->view->run_javascript("init_grid(".$map["grid_size"].")");
-
-			$this->view->add_css("webui/jquery-ui.css");
 
 			$map["show_grid"] = show_boolean($map["show_grid"] ?? false);
 			$map["type"] = $this->model->get_map_type($map["url"]);
@@ -80,6 +77,7 @@
 
 		private function show_market() {
 			$this->view->title = "Map market";
+			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("vault/market.js");
 
 			$maps = $this->model->get_market();

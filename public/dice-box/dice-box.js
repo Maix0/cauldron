@@ -3,13 +3,13 @@ import DiceBox from '/dice-box/dice-box.es.min.js';
 var hostname = $('body').attr('hostname');
 
 var Box = new DiceBox('#dice-box', {
-    assetPath: 'assets/',
-    origin: 'https://' + hostname + '/dice-box/',
-    theme: 'smooth',
-    themeColor: '#ff2020',
-    offscreen: false,
-    scale: 4,
-    gravity: 5
+	assetPath: 'assets/',
+	origin: 'https://' + hostname + '/dice-box/',
+	theme: 'smooth',
+	themeColor: '#ff4020',
+	offscreen: false,
+	scale: 4,
+	gravity: 5
 });
 
 var dicebox_addition;
@@ -74,6 +74,11 @@ function dicebox_hide() {
 	$('div#dice-box').css('z-index', '');
 }
 
+function dicebox_color(color) {
+	Box.config.themeColor = color;
+	localStorage.setItem('dice_color', color);
+}
+
 Box.init();
 
 $('div#dice-box').on('click', function() {
@@ -96,8 +101,14 @@ $('div#dice-box').on('contextmenu', function() {
 
 $(document).ready(function() {
 	dicebox_hide();
+
+	var color = localStorage.getItem('dice_color');
+	if (color != undefined) {
+		dicebox_color(color);
+	}
 });
 
 window.dice_roll_3d = dice_roll_3d;
+window.dicebox_color = dicebox_color;
 
-export { dice_roll_3d };
+export { dice_roll_3d, dicebox_color };

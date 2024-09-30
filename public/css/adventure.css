@@ -33,7 +33,6 @@ div.options + p {
 	clear:left;
 }
 
-
 h1 {
 	white-space:nowrap;
 	overflow:hidden;
@@ -222,6 +221,22 @@ div#draw_width div {
 	text-align:center;
 }
 
+/* Icon selector
+ */
+div.icon-selector {
+	position:absolute;
+	border:2px dashed #ff0000;
+	border-radius:10px;
+	background-color:rgba(255, 224, 192, 0.5);
+}
+
+div.token.selected img,
+div.character.selected img {
+	border:2px dashed #ff8000;
+	background-color:rgba(255, 192, 128, 0.7);
+	box-sizing:border-box;
+}
+
 /* Doors
  */
 div.door {
@@ -295,6 +310,17 @@ div.image_overlay {
 	z-index:20000;
 }
 
+/* Player notes
+ */
+div.notes {
+	display:none;
+}
+
+div.collectables textarea.notes {
+	max-width:none;
+	resize:vertical;
+}
+
 /* Dice rolling
  */
 div.diceroll div.dice {
@@ -341,13 +367,6 @@ div.collectables table.table th:nth-child(n+2) {
 div.collectables div.all {
 	max-height:300px;
 	overflow:auto;
-}
-
-/* DM notes
- */
-div.notes div.panel-body {
-	white-space:pre-wrap;
-	padding:0 15px;
 }
 
 /* Effects

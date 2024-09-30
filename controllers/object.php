@@ -1,5 +1,9 @@
 <?php
 	class object_controller extends Banshee\api_controller {
+		public function post_player_notes() {
+			$this->model->save_player_notes($_POST["adventure_id"], $_POST["notes"]);
+		}
+
 		public function post_armor_class() {
 			if (substr($_POST["instance_id"], 0, 9) == "character") {
 				$instance_id = substr($_POST["instance_id"], 9);

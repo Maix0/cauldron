@@ -102,7 +102,7 @@ function folding_set(button) {
 $(document).ready(function() {
 	sortable_events();
 
-	$('div.item a > div.header').each(function() {
+	$('div.item div.header').each(function() {
 		var name = $(this).text();
 
 		var pos = name.indexOf(']');
@@ -111,6 +111,12 @@ $(document).ready(function() {
 			name = name.replace(']', '</span>');
 
 			$(this).html(name);
+		}
+	});
+
+	$('div.row div.header').on('click', function() {
+		if ($(this).hasClass('handle') == false) {
+			$(this).parent().parent().toggleClass('collapsed');
 		}
 	});
 
@@ -148,8 +154,6 @@ $(document).ready(function() {
 	});
 
 	$('div.body').on('dblclick', function() {
-		$(this).toggleClass('maxheight');
-
 		if (window.getSelection) {
 			window.getSelection().removeAllRanges();
 		} else if (document.selection) {

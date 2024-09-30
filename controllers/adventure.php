@@ -26,7 +26,6 @@
 				$this->view->title = "Welcome to Cauldron VTT";
 			}
 
-			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("banshee/jquery.windowframe.js");
 			$this->view->add_javascript("adventures.js");
 
@@ -191,8 +190,6 @@
 			$this->view->set_layout("adventure");
 
 			if ($active_map != null) {
-				$this->view->add_javascript("webui/jquery-ui.js");
-				$this->view->add_javascript("webui/jquery.ui.touch-punch.js");
 				$this->view->add_javascript("banshee/jquery.windowframe.js");
 				$this->view->add_javascript("banshee/jquery.mark.js");
 				$this->view->add_javascript("includes/context_menu.js");
@@ -221,7 +218,6 @@
 				}
 				$this->view->add_javascript("includes/fog_of_war_".$type.".js");
 
-				$this->view->add_css("webui/jquery-ui.css");
 				$this->view->add_css("banshee/font-awesome.css");
 				$this->view->add_css("includes/context_menu.css");
 				$this->view->add_css("includes/dice_roll.css");
@@ -478,6 +474,9 @@
 				/* Brushes
 				 */
 				$this->view->open_tag("brushes");
+				if ($active_map["fog_of_war"] == FOW_REVEAL) {
+					$this->view->add_tag("brush", "images/fow.jpg", array("name" => "Fog of War"));
+				}
 				foreach ($brushes as $brush) {
 					$info = pathinfo($brush);
 					$this->view->add_tag("brush", $brush, array("name" => $info["filename"]));

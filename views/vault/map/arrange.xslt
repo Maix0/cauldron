@@ -80,7 +80,7 @@
 <!-- Tokens -->
 <div class="tokens">
 <xsl:for-each select="tokens/token">
-<div id="token{instance_id}" token_id="{@id}" class="token" style="left:{pos_x}px; top:{pos_y}px; width:{width}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" name="{name}">
+<div id="token{instance_id}" token_id="{@id}" class="token" style="left:{pos_x}px; top:{pos_y}px; width:{width}px; display:none;" type="{type}" is_hidden="{hidden}" rotation="{rotation}" armor_class="{armor_class}" hitpoints="{hitpoints}" damage="{damage}" token_type="{token_type}" name="{name}">
 <img src="/resources/{/output/cauldron/resources_key}/tokens/{@id}.{extension}" style="height:{height}px" />
 <xsl:if test="name!=''">
 <span class="name" known="{known}"><xsl:value-of select="name" /></span>

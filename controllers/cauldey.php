@@ -68,6 +68,7 @@
 					$_SESSION["cauldey_activated"] = true;
 					$this->user->log_action("Cauldey activated");
 				} else if ($_POST["submit_button"] == "Deactivate") {
+					unset($_SESSION["cauldey_done"]);
 					unset($_SESSION["cauldey_activated"]);
 					unset($_SESSION["cauldey"]);
 				}

@@ -229,15 +229,11 @@
 
 				switch ($element["type"]) {
 					case "date":
-						$this->view->add_javascript("webui/jquery-ui.js");
 						$this->view->add_javascript("banshee/datepicker.js");
-						$this->view->add_css("webui/jquery-ui.css");
 						break;
 					case "timestamp":
-						$this->view->add_javascript("webui/jquery-ui.js");
 						$this->view->add_javascript("banshee/jquery.timepicker.js");
 						$this->view->add_javascript("banshee/datetimepicker.js");
-						$this->view->add_css("webui/jquery-ui.css");
 						$this->view->add_css("banshee/timepicker.css");
 						break;
 					case "ckeditor":

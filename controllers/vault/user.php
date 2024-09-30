@@ -70,10 +70,7 @@
 				}
 			}
 
-			$this->view->add_javascript("webui/jquery-ui.js");
 			$this->view->add_javascript("vault/user.js");
-
-			$this->view->add_css("webui/jquery-ui.css");
 
 			$this->view->open_tag("edit", array("authenticator" => show_boolean(USE_AUTHENTICATOR)));
 
