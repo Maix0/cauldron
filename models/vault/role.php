@@ -31,7 +31,7 @@
 
 			$result = array();
 			foreach ($columns as $column) {
-				if (strstr($column["Type"], "tinyint") !== false) {
+				if (strstr($column["Type"], "INTEGER") !== false) {
 					array_push($result, $column["Field"]);
 				}
 			}

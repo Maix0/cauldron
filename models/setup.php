@@ -7,7 +7,7 @@
 	 */
 
 	class setup_model extends Banshee\model {
-		private $required_php_extensions = array("gd", "libxml", "mysqli", "xsl");
+		private $required_php_extensions = array("gd", "libxml", "pg", "xsl");
 
 		/* Determine next step
 		 */
@@ -18,7 +18,7 @@
 			}
 
 			if ($this->db->connected == false) {
-				$db = new \Banshee\Database\MySQLi_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
+				$db = new \Banshee\Database\Pg_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
 			} else {
 				$db = $this->db;
 			}
@@ -86,7 +86,7 @@
 			ob_clean();
 
 			foreach ($errors as $error) {
-				if (strpos(strtolower($error), "mysqli_connect") === false) {
+				if (strpos(strtolower($error), "pg_connect") === false) {
 					print $error."\n";
 				}
 			}
@@ -95,7 +95,7 @@
 		/* Create the MySQL database
 		 */
 		public function create_database($username, $password) {
-			$db = new \Banshee\Database\MySQLi_connection(DB_HOSTNAME, "mysql", $username, $password);
+			$db = new \Banshee\Database\Pg_connection(DB_HOSTNAME, "mysql", $username, $password);
 
 			if ($db->connected == false) {
 				$this->view->add_message("Error connecting to database.");
@@ -148,7 +148,7 @@
 			/* Test login for existing user
 			 */
 			if ($users[0]["count"] > 0) {
-				$login_test = new \Banshee\Database\MySQLi_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
+				$login_test = new \Banshee\Database\Pg_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
 				if ($login_test->connected == false) {
 					$db->query("rollback");
 					$this->view->add_message("Invalid credentials in settings/banshee.conf.");
@@ -173,7 +173,7 @@
 				return false;
 			}
 
-			if (($db_link = mysqli_connect(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_DATABASE)) === false) {
+			if (($db_link = pg_connect(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_DATABASE)) === false) {
 				$this->view->add_message("Error while connecting to the database.");
 				return false;
 			}
@@ -189,7 +189,7 @@
 
 				$query .= $line;
 				if (substr($query, -1) == ";") {
-					if (mysqli_query($db_link, $query) === false) {
+					if (pg_query($db_link, $query) === false) {
 						$this->view->add_message("Error while executing query [%s].", $query);
 						return false;
 					}
@@ -197,7 +197,7 @@
 				}
 			}
 
-			mysqli_close($db_link);
+			pg_close($db_link);
 
 			$this->db->query("update users set status=%d", USER_STATUS_CHANGEPWD);
 			$this->settings->secret_website_code = random_string(32);
@@ -260,8 +260,8 @@
 			if ($this->settings->database_version === 1) {
 				$this->db_query("CREATE TABLE zones (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "game_map_id int(10) unsigned NOT NULL, pos_x smallint(5) unsigned NOT NULL, ".
-				                "pos_y smallint(5) unsigned NOT NULL, width tinyint(3) unsigned NOT NULL, ".
-				                "height tinyint(3) unsigned NOT NULL, color varchar(7) NOT NULL, ".
+				                "pos_y smallint(5) unsigned NOT NULL, width INTEGER(3) unsigned NOT NULL, ".
+				                "height INTEGER(3) unsigned NOT NULL, color varchar(7) NOT NULL, ".
 				                "opacity decimal(1,1) NOT NULL, PRIMARY KEY (id), KEY game_map_id (game_map_id), ".
 				                "CONSTRAINT zones_ibfk_1 FOREIGN KEY (game_map_id) REFERENCES game_maps (id)) ".
 				                "ENGINE=InnoDB DEFAULT CHARSET=utf8");
@@ -272,8 +272,8 @@
 			if ($this->settings->database_version === 2) {
 				$this->db_query("CREATE TABLE collectables (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "game_id int(10) unsigned NOT NULL, game_map_token_id int(10) unsigned DEFAULT NULL, ".
-				                "name varchar(50) NOT NULL, image tinytext NOT NULL, found tinyint(1) NOT NULL, ".
-				                "hide tinyint(1) NOT NULL, PRIMARY KEY (id), KEY game_map_token_id (game_map_token_id), ".
+				                "name varchar(50) NOT NULL, image tinytext NOT NULL, found INTEGER(1) NOT NULL, ".
+				                "hide INTEGER(1) NOT NULL, PRIMARY KEY (id), KEY game_map_token_id (game_map_token_id), ".
 				                "CONSTRAINT collectables_ibfk_1 FOREIGN KEY (game_map_token_id) REFERENCES game_map_token (id)) ".
 				                "ENGINE=InnoDB DEFAULT CHARSET=utf8");
 
@@ -309,7 +309,7 @@
 			if ($this->settings->database_version === 5) {
 				$this->db_query("CREATE TABLE character_icons (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "character_id int(10) unsigned NOT NULL, name varchar(20) NOT NULL, ".
-				                "size tinyint(3) unsigned NOT NULL, extension varchar(3) NOT NULL, PRIMARY KEY (id)) ".
+				                "size INTEGER(3) unsigned NOT NULL, extension varchar(3) NOT NULL, PRIMARY KEY (id)) ".
 				                "ENGINE=InnoDB DEFAULT CHARSET=utf8");
 				$this->db_query("ALTER TABLE game_character ADD alternate_icon_id INT UNSIGNED NULL AFTER character_id");
 				$this->db_query("ALTER TABLE game_character ADD FOREIGN KEY (alternate_icon_id) ".
@@ -557,7 +557,7 @@
 
 				$this->db_query("CREATE TABLE story_encounter_monsters (id int(10) unsigned NOT NULL AUTO_INCREMENT, ".
 				                "story_encounter_id int(10) unsigned NOT NULL, monster varchar(50) NOT NULL, cr varchar(3) NOT NULL, ".
-				                "%S tinyint(3) unsigned NOT NULL, %S varchar(15) NOT NULL, PRIMARY KEY (id), KEY story_encounter_id ".
+				                "%S INTEGER(3) unsigned NOT NULL, %S varchar(15) NOT NULL, PRIMARY KEY (id), KEY story_encounter_id ".
 				                "(story_encounter_id), CONSTRAINT story_encounter_monsters_ibfk_1 FOREIGN KEY (story_encounter_id) ".
 				                "REFERENCES story_encounters (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci", "count", "source");
 

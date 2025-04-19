@@ -24,10 +24,10 @@ DROP TABLE IF EXISTS `adventure_character`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `adventure_character` (
-  `adventure_id` int(10) unsigned NOT NULL,
-  `character_id` int(10) unsigned NOT NULL,
-  `alternate_icon_id` int(10) unsigned DEFAULT NULL,
-  `token_id` int(10) unsigned DEFAULT NULL,
+  `adventure_id` int(10) INTERGER NOT NULL,
+  `character_id` int(10) INTERGER NOT NULL,
+  `alternate_icon_id` int(10) INTERGER DEFAULT NULL,
+  `token_id` int(10) INTERGER DEFAULT NULL,
   KEY `character_id` (`character_id`),
   KEY `alternate_icon_id` (`alternate_icon_id`),
   KEY `token_id` (`token_id`),
@@ -47,14 +47,14 @@ DROP TABLE IF EXISTS `adventures`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `adventures` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
   `title` varchar(50) NOT NULL,
   `image` tinytext NOT NULL,
   `introduction` text NOT NULL,
-  `dm_id` int(10) unsigned NOT NULL,
+  `dm_id` int(10) INTERGER NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
-  `active_map_id` int(10) unsigned DEFAULT NULL,
-  `access` tinyint(1) unsigned NOT NULL,
+  `active_map_id` int(10) INTERGER DEFAULT NULL,
+  `access` INTEGER(1) INTERGER NOT NULL,
   `story` text NOT NULL,
   `notes` tinytext NOT NULL,
   PRIMARY KEY (`id`),
@@ -73,12 +73,12 @@ DROP TABLE IF EXISTS `agenda`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `agenda` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) INTERGER NOT NULL,
   `begin` datetime NOT NULL,
   `end` datetime DEFAULT NULL,
   `title` varchar(25) NOT NULL,
-  `adventure_id` int(10) unsigned DEFAULT NULL,
+  `adventure_id` int(10) INTERGER DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `adventure_id` (`adventure_id`),
@@ -95,12 +95,12 @@ DROP TABLE IF EXISTS `blinders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `blinders` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `map_id` int(10) unsigned NOT NULL,
-  `pos1_x` int(10) unsigned NOT NULL,
-  `pos1_y` int(10) unsigned NOT NULL,
-  `pos2_x` int(10) unsigned NOT NULL,
-  `pos2_y` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) INTERGER NOT NULL,
+  `pos1_x` int(10) INTERGER NOT NULL,
+  `pos1_y` int(10) INTERGER NOT NULL,
+  `pos2_x` int(10) INTERGER NOT NULL,
+  `pos2_y` int(10) INTERGER NOT NULL,
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
   CONSTRAINT `blinders_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
@@ -130,10 +130,10 @@ DROP TABLE IF EXISTS `character_icons`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character_icons` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `character_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `character_id` int(10) INTERGER NOT NULL,
   `name` varchar(25) NOT NULL,
-  `size` tinyint(3) unsigned NOT NULL,
+  `size` INTEGER(3) INTERGER NOT NULL,
   `extension` varchar(4) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -147,8 +147,8 @@ DROP TABLE IF EXISTS `character_weapons`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character_weapons` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `character_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `character_id` int(10) INTERGER NOT NULL,
   `name` varchar(25) NOT NULL,
   `roll` varchar(25) NOT NULL,
   PRIMARY KEY (`id`),
@@ -165,14 +165,14 @@ DROP TABLE IF EXISTS `characters`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `characters` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) INTERGER NOT NULL,
   `name` varchar(20) NOT NULL,
   `initiative` smallint(6) NOT NULL,
-  `armor_class` tinyint(3) unsigned NOT NULL,
-  `hitpoints` smallint(5) unsigned NOT NULL,
-  `damage` smallint(5) unsigned NOT NULL,
-  `vision` tinyint(3) unsigned NOT NULL,
+  `armor_class` INTEGER(3) INTERGER NOT NULL,
+  `hitpoints` smallint(5) INTERGER NOT NULL,
+  `damage` smallint(5) INTERGER NOT NULL,
+  `vision` INTEGER(3) INTERGER NOT NULL,
   `token_type` enum('topdown','portrait') NOT NULL,
   `extension` varchar(4) NOT NULL,
   `sheet` enum('none','file','url') NOT NULL,
@@ -191,15 +191,15 @@ DROP TABLE IF EXISTS `collectables`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `collectables` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `adventure_id` int(10) unsigned NOT NULL,
-  `map_token_id` int(10) unsigned DEFAULT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `adventure_id` int(10) INTERGER NOT NULL,
+  `map_token_id` int(10) INTERGER DEFAULT NULL,
   `name` varchar(50) NOT NULL,
   `description` text NOT NULL,
   `image` tinytext NOT NULL,
-  `found` tinyint(1) NOT NULL,
-  `hide` tinyint(1) NOT NULL,
-  `explain` tinyint(1) NOT NULL,
+  `found` INTEGER(1) NOT NULL,
+  `hide` INTEGER(1) NOT NULL,
+  `explain` INTEGER(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `game_map_token_id` (`map_token_id`),
   KEY `adventure_id` (`adventure_id`) USING BTREE,
@@ -216,8 +216,8 @@ DROP TABLE IF EXISTS `custom_dice`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `custom_dice` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) INTERGER NOT NULL,
   `name` varchar(25) NOT NULL,
   `sides` text NOT NULL,
   PRIMARY KEY (`id`),
@@ -234,15 +234,15 @@ DROP TABLE IF EXISTS `doors`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `doors` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `map_id` int(10) unsigned NOT NULL,
-  `pos_x` smallint(5) unsigned NOT NULL,
-  `pos_y` smallint(5) unsigned NOT NULL,
-  `length` smallint(3) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) INTERGER NOT NULL,
+  `pos_x` smallint(5) INTERGER NOT NULL,
+  `pos_y` smallint(5) INTERGER NOT NULL,
+  `length` smallint(3) INTERGER NOT NULL,
   `direction` enum('horizontal','vertical') NOT NULL,
   `state` enum('open','closed') NOT NULL,
-  `secret` tinyint(1) NOT NULL,
-  `bars` tinyint(1) NOT NULL,
+  `secret` INTEGER(1) NOT NULL,
+  `bars` INTEGER(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
   CONSTRAINT `doors_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
@@ -258,8 +258,8 @@ DROP TABLE IF EXISTS `journal`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `journal` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `adventure_id` int(10) unsigned NOT NULL,
-  `user_id` int(10) unsigned DEFAULT NULL,
+  `adventure_id` int(10) INTERGER NOT NULL,
+  `user_id` int(10) INTERGER DEFAULT NULL,
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `content` text NOT NULL,
   PRIMARY KEY (`id`),
@@ -278,11 +278,11 @@ DROP TABLE IF EXISTS `lights`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lights` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `map_id` int(10) unsigned NOT NULL,
-  `pos_x` smallint(5) unsigned NOT NULL,
-  `pos_y` smallint(5) unsigned NOT NULL,
-  `radius` tinyint(3) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) INTERGER NOT NULL,
+  `pos_x` smallint(5) INTERGER NOT NULL,
+  `pos_y` smallint(5) INTERGER NOT NULL,
+  `radius` INTEGER(3) INTERGER NOT NULL,
   `state` enum('off','on') NOT NULL,
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
@@ -298,14 +298,14 @@ DROP TABLE IF EXISTS `map_character`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `map_character` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `map_id` int(10) unsigned NOT NULL,
-  `character_id` int(10) unsigned NOT NULL,
-  `pos_x` smallint(5) unsigned NOT NULL,
-  `pos_y` smallint(5) unsigned NOT NULL,
-  `rotation` smallint(5) unsigned NOT NULL,
-  `hidden` tinyint(1) NOT NULL,
-  `light` tinyint(3) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) INTERGER NOT NULL,
+  `character_id` int(10) INTERGER NOT NULL,
+  `pos_x` smallint(5) INTERGER NOT NULL,
+  `pos_y` smallint(5) INTERGER NOT NULL,
+  `rotation` smallint(5) INTERGER NOT NULL,
+  `hidden` INTEGER(1) NOT NULL,
+  `light` INTEGER(3) INTERGER NOT NULL,
   PRIMARY KEY (`id`),
   KEY `character_id` (`character_id`),
   KEY `map_id` (`map_id`) USING BTREE,
@@ -322,18 +322,18 @@ DROP TABLE IF EXISTS `map_token`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `map_token` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `map_id` int(10) unsigned NOT NULL,
-  `token_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) INTERGER NOT NULL,
+  `token_id` int(10) INTERGER NOT NULL,
   `name` varchar(50) DEFAULT NULL,
-  `known` tinyint(1) NOT NULL,
-  `pos_x` smallint(5) unsigned NOT NULL,
-  `pos_y` smallint(5) unsigned NOT NULL,
-  `rotation` smallint(5) unsigned NOT NULL,
-  `hidden` tinyint(1) NOT NULL,
-  `armor_class` tinyint(3) unsigned NOT NULL,
-  `hitpoints` smallint(5) unsigned NOT NULL,
-  `damage` smallint(5) unsigned NOT NULL,
+  `known` INTEGER(1) NOT NULL,
+  `pos_x` smallint(5) INTERGER NOT NULL,
+  `pos_y` smallint(5) INTERGER NOT NULL,
+  `rotation` smallint(5) INTERGER NOT NULL,
+  `hidden` INTEGER(1) NOT NULL,
+  `armor_class` INTEGER(3) INTERGER NOT NULL,
+  `hitpoints` smallint(5) INTERGER NOT NULL,
+  `damage` smallint(5) INTERGER NOT NULL,
   PRIMARY KEY (`id`),
   KEY `token_id` (`token_id`),
   KEY `map_id` (`map_id`) USING BTREE,
@@ -350,22 +350,22 @@ DROP TABLE IF EXISTS `maps`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `maps` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `adventure_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `adventure_id` int(10) INTERGER NOT NULL,
   `title` varchar(50) NOT NULL,
   `url` varchar(500) NOT NULL,
   `audio` tinytext NOT NULL,
-  `width` smallint(5) unsigned NOT NULL,
-  `height` smallint(3) unsigned NOT NULL,
-  `offset_x` tinyint(3) unsigned NOT NULL,
-  `offset_y` tinyint(3) unsigned NOT NULL,
-  `grid_size` decimal(5,2) unsigned NOT NULL,
-  `show_grid` tinyint(1) NOT NULL,
-  `drag_character` tinyint(1) NOT NULL,
-  `fog_of_war` tinyint(1) NOT NULL,
-  `fow_distance` tinyint(3) unsigned NOT NULL,
-  `start_x` smallint(5) unsigned NOT NULL,
-  `start_y` smallint(5) unsigned NOT NULL,
+  `width` smallint(5) INTERGER NOT NULL,
+  `height` smallint(3) INTERGER NOT NULL,
+  `offset_x` INTEGER(3) INTERGER NOT NULL,
+  `offset_y` INTEGER(3) INTERGER NOT NULL,
+  `grid_size` decimal(5,2) INTERGER NOT NULL,
+  `show_grid` INTEGER(1) NOT NULL,
+  `drag_character` INTEGER(1) NOT NULL,
+  `fog_of_war` INTEGER(1) NOT NULL,
+  `fow_distance` INTEGER(3) INTERGER NOT NULL,
+  `start_x` smallint(5) INTERGER NOT NULL,
+  `start_y` smallint(5) INTERGER NOT NULL,
   `dm_notes` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `adventure_id` (`adventure_id`) USING BTREE,
@@ -381,8 +381,8 @@ DROP TABLE IF EXISTS `menu`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `menu` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `parent_id` int(10) unsigned DEFAULT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `parent_id` int(10) INTERGER DEFAULT NULL,
   `text` varchar(100) NOT NULL,
   `link` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
@@ -410,10 +410,10 @@ DROP TABLE IF EXISTS `organisations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `organisations` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `resources_key` varchar(32) NOT NULL,
-  `max_resources` int(10) unsigned NOT NULL,
+  `max_resources` int(10) INTERGER NOT NULL,
   `invitation_code` varchar(50) DEFAULT NULL,
   `last_login` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
@@ -441,9 +441,9 @@ DROP TABLE IF EXISTS `page_access`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `page_access` (
-  `page_id` int(10) unsigned NOT NULL,
-  `role_id` int(10) unsigned NOT NULL,
-  `level` int(10) unsigned NOT NULL,
+  `page_id` int(10) INTERGER NOT NULL,
+  `role_id` int(10) INTERGER NOT NULL,
+  `level` int(10) INTERGER NOT NULL,
   PRIMARY KEY (`page_id`,`role_id`),
   KEY `role_id` (`role_id`),
   CONSTRAINT `page_access_ibfk_1` FOREIGN KEY (`page_id`) REFERENCES `pages` (`id`),
@@ -470,19 +470,19 @@ DROP TABLE IF EXISTS `pages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `pages` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
   `url` varchar(100) NOT NULL,
   `language` varchar(2) NOT NULL,
   `layout` varchar(100) DEFAULT NULL,
-  `private` tinyint(1) NOT NULL,
+  `private` INTEGER(1) NOT NULL,
   `style` text DEFAULT NULL,
   `title` varchar(100) NOT NULL,
   `description` varchar(200) NOT NULL,
   `keywords` varchar(100) NOT NULL,
   `content` text NOT NULL,
-  `visible` tinyint(1) NOT NULL,
-  `back` tinyint(1) NOT NULL,
-  `form` tinyint(1) NOT NULL,
+  `visible` INTEGER(1) NOT NULL,
+  `back` INTEGER(1) NOT NULL,
+  `form` INTEGER(1) NOT NULL,
   `form_submit` varchar(32) DEFAULT NULL,
   `form_email` varchar(100) DEFAULT NULL,
   `form_done` text DEFAULT NULL,
@@ -510,10 +510,10 @@ DROP TABLE IF EXISTS `reroute`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `reroute` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
   `original` varchar(100) NOT NULL,
   `replacement` varchar(100) NOT NULL,
-  `type` tinyint(3) unsigned NOT NULL,
+  `type` INTEGER(3) INTERGER NOT NULL,
   `description` tinytext NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -538,45 +538,45 @@ DROP TABLE IF EXISTS `roles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `roles` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(11) INTERGER NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `non_admins` smallint(6) NOT NULL,
-  `vault` tinyint(1) NOT NULL,
-  `vault/access` tinyint(1) NOT NULL,
-  `vault/action` tinyint(1) NOT NULL,
-  `vault/adventure` tinyint(4) DEFAULT 0,
-  `vault/agenda` tinyint(4) DEFAULT 0,
-  `vault/collectable` tinyint(4) DEFAULT 0,
-  `vault/condition` tinyint(4) DEFAULT 0,
-  `vault/dice` tinyint(4) DEFAULT 0,
-  `vault/file` tinyint(1) NOT NULL,
-  `vault/invite` tinyint(4) DEFAULT 0,
-  `vault/journal` tinyint(4) DEFAULT 0,
-  `vault/map` tinyint(4) DEFAULT 0,
-  `vault/map/arrange` tinyint(4) DEFAULT 0,
-  `vault/menu` tinyint(1) NOT NULL,
-  `vault/newsletter` tinyint(4) DEFAULT 0,
-  `vault/organisation` tinyint(1) NOT NULL,
-  `vault/page` tinyint(1) NOT NULL,
-  `vault/players` tinyint(4) DEFAULT 0,
-  `vault/questionnaire` tinyint(4) DEFAULT 0,
-  `vault/role` tinyint(1) NOT NULL,
-  `vault/reroute` tinyint(4) DEFAULT 0,
-  `vault/resources` tinyint(4) DEFAULT 0,
-  `vault/settings` tinyint(1) NOT NULL,
-  `vault/story` tinyint(4) DEFAULT 0,
-  `vault/switch` tinyint(1) NOT NULL,
-  `vault/token` tinyint(4) DEFAULT 0,
-  `vault/user` tinyint(1) NOT NULL,
-  `account` tinyint(4) DEFAULT 0,
-  `adventure` tinyint(4) DEFAULT 0,
-  `agenda` tinyint(4) DEFAULT 0,
-  `character` tinyint(4) DEFAULT 0,
-  `object` tinyint(4) DEFAULT 0,
-  `questionnaire` tinyint(4) DEFAULT 0,
-  `session` tinyint(1) NOT NULL,
-  `spectate` tinyint(4) DEFAULT 0,
-  `cauldey` tinyint(4) DEFAULT 0,
+  `vault` INTEGER(1) NOT NULL,
+  `vault/access` INTEGER(1) NOT NULL,
+  `vault/action` INTEGER(1) NOT NULL,
+  `vault/adventure` INTEGER(4) DEFAULT 0,
+  `vault/agenda` INTEGER(4) DEFAULT 0,
+  `vault/collectable` INTEGER(4) DEFAULT 0,
+  `vault/condition` INTEGER(4) DEFAULT 0,
+  `vault/dice` INTEGER(4) DEFAULT 0,
+  `vault/file` INTEGER(1) NOT NULL,
+  `vault/invite` INTEGER(4) DEFAULT 0,
+  `vault/journal` INTEGER(4) DEFAULT 0,
+  `vault/map` INTEGER(4) DEFAULT 0,
+  `vault/map/arrange` INTEGER(4) DEFAULT 0,
+  `vault/menu` INTEGER(1) NOT NULL,
+  `vault/newsletter` INTEGER(4) DEFAULT 0,
+  `vault/organisation` INTEGER(1) NOT NULL,
+  `vault/page` INTEGER(1) NOT NULL,
+  `vault/players` INTEGER(4) DEFAULT 0,
+  `vault/questionnaire` INTEGER(4) DEFAULT 0,
+  `vault/role` INTEGER(1) NOT NULL,
+  `vault/reroute` INTEGER(4) DEFAULT 0,
+  `vault/resources` INTEGER(4) DEFAULT 0,
+  `vault/settings` INTEGER(1) NOT NULL,
+  `vault/story` INTEGER(4) DEFAULT 0,
+  `vault/switch` INTEGER(1) NOT NULL,
+  `vault/token` INTEGER(4) DEFAULT 0,
+  `vault/user` INTEGER(1) NOT NULL,
+  `account` INTEGER(4) DEFAULT 0,
+  `adventure` INTEGER(4) DEFAULT 0,
+  `agenda` INTEGER(4) DEFAULT 0,
+  `character` INTEGER(4) DEFAULT 0,
+  `object` INTEGER(4) DEFAULT 0,
+  `questionnaire` INTEGER(4) DEFAULT 0,
+  `session` INTEGER(1) NOT NULL,
+  `spectate` INTEGER(4) DEFAULT 0,
+  `cauldey` INTEGER(4) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -601,14 +601,14 @@ DROP TABLE IF EXISTS `sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `sessions` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
   `session_id` varchar(128) NOT NULL,
   `login_id` varchar(128) DEFAULT NULL,
   `content` text DEFAULT NULL,
   `expire` timestamp NOT NULL DEFAULT current_timestamp(),
-  `user_id` int(10) unsigned DEFAULT NULL,
+  `user_id` int(10) INTERGER DEFAULT NULL,
   `ip_address` varchar(45) NOT NULL,
-  `bind_to_ip` tinyint(1) NOT NULL,
+  `bind_to_ip` INTEGER(1) NOT NULL,
   `name` tinytext DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `session_id` (`session_id`),
@@ -625,7 +625,7 @@ DROP TABLE IF EXISTS `settings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `settings` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
   `key` varchar(32) NOT NULL,
   `type` varchar(8) NOT NULL,
   `value` text NOT NULL,
@@ -653,11 +653,11 @@ DROP TABLE IF EXISTS `story_encounter_monsters`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `story_encounter_monsters` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `story_encounter_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `story_encounter_id` int(10) INTERGER NOT NULL,
   `monster` varchar(50) NOT NULL,
   `cr` varchar(3) NOT NULL,
-  `count` tinyint(3) unsigned NOT NULL,
+  `count` INTEGER(3) INTERGER NOT NULL,
   `source` varchar(20) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `story_encounter_id` (`story_encounter_id`),
@@ -673,8 +673,8 @@ DROP TABLE IF EXISTS `story_encounters`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `story_encounters` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `adventure_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `adventure_id` int(10) INTERGER NOT NULL,
   `title` varchar(50) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `adventure_id` (`adventure_id`),
@@ -690,9 +690,9 @@ DROP TABLE IF EXISTS `story_events`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `story_events` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `adventure_id` int(10) unsigned NOT NULL,
-  `nr` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `adventure_id` int(10) INTERGER NOT NULL,
+  `nr` int(10) INTERGER NOT NULL,
   `title` varchar(100) NOT NULL,
   `description` text NOT NULL,
   PRIMARY KEY (`id`),
@@ -709,8 +709,8 @@ DROP TABLE IF EXISTS `story_npcs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `story_npcs` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `adventure_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `adventure_id` int(10) INTERGER NOT NULL,
   `name` varchar(50) NOT NULL,
   `cr` varchar(3) NOT NULL,
   `type` varchar(50) NOT NULL,
@@ -729,9 +729,9 @@ DROP TABLE IF EXISTS `story_objects`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `story_objects` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `adventure_id` int(10) unsigned NOT NULL,
-  `nr` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `adventure_id` int(10) INTERGER NOT NULL,
+  `nr` int(10) INTERGER NOT NULL,
   `name` varchar(50) NOT NULL,
   `located` varchar(50) NOT NULL,
   `description` text NOT NULL,
@@ -749,16 +749,16 @@ DROP TABLE IF EXISTS `tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tokens` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `organisation_id` int(10) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `organisation_id` int(10) INTERGER NOT NULL,
   `name` varchar(50) NOT NULL,
-  `width` tinyint(3) unsigned NOT NULL,
-  `height` tinyint(3) unsigned NOT NULL,
+  `width` INTEGER(3) INTERGER NOT NULL,
+  `height` INTEGER(3) INTERGER NOT NULL,
   `extension` varchar(4) NOT NULL,
   `type` enum('topdown','portrait') NOT NULL,
-  `armor_class` tinyint(3) unsigned NOT NULL,
-  `hitpoints` smallint(5) unsigned NOT NULL,
-  `shape_change` tinyint(1) NOT NULL,
+  `armor_class` INTEGER(3) INTERGER NOT NULL,
+  `hitpoints` smallint(5) INTERGER NOT NULL,
+  `shape_change` INTEGER(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `organisation_id` (`organisation_id`),
   CONSTRAINT `tokens_ibfk_1` FOREIGN KEY (`organisation_id`) REFERENCES `organisations` (`id`)
@@ -773,8 +773,8 @@ DROP TABLE IF EXISTS `user_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user_role` (
-  `user_id` int(10) unsigned NOT NULL,
-  `role_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) INTERGER NOT NULL,
+  `role_id` int(10) INTERGER NOT NULL,
   KEY `role_id` (`role_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `user_role_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
@@ -800,17 +800,17 @@ DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `users` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `organisation_id` int(10) unsigned NOT NULL,
+  `id` int(11) INTERGER NOT NULL AUTO_INCREMENT,
+  `organisation_id` int(10) INTERGER NOT NULL,
   `username` varchar(50) NOT NULL,
   `password` tinytext NOT NULL,
   `one_time_key` varchar(128) DEFAULT NULL,
-  `cert_serial` int(10) unsigned DEFAULT NULL,
-  `status` tinyint(4) unsigned NOT NULL DEFAULT 0,
+  `cert_serial` int(10) INTERGER DEFAULT NULL,
+  `status` INTEGER(4) INTERGER NOT NULL DEFAULT 0,
   `authenticator_secret` varchar(16) DEFAULT NULL,
   `fullname` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
-  `keyboard` tinyint(3) unsigned NOT NULL,
+  `keyboard` INTEGER(3) INTERGER NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`),
@@ -838,13 +838,13 @@ DROP TABLE IF EXISTS `walls`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `walls` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `map_id` int(10) unsigned NOT NULL,
-  `pos_x` smallint(5) unsigned NOT NULL,
-  `pos_y` smallint(5) unsigned NOT NULL,
-  `length` smallint(5) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) INTERGER NOT NULL,
+  `pos_x` smallint(5) INTERGER NOT NULL,
+  `pos_y` smallint(5) INTERGER NOT NULL,
+  `length` smallint(5) INTERGER NOT NULL,
   `direction` enum('horizontal','vertical') NOT NULL,
-  `transparent` tinyint(1) NOT NULL,
+  `transparent` INTEGER(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`),
   CONSTRAINT `walls_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)
@@ -859,17 +859,17 @@ DROP TABLE IF EXISTS `zones`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `zones` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `map_id` int(10) unsigned NOT NULL,
-  `pos_x` smallint(5) unsigned NOT NULL,
-  `pos_y` smallint(5) unsigned NOT NULL,
-  `width` tinyint(3) unsigned NOT NULL,
-  `height` tinyint(3) unsigned NOT NULL,
+  `id` int(10) INTERGER NOT NULL AUTO_INCREMENT,
+  `map_id` int(10) INTERGER NOT NULL,
+  `pos_x` smallint(5) INTERGER NOT NULL,
+  `pos_y` smallint(5) INTERGER NOT NULL,
+  `width` INTEGER(3) INTERGER NOT NULL,
+  `height` INTEGER(3) INTERGER NOT NULL,
   `color` varchar(7) NOT NULL,
   `opacity` decimal(3,1) NOT NULL,
   `script` text NOT NULL,
   `group` varchar(10) NOT NULL,
-  `altitude` tinyint(3) unsigned NOT NULL,
+  `altitude` INTEGER(3) INTERGER NOT NULL,
   PRIMARY KEY (`id`),
   KEY `map_id` (`map_id`) USING BTREE,
   CONSTRAINT `zones_ibfk_1` FOREIGN KEY (`map_id`) REFERENCES `maps` (`id`)

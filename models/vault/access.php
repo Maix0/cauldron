@@ -31,7 +31,7 @@
 
 			$result = array();
 			foreach ($columns as $column) {
-				if (strstr($column["Type"], "tinyint") === false) {
+				if (strstr($column["Type"], "INTEGER") === false) {
 					continue;
 				}
 				if ($this->user->is_admin == false) {

@@ -16,7 +16,7 @@
 
 	/* Create core objects
 	 */
-	$_database = new Database\MySQLi_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
+	$_database = new Database\Pg_connection(DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
 	$_settings = new Core\settings($_database);
 	$_session  = new Core\session($_database, $_settings);
 	$_user     = new Core\user($_database, $_settings, $_session);

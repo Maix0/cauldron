@@ -8,7 +8,7 @@
 
 	namespace Banshee\Database;
 
-	class MySQLi_connection extends database_connection {
+	class Pg_connection extends database_connection {
 		public function __construct($hostname, $database, $username, $password, $port = 3306) {
 			$this->db_close         = "mysqli_close";
 			$this->db_insert_id     = "mysqli_insert_id";
