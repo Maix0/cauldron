@@ -1,0 +1,8 @@
+/* WebSocket server settings
+ */
+#define VERSION "${PROJECT_VERSION}"
+#define PORT ${PORT}
+#define UID ${UID}
+#define GID ${GID}
+#define LOGFILE "${LOGFILE}"
+#define PIDFILE "${PIDFILE}"

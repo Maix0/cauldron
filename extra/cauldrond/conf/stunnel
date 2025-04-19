@@ -1,0 +1,14 @@
+# xinetd configuration
+#
+service stunnel
+{
+	disable			= no
+	port			= 2000
+	socket_type		= stream
+	wait			= no
+	user			= root
+	server			= /usr/bin/stunnel4
+	server_args		= /etc/stunnel/websocket.conf
+	log_on_success	+= USERID
+	log_on_failure	+= USERID
+}

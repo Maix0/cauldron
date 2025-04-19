@@ -1,0 +1,58 @@
+Installation
+============
+Edit CMakeLists.txt and change the UID, GID and PIDFILE options according to
+your needs. Leave everything else unchanged.
+
+The amount of clients this websocket server can handle defines how many
+simultaneous players your Cauldron VTT website can have. The default is 32. To
+change this, change the MAX_CLIENTS value in src/ws.h.
+
+Run the script 'compile' to compile this websocket server. It requires CMake to
+compile. Copy the created cauldrond binary to /usr/sbin.
+
+Copy conf/cauldrond to /etc/init.d and use '/etc/init.d/cauldron start' to start
+the Cauldron VTT websocket server.
+
+
+1) Hiawatha web server
+----------------------
+If you use the Hiawatha web server, you can use the following configuration line:
+
+  WebSocket = ws://127.0.0.1:2001 /websocket 30
+
+In the Cauldron VTT web application directory, edit settings/cauldron.conf and
+set WEBSOCKET_PORT to 443.
+
+
+2) Other web server
+-------------------
+If you use any other web server, you have two options:
+- use the XInetd & STunnel4 solution, or
+- try to make the websocket work through your web server.
+
+
+2a) XInetd & STunnel4
+---------------------
+This websocket server doesn't speak TLS. This setup uses STunnel4 for the TLS
+offloading xinetd to start the websocket server when a client connects.
+
+In the Cauldron VTT web application directory, edit settings/cauldron.conf and
+set WEBSOCKET_PORT to 2000.
+
+In this setup, cauldrond will listen to port 2001 and xinetd to 2000. If you
+want to change that, change the port settings in the files CMakeLists.txt and
+in the configuration files in the directory 'conf'. Also, make changes in the
+file settings/cauldron.conf, located in the Cauldron VTT web application
+directory.
+
+  web browser <---> xinetd:2000 <---> STunnel4 <---> cauldrond:2001 
+
+
+2b) Websocket through web server
+--------------------------------
+You need to forward websocket requests (they all start with the /websocket path)
+to the websocket daemon which runs at port 2001 by default. Make sure your web
+server does the TLS offloading. In the Cauldron VTT web application directory,
+edit settings/cauldron.conf and set WEBSOCKET_PORT to 443.
+
+  web browser <---> web server:433 <---> cauldrond:2001 

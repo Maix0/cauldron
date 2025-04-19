@@ -1,0 +1,79 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          cauldrond
+# Required-Start:    $syslog $network $remote_fs
+# Required-Stop:     $syslog $network $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Cauldron VTT websocket server
+# Description:       Server providing client-to-client connectivity for Cauldron VTT
+### END INIT INFO
+
+NAME=cauldrond
+DAEMON=/usr/sbin/cauldrond
+PIDFILE=/run/cauldrond.pid
+
+set -e
+
+# /etc/init.d/cauldrond: start and stop the Cauldron VTT websocket server
+
+test -x $DAEMON || exit 0
+( $DAEMON -\v 2>&1 | grep -q Cauldron ) 2>/dev/null || exit 0
+
+. /lib/lsb/init-functions
+
+case "$1" in
+	start)
+		if [ -e $PIDFILE ]; then
+			status_of_proc -p $PIDFILE $DAEMON $NAME && status="0" || status="$?"
+			if [ $status = "0" ]; then
+				exit 1
+			fi
+		fi
+
+		log_daemon_msg "Starting Cauldron VTT websocket server" $NAME || true
+		if start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --exec $DAEMON; then
+			log_end_msg 0 || true
+		else
+			log_end_msg 1 || true
+		fi
+		;;
+
+	stop)
+		pidofproc -p $PIDFILE $DAEMON > /dev/null && status="0" || status="$?"
+		if [ $status != "0" ]; then
+			log_failure_msg "$NAME is not running"
+			rm -f $PIDFILE
+			exit 1
+		fi
+
+		log_daemon_msg "Stopping Cauldron VTT websocket server" $NAME || true
+		if start-stop-daemon --stop --quiet --oknodo --retry 30 --pidfile $PIDFILE; then
+			log_end_msg 0 || true
+			rm -f $PIDFILE
+		else
+			log_end_msg 1 || true
+		fi
+		;;
+
+	restart)
+		log_daemon_msg "Restarting Cauldron VTT websocket server" $NAME || true
+		start-stop-daemon --stop --quiet --oknodo --retry 30 --pidfile $PIDFILE
+		if start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --exec $DAEMON; then
+			log_end_msg 0 || true
+		else
+			log_end_msg 1 || true
+		fi
+		;;
+
+	status)
+		status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+		;;
+
+	*)
+		log_action_msg "Usage: /etc/init.d/cauldrond {start|stop|restart|status}" || true
+		exit 1
+esac
+
+exit 0
